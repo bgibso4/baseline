@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>App Structure — Navigation</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #0a0a0f; color: #fff; font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif; padding: 32px; }
+
+  h1 { text-align: center; font-size: 24px; font-weight: 600; margin-bottom: 6px; }
+  .subtitle { text-align: center; color: #a0a0b8; font-size: 14px; margin-bottom: 40px; }
+
+  .options { display: flex; justify-content: center; gap: 40px; flex-wrap: wrap; }
+
+  .option-group { display: flex; flex-direction: column; align-items: center; cursor: pointer; }
+  .option-group:hover .phone { border-color: #6366f180; }
+  .option-group.selected .phone { border-color: #6366f1; box-shadow: 0 0 30px #6366f125; }
+
+  .phone {
+    width: 280px;
+    height: 520px;
+    background: #111118;
+    border-radius: 36px;
+    border: 3px solid #2a2a3e;
+    overflow: hidden;
+    position: relative;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+
+  /* Status bar */
+  .status-bar {
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+  }
+  .notch {
+    width: 72px;
+    height: 22px;
+    background: #0a0a0f;
+    border-radius: 11px;
+  }
+
+  /* Screen content */
+  .screen { padding: 8px 16px; flex: 1; }
+  .screen-title { font-size: 18px; font-weight: 600; text-align: center; margin-bottom: 16px; }
+
+  /* Tab bar */
+  .tab-bar {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 72px;
+    background: #141420;
+    border-top: 1px solid #2a2a3e;
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    padding: 0 8px 12px;
+    border-radius: 0 0 33px 33px;
+  }
+  .tab {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    font-size: 10px;
+    color: #6a6a80;
+  }
+  .tab.active { color: #6366f1; }
+  .tab-icon {
+    width: 22px;
+    height: 22px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+  }
+
+  /* Content blocks */
+  .mock-card {
+    background: #1a1a2e;
+    border: 1px solid #2a2a3e;
+    border-radius: 14px;
+    padding: 14px;
+    margin-bottom: 10px;
+  }
+  .mock-weight {
+    font-size: 36px;
+    font-weight: 700;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+  }
+  .mock-label { color: #a0a0b8; font-size: 11px; }
+  .mock-delta { font-size: 12px; }
+  .mock-delta.up { color: #f59e0b; }
+  .mock-delta.down { color: #22c55e; }
+
+  .mock-chart {
+    height: 80px;
+    background: #141420;
+    border-radius: 10px;
+    border: 1px solid #2a2a3e;
+    position: relative;
+    overflow: hidden;
+    margin-bottom: 10px;
+  }
+  .mock-chart-line {
+    position: absolute;
+    bottom: 20px;
+    left: 10px;
+    right: 10px;
+    height: 2px;
+    background: linear-gradient(90deg, #6366f1 0%, #818cf8 50%, #6366f1 100%);
+    transform: rotate(-3deg);
+  }
+  .mock-chart-label {
+    position: absolute;
+    top: 6px;
+    left: 10px;
+    font-size: 9px;
+    color: #6a6a80;
+  }
+
+  .mock-btn {
+    background: #6366f1;
+    border-radius: 12px;
+    padding: 14px;
+    text-align: center;
+    font-weight: 600;
+    font-size: 15px;
+    margin-bottom: 10px;
+  }
+
+  .mock-list-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid #1a1a2e;
+  }
+  .mock-list-item:last-child { border-bottom: none; }
+
+  .nav-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 4px 0 8px;
+  }
+  .nav-link { color: #6366f1; font-size: 12px; }
+
+  .arrow-links { margin-top: 8px; }
+  .arrow-link {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 14px;
+    background: #1a1a2e;
+    border: 1px solid #2a2a3e;
+    border-radius: 10px;
+    margin-bottom: 6px;
+    font-size: 13px;
+  }
+  .arrow-link .arrow { color: #4a4a5e; margin-left: auto; }
+
+  .opt-label { font-size: 18px; font-weight: 600; margin-top: 20px; }
+  .opt-desc { color: #a0a0b8; font-size: 13px; margin-top: 6px; max-width: 280px; text-align: center; line-height: 1.5; }
+
+  /* Selection indicator */
+  .indicator {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: #6366f1;
+    color: white;
+    text-align: center;
+    padding: 16px;
+    font-weight: 600;
+    font-size: 16px;
+    transform: translateY(100%);
+    transition: transform 0.3s;
+    z-index: 100;
+  }
+  .indicator.visible { transform: translateY(0); }
+</style>
+</head>
+<body>
+
+<h1>App Structure</h1>
+<p class="subtitle">How should navigation work? Click to select.</p>
+
+<div class="options">
+
+  <!-- OPTION A: 3 Tabs -->
+  <div class="option-group" onclick="select('a', this)">
+    <div class="phone">
+      <div class="status-bar"><div class="notch"></div></div>
+      <div class="screen">
+        <div class="screen-title">Today</div>
+
+        <div class="mock-card">
+          <div class="mock-label" style="text-align:center; margin-bottom: 4px;">April 2</div>
+          <div class="mock-weight">197.0 <span style="font-size:16px; color:#a0a0b8; font-weight:400;">lb</span></div>
+          <div style="text-align:center; margin-top:4px;">
+            <span class="mock-delta up">↑ 0.5 lb</span>
+            <span class="mock-label" style="margin-left:4px;">from yesterday</span>
+          </div>
+        </div>
+
+        <div class="mock-chart">
+          <div class="mock-chart-label">7-day trend</div>
+          <div class="mock-chart-line"></div>
+        </div>
+
+        <div class="mock-btn">Weigh In</div>
+
+        <div class="arrow-links">
+          <div class="arrow-link">📋 History <span class="arrow">›</span></div>
+          <div class="arrow-link">📐 InBody Scans <span class="arrow">›</span></div>
+        </div>
+      </div>
+
+      <div class="tab-bar">
+        <div class="tab active">
+          <div class="tab-icon">⚖️</div>
+          <span>Today</span>
+        </div>
+        <div class="tab">
+          <div class="tab-icon">📈</div>
+          <span>Trends</span>
+        </div>
+        <div class="tab">
+          <div class="tab-icon">⚙️</div>
+          <span>Settings</span>
+        </div>
+      </div>
+    </div>
+    <div class="opt-label">A. Three Tabs</div>
+    <div class="opt-desc">Today | Trends | Settings. History and InBody are push navigations from Today. Compact, but nests two features under one tab.</div>
+  </div>
+
+  <!-- OPTION B: Single Stack -->
+  <div class="option-group" onclick="select('b', this)">
+    <div class="phone">
+      <div class="status-bar"><div class="notch"></div></div>
+      <div class="screen">
+        <div class="nav-row">
+          <span class="nav-link">⚙️</span>
+          <span style="font-size:16px; font-weight:600;">Home</span>
+          <span style="width:20px;"></span>
+        </div>
+
+        <div class="mock-card">
+          <div class="mock-label" style="text-align:center; margin-bottom: 4px;">April 2</div>
+          <div class="mock-weight">197.0 <span style="font-size:16px; color:#a0a0b8; font-weight:400;">lb</span></div>
+          <div style="text-align:center; margin-top:4px;">
+            <span class="mock-delta up">↑ 0.5 lb</span>
+            <span class="mock-label" style="margin-left:4px;">from yesterday</span>
+          </div>
+        </div>
+
+        <div class="mock-btn">Weigh In</div>
+
+        <div class="mock-chart">
+          <div class="mock-chart-label">7-day trend</div>
+          <div class="mock-chart-line"></div>
+        </div>
+
+        <div class="arrow-links">
+          <div class="arrow-link">📈 Trends <span class="arrow">›</span></div>
+          <div class="arrow-link">📋 History <span class="arrow">›</span></div>
+          <div class="arrow-link">📐 InBody Scans <span class="arrow">›</span></div>
+          <div class="arrow-link">⚙️ Settings <span class="arrow">›</span></div>
+        </div>
+      </div>
+
+      <!-- No tab bar -->
+    </div>
+    <div class="opt-label">B. Single Stack</div>
+    <div class="opt-desc">One home screen. Everything is a push navigation or sheet from there. No tab bar. Ultra-minimal — the app is its home screen.</div>
+  </div>
+
+  <!-- OPTION C: 4 Tabs -->
+  <div class="option-group" onclick="select('c', this)">
+    <div class="phone">
+      <div class="status-bar"><div class="notch"></div></div>
+      <div class="screen">
+        <div class="screen-title">Today</div>
+
+        <div class="mock-card">
+          <div class="mock-label" style="text-align:center; margin-bottom: 4px;">April 2</div>
+          <div class="mock-weight">197.0 <span style="font-size:16px; color:#a0a0b8; font-weight:400;">lb</span></div>
+          <div style="text-align:center; margin-top:4px;">
+            <span class="mock-delta up">↑ 0.5 lb</span>
+            <span class="mock-label" style="margin-left:4px;">from yesterday</span>
+          </div>
+        </div>
+
+        <div class="mock-chart">
+          <div class="mock-chart-label">7-day trend</div>
+          <div class="mock-chart-line"></div>
+        </div>
+
+        <div class="mock-btn">Weigh In</div>
+
+        <div class="arrow-link">📋 History <span class="arrow">›</span></div>
+      </div>
+
+      <div class="tab-bar">
+        <div class="tab active">
+          <div class="tab-icon">⚖️</div>
+          <span>Today</span>
+        </div>
+        <div class="tab">
+          <div class="tab-icon">📈</div>
+          <span>Trends</span>
+        </div>
+        <div class="tab">
+          <div class="tab-icon">📐</div>
+          <span>Body</span>
+        </div>
+        <div class="tab">
+          <div class="tab-icon">⚙️</div>
+          <span>Settings</span>
+        </div>
+      </div>
+    </div>
+    <div class="opt-label">C. Four Tabs</div>
+    <div class="opt-desc">Today | Trends | Body (InBody/measurements) | Settings. Each feature has its own home. Clean separation — nothing nested. History pushed from Today.</div>
+  </div>
+
+</div>
+
+<div class="indicator" id="indicator"></div>
+
+<script>
+let selected = null;
+function select(choice, el) {
+  document.querySelectorAll('.option-group').forEach(g => g.classList.remove('selected'));
+  el.classList.add('selected');
+  selected = choice;
+  const labels = { a: 'A. Three Tabs', b: 'B. Single Stack', c: 'C. Four Tabs' };
+  const ind = document.getElementById('indicator');
+  ind.textContent = 'Selected: ' + labels[choice];
+  ind.classList.add('visible');
+  fetch('/event', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ type: 'click', choice, text: labels[choice], timestamp: Math.floor(Date.now()/1000) })
+  }).catch(() => {});
+}
+</script>
+
+</body>
+</html>

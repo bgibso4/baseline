@@ -1,0 +1,119 @@
+<h2>Stepper vs Slider Arc</h2>
+<p class="subtitle">Both default to yesterday's weight. Drag the arc or tap +/− to adjust.</p>
+
+<div class="cards">
+
+  <!-- Option A: Stepper (confirmed favorite) -->
+  <div class="card" data-choice="a" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding: 24px; background: #0a0a0f;">
+      <div style="text-align: center;">
+        <div style="color: #a0a0b8; font-size: 13px; margin-bottom: 12px;">Yesterday: 196.5 lb</div>
+        <div style="display: flex; align-items: center; justify-content: center; gap: 32px;">
+          <div style="width: 56px; height: 56px; border-radius: 50%; border: 2px solid #6366f1; display: flex; align-items: center; justify-content: center; font-size: 28px; color: #6366f1; cursor: pointer;">−</div>
+          <div>
+            <div style="font-size: 48px; font-weight: 700; color: #fff; font-variant-numeric: tabular-nums;">197.0</div>
+            <div style="color: #a0a0b8; font-size: 13px;">lb</div>
+          </div>
+          <div style="width: 56px; height: 56px; border-radius: 50%; border: 2px solid #6366f1; display: flex; align-items: center; justify-content: center; font-size: 28px; color: #6366f1; cursor: pointer;">+</div>
+        </div>
+        <div style="margin-top: 16px; display: flex; gap: 8px; justify-content: center;">
+          <span style="background: #141420; border: 1px solid #2a2a3e; border-radius: 8px; padding: 6px 14px; color: #a0a0b8; font-size: 13px;">0.1</span>
+          <span style="background: #6366f120; border: 1px solid #6366f140; border-radius: 8px; padding: 6px 14px; color: #6366f1; font-size: 13px;">0.5</span>
+          <span style="background: #141420; border: 1px solid #2a2a3e; border-radius: 8px; padding: 6px 14px; color: #a0a0b8; font-size: 13px;">1.0</span>
+        </div>
+        <div style="margin-top: 20px; background: #6366f1; border-radius: 12px; padding: 14px; color: white; font-weight: 600; font-size: 16px;">Save</div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>A. Stepper (+/−)</h3>
+      <p>Tap to adjust. Toggle step size. Fastest for small changes (1-3 taps). Simple, predictable, zero learning curve.</p>
+    </div>
+  </div>
+
+  <!-- Option D: Slider Arc -->
+  <div class="card" data-choice="d" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding: 24px; background: #0a0a0f;">
+      <div style="text-align: center;">
+        <div style="color: #a0a0b8; font-size: 13px; margin-bottom: 12px;">Yesterday: 196.5 lb</div>
+        <div style="position: relative; width: 240px; height: 180px; margin: 0 auto;">
+          <!-- Arc track (background) -->
+          <svg viewBox="0 0 240 180" style="width: 100%; height: 100%;">
+            <!-- Background arc -->
+            <path d="M 30 160 A 105 105 0 0 1 210 160" fill="none" stroke="#2a2a3e" stroke-width="8" stroke-linecap="round"/>
+            <!-- Filled arc (progress) -->
+            <path d="M 30 160 A 105 105 0 0 1 165 28" fill="none" stroke="#6366f1" stroke-width="8" stroke-linecap="round"/>
+            <!-- Tick marks along the arc -->
+            <circle cx="30" cy="160" r="3" fill="#4a4a5e"/>
+            <circle cx="42" cy="118" r="3" fill="#4a4a5e"/>
+            <circle cx="70" cy="82" r="3" fill="#4a4a5e"/>
+            <circle cx="108" cy="56" r="3" fill="#4a4a5e"/>
+            <circle cx="150" cy="44" r="3" fill="#4a4a5e"/>
+            <circle cx="190" cy="52" r="3" fill="#4a4a5e"/>
+            <circle cx="210" cy="160" r="3" fill="#4a4a5e"/>
+            <!-- Thumb / handle -->
+            <circle cx="165" cy="28" r="14" fill="#6366f1" stroke="#0a0a0f" stroke-width="4"/>
+            <circle cx="165" cy="28" r="6" fill="#fff"/>
+            <!-- Range labels -->
+            <text x="24" y="178" fill="#4a4a5e" font-size="11" text-anchor="middle">190</text>
+            <text x="216" y="178" fill="#4a4a5e" font-size="11" text-anchor="middle">205</text>
+          </svg>
+          <!-- Center weight display -->
+          <div style="position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%); text-align: center;">
+            <div style="font-size: 48px; font-weight: 700; color: #fff; font-variant-numeric: tabular-nums;">197.0</div>
+            <div style="color: #a0a0b8; font-size: 13px;">lb</div>
+          </div>
+        </div>
+        <!-- Fine adjustment row -->
+        <div style="display: flex; align-items: center; justify-content: center; gap: 20px; margin-top: 8px;">
+          <div style="width: 40px; height: 40px; border-radius: 50%; border: 1.5px solid #3a3a4e; display: flex; align-items: center; justify-content: center; font-size: 20px; color: #a0a0b8; cursor: pointer;">−</div>
+          <span style="color: #6a6a80; font-size: 13px;">fine adjust ± 0.1</span>
+          <div style="width: 40px; height: 40px; border-radius: 50%; border: 1.5px solid #3a3a4e; display: flex; align-items: center; justify-content: center; font-size: 20px; color: #a0a0b8; cursor: pointer;">+</div>
+        </div>
+        <div style="margin-top: 16px; background: #6366f1; border-radius: 12px; padding: 14px; color: white; font-weight: 600; font-size: 16px;">Save</div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>D. Slider Arc</h3>
+      <p>Drag the handle along an arc to set weight. Range auto-centers around your recent weights (e.g., 190–205). Small +/− buttons for fine 0.1 lb adjustments. Visually striking, satisfying gesture, but more complex interaction than a stepper.</p>
+    </div>
+  </div>
+
+  <!-- Option E: Hybrid — Arc display + Stepper input -->
+  <div class="card" data-choice="e" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding: 24px; background: #0a0a0f;">
+      <div style="text-align: center;">
+        <div style="color: #a0a0b8; font-size: 13px; margin-bottom: 12px;">Yesterday: 196.5 lb</div>
+        <div style="position: relative; width: 220px; height: 160px; margin: 0 auto;">
+          <!-- Arc (display only — not interactive) -->
+          <svg viewBox="0 0 220 160" style="width: 100%; height: 100%;">
+            <path d="M 25 145 A 95 95 0 0 1 195 145" fill="none" stroke="#2a2a3e" stroke-width="6" stroke-linecap="round"/>
+            <path d="M 25 145 A 95 95 0 0 1 152 22" fill="none" stroke="#6366f1" stroke-width="6" stroke-linecap="round"/>
+            <!-- Small dot at position -->
+            <circle cx="152" cy="22" r="8" fill="#6366f1"/>
+          </svg>
+          <!-- Center weight display -->
+          <div style="position: absolute; bottom: 4px; left: 50%; transform: translateX(-50%); text-align: center;">
+            <div style="font-size: 44px; font-weight: 700; color: #fff; font-variant-numeric: tabular-nums;">197.0</div>
+            <div style="color: #a0a0b8; font-size: 13px;">lb</div>
+          </div>
+        </div>
+        <!-- Stepper controls below -->
+        <div style="display: flex; align-items: center; justify-content: center; gap: 28px; margin-top: 4px;">
+          <div style="width: 52px; height: 52px; border-radius: 50%; border: 2px solid #6366f1; display: flex; align-items: center; justify-content: center; font-size: 26px; color: #6366f1; cursor: pointer;">−</div>
+          <div style="display: flex; gap: 6px;">
+            <span style="background: #141420; border: 1px solid #2a2a3e; border-radius: 8px; padding: 5px 12px; color: #a0a0b8; font-size: 12px;">0.1</span>
+            <span style="background: #6366f120; border: 1px solid #6366f140; border-radius: 8px; padding: 5px 12px; color: #6366f1; font-size: 12px;">0.5</span>
+            <span style="background: #141420; border: 1px solid #2a2a3e; border-radius: 8px; padding: 5px 12px; color: #a0a0b8; font-size: 12px;">1.0</span>
+          </div>
+          <div style="width: 52px; height: 52px; border-radius: 50%; border: 2px solid #6366f1; display: flex; align-items: center; justify-content: center; font-size: 26px; color: #6366f1; cursor: pointer;">+</div>
+        </div>
+        <div style="margin-top: 16px; background: #6366f1; border-radius: 12px; padding: 14px; color: white; font-weight: 600; font-size: 16px;">Save</div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>E. Hybrid — Arc Display + Stepper</h3>
+      <p>The arc is a visual indicator showing where your weight sits in your recent range — but you don't drag it. You adjust with the stepper buttons below. Best of both: the visual context of the arc + the simplicity of tap-to-adjust. Arc animates as you tap.</p>
+    </div>
+  </div>
+
+</div>

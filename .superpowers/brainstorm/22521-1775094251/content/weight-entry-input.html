@@ -1,0 +1,100 @@
+<h2>Weight Entry — Input Method</h2>
+<p class="subtitle">You'll use this every morning. Which feels right for zero-friction logging?</p>
+
+<div class="cards">
+
+  <!-- Option A: Stepper -->
+  <div class="card" data-choice="a" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding: 24px; background: #0a0a0f;">
+      <div style="text-align: center;">
+        <div style="color: #a0a0b8; font-size: 13px; margin-bottom: 12px;">Yesterday: 196.5 lb</div>
+        <div style="display: flex; align-items: center; justify-content: center; gap: 32px;">
+          <div style="width: 56px; height: 56px; border-radius: 50%; border: 2px solid #6366f1; display: flex; align-items: center; justify-content: center; font-size: 28px; color: #6366f1; cursor: pointer;">−</div>
+          <div>
+            <div style="font-size: 48px; font-weight: 700; color: #fff; font-variant-numeric: tabular-nums;">197.0</div>
+            <div style="color: #a0a0b8; font-size: 13px;">lb</div>
+          </div>
+          <div style="width: 56px; height: 56px; border-radius: 50%; border: 2px solid #6366f1; display: flex; align-items: center; justify-content: center; font-size: 28px; color: #6366f1; cursor: pointer;">+</div>
+        </div>
+        <div style="margin-top: 16px; display: flex; gap: 8px; justify-content: center;">
+          <span style="background: #141420; border: 1px solid #2a2a3e; border-radius: 8px; padding: 6px 14px; color: #a0a0b8; font-size: 13px;">0.1</span>
+          <span style="background: #6366f120; border: 1px solid #6366f140; border-radius: 8px; padding: 6px 14px; color: #6366f1; font-size: 13px;">0.5</span>
+          <span style="background: #141420; border: 1px solid #2a2a3e; border-radius: 8px; padding: 6px 14px; color: #a0a0b8; font-size: 13px;">1.0</span>
+        </div>
+        <div style="margin-top: 20px; background: #6366f1; border-radius: 12px; padding: 14px; color: white; font-weight: 600; font-size: 16px;">Save</div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>A. Stepper (+/−)</h3>
+      <p>Defaults to yesterday's weight. Tap +/− to adjust. Toggle step size (0.1 / 0.5 / 1.0 lb). Fewest taps when weight is close to yesterday — which it almost always is.</p>
+    </div>
+  </div>
+
+  <!-- Option B: Keypad -->
+  <div class="card" data-choice="b" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding: 24px; background: #0a0a0f;">
+      <div style="text-align: center;">
+        <div style="color: #a0a0b8; font-size: 13px; margin-bottom: 12px;">Yesterday: 196.5 lb</div>
+        <div style="font-size: 48px; font-weight: 700; color: #fff; margin-bottom: 4px; font-variant-numeric: tabular-nums;">197<span style="color: #6366f1;">|</span></div>
+        <div style="color: #a0a0b8; font-size: 13px; margin-bottom: 16px;">lb</div>
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; max-width: 240px; margin: 0 auto;">
+          <div style="background: #141420; border-radius: 12px; padding: 14px; color: #fff; font-size: 20px; font-weight: 500;">1</div>
+          <div style="background: #141420; border-radius: 12px; padding: 14px; color: #fff; font-size: 20px; font-weight: 500;">2</div>
+          <div style="background: #141420; border-radius: 12px; padding: 14px; color: #fff; font-size: 20px; font-weight: 500;">3</div>
+          <div style="background: #141420; border-radius: 12px; padding: 14px; color: #fff; font-size: 20px; font-weight: 500;">4</div>
+          <div style="background: #141420; border-radius: 12px; padding: 14px; color: #fff; font-size: 20px; font-weight: 500;">5</div>
+          <div style="background: #141420; border-radius: 12px; padding: 14px; color: #fff; font-size: 20px; font-weight: 500;">6</div>
+          <div style="background: #141420; border-radius: 12px; padding: 14px; color: #fff; font-size: 20px; font-weight: 500;">7</div>
+          <div style="background: #141420; border-radius: 12px; padding: 14px; color: #fff; font-size: 20px; font-weight: 500;">8</div>
+          <div style="background: #141420; border-radius: 12px; padding: 14px; color: #fff; font-size: 20px; font-weight: 500;">9</div>
+          <div style="background: #141420; border-radius: 12px; padding: 14px; color: #fff; font-size: 20px; font-weight: 500;">.</div>
+          <div style="background: #141420; border-radius: 12px; padding: 14px; color: #fff; font-size: 20px; font-weight: 500;">0</div>
+          <div style="background: #141420; border-radius: 12px; padding: 14px; color: #a0a0b8; font-size: 20px; font-weight: 500;">⌫</div>
+        </div>
+        <div style="margin-top: 12px; background: #6366f1; border-radius: 12px; padding: 14px; color: white; font-weight: 600; font-size: 16px; max-width: 240px; margin: 12px auto 0;">Save</div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>B. Numeric Keypad</h3>
+      <p>Type the full weight each time. No ambiguity — you see exactly what you're logging. More taps than stepper (5-6 vs 1-3), but very explicit. Could pre-fill yesterday's value for quick confirm.</p>
+    </div>
+  </div>
+
+  <!-- Option C: Scroll Wheel -->
+  <div class="card" data-choice="c" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding: 24px; background: #0a0a0f;">
+      <div style="text-align: center;">
+        <div style="color: #a0a0b8; font-size: 13px; margin-bottom: 12px;">Yesterday: 196.5 lb</div>
+        <div style="position: relative; height: 180px; overflow: hidden; margin: 0 auto; max-width: 200px;">
+          <!-- Scroll wheel simulation -->
+          <div style="position: absolute; top: 0; left: 0; right: 0; height: 60px; background: linear-gradient(to bottom, #0a0a0f, transparent); z-index: 1;"></div>
+          <div style="position: absolute; bottom: 0; left: 0; right: 0; height: 60px; background: linear-gradient(to top, #0a0a0f, transparent); z-index: 1;"></div>
+          <div style="position: absolute; top: 50%; left: 0; right: 0; transform: translateY(-50%); height: 48px; background: #6366f115; border-top: 1px solid #6366f140; border-bottom: 1px solid #6366f140; z-index: 0;"></div>
+          <div style="display: flex; justify-content: center; gap: 40px; padding-top: 8px;">
+            <div style="text-align: center;">
+              <div style="color: #4a4a5e; font-size: 24px; padding: 8px 0;">195</div>
+              <div style="color: #6a6a80; font-size: 24px; padding: 8px 0;">196</div>
+              <div style="color: #fff; font-size: 32px; font-weight: 700; padding: 8px 0;">197</div>
+              <div style="color: #6a6a80; font-size: 24px; padding: 8px 0;">198</div>
+              <div style="color: #4a4a5e; font-size: 24px; padding: 8px 0;">199</div>
+            </div>
+            <div style="text-align: center;">
+              <div style="color: #4a4a5e; font-size: 24px; padding: 8px 0;">.8</div>
+              <div style="color: #6a6a80; font-size: 24px; padding: 8px 0;">.9</div>
+              <div style="color: #fff; font-size: 32px; font-weight: 700; padding: 8px 0;">.0</div>
+              <div style="color: #6a6a80; font-size: 24px; padding: 8px 0;">.1</div>
+              <div style="color: #4a4a5e; font-size: 24px; padding: 8px 0;">.2</div>
+            </div>
+          </div>
+          <div style="color: #a0a0b8; font-size: 13px; position: absolute; bottom: 4px; width: 100%; text-align: center; z-index: 2;">lb</div>
+        </div>
+        <div style="margin-top: 20px; background: #6366f1; border-radius: 12px; padding: 14px; color: white; font-weight: 600; font-size: 16px;">Save</div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>C. Scroll Wheel</h3>
+      <p>iOS-native picker feel. Two wheels — whole pounds + decimal. Starts at yesterday's weight. Tactile, satisfying scroll. Natural on iOS, but slightly slower than a stepper for small adjustments.</p>
+    </div>
+  </div>
+
+</div>
