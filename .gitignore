@@ -1,0 +1,16 @@
+# Brainstorm sessions (local only)
+.superpowers/
+
+# Xcode
+build/
+DerivedData/
+*.xcuserstate
+*.xcworkspacedata
+xcuserdata/
+
+# Swift Package Manager
+.build/
+Packages/
+
+# Local settings
+.claude/settings.local.json
