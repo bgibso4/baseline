@@ -8,9 +8,11 @@
 
 /* Begin PBXBuildFile section */
 		14FE980511237871E2644BEE /* BaselineApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 007A5A45919FF650EAB251AE /* BaselineApp.swift */; };
+		35E604283BC457FB5A0DE9BC /* BodyMeasurementTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EE556EA34222636CEDC327C /* BodyMeasurementTests.swift */; };
 		416BB9FECD67376B100EFFAC /* BaselineWidgets.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = D25FD52DA7EFC4286FE7A191 /* BaselineWidgets.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		7F2647C6A3C1B0DE829C5847 /* WeightEntryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F133F7888A7F42479BC2329D /* WeightEntryTests.swift */; };
 		9190571A252AD986B58681CA /* BodyMeasurement.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5461EF15EB4C753A478FEA56 /* BodyMeasurement.swift */; };
+		B4B2BCBF2B921FC88D9E902D /* MeasurementType.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FB8FE60E06088A3CD2FDE17 /* MeasurementType.swift */; };
 		B75C84191E094A7A6442247B /* SyncState.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0FDF5DB2E481DF3A8881BD1 /* SyncState.swift */; };
 		BDA863FA90D638092A5D0806 /* BaselineWidgets.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4CBC035387A8087081A7BDD0 /* BaselineWidgets.swift */; };
 		CBF3C4E51A74CC2C2F9ABE89 /* InBodyScan.swift in Sources */ = {isa = PBXBuildFile; fileRef = 571F92A04B53A24504BBC6C2 /* InBodyScan.swift */; };
@@ -54,11 +56,13 @@
 		007A5A45919FF650EAB251AE /* BaselineApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BaselineApp.swift; sourceTree = "<group>"; };
 		312ECD390BFC532EC10D9819 /* WeightEntry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeightEntry.swift; sourceTree = "<group>"; };
 		4CBC035387A8087081A7BDD0 /* BaselineWidgets.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BaselineWidgets.swift; sourceTree = "<group>"; };
+		4EE556EA34222636CEDC327C /* BodyMeasurementTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BodyMeasurementTests.swift; sourceTree = "<group>"; };
 		52A47437C87E1BCE8442A2FF /* BaselineTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BaselineTests.swift; sourceTree = "<group>"; };
 		5461EF15EB4C753A478FEA56 /* BodyMeasurement.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BodyMeasurement.swift; sourceTree = "<group>"; };
 		571F92A04B53A24504BBC6C2 /* InBodyScan.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InBodyScan.swift; sourceTree = "<group>"; };
 		6C0783D23B036F0A996BD1E7 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		76B6D911AF8339B62A988B99 /* MainTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainTabView.swift; sourceTree = "<group>"; };
+		7FB8FE60E06088A3CD2FDE17 /* MeasurementType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeasurementType.swift; sourceTree = "<group>"; };
 		88AF6FD6DF3173BDBDB33E58 /* Baseline.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Baseline.entitlements; sourceTree = "<group>"; };
 		917EC6C734FA7FDEF274FFAD /* Baseline.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = Baseline.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A6C5F86354C722884254D09A /* BaselineTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = BaselineTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -72,6 +76,7 @@
 		13953FB9F1A4A393FC8DA9F1 /* Models */ = {
 			isa = PBXGroup;
 			children = (
+				4EE556EA34222636CEDC327C /* BodyMeasurementTests.swift */,
 				F133F7888A7F42479BC2329D /* WeightEntryTests.swift */,
 			);
 			path = Models;
@@ -148,6 +153,7 @@
 			children = (
 				5461EF15EB4C753A478FEA56 /* BodyMeasurement.swift */,
 				571F92A04B53A24504BBC6C2 /* InBodyScan.swift */,
+				7FB8FE60E06088A3CD2FDE17 /* MeasurementType.swift */,
 				F0FDF5DB2E481DF3A8881BD1 /* SyncState.swift */,
 				312ECD390BFC532EC10D9819 /* WeightEntry.swift */,
 			);
@@ -249,6 +255,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				CD47B6562AAE37739E2FADD0 /* BaselineTests.swift in Sources */,
+				35E604283BC457FB5A0DE9BC /* BodyMeasurementTests.swift in Sources */,
 				7F2647C6A3C1B0DE829C5847 /* WeightEntryTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -261,6 +268,7 @@
 				9190571A252AD986B58681CA /* BodyMeasurement.swift in Sources */,
 				CBF3C4E51A74CC2C2F9ABE89 /* InBodyScan.swift in Sources */,
 				E204F8619398C13BDEA27DB1 /* MainTabView.swift in Sources */,
+				B4B2BCBF2B921FC88D9E902D /* MeasurementType.swift in Sources */,
 				B75C84191E094A7A6442247B /* SyncState.swift in Sources */,
 				D0394A7C2A7BFFD92369B3B1 /* WeightEntry.swift in Sources */,
 			);

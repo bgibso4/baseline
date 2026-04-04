@@ -1,12 +1,12 @@
-import SwiftData
 import Foundation
+import SwiftData
 
 @Model
-final class SyncState {
-    var tableName: String
+class SyncState {
+    @Attribute(.unique) var tableName: String
     var lastSyncTimestamp: String
 
-    init(tableName: String = "", lastSyncTimestamp: String = "") {
+    init(tableName: String, lastSyncTimestamp: String = "") {
         self.tableName = tableName
         self.lastSyncTimestamp = lastSyncTimestamp
     }
