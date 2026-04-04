@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		14FE980511237871E2644BEE /* BaselineApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 007A5A45919FF650EAB251AE /* BaselineApp.swift */; };
 		416BB9FECD67376B100EFFAC /* BaselineWidgets.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = D25FD52DA7EFC4286FE7A191 /* BaselineWidgets.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		7F2647C6A3C1B0DE829C5847 /* WeightEntryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F133F7888A7F42479BC2329D /* WeightEntryTests.swift */; };
 		9190571A252AD986B58681CA /* BodyMeasurement.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5461EF15EB4C753A478FEA56 /* BodyMeasurement.swift */; };
 		B75C84191E094A7A6442247B /* SyncState.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0FDF5DB2E481DF3A8881BD1 /* SyncState.swift */; };
 		BDA863FA90D638092A5D0806 /* BaselineWidgets.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4CBC035387A8087081A7BDD0 /* BaselineWidgets.swift */; };
@@ -64,9 +65,18 @@
 		CCF4DEE4E18DA610367483F2 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		D25FD52DA7EFC4286FE7A191 /* BaselineWidgets.appex */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = "wrapper.app-extension"; path = BaselineWidgets.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		F0FDF5DB2E481DF3A8881BD1 /* SyncState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncState.swift; sourceTree = "<group>"; };
+		F133F7888A7F42479BC2329D /* WeightEntryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeightEntryTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
+		13953FB9F1A4A393FC8DA9F1 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				F133F7888A7F42479BC2329D /* WeightEntryTests.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
 		395E0E8B872B7232D1875563 /* Products */ = {
 			isa = PBXGroup;
 			children = (
@@ -127,6 +137,7 @@
 		DE8E3E194E02B1D31425FA7B /* BaselineTests */ = {
 			isa = PBXGroup;
 			children = (
+				13953FB9F1A4A393FC8DA9F1 /* Models */,
 				52A47437C87E1BCE8442A2FF /* BaselineTests.swift */,
 			);
 			path = BaselineTests;
@@ -238,6 +249,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				CD47B6562AAE37739E2FADD0 /* BaselineTests.swift in Sources */,
+				7F2647C6A3C1B0DE829C5847 /* WeightEntryTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
