@@ -105,6 +105,19 @@ enum CadreTypography {
     /// Delta display (retained for other screens).
     static let deltaDisplay = Font.system(size: 17, weight: .medium, design: .rounded)
 
+    // MARK: History screen tokens
+
+    /// History row date ("Wed, Apr 3") — 15pt medium.
+    static let historyDate = Font.system(size: 15, weight: .medium)
+    /// History row weight value — 16pt semibold.
+    static let historyValue = Font.system(size: 16, weight: .semibold)
+    /// History row delta ("+0.2") — 13pt medium.
+    static let historyDelta = Font.system(size: 13, weight: .medium)
+    /// History row notes preview — 12pt regular.
+    static let historyNotes = Font.system(size: 12, weight: .regular)
+    /// History empty-state message — 15pt regular.
+    static let historyEmpty = Font.system(size: 15, weight: .regular)
+
     /// Deprecated: superseded by `weightHero` (84pt) on the Now screen.
     /// Retained temporarily; remove once no longer referenced.
     @available(*, deprecated, message: "Use weightHero (84pt) — matches approved Now mockup.")

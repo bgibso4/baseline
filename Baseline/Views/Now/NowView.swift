@@ -74,9 +74,7 @@ struct NowView: View {
                     .foregroundStyle(CadreColors.textPrimary)
             }
             .navigationDestination(isPresented: $showHistory) {
-                // Replaced in Task 11
-                Text("History")
-                    .foregroundStyle(CadreColors.textPrimary)
+                HistoryView()
             }
             .onAppear {
                 // If a VM was injected, skip lazy init entirely — the caller

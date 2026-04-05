@@ -7,6 +7,12 @@ enum DateFormatting {
         return f
     }()
 
+    private static let weekdayShortFormatter: DateFormatter = {
+        let f = DateFormatter()
+        f.dateFormat = "EEE, MMM d"
+        return f
+    }()
+
     private static let fullFormatter: DateFormatter = {
         let f = DateFormatter()
         f.dateStyle = .medium
@@ -21,6 +27,11 @@ enum DateFormatting {
 
     static func shortDay(_ date: Date) -> String {
         dayFormatter.string(from: date)
+    }
+
+    /// Weekday + short date (e.g. "Wed, Apr 3"). Used by History row.
+    static func weekdayShort(_ date: Date) -> String {
+        weekdayShortFormatter.string(from: date)
     }
 
     static func fullDate(_ date: Date) -> String {
