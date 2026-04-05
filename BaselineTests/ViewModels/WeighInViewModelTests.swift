@@ -30,29 +30,16 @@ final class WeighInViewModelTests: XCTestCase {
         XCTAssertEqual(vm.currentWeight, 150.0)
     }
 
-    func testIncrementByStepSize() {
+    func testIncrementByPointOne() {
         let vm = WeighInViewModel(modelContext: context, lastWeight: 197.4, unit: "lb")
-        vm.stepSize = 0.1
         vm.increment()
         XCTAssertEqual(vm.currentWeight, 197.5, accuracy: 0.01)
     }
 
-    func testDecrementByStepSize() {
+    func testDecrementByPointOne() {
         let vm = WeighInViewModel(modelContext: context, lastWeight: 197.4, unit: "lb")
-        vm.stepSize = 0.5
         vm.decrement()
-        XCTAssertEqual(vm.currentWeight, 196.9, accuracy: 0.01)
-    }
-
-    func testToggleStepSize() {
-        let vm = WeighInViewModel(modelContext: context, lastWeight: 197.4, unit: "lb")
-        XCTAssertEqual(vm.stepSize, 0.1)
-        vm.cycleStepSize()
-        XCTAssertEqual(vm.stepSize, 0.5)
-        vm.cycleStepSize()
-        XCTAssertEqual(vm.stepSize, 1.0)
-        vm.cycleStepSize()
-        XCTAssertEqual(vm.stepSize, 0.1)
+        XCTAssertEqual(vm.currentWeight, 197.3, accuracy: 0.01)
     }
 
     func testSaveCreatesNewEntry() {
@@ -79,5 +66,27 @@ final class WeighInViewModelTests: XCTestCase {
         let entries = try! context.fetch(descriptor)
         XCTAssertEqual(entries.count, 1, "Should update existing, not create duplicate")
         XCTAssertEqual(entries.first?.weight, 198.0)
+    }
+
+    func testSavePersistsNotes() {
+        let vm = WeighInViewModel(modelContext: context, lastWeight: 197.4, unit: "lb")
+        vm.currentWeight = 198.0
+        vm.notes = "After long run"
+        vm.save()
+
+        let descriptor = FetchDescriptor<WeightEntry>()
+        let entries = try! context.fetch(descriptor)
+        XCTAssertEqual(entries.first?.notes, "After long run")
+    }
+
+    func testSaveEmptyNotesStoredAsNil() {
+        let vm = WeighInViewModel(modelContext: context, lastWeight: 197.4, unit: "lb")
+        vm.currentWeight = 198.0
+        vm.notes = "   "
+        vm.save()
+
+        let descriptor = FetchDescriptor<WeightEntry>()
+        let entries = try! context.fetch(descriptor)
+        XCTAssertNil(entries.first?.notes)
     }
 }

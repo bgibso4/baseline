@@ -8,9 +8,7 @@ class WeighInViewModel {
     let unit: String
 
     var currentWeight: Double
-    var stepSize: Double = 0.1
-
-    private let stepSizes: [Double] = [0.1, 0.5, 1.0]
+    var notes: String = ""
 
     init(modelContext: ModelContext, lastWeight: Double?, unit: String) {
         self.modelContext = modelContext
@@ -19,24 +17,17 @@ class WeighInViewModel {
     }
 
     func increment() {
-        currentWeight = (currentWeight + stepSize).rounded(toPlaces: 1)
+        currentWeight = (currentWeight + 0.1).rounded(toPlaces: 1)
     }
 
     func decrement() {
-        currentWeight = (currentWeight - stepSize).rounded(toPlaces: 1)
-    }
-
-    func cycleStepSize() {
-        guard let currentIndex = stepSizes.firstIndex(of: stepSize) else {
-            stepSize = stepSizes[0]
-            return
-        }
-        let nextIndex = (currentIndex + 1) % stepSizes.count
-        stepSize = stepSizes[nextIndex]
+        currentWeight = (currentWeight - 0.1).rounded(toPlaces: 1)
     }
 
     func save() {
         let today = Calendar.current.startOfDay(for: Date())
+        let trimmedNotes = notes.trimmingCharacters(in: .whitespacesAndNewlines)
+        let notesToSave: String? = trimmedNotes.isEmpty ? nil : trimmedNotes
 
         var descriptor = FetchDescriptor<WeightEntry>(
             predicate: #Predicate { $0.date == today }
@@ -45,9 +36,10 @@ class WeighInViewModel {
 
         if let existing = try? modelContext.fetch(descriptor).first {
             existing.weight = currentWeight
+            existing.notes = notesToSave
             existing.updatedAt = Date()
         } else {
-            let entry = WeightEntry(weight: currentWeight, unit: unit, date: Date())
+            let entry = WeightEntry(weight: currentWeight, unit: unit, date: Date(), notes: notesToSave)
             modelContext.insert(entry)
         }
 
