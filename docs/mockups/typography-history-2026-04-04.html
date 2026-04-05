@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Baseline — Typography in Context (History)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0B0B0E;
+    --card: #17171B;
+    --text-primary: #F2F3F5;
+    --text-secondary: #797B83;
+    --text-tertiary: #494B52;
+    --divider: #2A2A30;
+    --accent: #6B7B94;
+    --negative: #A8624E;
+    --positive: #5C8A6A;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif;
+    background: #E8E8EA;
+    color: #1A1A1C;
+    padding: 40px 32px;
+    -webkit-font-smoothing: antialiased;
+    line-height: 1.4;
+  }
+
+  .page-header {
+    max-width: 1400px;
+    margin: 0 auto 32px;
+  }
+  .page-header h1 {
+    font-size: 32px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    margin-bottom: 6px;
+  }
+  .page-header p {
+    font-size: 14px;
+    color: #5A5A60;
+  }
+
+  .compare-grid {
+    max-width: 1400px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+  }
+
+  .variant-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #1A1A1C;
+    margin-bottom: 4px;
+  }
+  .variant-sublabel {
+    font-size: 11px;
+    color: #6B6B72;
+    margin-bottom: 14px;
+  }
+
+  .phone {
+    background: var(--bg);
+    border-radius: 32px;
+    overflow: hidden;
+    aspect-ratio: 393 / 852;
+    position: relative;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+  }
+
+  /* Status bar */
+  .status-bar {
+    padding: 14px 24px 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .status-bar .time {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+
+  /* Nav bar */
+  .nav-bar {
+    padding: 16px 20px 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border-bottom: 0.5px solid var(--divider);
+  }
+  .nav-bar .back {
+    color: var(--accent);
+    font-size: 15px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .nav-bar .title {
+    flex: 1;
+    text-align: center;
+    font-size: 17px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-right: 44px;
+  }
+
+  /* History list */
+  .history-list {
+    padding: 8px 0 100px;
+    overflow-y: hidden;
+    max-height: calc(100% - 110px);
+  }
+
+  .section-header {
+    padding: 12px 20px 6px;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .history-row {
+    padding: 14px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 0.5px solid var(--divider);
+  }
+  .history-row .left {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+  }
+  .history-row .date {
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--text-primary);
+  }
+  .history-row .note {
+    font-size: 12px;
+    color: var(--text-tertiary);
+  }
+  .history-row .right {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 3px;
+  }
+  .history-row .weight {
+    font-size: 17px;
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+  .history-row .weight .unit {
+    font-size: 12px;
+    font-weight: 400;
+    color: var(--text-secondary);
+    margin-left: 3px;
+  }
+  .history-row .delta {
+    font-size: 12px;
+    font-weight: 500;
+  }
+  .history-row .delta.positive { color: var(--positive); }
+  .history-row .delta.negative { color: var(--negative); }
+  .history-row .delta.neutral { color: var(--text-secondary); }
+
+  /* Tab bar */
+  .tab-bar {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 72px;
+    background: #0F0F13;
+    border-top: 0.5px solid rgba(73, 75, 82, 0.3);
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    padding-bottom: 8px;
+  }
+  .tab-bar .tab {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+  }
+  .tab-bar .tab .icon {
+    width: 20px; height: 20px;
+    border-radius: 50%;
+    border: 1.3px solid var(--text-tertiary);
+  }
+  .tab-bar .tab.active .icon {
+    background: var(--accent);
+    border: none;
+  }
+  .tab-bar .tab .label {
+    font-size: 10px;
+    font-weight: 400;
+    color: var(--text-tertiary);
+  }
+  .tab-bar .tab.active .label {
+    color: var(--accent);
+    font-weight: 600;
+  }
+
+  /* === FONT ASSIGNMENTS === */
+
+  /* Variant 1: All Exo 2 */
+  .variant-exo .nav-bar .back,
+  .variant-exo .nav-bar .title,
+  .variant-exo .section-header,
+  .variant-exo .history-row .date,
+  .variant-exo .history-row .note,
+  .variant-exo .history-row .weight,
+  .variant-exo .history-row .weight .unit,
+  .variant-exo .history-row .delta,
+  .variant-exo .tab .label,
+  .variant-exo .status-bar .time {
+    font-family: "Exo 2", sans-serif;
+  }
+
+  /* Variant 2: All SF Pro (system) */
+  .variant-sf .nav-bar .back,
+  .variant-sf .nav-bar .title,
+  .variant-sf .section-header,
+  .variant-sf .history-row .date,
+  .variant-sf .history-row .note,
+  .variant-sf .history-row .weight,
+  .variant-sf .history-row .weight .unit,
+  .variant-sf .history-row .delta,
+  .variant-sf .tab .label,
+  .variant-sf .status-bar .time {
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", sans-serif;
+  }
+
+  /* Variant 3: Hybrid — Exo 2 for numerals/hero, SF Pro for UI */
+  .variant-hybrid .history-row .weight {
+    font-family: "Exo 2", sans-serif;
+  }
+  .variant-hybrid .nav-bar .back,
+  .variant-hybrid .nav-bar .title,
+  .variant-hybrid .section-header,
+  .variant-hybrid .history-row .date,
+  .variant-hybrid .history-row .note,
+  .variant-hybrid .history-row .weight .unit,
+  .variant-hybrid .history-row .delta,
+  .variant-hybrid .tab .label,
+  .variant-hybrid .status-bar .time {
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", sans-serif;
+  }
+</style>
+</head>
+<body>
+  <div class="page-header">
+    <h1>Typography in Context — History Screen</h1>
+    <p>Text-heavy content: nav, section headers, row labels, weight values, deltas, tab bar</p>
+  </div>
+
+  <div class="compare-grid">
+
+    <!-- VARIANT 1: All Exo 2 -->
+    <div>
+      <div class="variant-label">01 · All Exo 2</div>
+      <div class="variant-sublabel">Distinctive everywhere</div>
+      <div class="phone variant-exo">
+        <div class="status-bar"><span class="time">9:41</span></div>
+        <div class="nav-bar">
+          <span class="back">‹ Today</span>
+          <span class="title">History</span>
+        </div>
+        <div class="history-list">
+          <div class="section-header">This Week</div>
+          <div class="history-row">
+            <div class="left"><div class="date">Friday, Apr 4</div></div>
+            <div class="right"><div class="weight">197.4<span class="unit">lb</span></div><div class="delta negative">+0.6</div></div>
+          </div>
+          <div class="history-row">
+            <div class="left"><div class="date">Thursday, Apr 3</div></div>
+            <div class="right"><div class="weight">196.8<span class="unit">lb</span></div><div class="delta positive">−0.4</div></div>
+          </div>
+          <div class="history-row">
+            <div class="left"><div class="date">Wednesday, Apr 2</div></div>
+            <div class="right"><div class="weight">197.2<span class="unit">lb</span></div><div class="delta negative">+0.2</div></div>
+          </div>
+          <div class="history-row">
+            <div class="left"><div class="date">Tuesday, Apr 1</div><div class="note">After long run</div></div>
+            <div class="right"><div class="weight">197.0<span class="unit">lb</span></div><div class="delta positive">−0.8</div></div>
+          </div>
+          <div class="history-row">
+            <div class="left"><div class="date">Monday, Mar 31</div></div>
+            <div class="right"><div class="weight">197.8<span class="unit">lb</span></div><div class="delta negative">+0.3</div></div>
+          </div>
+          <div class="section-header">Last Week</div>
+          <div class="history-row">
+            <div class="left"><div class="date">Sunday, Mar 30</div></div>
+            <div class="right"><div class="weight">197.5<span class="unit">lb</span></div><div class="delta neutral">0.0</div></div>
+          </div>
+          <div class="history-row">
+            <div class="left"><div class="date">Saturday, Mar 29</div><div class="note">Rest day</div></div>
+            <div class="right"><div class="weight">197.5<span class="unit">lb</span></div><div class="delta negative">+0.5</div></div>
+          </div>
+          <div class="history-row">
+            <div class="left"><div class="date">Friday, Mar 28</div></div>
+            <div class="right"><div class="weight">197.0<span class="unit">lb</span></div><div class="delta positive">−0.3</div></div>
+          </div>
+        </div>
+        <div class="tab-bar">
+          <div class="tab"><div class="icon"></div><div class="label">Trends</div></div>
+          <div class="tab active"><div class="icon"></div><div class="label">Now</div></div>
+          <div class="tab"><div class="icon"></div><div class="label">Body</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- VARIANT 2: All SF Pro -->
+    <div>
+      <div class="variant-label">02 · All SF Pro</div>
+      <div class="variant-sublabel">Native iOS throughout</div>
+      <div class="phone variant-sf">
+        <div class="status-bar"><span class="time">9:41</span></div>
+        <div class="nav-bar">
+          <span class="back">‹ Today</span>
+          <span class="title">History</span>
+        </div>
+        <div class="history-list">
+          <div class="section-header">This Week</div>
+          <div class="history-row">
+            <div class="left"><div class="date">Friday, Apr 4</div></div>
+            <div class="right"><div class="weight">197.4<span class="unit">lb</span></div><div class="delta negative">+0.6</div></div>
+          </div>
+          <div class="history-row">
+            <div class="left"><div class="date">Thursday, Apr 3</div></div>
+            <div class="right"><div class="weight">196.8<span class="unit">lb</span></div><div class="delta positive">−0.4</div></div>
+          </div>
+          <div class="history-row">
+            <div class="left"><div class="date">Wednesday, Apr 2</div></div>
+            <div class="right"><div class="weight">197.2<span class="unit">lb</span></div><div class="delta negative">+0.2</div></div>
+          </div>
+          <div class="history-row">
+            <div class="left"><div class="date">Tuesday, Apr 1</div><div class="note">After long run</div></div>
+            <div class="right"><div class="weight">197.0<span class="unit">lb</span></div><div class="delta positive">−0.8</div></div>
+          </div>
+          <div class="history-row">
+            <div class="left"><div class="date">Monday, Mar 31</div></div>
+            <div class="right"><div class="weight">197.8<span class="unit">lb</span></div><div class="delta negative">+0.3</div></div>
+          </div>
+          <div class="section-header">Last Week</div>
+          <div class="history-row">
+            <div class="left"><div class="date">Sunday, Mar 30</div></div>
+            <div class="right"><div class="weight">197.5<span class="unit">lb</span></div><div class="delta neutral">0.0</div></div>
+          </div>
+          <div class="history-row">
+            <div class="left"><div class="date">Saturday, Mar 29</div><div class="note">Rest day</div></div>
+            <div class="right"><div class="weight">197.5<span class="unit">lb</span></div><div class="delta negative">+0.5</div></div>
+          </div>
+          <div class="history-row">
+            <div class="left"><div class="date">Friday, Mar 28</div></div>
+            <div class="right"><div class="weight">197.0<span class="unit">lb</span></div><div class="delta positive">−0.3</div></div>
+          </div>
+        </div>
+        <div class="tab-bar">
+          <div class="tab"><div class="icon"></div><div class="label">Trends</div></div>
+          <div class="tab active"><div class="icon"></div><div class="label">Now</div></div>
+          <div class="tab"><div class="icon"></div><div class="label">Body</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- VARIANT 3: Hybrid -->
+    <div>
+      <div class="variant-label">03 · Hybrid — Exo 2 numerals + SF Pro UI ⭐</div>
+      <div class="variant-sublabel">Weight values in Exo 2, everything else SF Pro</div>
+      <div class="phone variant-hybrid">
+        <div class="status-bar"><span class="time">9:41</span></div>
+        <div class="nav-bar">
+          <span class="back">‹ Today</span>
+          <span class="title">History</span>
+        </div>
+        <div class="history-list">
+          <div class="section-header">This Week</div>
+          <div class="history-row">
+            <div class="left"><div class="date">Friday, Apr 4</div></div>
+            <div class="right"><div class="weight">197.4<span class="unit">lb</span></div><div class="delta negative">+0.6</div></div>
+          </div>
+          <div class="history-row">
+            <div class="left"><div class="date">Thursday, Apr 3</div></div>
+            <div class="right"><div class="weight">196.8<span class="unit">lb</span></div><div class="delta positive">−0.4</div></div>
+          </div>
+          <div class="history-row">
+            <div class="left"><div class="date">Wednesday, Apr 2</div></div>
+            <div class="right"><div class="weight">197.2<span class="unit">lb</span></div><div class="delta negative">+0.2</div></div>
+          </div>
+          <div class="history-row">
+            <div class="left"><div class="date">Tuesday, Apr 1</div><div class="note">After long run</div></div>
+            <div class="right"><div class="weight">197.0<span class="unit">lb</span></div><div class="delta positive">−0.8</div></div>
+          </div>
+          <div class="history-row">
+            <div class="left"><div class="date">Monday, Mar 31</div></div>
+            <div class="right"><div class="weight">197.8<span class="unit">lb</span></div><div class="delta negative">+0.3</div></div>
+          </div>
+          <div class="section-header">Last Week</div>
+          <div class="history-row">
+            <div class="left"><div class="date">Sunday, Mar 30</div></div>
+            <div class="right"><div class="weight">197.5<span class="unit">lb</span></div><div class="delta neutral">0.0</div></div>
+          </div>
+          <div class="history-row">
+            <div class="left"><div class="date">Saturday, Mar 29</div><div class="note">Rest day</div></div>
+            <div class="right"><div class="weight">197.5<span class="unit">lb</span></div><div class="delta negative">+0.5</div></div>
+          </div>
+          <div class="history-row">
+            <div class="left"><div class="date">Friday, Mar 28</div></div>
+            <div class="right"><div class="weight">197.0<span class="unit">lb</span></div><div class="delta positive">−0.3</div></div>
+          </div>
+        </div>
+        <div class="tab-bar">
+          <div class="tab"><div class="icon"></div><div class="label">Trends</div></div>
+          <div class="tab active"><div class="icon"></div><div class="label">Now</div></div>
+          <div class="tab"><div class="icon"></div><div class="label">Body</div></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</body>
+</html>

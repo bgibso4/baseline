@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Baseline — History Entry Options</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0B0B0E; --card: #17171B; --card-elevated: #1F1F24;
+    --text-primary: #F2F3F5; --text-secondary: #797B83; --text-tertiary: #494B52;
+    --divider: #2A2A30; --accent: #6B7B94; --secondary: #B89968;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: "Exo 2", -apple-system, sans-serif; background: #E8E8EA; padding: 40px 24px; -webkit-font-smoothing: antialiased; }
+  .page-header { max-width: 1600px; margin: 0 auto 28px; font-family: -apple-system, sans-serif; }
+  .page-header h1 { font-size: 28px; font-weight: 700; letter-spacing: -0.4px; margin-bottom: 4px; }
+  .page-header p { font-size: 13px; color: #5A5A60; max-width: 840px; line-height: 1.5; }
+  .grid { max-width: 1600px; margin: 0 auto; display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
+  .variant-wrap { display: flex; flex-direction: column; gap: 8px; }
+  .variant-label { font-family: -apple-system, sans-serif; font-size: 13px; font-weight: 600; color: #1A1A1C; }
+  .variant-sub { font-family: -apple-system, sans-serif; font-size: 11px; color: #6B6B72; line-height: 1.4; }
+
+  .phone { width: 100%; aspect-ratio: 393 / 852; background: var(--bg); border-radius: 42px; overflow: hidden; position: relative; box-shadow: 0 12px 36px rgba(0,0,0,0.18); color: var(--text-primary); font-family: "Exo 2", sans-serif; display: flex; flex-direction: column; }
+  .status-bar { flex-shrink: 0; padding: 16px 28px 8px; display: flex; justify-content: space-between; font-size: 14px; font-weight: 600; }
+  .content { flex: 1; overflow-y: auto; }
+
+  /* Section head */
+  .section-head { display: flex; align-items: center; justify-content: space-between; padding: 18px 22px 10px; }
+  .sh-left .sh-title { font-family: -apple-system, sans-serif; font-size: 11px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.6px; }
+  .sh-left .sh-meta { font-family: -apple-system, sans-serif; font-size: 10px; color: var(--text-tertiary); font-weight: 500; margin-top: 3px; }
+  .sh-left .sh-meta-link { font-family: -apple-system, sans-serif; font-size: 10px; color: var(--accent); font-weight: 600; margin-top: 3px; display: inline-flex; align-items: center; gap: 3px; }
+  .sh-left .sh-meta-link svg { width: 10px; height: 10px; stroke: currentColor; stroke-width: 2.4; fill: none; stroke-linecap: round; }
+  .sh-right { display: flex; align-items: center; gap: 8px; }
+  .icon-btn { width: 28px; height: 28px; border-radius: 14px; background: var(--card-elevated); display: flex; align-items: center; justify-content: center; color: var(--accent); flex-shrink: 0; }
+  .icon-btn.muted { color: var(--text-secondary); }
+  .icon-btn svg { width: 14px; height: 14px; stroke: currentColor; stroke-width: 2.4; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+  .icon-btn.kebab svg { stroke-width: 0; fill: currentColor; }
+
+  /* Tiles */
+  .tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding: 0 22px; }
+  .tile { background: var(--card); border-radius: 12px; padding: 13px 12px; }
+  .tile .t-top { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+  .tile .t-icon { width: 22px; height: 22px; border-radius: 6px; background: var(--card-elevated); color: var(--accent); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .tile .t-icon.sec { color: var(--secondary); }
+  .tile .t-icon svg { width: 12px; height: 12px; stroke: currentColor; stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+  .tile .t-name { font-family: -apple-system, sans-serif; font-size: 10px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.4px; }
+  .tile .t-val { font-family: "Exo 2", sans-serif; font-size: 22px; font-weight: 700; color: var(--text-primary); letter-spacing: -0.5px; line-height: 1; display: flex; align-items: baseline; gap: 3px; }
+  .tile .t-val .unit { font-size: 10px; color: var(--text-secondary); font-weight: 500; }
+  .tile .t-delta { font-family: -apple-system, sans-serif; font-size: 10px; font-weight: 600; margin-top: 6px; color: var(--accent); }
+  .tile .t-delta.up { color: #8FA880; }
+  .tile .t-delta svg { width: 9px; height: 9px; display: inline-block; vertical-align: -1px; margin-right: 2px; }
+
+  /* History card (Option D) */
+  .history-card { margin: 12px 22px 0; background: var(--card); border: 1px solid var(--divider); border-radius: 12px; padding: 12px 14px; display: flex; align-items: center; gap: 12px; font-family: -apple-system, sans-serif; }
+  .history-card .hc-icon { width: 32px; height: 32px; border-radius: 9px; background: var(--card-elevated); color: var(--accent); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .history-card .hc-icon svg { width: 15px; height: 15px; stroke: currentColor; stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+  .history-card .hc-text { flex: 1; }
+  .history-card .hc-title { font-size: 13px; font-weight: 600; color: var(--text-primary); letter-spacing: -0.1px; }
+  .history-card .hc-body { font-size: 10px; color: var(--text-tertiary); font-weight: 500; margin-top: 2px; }
+  .history-card .hc-chev { color: var(--text-tertiary); }
+  .history-card .hc-chev svg { width: 14px; height: 14px; stroke: currentColor; stroke-width: 2.2; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+
+  /* Tab bar */
+  .tab-bar { flex-shrink: 0; height: 76px; background: rgba(11,11,14,0.9); backdrop-filter: blur(20px); border-top: 0.5px solid var(--divider); display: flex; padding: 10px 0 22px; margin-top: auto; }
+  .tab { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; color: var(--text-tertiary); }
+  .tab.active { color: var(--accent); }
+  .tab .icon { width: 24px; height: 24px; }
+  .tab .icon svg { width: 100%; height: 100%; stroke: currentColor; stroke-width: 1.8; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+  .tab.active .icon svg { stroke-width: 2.4; }
+  .tab .label { font-family: -apple-system, sans-serif; font-size: 9px; font-weight: 500; }
+  .tab.active .label { font-weight: 700; }
+
+  /* Highlight indicator (shows the relevant affordance) */
+  .highlight-ring { box-shadow: 0 0 0 2px var(--accent), 0 0 0 5px rgba(107,123,148,0.35); border-radius: 14px; }
+  .highlight-ring-pill { box-shadow: 0 0 0 2px var(--accent), 0 0 0 5px rgba(107,123,148,0.35); border-radius: 4px; }
+  .highlight-ring-card { box-shadow: 0 0 0 2px var(--accent), 0 0 0 5px rgba(107,123,148,0.35); }
+</style>
+</head>
+<body>
+  <div class="page-header">
+    <h1>Scan History — entry point options</h1>
+    <p>4 options for how users access Scan History from the Body tab. Each phone shows the top of Body Comp section with the affordance highlighted. Same pattern mirrors to Measurements section.</p>
+  </div>
+
+  <div class="grid">
+
+    <!-- Option A: Two icons in section header -->
+    <div class="variant-wrap">
+      <div class="variant-label">A · Two icons in section header</div>
+      <div class="variant-sub">History clock icon + plus icon on the right. History is secondary (muted). Primary action (+) stays prominent. Recommended.</div>
+      <div class="phone">
+        <div class="status-bar"><span>9:41</span><span>⚡ 100%</span></div>
+        <div class="content">
+          <div class="section-head">
+            <div class="sh-left">
+              <div class="sh-title">Body Composition</div>
+              <div class="sh-meta">Last scan · Mar 25</div>
+            </div>
+            <div class="sh-right">
+              <button class="icon-btn muted highlight-ring"><svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7"/><polyline points="3 4 3 9 8 9"/><polyline points="12 7 12 12 15 14"/></svg></button>
+              <button class="icon-btn highlight-ring"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
+            </div>
+          </div>
+          <div class="tiles">
+            <div class="tile"><div class="t-top"><div class="t-icon sec"><svg viewBox="0 0 24 24"><path d="M12 2a7 7 0 0 0-7 7c0 5 7 13 7 13s7-8 7-13a7 7 0 0 0-7-7z"/></svg></div><div class="t-name">Body Fat</div></div><div class="t-val">17.2<span class="unit">%</span></div><div class="t-delta"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>−0.4%</div></div>
+            <div class="tile"><div class="t-top"><div class="t-icon"><svg viewBox="0 0 24 24"><path d="M6 4v16M18 4v16M6 12h12"/></svg></div><div class="t-name">Muscle</div></div><div class="t-val">162.4<span class="unit">lb</span></div><div class="t-delta up"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="6 15 12 9 18 15"/></svg>+1.2 lb</div></div>
+            <div class="tile"><div class="t-top"><div class="t-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></div><div class="t-name">Visceral</div></div><div class="t-val">8.5</div><div class="t-delta"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>−0.3</div></div>
+            <div class="tile"><div class="t-top"><div class="t-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><line x1="12" y1="6" x2="12" y2="18"/><line x1="6" y1="12" x2="18" y2="12"/></svg></div><div class="t-name">BMI</div></div><div class="t-val">24.1</div><div class="t-delta"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>−0.1</div></div>
+          </div>
+        </div>
+        <div class="tab-bar">
+          <div class="tab"><div class="icon"><svg viewBox="0 0 24 24"><polyline points="3,17 9,11 13,15 21,7"/><polyline points="15,7 21,7 21,13"/></svg></div><div class="label">Trends</div></div>
+          <div class="tab"><div class="icon"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M12 8 L14.5 12.5 L9.5 12.5 Z" fill="currentColor" stroke="none"/></svg></div><div class="label">Now</div></div>
+          <div class="tab active"><div class="icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="5" r="2.5"/><line x1="12" y1="7.5" x2="12" y2="14"/><line x1="8" y1="10" x2="16" y2="10"/><line x1="12" y1="14" x2="9" y2="20"/><line x1="12" y1="14" x2="15" y2="20"/></svg></div><div class="label">Body</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Option B: Tappable meta with chevron -->
+    <div class="variant-wrap">
+      <div class="variant-label">B · Tappable meta with chevron</div>
+      <div class="variant-sub">"Last scan · Mar 25 ›" is the link. Accent-colored to signal tappable. Chevron confirms. Only one icon in the header.</div>
+      <div class="phone">
+        <div class="status-bar"><span>9:41</span><span>⚡ 100%</span></div>
+        <div class="content">
+          <div class="section-head">
+            <div class="sh-left">
+              <div class="sh-title">Body Composition</div>
+              <span class="sh-meta-link highlight-ring-pill">Last scan · Mar 25 <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></span>
+            </div>
+            <div class="sh-right">
+              <button class="icon-btn"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
+            </div>
+          </div>
+          <div class="tiles">
+            <div class="tile"><div class="t-top"><div class="t-icon sec"><svg viewBox="0 0 24 24"><path d="M12 2a7 7 0 0 0-7 7c0 5 7 13 7 13s7-8 7-13a7 7 0 0 0-7-7z"/></svg></div><div class="t-name">Body Fat</div></div><div class="t-val">17.2<span class="unit">%</span></div><div class="t-delta"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>−0.4%</div></div>
+            <div class="tile"><div class="t-top"><div class="t-icon"><svg viewBox="0 0 24 24"><path d="M6 4v16M18 4v16M6 12h12"/></svg></div><div class="t-name">Muscle</div></div><div class="t-val">162.4<span class="unit">lb</span></div><div class="t-delta up"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="6 15 12 9 18 15"/></svg>+1.2 lb</div></div>
+            <div class="tile"><div class="t-top"><div class="t-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></div><div class="t-name">Visceral</div></div><div class="t-val">8.5</div><div class="t-delta"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>−0.3</div></div>
+            <div class="tile"><div class="t-top"><div class="t-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><line x1="12" y1="6" x2="12" y2="18"/><line x1="6" y1="12" x2="18" y2="12"/></svg></div><div class="t-name">BMI</div></div><div class="t-val">24.1</div><div class="t-delta"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>−0.1</div></div>
+          </div>
+        </div>
+        <div class="tab-bar">
+          <div class="tab"><div class="icon"><svg viewBox="0 0 24 24"><polyline points="3,17 9,11 13,15 21,7"/><polyline points="15,7 21,7 21,13"/></svg></div><div class="label">Trends</div></div>
+          <div class="tab"><div class="icon"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M12 8 L14.5 12.5 L9.5 12.5 Z" fill="currentColor" stroke="none"/></svg></div><div class="label">Now</div></div>
+          <div class="tab active"><div class="icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="5" r="2.5"/><line x1="12" y1="7.5" x2="12" y2="14"/><line x1="8" y1="10" x2="16" y2="10"/><line x1="12" y1="14" x2="9" y2="20"/><line x1="12" y1="14" x2="15" y2="20"/></svg></div><div class="label">Body</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Option C: Kebab menu consolidates -->
+    <div class="variant-wrap">
+      <div class="variant-label">C · Kebab menu consolidates actions</div>
+      <div class="variant-sub">Single ⋯ menu with "Add scan" / "View history". Hides primary action behind a tap — worse for logging speed. Not recommended.</div>
+      <div class="phone">
+        <div class="status-bar"><span>9:41</span><span>⚡ 100%</span></div>
+        <div class="content">
+          <div class="section-head">
+            <div class="sh-left">
+              <div class="sh-title">Body Composition</div>
+              <div class="sh-meta">Last scan · Mar 25</div>
+            </div>
+            <div class="sh-right">
+              <button class="icon-btn kebab muted highlight-ring"><svg viewBox="0 0 24 24"><circle cx="12" cy="5" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="12" cy="19" r="1.6"/></svg></button>
+            </div>
+          </div>
+          <div class="tiles">
+            <div class="tile"><div class="t-top"><div class="t-icon sec"><svg viewBox="0 0 24 24"><path d="M12 2a7 7 0 0 0-7 7c0 5 7 13 7 13s7-8 7-13a7 7 0 0 0-7-7z"/></svg></div><div class="t-name">Body Fat</div></div><div class="t-val">17.2<span class="unit">%</span></div><div class="t-delta"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>−0.4%</div></div>
+            <div class="tile"><div class="t-top"><div class="t-icon"><svg viewBox="0 0 24 24"><path d="M6 4v16M18 4v16M6 12h12"/></svg></div><div class="t-name">Muscle</div></div><div class="t-val">162.4<span class="unit">lb</span></div><div class="t-delta up"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="6 15 12 9 18 15"/></svg>+1.2 lb</div></div>
+            <div class="tile"><div class="t-top"><div class="t-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></div><div class="t-name">Visceral</div></div><div class="t-val">8.5</div><div class="t-delta"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>−0.3</div></div>
+            <div class="tile"><div class="t-top"><div class="t-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><line x1="12" y1="6" x2="12" y2="18"/><line x1="6" y1="12" x2="18" y2="12"/></svg></div><div class="t-name">BMI</div></div><div class="t-val">24.1</div><div class="t-delta"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>−0.1</div></div>
+          </div>
+        </div>
+        <div class="tab-bar">
+          <div class="tab"><div class="icon"><svg viewBox="0 0 24 24"><polyline points="3,17 9,11 13,15 21,7"/><polyline points="15,7 21,7 21,13"/></svg></div><div class="label">Trends</div></div>
+          <div class="tab"><div class="icon"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M12 8 L14.5 12.5 L9.5 12.5 Z" fill="currentColor" stroke="none"/></svg></div><div class="label">Now</div></div>
+          <div class="tab active"><div class="icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="5" r="2.5"/><line x1="12" y1="7.5" x2="12" y2="14"/><line x1="8" y1="10" x2="16" y2="10"/><line x1="12" y1="14" x2="9" y2="20"/><line x1="12" y1="14" x2="15" y2="20"/></svg></div><div class="label">Body</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Option D: History card link -->
+    <div class="variant-wrap">
+      <div class="variant-label">D · History card below tiles</div>
+      <div class="variant-sub">Dedicated "Scan History" card sits below the tiles. Explicit label + count + chevron. Most discoverable; extra vertical space.</div>
+      <div class="phone">
+        <div class="status-bar"><span>9:41</span><span>⚡ 100%</span></div>
+        <div class="content">
+          <div class="section-head">
+            <div class="sh-left">
+              <div class="sh-title">Body Composition</div>
+              <div class="sh-meta">Last scan · Mar 25</div>
+            </div>
+            <div class="sh-right">
+              <button class="icon-btn"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
+            </div>
+          </div>
+          <div class="tiles">
+            <div class="tile"><div class="t-top"><div class="t-icon sec"><svg viewBox="0 0 24 24"><path d="M12 2a7 7 0 0 0-7 7c0 5 7 13 7 13s7-8 7-13a7 7 0 0 0-7-7z"/></svg></div><div class="t-name">Body Fat</div></div><div class="t-val">17.2<span class="unit">%</span></div><div class="t-delta"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>−0.4%</div></div>
+            <div class="tile"><div class="t-top"><div class="t-icon"><svg viewBox="0 0 24 24"><path d="M6 4v16M18 4v16M6 12h12"/></svg></div><div class="t-name">Muscle</div></div><div class="t-val">162.4<span class="unit">lb</span></div><div class="t-delta up"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="6 15 12 9 18 15"/></svg>+1.2 lb</div></div>
+            <div class="tile"><div class="t-top"><div class="t-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></div><div class="t-name">Visceral</div></div><div class="t-val">8.5</div><div class="t-delta"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>−0.3</div></div>
+            <div class="tile"><div class="t-top"><div class="t-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><line x1="12" y1="6" x2="12" y2="18"/><line x1="6" y1="12" x2="18" y2="12"/></svg></div><div class="t-name">BMI</div></div><div class="t-val">24.1</div><div class="t-delta"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>−0.1</div></div>
+          </div>
+          <div class="history-card highlight-ring-card">
+            <div class="hc-icon"><svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7"/><polyline points="3 4 3 9 8 9"/><polyline points="12 7 12 12 15 14"/></svg></div>
+            <div class="hc-text">
+              <div class="hc-title">Scan history</div>
+              <div class="hc-body">14 scans · since Oct 2025</div>
+            </div>
+            <div class="hc-chev"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></div>
+          </div>
+        </div>
+        <div class="tab-bar">
+          <div class="tab"><div class="icon"><svg viewBox="0 0 24 24"><polyline points="3,17 9,11 13,15 21,7"/><polyline points="15,7 21,7 21,13"/></svg></div><div class="label">Trends</div></div>
+          <div class="tab"><div class="icon"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M12 8 L14.5 12.5 L9.5 12.5 Z" fill="currentColor" stroke="none"/></svg></div><div class="label">Now</div></div>
+          <div class="tab active"><div class="icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="5" r="2.5"/><line x1="12" y1="7.5" x2="12" y2="14"/><line x1="8" y1="10" x2="16" y2="10"/><line x1="12" y1="14" x2="9" y2="20"/><line x1="12" y1="14" x2="15" y2="20"/></svg></div><div class="label">Body</div></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</body>
+</html>

@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Baseline — WeighIn Sheet Variants</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0B0B0E;
+    --card: #17171B;
+    --card-elevated: #1F1F24;
+    --text-primary: #F2F3F5;
+    --text-secondary: #797B83;
+    --text-tertiary: #494B52;
+    --divider: #2A2A30;
+    --accent: #6B7B94;
+    --sheet-bg: #141419;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Exo 2", -apple-system, sans-serif;
+    background: #E8E8EA;
+    padding: 40px 24px;
+    -webkit-font-smoothing: antialiased;
+  }
+  .page-header { max-width: 1400px; margin: 0 auto 32px; font-family: -apple-system, sans-serif; }
+  .page-header h1 { font-size: 28px; font-weight: 700; letter-spacing: -0.4px; margin-bottom: 4px; }
+  .page-header p { font-size: 13px; color: #5A5A60; }
+  .grid { max-width: 1400px; margin: 0 auto; display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+  .variant-wrap { display: flex; flex-direction: column; gap: 8px; }
+  .variant-label { font-family: -apple-system, sans-serif; font-size: 13px; font-weight: 600; color: #1A1A1C; }
+  .variant-sub { font-family: -apple-system, sans-serif; font-size: 11px; color: #6B6B72; }
+
+  .phone {
+    width: 100%;
+    aspect-ratio: 393 / 852;
+    background: var(--bg);
+    border-radius: 42px;
+    overflow: hidden;
+    position: relative;
+    box-shadow: 0 12px 36px rgba(0,0,0,0.18);
+    color: var(--text-primary);
+    font-family: "Exo 2", sans-serif;
+  }
+
+  /* Dimmed Today screen behind the sheet */
+  .today-dimmed {
+    position: absolute;
+    inset: 0;
+    background: var(--bg);
+    opacity: 0.45;
+    padding: 16px 28px;
+  }
+  .today-dimmed .status-time { font-size: 14px; font-weight: 600; }
+  .today-dimmed .arc-ghost {
+    margin-top: 180px;
+    text-align: center;
+  }
+  .today-dimmed .num-ghost {
+    font-size: 84px; font-weight: 700; letter-spacing: -2.5px; color: var(--text-primary); opacity: 0.5;
+  }
+
+  /* The WeighIn Sheet */
+  .sheet {
+    position: absolute;
+    left: 0; right: 0; bottom: 0;
+    height: 62%;
+    background: var(--sheet-bg);
+    border-top-left-radius: 24px;
+    border-top-right-radius: 24px;
+    display: flex;
+    flex-direction: column;
+    padding: 0 22px 32px;
+  }
+  .sheet-handle {
+    width: 36px; height: 5px; background: var(--text-tertiary);
+    border-radius: 3px; margin: 10px auto 22px;
+  }
+  .sheet-date {
+    text-align: center;
+    font-family: -apple-system, sans-serif;
+    font-size: 13px;
+    color: var(--text-secondary);
+    font-weight: 500;
+  }
+
+  /* Hero weight display - shared */
+  .weight-display {
+    text-align: center;
+    margin-top: 20px;
+  }
+  .weight-num {
+    font-size: 84px; font-weight: 700; letter-spacing: -2.5px; line-height: 0.95;
+  }
+  .weight-num .unit { font-size: 24px; font-weight: 500; color: var(--text-secondary); margin-left: 4px; letter-spacing: 0; }
+
+  /* Delta preview (shows diff from last entry) */
+  .delta-preview {
+    margin-top: 10px;
+    font-family: -apple-system, sans-serif;
+    font-size: 12px;
+    color: var(--text-tertiary);
+  }
+  .delta-preview .num { color: var(--text-secondary); font-weight: 500; }
+
+  /* Save button - shared */
+  .save-btn {
+    width: 100%;
+    margin-top: auto;
+    background: var(--accent);
+    color: #FFFFFF;
+    border-radius: 16px;
+    padding: 18px 0;
+    font-family: "Exo 2", sans-serif;
+    font-size: 16px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    border: none;
+    text-align: center;
+  }
+
+  /* === Variant 1: STEPPER === */
+  .v1 .controls {
+    margin-top: 36px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 18px;
+  }
+  .step-btn {
+    width: 68px; height: 68px;
+    border-radius: 50%;
+    background: var(--card);
+    border: 1.5px solid var(--accent);
+    color: var(--accent);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 36px; font-weight: 300; line-height: 1;
+  }
+  .step-size-toggle {
+    background: var(--card);
+    border-radius: 12px;
+    padding: 4px;
+    display: inline-flex;
+    gap: 2px;
+  }
+  .step-size-toggle .opt {
+    font-family: -apple-system, sans-serif;
+    font-size: 13px;
+    padding: 10px 16px;
+    border-radius: 9px;
+    color: var(--text-secondary);
+    font-weight: 500;
+    min-width: 52px; text-align: center;
+  }
+  .step-size-toggle .opt.active {
+    background: var(--card-elevated); color: var(--text-primary);
+  }
+  .v1 .step-label {
+    margin-top: 14px; text-align: center;
+    font-family: -apple-system, sans-serif; font-size: 11px; color: var(--text-tertiary); font-weight: 500;
+  }
+
+  /* === Variant 2: WHEEL PICKER === */
+  .v2 .wheels {
+    margin-top: 28px;
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    height: 180px;
+    position: relative;
+  }
+  .wheel {
+    width: 80px;
+    height: 180px;
+    overflow: hidden;
+    position: relative;
+    background: transparent;
+  }
+  .wheel-strip {
+    display: flex; flex-direction: column;
+    align-items: center;
+  }
+  .wheel-item {
+    height: 36px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 28px; font-weight: 500;
+    color: var(--text-tertiary);
+    font-variant-numeric: tabular-nums;
+  }
+  .wheel-item.center {
+    color: var(--text-primary);
+    font-weight: 700;
+  }
+  .wheel-item.near { color: var(--text-secondary); }
+  .wheel-bg-lines {
+    position: absolute; left: 0; right: 0; top: 50%; transform: translateY(-50%);
+    height: 38px;
+    border-top: 0.5px solid var(--divider);
+    border-bottom: 0.5px solid var(--divider);
+    pointer-events: none;
+  }
+  .wheel-separator {
+    align-self: center;
+    color: var(--text-tertiary);
+    font-size: 28px;
+    font-weight: 300;
+    display: flex;
+    align-items: center;
+    height: 180px;
+  }
+  .v2 .wheel-unit {
+    text-align: center;
+    margin-top: 8px;
+    font-family: -apple-system, sans-serif;
+    font-size: 13px;
+    color: var(--text-secondary);
+    font-weight: 500;
+  }
+
+  /* === Variant 3: HYBRID ARC + STEPPER === */
+  .v3 .arc-hybrid {
+    margin-top: 18px;
+    position: relative;
+    width: 260px;
+    height: 80px;
+    margin-left: auto; margin-right: auto;
+  }
+  .v3 .arc-hybrid svg { width: 100%; height: 100%; display: block; }
+  .v3 .arc-labels {
+    display: flex; justify-content: space-between;
+    padding: 0 6px;
+    margin-top: 4px;
+    font-family: -apple-system, sans-serif;
+    font-size: 10px;
+    color: var(--text-tertiary);
+    font-weight: 500;
+  }
+  .v3 .fine-tune {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 14px;
+    margin-top: 24px;
+  }
+  .v3 .fine-btn {
+    width: 52px; height: 52px;
+    border-radius: 50%;
+    background: var(--card);
+    border: 1.5px solid var(--text-tertiary);
+    color: var(--text-secondary);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 26px; font-weight: 300; line-height: 1;
+  }
+  .v3 .fine-label {
+    font-family: -apple-system, sans-serif;
+    font-size: 11px;
+    color: var(--text-tertiary);
+    font-weight: 500;
+    padding: 0 4px;
+  }
+</style>
+</head>
+<body>
+  <div class="page-header">
+    <h1>WeighIn Sheet — Input Method Variants</h1>
+    <p>Modal sheet triggered from the "Weigh In" button. Defaults to last entry's weight.</p>
+  </div>
+
+  <div class="grid">
+
+    <!-- ============ VARIANT 1: STEPPER ============ -->
+    <div class="variant-wrap">
+      <div class="variant-label">01 · Stepper (simplest)</div>
+      <div class="variant-sub">Tap ± to adjust. Chip toggles step size. Fewest interactions for typical daily change.</div>
+      <div class="phone">
+        <div class="today-dimmed">
+          <div class="status-time">9:41</div>
+          <div class="arc-ghost"><span class="num-ghost">197.4</span></div>
+        </div>
+        <div class="sheet v1">
+          <div class="sheet-handle"></div>
+          <div class="sheet-date">Friday, April 4</div>
+          <div class="weight-display">
+            <span class="weight-num">197.4<span class="unit">lb</span></span>
+            <div class="delta-preview">last entry: <span class="num">197.4 lb</span></div>
+          </div>
+          <div class="controls">
+            <button class="step-btn">−</button>
+            <div class="step-size-toggle">
+              <div class="opt">0.1</div>
+              <div class="opt active">0.5</div>
+              <div class="opt">1.0</div>
+            </div>
+            <button class="step-btn">+</button>
+          </div>
+          <div class="step-label">Step size · tap to cycle</div>
+          <button class="save-btn">Save</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ VARIANT 2: WHEEL PICKER ============ -->
+    <div class="variant-wrap">
+      <div class="variant-label">02 · Wheel Picker (iOS native)</div>
+      <div class="variant-sub">Scroll wheels for whole/tenths. Familiar iOS pattern (Clock, DatePicker). Tactile feel.</div>
+      <div class="phone">
+        <div class="today-dimmed">
+          <div class="status-time">9:41</div>
+          <div class="arc-ghost"><span class="num-ghost">197.4</span></div>
+        </div>
+        <div class="sheet v2">
+          <div class="sheet-handle"></div>
+          <div class="sheet-date">Friday, April 4</div>
+          <div class="wheels">
+            <div class="wheel-bg-lines"></div>
+            <div class="wheel">
+              <div class="wheel-strip" style="margin-top: 72px;">
+                <div class="wheel-item">194</div>
+                <div class="wheel-item near">195</div>
+                <div class="wheel-item near">196</div>
+                <div class="wheel-item center">197</div>
+                <div class="wheel-item near">198</div>
+                <div class="wheel-item near">199</div>
+                <div class="wheel-item">200</div>
+              </div>
+            </div>
+            <div class="wheel-separator">.</div>
+            <div class="wheel">
+              <div class="wheel-strip" style="margin-top: 0px;">
+                <div class="wheel-item">1</div>
+                <div class="wheel-item near">2</div>
+                <div class="wheel-item near">3</div>
+                <div class="wheel-item center">4</div>
+                <div class="wheel-item near">5</div>
+                <div class="wheel-item near">6</div>
+                <div class="wheel-item">7</div>
+              </div>
+            </div>
+          </div>
+          <div class="wheel-unit">lb</div>
+          <button class="save-btn">Save</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ VARIANT 3: HYBRID ARC + STEPPER ============ -->
+    <div class="variant-wrap">
+      <div class="variant-label">03 · Arc + Fine Tune (hybrid)</div>
+      <div class="variant-sub">Drag along arc for rough adjust (range: last weight ±5 lb). Buttons for ±0.1 precision.</div>
+      <div class="phone">
+        <div class="today-dimmed">
+          <div class="status-time">9:41</div>
+          <div class="arc-ghost"><span class="num-ghost">197.4</span></div>
+        </div>
+        <div class="sheet v3">
+          <div class="sheet-handle"></div>
+          <div class="sheet-date">Friday, April 4</div>
+          <div class="weight-display">
+            <span class="weight-num">197.4<span class="unit">lb</span></span>
+          </div>
+          <div class="arc-hybrid">
+            <!--
+              180° arc slider, range: 192.4 to 202.4 (last ±5)
+              Current 197.4 = 50% = middle/top
+              Arc: ellipse from (10, 70) to (250, 70) with rx=120 ry=60
+              At 50% (top of arc): (130, 10)
+            -->
+            <svg viewBox="0 0 260 80">
+              <path d="M 10 70 A 120 60 0 0 1 250 70" stroke="#2A2A30" stroke-width="5" fill="none" stroke-linecap="round"/>
+              <!-- Progress to 50% -->
+              <path d="M 10 70 A 120 60 0 0 1 130 10" stroke="#6B7B94" stroke-width="5" fill="none" stroke-linecap="round"/>
+              <!-- Thumb at current position -->
+              <circle cx="130" cy="10" r="11" fill="#6B7B94"/>
+              <circle cx="130" cy="10" r="4" fill="#F2F3F5"/>
+            </svg>
+          </div>
+          <div class="arc-labels">
+            <span>−5 lb</span>
+            <span style="color: var(--text-secondary); font-weight: 600;">last entry</span>
+            <span>+5 lb</span>
+          </div>
+          <div class="fine-tune">
+            <button class="fine-btn">−</button>
+            <div class="fine-label">fine tune ±0.1</div>
+            <button class="fine-btn">+</button>
+          </div>
+          <button class="save-btn">Save</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</body>
+</html>

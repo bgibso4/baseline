@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Baseline — Settings Sub-screens</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0B0B0E; --card: #17171B; --card-elevated: #1F1F24;
+    --text-primary: #F2F3F5; --text-secondary: #797B83; --text-tertiary: #494B52;
+    --divider: #2A2A30; --accent: #6B7B94; --secondary: #B89968;
+    --danger: #C17171; --success: #8FA880;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: "Exo 2", -apple-system, sans-serif; background: #E8E8EA; padding: 40px 24px; -webkit-font-smoothing: antialiased; }
+  .page-header { max-width: 1400px; margin: 0 auto 28px; font-family: -apple-system, sans-serif; }
+  .page-header h1 { font-size: 28px; font-weight: 700; letter-spacing: -0.4px; margin-bottom: 4px; }
+  .page-header p { font-size: 13px; color: #5A5A60; max-width: 840px; line-height: 1.5; }
+  .section-header { max-width: 1400px; margin: 32px auto 14px; font-family: -apple-system, sans-serif; font-size: 14px; font-weight: 700; color: #1A1A1C; letter-spacing: -0.2px; }
+  .grid { max-width: 1400px; margin: 0 auto; display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
+  .variant-wrap { display: flex; flex-direction: column; gap: 8px; }
+  .variant-label { font-family: -apple-system, sans-serif; font-size: 13px; font-weight: 600; color: #1A1A1C; }
+  .variant-sub { font-family: -apple-system, sans-serif; font-size: 11px; color: #6B6B72; line-height: 1.4; }
+
+  .phone { width: 100%; max-width: 393px; aspect-ratio: 393 / 852; background: var(--bg); border-radius: 42px; overflow: hidden; position: relative; box-shadow: 0 12px 36px rgba(0,0,0,0.18); color: var(--text-primary); font-family: "Exo 2", sans-serif; display: flex; flex-direction: column; }
+  .status-bar { flex-shrink: 0; padding: 16px 28px 8px; display: flex; justify-content: space-between; font-size: 14px; font-weight: 600; }
+
+  /* Nav bar with Cancel / Title / Save */
+  .nav-bar { flex-shrink: 0; padding: 14px 22px 10px; display: flex; align-items: center; justify-content: space-between; }
+  .nav-bar .nav-btn { font-family: -apple-system, sans-serif; font-size: 14px; font-weight: 600; padding: 4px 2px; min-width: 50px; }
+  .nav-bar .nav-btn.cancel { color: var(--text-secondary); text-align: left; }
+  .nav-bar .nav-btn.save { color: var(--accent); text-align: right; }
+  .nav-bar .nav-btn.save.disabled { color: var(--text-tertiary); }
+  .nav-bar .nav-title { font-family: "Exo 2", sans-serif; font-size: 16px; font-weight: 700; color: var(--text-primary); letter-spacing: -0.2px; flex: 1; text-align: center; }
+
+  /* Push header (back arrow) */
+  .push-header { flex-shrink: 0; padding: 14px 22px 8px; display: flex; align-items: center; gap: 12px; }
+  .push-header .back { width: 30px; height: 30px; border-radius: 15px; background: var(--card-elevated); display: flex; align-items: center; justify-content: center; color: var(--text-primary); }
+  .push-header .back svg { width: 14px; height: 14px; stroke: currentColor; stroke-width: 2.4; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+  .push-header .title { font-family: "Exo 2", sans-serif; font-size: 17px; font-weight: 700; color: var(--text-primary); letter-spacing: -0.2px; flex: 1; text-align: center; padding-right: 30px; }
+
+  .content { flex: 1; overflow-y: auto; }
+
+  /* Text input */
+  .text-input-card { margin: 20px 22px 0; background: var(--card); border: 1px solid var(--accent); border-radius: 12px; padding: 14px 16px; display: flex; align-items: center; gap: 10px; }
+  .text-input-card .val { flex: 1; font-family: "Exo 2", sans-serif; font-size: 18px; font-weight: 600; color: var(--text-primary); letter-spacing: -0.2px; }
+  .text-input-card .caret { display: inline-block; width: 2px; height: 20px; background: var(--accent); animation: blink 1s step-end infinite; vertical-align: -3px; }
+  .text-input-card .clear { width: 20px; height: 20px; border-radius: 10px; background: var(--text-tertiary); color: var(--bg); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .text-input-card .clear svg { width: 10px; height: 10px; stroke: currentColor; stroke-width: 3; fill: none; stroke-linecap: round; }
+  @keyframes blink { 0%, 50% { opacity: 1; } 50.01%, 100% { opacity: 0; } }
+  .hint-text { padding: 10px 22px 0; font-family: -apple-system, sans-serif; font-size: 11px; color: var(--text-tertiary); font-weight: 500; line-height: 1.4; }
+
+  /* Picker wheel mock */
+  .wheel-row { display: flex; justify-content: center; gap: 16px; margin-top: 16px; padding: 0 22px; }
+  .wheel { width: 80px; height: 180px; position: relative; overflow: hidden; }
+  .wheel-bg-lines { position: absolute; left: 0; right: 0; top: 50%; transform: translateY(-50%); height: 38px; border-top: 0.5px solid var(--divider); border-bottom: 0.5px solid var(--divider); pointer-events: none; }
+  .wheel-strip { display: flex; flex-direction: column; align-items: center; }
+  .wheel-item { height: 36px; display: flex; align-items: center; justify-content: center; font-family: "Exo 2", sans-serif; font-size: 22px; font-weight: 600; color: var(--text-tertiary); font-variant-numeric: tabular-nums; }
+  .wheel-item.near { color: var(--text-secondary); }
+  .wheel-item.center { color: var(--text-primary); font-weight: 700; }
+  .wheel-label { text-align: center; margin-top: 8px; font-family: -apple-system, sans-serif; font-size: 12px; color: var(--text-secondary); font-weight: 500; }
+  .wheel-label-row { display: flex; justify-content: center; gap: 16px; }
+  .wheel-label-row .wlab { width: 80px; text-align: center; font-family: -apple-system, sans-serif; font-size: 11px; color: var(--text-tertiary); font-weight: 600; text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 8px; }
+
+  /* Calendar (iOS graphical DatePicker mimic) */
+  .cal-wrap { margin: 14px 22px 0; }
+  .cal-month-head { display: flex; justify-content: space-between; align-items: center; padding: 0 4px 8px; }
+  .cal-month-head .mo { font-family: -apple-system, sans-serif; font-size: 15px; font-weight: 700; color: var(--text-primary); display: flex; align-items: center; gap: 4px; }
+  .cal-month-head .mo svg { width: 11px; height: 11px; stroke: currentColor; stroke-width: 2.4; fill: none; stroke-linecap: round; }
+  .cal-month-head .nav-arrows { display: flex; gap: 12px; color: var(--accent); }
+  .cal-month-head .nav-arrows svg { width: 14px; height: 14px; stroke: currentColor; stroke-width: 2.4; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+  .cal-dow { display: grid; grid-template-columns: repeat(7, 1fr); gap: 0; padding-bottom: 4px; }
+  .cal-dow span { text-align: center; font-family: -apple-system, sans-serif; font-size: 10px; color: var(--text-tertiary); font-weight: 600; }
+  .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
+  .cal-day { aspect-ratio: 1; display: flex; align-items: center; justify-content: center; font-family: -apple-system, sans-serif; font-size: 13px; color: var(--text-primary); font-weight: 500; border-radius: 50%; }
+  .cal-day.dim { color: var(--text-tertiary); }
+  .cal-day.selected { background: var(--accent); color: #fff; font-weight: 700; }
+  .cal-day.today { color: var(--accent); font-weight: 700; }
+  .computed-age { margin: 16px 22px 0; padding: 14px 16px; background: var(--card); border-radius: 12px; display: flex; align-items: center; justify-content: space-between; font-family: -apple-system, sans-serif; }
+  .computed-age .lbl { font-size: 11px; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; }
+  .computed-age .val { font-family: "Exo 2", sans-serif; font-size: 20px; font-weight: 700; color: var(--text-primary); letter-spacing: -0.2px; }
+
+  /* Option list (gender, theme) */
+  .opt-list { margin-top: 12px; }
+  .opt-row { display: flex; align-items: center; justify-content: space-between; padding: 14px 22px; border-top: 0.5px solid var(--divider); font-family: -apple-system, sans-serif; }
+  .opt-row:first-of-type { border-top: none; }
+  .opt-row .opt-label { font-size: 14px; color: var(--text-primary); font-weight: 500; }
+  .opt-row.disabled .opt-label { color: var(--text-tertiary); }
+  .opt-row .opt-check { color: var(--accent); }
+  .opt-row .opt-check svg { width: 16px; height: 16px; stroke: currentColor; stroke-width: 2.5; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+  .opt-row .soon { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; padding: 2px 6px; border-radius: 4px; background: var(--card-elevated); color: var(--text-tertiary); }
+
+  /* Form (Cadre Sync) */
+  .form-field { margin: 16px 22px 0; }
+  .form-field-label { font-family: -apple-system, sans-serif; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-tertiary); margin-bottom: 6px; }
+  .form-field-input { background: var(--card); border: 1px solid var(--divider); border-radius: 10px; padding: 11px 14px; font-family: -apple-system, sans-serif; font-size: 13px; color: var(--text-primary); display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+  .form-field-input.active { border-color: var(--accent); }
+  .form-field-input .val { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 500; }
+  .form-field-input.masked .val { letter-spacing: 2px; }
+  .form-field-input .reveal { color: var(--text-tertiary); }
+  .form-field-input .reveal svg { width: 14px; height: 14px; stroke: currentColor; stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+  .test-btn { margin: 20px 22px 0; background: var(--card); border: 1px solid var(--divider); border-radius: 12px; padding: 13px 0; font-family: "Exo 2", sans-serif; font-size: 14px; font-weight: 600; color: var(--text-primary); text-align: center; display: flex; align-items: center; justify-content: center; gap: 8px; }
+  .test-btn svg { width: 14px; height: 14px; stroke: currentColor; stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round; color: var(--accent); }
+  .sync-status { margin: 14px 22px 0; padding: 12px 14px; border-radius: 10px; background: rgba(143,168,128,0.08); border: 0.5px solid rgba(143,168,128,0.25); font-family: -apple-system, sans-serif; font-size: 11px; color: var(--success); font-weight: 600; display: flex; align-items: center; gap: 8px; }
+  .sync-status svg { width: 13px; height: 13px; stroke: currentColor; stroke-width: 2.4; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+
+  /* Export CSV */
+  .export-intro { padding: 24px 22px 8px; text-align: center; font-family: -apple-system, sans-serif; }
+  .export-intro .big-icon { width: 56px; height: 56px; border-radius: 16px; background: var(--card); color: var(--accent); display: inline-flex; align-items: center; justify-content: center; margin-bottom: 14px; }
+  .export-intro .big-icon svg { width: 26px; height: 26px; stroke: currentColor; stroke-width: 1.8; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+  .export-intro .e-title { font-size: 18px; font-weight: 700; color: var(--text-primary); letter-spacing: -0.2px; }
+  .export-intro .e-body { font-size: 12px; color: var(--text-tertiary); font-weight: 500; margin-top: 8px; line-height: 1.4; max-width: 280px; margin-left: auto; margin-right: auto; }
+  .export-options { margin: 20px 22px 0; display: flex; flex-direction: column; gap: 8px; }
+  .export-opt { background: var(--card); border-radius: 12px; padding: 12px 14px; display: flex; align-items: center; gap: 12px; font-family: -apple-system, sans-serif; border: 1px solid var(--divider); }
+  .export-opt .eo-check { width: 20px; height: 20px; border-radius: 4px; background: var(--card-elevated); display: flex; align-items: center; justify-content: center; color: var(--text-tertiary); flex-shrink: 0; }
+  .export-opt .eo-check svg { width: 12px; height: 12px; stroke: currentColor; stroke-width: 3; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+  .export-opt.on .eo-check { background: var(--accent); color: #fff; }
+  .export-opt .eo-text { flex: 1; }
+  .export-opt .eo-name { font-size: 13px; font-weight: 600; color: var(--text-primary); }
+  .export-opt .eo-body { font-size: 10px; color: var(--text-tertiary); font-weight: 500; margin-top: 2px; }
+  .export-btn { margin: 24px 22px 0; background: var(--accent); color: #fff; border-radius: 14px; padding: 15px 0; font-family: "Exo 2", sans-serif; font-size: 15px; font-weight: 600; text-align: center; border: none; display: block; width: calc(100% - 44px); }
+
+  /* About Cadre */
+  .about-hero { padding: 30px 22px 16px; text-align: center; font-family: -apple-system, sans-serif; }
+  .about-hero .logo { width: 72px; height: 72px; border-radius: 20px; background: linear-gradient(135deg, #1F1F24 0%, #2A2A30 100%); color: var(--accent); display: inline-flex; align-items: center; justify-content: center; margin-bottom: 16px; font-family: "Exo 2", sans-serif; font-size: 36px; font-weight: 800; letter-spacing: -1px; }
+  .about-hero .app-name { font-family: "Exo 2", sans-serif; font-size: 22px; font-weight: 800; color: var(--text-primary); letter-spacing: -0.4px; }
+  .about-hero .app-desc { font-size: 12px; color: var(--text-tertiary); font-weight: 500; margin-top: 8px; line-height: 1.5; max-width: 300px; margin-left: auto; margin-right: auto; }
+  .app-list { margin: 20px 22px 0; background: var(--card); border-radius: 14px; overflow: hidden; }
+  .app-row { display: flex; align-items: center; gap: 12px; padding: 14px 16px; border-top: 0.5px solid var(--divider); font-family: -apple-system, sans-serif; }
+  .app-row:first-child { border-top: none; }
+  .app-row .app-logo { width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-family: "Exo 2", sans-serif; font-size: 18px; font-weight: 800; letter-spacing: -0.3px; flex-shrink: 0; }
+  .app-row .app-logo.baseline { background: rgba(107,123,148,0.15); color: var(--accent); }
+  .app-row .app-logo.apex { background: rgba(184,153,104,0.15); color: var(--secondary); }
+  .app-row .app-logo.dashboard { background: rgba(138,130,120,0.15); color: #8A8278; }
+  .app-row .ar-text { flex: 1; }
+  .app-row .ar-name { font-size: 14px; font-weight: 700; color: var(--text-primary); letter-spacing: -0.1px; }
+  .app-row .ar-body { font-size: 10px; color: var(--text-tertiary); font-weight: 500; margin-top: 2px; }
+  .app-row .status-pill { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; padding: 2px 6px; border-radius: 4px; background: var(--card-elevated); color: var(--text-tertiary); }
+  .app-row .status-pill.current { background: rgba(107,123,148,0.18); color: var(--accent); }
+
+  /* Delete confirmation sheet */
+  .today-dimmed { position: absolute; inset: 0; background: var(--bg); opacity: 0.4; }
+  .sheet-backdrop { position: absolute; inset: 0; background: rgba(0,0,0,0.55); z-index: 3; }
+  .delete-sheet { position: absolute; left: 0; right: 0; bottom: 0; background: #17171B; border-top-left-radius: 24px; border-top-right-radius: 24px; padding: 0 22px 20px; z-index: 4; box-shadow: 0 -8px 32px rgba(0,0,0,0.3); }
+  .delete-sheet .sheet-handle { width: 36px; height: 5px; background: var(--text-tertiary); border-radius: 3px; margin: 10px auto 20px; }
+  .delete-sheet .warn-icon { width: 48px; height: 48px; border-radius: 14px; background: rgba(193,113,113,0.1); color: var(--danger); display: flex; align-items: center; justify-content: center; margin: 0 auto 14px; }
+  .delete-sheet .warn-icon svg { width: 24px; height: 24px; stroke: currentColor; stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+  .delete-sheet .warn-title { font-family: "Exo 2", sans-serif; font-size: 20px; font-weight: 700; color: var(--text-primary); letter-spacing: -0.3px; text-align: center; }
+  .delete-sheet .warn-body { font-family: -apple-system, sans-serif; font-size: 13px; color: var(--text-secondary); font-weight: 500; line-height: 1.5; text-align: center; margin-top: 10px; max-width: 280px; margin-left: auto; margin-right: auto; }
+  .delete-sheet .warn-list { margin: 18px 0 0; padding: 14px 16px; background: var(--card); border-radius: 12px; font-family: -apple-system, sans-serif; }
+  .delete-sheet .warn-item { font-size: 12px; color: var(--text-primary); font-weight: 500; padding: 4px 0; display: flex; align-items: center; gap: 8px; }
+  .delete-sheet .warn-item svg { width: 12px; height: 12px; stroke: var(--danger); stroke-width: 2.5; fill: none; stroke-linecap: round; flex-shrink: 0; }
+  .delete-sheet .btn-row { display: flex; flex-direction: column; gap: 8px; margin-top: 20px; }
+  .delete-sheet .btn { padding: 15px 0; border-radius: 14px; font-family: "Exo 2", sans-serif; font-size: 15px; font-weight: 700; text-align: center; border: none; }
+  .delete-sheet .btn-delete { background: var(--danger); color: #fff; }
+  .delete-sheet .btn-cancel { background: var(--card); color: var(--text-primary); }
+</style>
+</head>
+<body>
+  <div class="page-header">
+    <h1>Settings — sub-screens</h1>
+    <p>What happens when you tap each interactive row in Settings. 9 destinations: 4 profile pickers, 1 theme picker, 1 sync config, 1 export, 1 about, 1 delete confirmation sheet.</p>
+  </div>
+
+  <div class="section-header">Profile pickers</div>
+  <div class="grid">
+
+    <!-- 01 · Name edit -->
+    <div class="variant-wrap">
+      <div class="variant-label">01 · Name</div>
+      <div class="variant-sub">Simple text input. Auto-focused, keyboard open, clear (×) button to wipe field. Save in nav bar.</div>
+      <div class="phone">
+        <div class="status-bar"><span>9:41</span><span>⚡ 100%</span></div>
+        <div class="nav-bar">
+          <div class="nav-btn cancel">Cancel</div>
+          <div class="nav-title">Name</div>
+          <div class="nav-btn save">Save</div>
+        </div>
+        <div class="content">
+          <div class="text-input-card">
+            <span class="val">Ben<span class="caret"></span></span>
+            <div class="clear"><svg viewBox="0 0 24 24"><line x1="6" y1="6" x2="18" y2="18"/><line x1="6" y1="18" x2="18" y2="6"/></svg></div>
+          </div>
+          <div class="hint-text">Your name appears on widgets and export files.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 02 · Height picker -->
+    <div class="variant-wrap">
+      <div class="variant-label">02 · Height</div>
+      <div class="variant-sub">Two wheel pickers side-by-side (feet / inches). If user switches to metric, wheel becomes single cm picker.</div>
+      <div class="phone">
+        <div class="status-bar"><span>9:41</span><span>⚡ 100%</span></div>
+        <div class="nav-bar">
+          <div class="nav-btn cancel">Cancel</div>
+          <div class="nav-title">Height</div>
+          <div class="nav-btn save">Save</div>
+        </div>
+        <div class="content">
+          <div class="wheel-label-row" style="margin-top: 8px;">
+            <div class="wlab">Feet</div>
+            <div class="wlab">Inches</div>
+          </div>
+          <div class="wheel-row">
+            <div class="wheel">
+              <div class="wheel-bg-lines"></div>
+              <div class="wheel-strip" style="margin-top: 72px;">
+                <div class="wheel-item">4</div>
+                <div class="wheel-item near">5</div>
+                <div class="wheel-item center">5</div>
+                <div class="wheel-item near">6</div>
+                <div class="wheel-item">7</div>
+              </div>
+            </div>
+            <div class="wheel">
+              <div class="wheel-bg-lines"></div>
+              <div class="wheel-strip" style="margin-top: -36px;">
+                <div class="wheel-item">7</div>
+                <div class="wheel-item">8</div>
+                <div class="wheel-item near">9</div>
+                <div class="wheel-item center">10</div>
+                <div class="wheel-item near">11</div>
+              </div>
+            </div>
+          </div>
+          <div class="hint-text" style="text-align: center; margin-top: 20px;">Used for BMR and SMI calculations on InBody scans.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 03 · Birthday picker -->
+    <div class="variant-wrap">
+      <div class="variant-label">03 · Birthday</div>
+      <div class="variant-sub">SwiftUI .graphical DatePicker. Age auto-computed below and shown in card. Unlocks future age-based features.</div>
+      <div class="phone">
+        <div class="status-bar"><span>9:41</span><span>⚡ 100%</span></div>
+        <div class="nav-bar">
+          <div class="nav-btn cancel">Cancel</div>
+          <div class="nav-title">Birthday</div>
+          <div class="nav-btn save">Save</div>
+        </div>
+        <div class="content">
+          <div class="cal-wrap">
+            <div class="cal-month-head">
+              <div class="mo">May 1992 <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></div>
+              <div class="nav-arrows"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></div>
+            </div>
+            <div class="cal-dow"><span>S</span><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span></div>
+            <div class="cal-grid">
+              <div class="cal-day dim">26</div><div class="cal-day dim">27</div><div class="cal-day dim">28</div><div class="cal-day dim">29</div><div class="cal-day dim">30</div><div class="cal-day">1</div><div class="cal-day">2</div>
+              <div class="cal-day">3</div><div class="cal-day">4</div><div class="cal-day">5</div><div class="cal-day">6</div><div class="cal-day">7</div><div class="cal-day">8</div><div class="cal-day">9</div>
+              <div class="cal-day">10</div><div class="cal-day">11</div><div class="cal-day">12</div><div class="cal-day">13</div><div class="cal-day">14</div><div class="cal-day selected">15</div><div class="cal-day">16</div>
+              <div class="cal-day">17</div><div class="cal-day">18</div><div class="cal-day">19</div><div class="cal-day">20</div><div class="cal-day">21</div><div class="cal-day">22</div><div class="cal-day">23</div>
+              <div class="cal-day">24</div><div class="cal-day">25</div><div class="cal-day">26</div><div class="cal-day">27</div><div class="cal-day">28</div><div class="cal-day">29</div><div class="cal-day">30</div>
+              <div class="cal-day">31</div><div class="cal-day dim">1</div><div class="cal-day dim">2</div><div class="cal-day dim">3</div><div class="cal-day dim">4</div><div class="cal-day dim">5</div><div class="cal-day dim">6</div>
+            </div>
+          </div>
+          <div class="computed-age">
+            <div class="lbl">Current age</div>
+            <div class="val">33 years</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 04 · Gender -->
+    <div class="variant-wrap">
+      <div class="variant-label">04 · Gender</div>
+      <div class="variant-sub">Single-select list. Used for BMR calculations on scans. Back arrow saves on change (no Cancel/Save needed).</div>
+      <div class="phone">
+        <div class="status-bar"><span>9:41</span><span>⚡ 100%</span></div>
+        <div class="push-header">
+          <div class="back"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></div>
+          <div class="title">Gender</div>
+        </div>
+        <div class="content">
+          <div class="opt-list">
+            <div class="opt-row"><div class="opt-label">Male</div><div class="opt-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div></div>
+            <div class="opt-row"><div class="opt-label">Female</div></div>
+            <div class="opt-row"><div class="opt-label">Other</div></div>
+            <div class="opt-row"><div class="opt-label">Prefer not to say</div></div>
+          </div>
+          <div class="hint-text" style="padding-top: 18px;">Used for BMR estimation and other gender-aware metric calculations. You can change this any time.</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="section-header">System + integrations</div>
+  <div class="grid">
+
+    <!-- 05 · Theme -->
+    <div class="variant-wrap">
+      <div class="variant-label">05 · Theme</div>
+      <div class="variant-sub">Dark is the only theme in v1. Light + System shown as "Soon". Pattern ready for later.</div>
+      <div class="phone">
+        <div class="status-bar"><span>9:41</span><span>⚡ 100%</span></div>
+        <div class="push-header">
+          <div class="back"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></div>
+          <div class="title">Theme</div>
+        </div>
+        <div class="content">
+          <div class="opt-list">
+            <div class="opt-row"><div class="opt-label">Dark</div><div class="opt-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div></div>
+            <div class="opt-row disabled"><div class="opt-label">Light</div><span class="soon">Soon</span></div>
+            <div class="opt-row disabled"><div class="opt-label">System</div><span class="soon">Soon</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 06 · Cadre Sync config -->
+    <div class="variant-wrap">
+      <div class="variant-label">06 · Cadre Sync</div>
+      <div class="variant-sub">Dev/personal feature. API URL + API Key fields. Key is masked; eye icon reveals. Test button verifies connection, status banner shows result.</div>
+      <div class="phone">
+        <div class="status-bar"><span>9:41</span><span>⚡ 100%</span></div>
+        <div class="push-header">
+          <div class="back"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></div>
+          <div class="title">Cadre Sync</div>
+        </div>
+        <div class="content">
+          <div class="form-field">
+            <div class="form-field-label">API URL</div>
+            <div class="form-field-input">
+              <span class="val">https://api.cadre.dev</span>
+            </div>
+          </div>
+          <div class="form-field">
+            <div class="form-field-label">API Key</div>
+            <div class="form-field-input masked">
+              <span class="val">••••••••••••••••••••</span>
+              <div class="reveal"><svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></div>
+            </div>
+          </div>
+          <button class="test-btn">
+            <svg viewBox="0 0 24 24"><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="10"/></svg>
+            Test connection
+          </button>
+          <div class="sync-status">
+            <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+            Connected · last synced 2m ago
+          </div>
+          <div class="hint-text" style="padding-top: 18px;">Pushes weight, scan, and measurement data to the Cadre D1 backend. Used for cross-app analytics with Apex.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 07 · Export CSV -->
+    <div class="variant-wrap">
+      <div class="variant-label">07 · Export CSV</div>
+      <div class="variant-sub">Hero icon + title. Pick what to include. Export button writes to Files (iOS Share sheet).</div>
+      <div class="phone">
+        <div class="status-bar"><span>9:41</span><span>⚡ 100%</span></div>
+        <div class="push-header">
+          <div class="back"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></div>
+          <div class="title">Export</div>
+        </div>
+        <div class="content">
+          <div class="export-intro">
+            <div class="big-icon"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></div>
+            <div class="e-title">Export your data</div>
+            <div class="e-body">Generate CSV files of your history. Pick what to include.</div>
+          </div>
+          <div class="export-options">
+            <div class="export-opt on"><div class="eo-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><div class="eo-text"><div class="eo-name">Weight entries</div><div class="eo-body">328 records since Oct 2025</div></div></div>
+            <div class="export-opt on"><div class="eo-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><div class="eo-text"><div class="eo-name">InBody scans</div><div class="eo-body">14 records since Oct 2025</div></div></div>
+            <div class="export-opt on"><div class="eo-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><div class="eo-text"><div class="eo-name">Body measurements</div><div class="eo-body">94 records since Oct 2025</div></div></div>
+          </div>
+          <button class="export-btn">Export 3 files</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 08 · About Cadre -->
+    <div class="variant-wrap">
+      <div class="variant-label">08 · About Cadre</div>
+      <div class="variant-sub">Ecosystem overview. Baseline is one app in Cadre; Apex is sibling; Dashboard is future. Logo mark, description, app list.</div>
+      <div class="phone">
+        <div class="status-bar"><span>9:41</span><span>⚡ 100%</span></div>
+        <div class="push-header">
+          <div class="back"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></div>
+          <div class="title">About Cadre</div>
+        </div>
+        <div class="content">
+          <div class="about-hero">
+            <div class="logo">C</div>
+            <div class="app-name">Cadre</div>
+            <div class="app-desc">An ecosystem of tools for serious training. Your data, your format, your control.</div>
+          </div>
+          <div class="app-list">
+            <div class="app-row">
+              <div class="app-logo baseline">B</div>
+              <div class="ar-text"><div class="ar-name">Baseline</div><div class="ar-body">Weight + body comp tracking</div></div>
+              <span class="status-pill current">This app</span>
+            </div>
+            <div class="app-row">
+              <div class="app-logo apex">A</div>
+              <div class="ar-text"><div class="ar-name">Apex</div><div class="ar-body">Strength training logger</div></div>
+              <span class="status-pill">Sibling</span>
+            </div>
+            <div class="app-row">
+              <div class="app-logo dashboard">D</div>
+              <div class="ar-text"><div class="ar-name">Dashboard</div><div class="ar-body">Cross-app analytics</div></div>
+              <span class="status-pill">Soon</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="section-header">Destructive action</div>
+  <div class="grid">
+
+    <!-- 09 · Delete All Data -->
+    <div class="variant-wrap">
+      <div class="variant-label">09 · Delete all data</div>
+      <div class="variant-sub">Action sheet rising from bottom. Warning icon, heading, detailed body, list of what gets deleted, red Delete button + Cancel. Settings dimmed behind.</div>
+      <div class="phone">
+        <div class="today-dimmed"></div>
+        <div class="sheet-backdrop"></div>
+        <div class="delete-sheet">
+          <div class="sheet-handle"></div>
+          <div class="warn-icon"><svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
+          <div class="warn-title">Delete all data?</div>
+          <div class="warn-body">This is permanent. Your data cannot be recovered.</div>
+          <div class="warn-list">
+            <div class="warn-item"><svg viewBox="0 0 24 24"><line x1="6" y1="6" x2="18" y2="18"/><line x1="6" y1="18" x2="18" y2="6"/></svg>328 weight entries</div>
+            <div class="warn-item"><svg viewBox="0 0 24 24"><line x1="6" y1="6" x2="18" y2="18"/><line x1="6" y1="18" x2="18" y2="6"/></svg>14 InBody scans</div>
+            <div class="warn-item"><svg viewBox="0 0 24 24"><line x1="6" y1="6" x2="18" y2="18"/><line x1="6" y1="18" x2="18" y2="6"/></svg>94 body measurements</div>
+            <div class="warn-item"><svg viewBox="0 0 24 24"><line x1="6" y1="6" x2="18" y2="18"/><line x1="6" y1="18" x2="18" y2="6"/></svg>iCloud + Cadre sync data</div>
+          </div>
+          <div class="btn-row">
+            <button class="btn btn-delete">Delete everything</button>
+            <button class="btn btn-cancel">Cancel</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</body>
+</html>

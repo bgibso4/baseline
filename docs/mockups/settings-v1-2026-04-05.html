@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Baseline — Settings v1</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0B0B0E; --card: #17171B; --card-elevated: #1F1F24;
+    --text-primary: #F2F3F5; --text-secondary: #797B83; --text-tertiary: #494B52;
+    --divider: #2A2A30; --accent: #6B7B94; --secondary: #B89968; --warm-gray: #8A8278;
+    --danger: #C17171; --success: #8FA880;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: "Exo 2", -apple-system, sans-serif; background: #E8E8EA; padding: 40px 24px; -webkit-font-smoothing: antialiased; }
+  .page-header { max-width: 900px; margin: 0 auto 28px; font-family: -apple-system, sans-serif; }
+  .page-header h1 { font-size: 28px; font-weight: 700; letter-spacing: -0.4px; margin-bottom: 4px; }
+  .page-header p { font-size: 13px; color: #5A5A60; max-width: 800px; line-height: 1.5; }
+  .grid { max-width: 900px; margin: 0 auto; display: grid; grid-template-columns: repeat(2, 1fr); gap: 48px; }
+  .variant-wrap { display: flex; flex-direction: column; gap: 8px; }
+  .variant-label { font-family: -apple-system, sans-serif; font-size: 13px; font-weight: 600; color: #1A1A1C; }
+  .variant-sub { font-family: -apple-system, sans-serif; font-size: 11px; color: #6B6B72; line-height: 1.4; }
+
+  .phone { width: 100%; max-width: 393px; aspect-ratio: 393 / 852; background: var(--bg); border-radius: 42px; overflow: hidden; position: relative; box-shadow: 0 12px 36px rgba(0,0,0,0.18); color: var(--text-primary); font-family: "Exo 2", sans-serif; display: flex; flex-direction: column; }
+  .status-bar { flex-shrink: 0; padding: 16px 28px 8px; display: flex; justify-content: space-between; font-size: 14px; font-weight: 600; }
+
+  /* Push header */
+  .push-header { flex-shrink: 0; padding: 14px 22px 8px; display: flex; align-items: center; gap: 12px; }
+  .push-header .back { width: 30px; height: 30px; border-radius: 15px; background: var(--card-elevated); display: flex; align-items: center; justify-content: center; color: var(--text-primary); }
+  .push-header .back svg { width: 14px; height: 14px; stroke: currentColor; stroke-width: 2.4; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+  .push-header .title { font-family: "Exo 2", sans-serif; font-size: 17px; font-weight: 700; color: var(--text-primary); letter-spacing: -0.2px; flex: 1; text-align: center; padding-right: 30px; }
+
+  /* Content */
+  .content { flex: 1; overflow-y: auto; padding: 0 0 16px; }
+
+  /* Section */
+  .section-label { font-family: -apple-system, sans-serif; font-size: 11px; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.6px; font-weight: 700; padding: 22px 22px 8px; }
+  .section-label:first-of-type { padding-top: 12px; }
+
+  /* Row */
+  .row { display: flex; align-items: center; gap: 14px; padding: 13px 22px; border-top: 0.5px solid var(--divider); font-family: -apple-system, sans-serif; }
+  .row:first-child { border-top: none; }
+  .row .row-icon { width: 28px; height: 28px; border-radius: 8px; background: var(--card-elevated); color: var(--accent); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .row .row-icon svg { width: 15px; height: 15px; stroke: currentColor; stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+  .row .row-icon.sec { color: var(--secondary); }
+  .row .row-icon.danger { color: var(--danger); }
+  .row .row-icon.success { color: var(--success); }
+  .row .row-label { flex: 1; font-size: 14px; font-weight: 500; color: var(--text-primary); letter-spacing: -0.1px; }
+  .row .row-label-danger { color: var(--danger); }
+  .row .row-value { font-size: 13px; color: var(--text-secondary); font-weight: 500; }
+  .row .row-chev { color: var(--text-tertiary); margin-left: 4px; }
+  .row .row-chev svg { width: 14px; height: 14px; stroke: currentColor; stroke-width: 2.2; fill: none; stroke-linecap: round; }
+
+  /* Toggle switch */
+  .switch { width: 34px; height: 22px; background: var(--text-tertiary); border-radius: 11px; position: relative; flex-shrink: 0; }
+  .switch::after { content: ''; position: absolute; top: 2px; left: 2px; width: 18px; height: 18px; border-radius: 50%; background: #fff; transition: transform .2s; }
+  .switch.on { background: var(--accent); }
+  .switch.on::after { left: auto; right: 2px; }
+
+  /* Segmented inline (for units) */
+  .segmented { display: flex; background: var(--card-elevated); border-radius: 8px; padding: 2px; gap: 1px; }
+  .segmented .seg-opt { font-family: -apple-system, sans-serif; font-size: 12px; font-weight: 600; padding: 5px 12px; border-radius: 6px; color: var(--text-secondary); }
+  .segmented .seg-opt.active { background: var(--accent); color: #FFFFFF; }
+
+  /* Accent color picker swatches */
+  .swatches { display: flex; gap: 8px; align-items: center; }
+  .swatch { width: 22px; height: 22px; border-radius: 50%; position: relative; }
+  .swatch.active::after { content: ''; position: absolute; inset: -3px; border-radius: 50%; border: 1.5px solid currentColor; }
+
+  /* Status badge */
+  .status-badge { font-family: -apple-system, sans-serif; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.4px; padding: 3px 8px; border-radius: 5px; display: inline-flex; align-items: center; gap: 4px; }
+  .status-badge.connected { background: rgba(143, 168, 128, 0.15); color: var(--success); }
+  .status-badge.dim { background: var(--card-elevated); color: var(--text-tertiary); }
+  .status-badge::before { content: ''; width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
+</style>
+</head>
+<body>
+  <div class="page-header">
+    <h1>Settings — v1</h1>
+    <p>Pushed from gear icon top-left of Today. Grouped list: Profile, Units, Appearance, Integrations, Data, About, Reset. Two views shown: top + scrolled.</p>
+  </div>
+
+  <div class="grid">
+
+    <!-- PHONE 1: TOP OF SETTINGS -->
+    <div class="variant-wrap">
+      <div class="variant-label">01 · Settings · top</div>
+      <div class="variant-sub">Profile (for InBody calcs), Units, Appearance. Accent color picker inline — 3 swatches, current is ringed.</div>
+      <div class="phone">
+        <div class="status-bar"><span>9:41</span><span>⚡ 100%</span></div>
+        <div class="push-header">
+          <div class="back"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></div>
+          <div class="title">Settings</div>
+        </div>
+        <div class="content">
+          <div class="section-label">Profile</div>
+          <div class="row">
+            <div class="row-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-6 8-6s8 2 8 6"/></svg></div>
+            <div class="row-label">Name</div>
+            <div class="row-value">Ben</div>
+            <div class="row-chev"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></div>
+          </div>
+          <div class="row">
+            <div class="row-icon"><svg viewBox="0 0 24 24"><line x1="12" y1="3" x2="12" y2="21"/><polyline points="8 7 12 3 16 7"/><polyline points="8 17 12 21 16 17"/></svg></div>
+            <div class="row-label">Height</div>
+            <div class="row-value">5′ 10″</div>
+            <div class="row-chev"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></div>
+          </div>
+          <div class="row">
+            <div class="row-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 14"/></svg></div>
+            <div class="row-label">Age</div>
+            <div class="row-value">33</div>
+            <div class="row-chev"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></div>
+          </div>
+          <div class="row">
+            <div class="row-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-6 8-6s8 2 8 6"/></svg></div>
+            <div class="row-label">Gender</div>
+            <div class="row-value">Male</div>
+            <div class="row-chev"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></div>
+          </div>
+
+          <div class="section-label">Units</div>
+          <div class="row">
+            <div class="row-icon"><svg viewBox="0 0 24 24"><path d="M6 4v16M18 4v16M6 12h12"/></svg></div>
+            <div class="row-label">Weight</div>
+            <div class="segmented">
+              <div class="seg-opt active">lb</div>
+              <div class="seg-opt">kg</div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="row-icon"><svg viewBox="0 0 24 24"><path d="M3 12h18M6 8v8M10 6v12M14 6v12M18 8v8"/></svg></div>
+            <div class="row-label">Measurements</div>
+            <div class="segmented">
+              <div class="seg-opt active">in</div>
+              <div class="seg-opt">cm</div>
+            </div>
+          </div>
+
+          <div class="section-label">Appearance</div>
+          <div class="row">
+            <div class="row-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 3v18"/></svg></div>
+            <div class="row-label">Accent color</div>
+            <div class="swatches">
+              <div class="swatch active" style="background: #6B7B94; color: #6B7B94;"></div>
+              <div class="swatch" style="background: #B89968;"></div>
+              <div class="swatch" style="background: #8A8278;"></div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="row-icon"><svg viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></div>
+            <div class="row-label">Theme</div>
+            <div class="row-value">Dark</div>
+            <div class="row-chev"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></div>
+          </div>
+
+          <div class="section-label">Integrations</div>
+          <div class="row">
+            <div class="row-icon success"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></div>
+            <div class="row-label">Apple Health</div>
+            <div class="switch on"></div>
+          </div>
+          <div class="row">
+            <div class="row-icon"><svg viewBox="0 0 24 24"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/></svg></div>
+            <div class="row-label">iCloud Sync</div>
+            <div class="switch on"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PHONE 2: BOTTOM OF SETTINGS -->
+    <div class="variant-wrap">
+      <div class="variant-label">02 · Settings · scrolled</div>
+      <div class="variant-sub">Cadre sync (dev/personal), Data (export, import), About, Reset. Danger row in red. Status badges on sync integrations.</div>
+      <div class="phone">
+        <div class="status-bar"><span>9:41</span><span>⚡ 100%</span></div>
+        <div class="push-header">
+          <div class="back"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></div>
+          <div class="title">Settings</div>
+        </div>
+        <div class="content">
+          <div class="section-label">Integrations</div>
+          <div class="row">
+            <div class="row-icon success"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></div>
+            <div class="row-label">Apple Health</div>
+            <div class="switch on"></div>
+          </div>
+          <div class="row">
+            <div class="row-icon"><svg viewBox="0 0 24 24"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/></svg></div>
+            <div class="row-label">iCloud Sync</div>
+            <div style="display: flex; align-items: center; gap: 8px;"><span class="status-badge connected">Synced</span></div>
+          </div>
+          <div class="row">
+            <div class="row-icon"><svg viewBox="0 0 24 24"><path d="M9 12l2 2 4-4"/><path d="M21 12c0 4.97-4.03 9-9 9s-9-4.03-9-9 4.03-9 9-9c2.39 0 4.56.93 6.18 2.45"/></svg></div>
+            <div class="row-label">Cadre Sync</div>
+            <div style="display: flex; align-items: center; gap: 8px;"><span class="status-badge connected">Connected</span><div class="row-chev"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></div></div>
+          </div>
+
+          <div class="section-label">Data</div>
+          <div class="row">
+            <div class="row-icon"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></div>
+            <div class="row-label">Export to CSV</div>
+            <div class="row-chev"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></div>
+          </div>
+          <div class="row">
+            <div class="row-icon"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></div>
+            <div class="row-label">Import from Weigh In</div>
+            <span class="status-badge dim">Soon</span>
+          </div>
+
+          <div class="section-label">About</div>
+          <div class="row">
+            <div class="row-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg></div>
+            <div class="row-label">Version</div>
+            <div class="row-value">1.0.0 (1)</div>
+          </div>
+          <div class="row">
+            <div class="row-icon"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+            <div class="row-label">About Cadre</div>
+            <div class="row-chev"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></div>
+          </div>
+          <div class="row">
+            <div class="row-icon"><svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
+            <div class="row-label">Privacy Policy</div>
+            <div class="row-chev"><svg viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg></div>
+          </div>
+          <div class="row">
+            <div class="row-icon"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>
+            <div class="row-label">Terms of Service</div>
+            <div class="row-chev"><svg viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg></div>
+          </div>
+
+          <div class="section-label">Reset</div>
+          <div class="row">
+            <div class="row-icon danger"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></div>
+            <div class="row-label row-label-danger">Delete all data</div>
+            <div class="row-chev" style="color: var(--danger); opacity: 0.6;"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</body>
+</html>
