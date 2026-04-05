@@ -7,11 +7,13 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		08579081DC36E8CE4BF75D81 /* SnapshotTesting in Frameworks */ = {isa = PBXBuildFile; productRef = F942F12A281ABA96EF8FFA4D /* SnapshotTesting */; };
 		14FE980511237871E2644BEE /* BaselineApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 007A5A45919FF650EAB251AE /* BaselineApp.swift */; };
 		179A4D608746808CFCE3A729 /* UnitConversionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB289EC0E5CC9756E1B62116 /* UnitConversionTests.swift */; };
 		35E604283BC457FB5A0DE9BC /* BodyMeasurementTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EE556EA34222636CEDC327C /* BodyMeasurementTests.swift */; };
 		416BB9FECD67376B100EFFAC /* BaselineWidgets.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = D25FD52DA7EFC4286FE7A191 /* BaselineWidgets.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		4F5996756FAB95C53E59DEFE /* WeighInViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C5711FD50AF3ED47B8906EC /* WeighInViewModelTests.swift */; };
+		654F0D189066E56674DAAB77 /* TodayViewSnapshotTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE10885DB8C2A249F214EC74 /* TodayViewSnapshotTests.swift */; };
 		7F2647C6A3C1B0DE829C5847 /* WeightEntryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F133F7888A7F42479BC2329D /* WeightEntryTests.swift */; };
 		7F56CCBB22A690D800512F96 /* DateFormatting.swift in Sources */ = {isa = PBXBuildFile; fileRef = 90026F3A1D7167909BB75A33 /* DateFormatting.swift */; };
 		8633F61D501A4F49AAE5F8B5 /* TodayViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77BCE79EFED1F8F00CCAC22F /* TodayViewModelTests.swift */; };
@@ -84,6 +86,7 @@
 		A1F7BB657D83894D1E5B4400 /* SparklineView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SparklineView.swift; sourceTree = "<group>"; };
 		A6C5F86354C722884254D09A /* BaselineTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = BaselineTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		AB289EC0E5CC9756E1B62116 /* UnitConversionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UnitConversionTests.swift; sourceTree = "<group>"; };
+		AE10885DB8C2A249F214EC74 /* TodayViewSnapshotTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodayViewSnapshotTests.swift; sourceTree = "<group>"; };
 		B0811FC6CD17EB2AEBCECB45 /* WeighInViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeighInViewModel.swift; sourceTree = "<group>"; };
 		CCF4DEE4E18DA610367483F2 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		CDF5637FE9480E5083CE4DD5 /* TodayViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodayViewModel.swift; sourceTree = "<group>"; };
@@ -91,6 +94,17 @@
 		F0FDF5DB2E481DF3A8881BD1 /* SyncState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncState.swift; sourceTree = "<group>"; };
 		F133F7888A7F42479BC2329D /* WeightEntryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeightEntryTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		922ABBE87B020C2654325C9C /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				08579081DC36E8CE4BF75D81 /* SnapshotTesting in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
 		13953FB9F1A4A393FC8DA9F1 /* Models */ = {
@@ -197,6 +211,14 @@
 			path = Navigation;
 			sourceTree = "<group>";
 		};
+		AF8C618D51757D59D684209F /* Snapshots */ = {
+			isa = PBXGroup;
+			children = (
+				AE10885DB8C2A249F214EC74 /* TodayViewSnapshotTests.swift */,
+			);
+			path = Snapshots;
+			sourceTree = "<group>";
+		};
 		B09ED77DC40D61AE5C45E1EE /* Utilities */ = {
 			isa = PBXGroup;
 			children = (
@@ -218,6 +240,7 @@
 			isa = PBXGroup;
 			children = (
 				13953FB9F1A4A393FC8DA9F1 /* Models */,
+				AF8C618D51757D59D684209F /* Snapshots */,
 				B09ED77DC40D61AE5C45E1EE /* Utilities */,
 				B531BC576A10A176A44606EF /* ViewModels */,
 				52A47437C87E1BCE8442A2FF /* BaselineTests.swift */,
@@ -273,6 +296,7 @@
 			buildConfigurationList = A1CC952CAAE1CCF552105E41 /* Build configuration list for PBXNativeTarget "BaselineTests" */;
 			buildPhases = (
 				55E1FE786969A422437C256C /* Sources */,
+				922ABBE87B020C2654325C9C /* Frameworks */,
 			);
 			buildRules = (
 			);
@@ -281,6 +305,7 @@
 			);
 			name = BaselineTests;
 			packageProductDependencies = (
+				F942F12A281ABA96EF8FFA4D /* SnapshotTesting */,
 			);
 			productName = BaselineTests;
 			productReference = A6C5F86354C722884254D09A /* BaselineTests.xctest */;
@@ -323,6 +348,9 @@
 			);
 			mainGroup = 509392B522DBD54B11ECE0AB;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				AF99F55B596FC590CE836098 /* XCRemoteSwiftPackageReference "swift-snapshot-testing" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 395E0E8B872B7232D1875563 /* Products */;
 			projectDirPath = "";
@@ -343,6 +371,7 @@
 				CD47B6562AAE37739E2FADD0 /* BaselineTests.swift in Sources */,
 				35E604283BC457FB5A0DE9BC /* BodyMeasurementTests.swift in Sources */,
 				8633F61D501A4F49AAE5F8B5 /* TodayViewModelTests.swift in Sources */,
+				654F0D189066E56674DAAB77 /* TodayViewSnapshotTests.swift in Sources */,
 				179A4D608746808CFCE3A729 /* UnitConversionTests.swift in Sources */,
 				4F5996756FAB95C53E59DEFE /* WeighInViewModelTests.swift in Sources */,
 				7F2647C6A3C1B0DE829C5847 /* WeightEntryTests.swift in Sources */,
@@ -657,6 +686,25 @@
 			defaultConfigurationName = Debug;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		AF99F55B596FC590CE836098 /* XCRemoteSwiftPackageReference "swift-snapshot-testing" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/pointfreeco/swift-snapshot-testing";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.17.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		F942F12A281ABA96EF8FFA4D /* SnapshotTesting */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = AF99F55B596FC590CE836098 /* XCRemoteSwiftPackageReference "swift-snapshot-testing" */;
+			productName = SnapshotTesting;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = ECBDE9C9F1149470E25D1FAC /* Project object */;
 }
