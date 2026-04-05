@@ -2,13 +2,15 @@ import XCTest
 import SwiftData
 @testable import Baseline
 
+private typealias Measurement = Baseline.Measurement
+
 final class TrendsViewModelTests: XCTestCase {
     var container: ModelContainer!
     var context: ModelContext!
 
     override func setUp() {
         super.setUp()
-        let schema = Schema([WeightEntry.self, InBodyScan.self, BodyMeasurement.self, SyncState.self])
+        let schema = Schema([WeightEntry.self, Scan.self, Measurement.self, SyncState.self])
         let config = ModelConfiguration(isStoredInMemoryOnly: true)
         container = try! ModelContainer(for: schema, configurations: [config])
         context = ModelContext(container)

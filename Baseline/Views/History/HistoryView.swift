@@ -242,7 +242,7 @@ private struct EditEntrySheet: View {
 #Preview {
     NavigationStack {
         HistoryView()
-            .modelContainer(for: [WeightEntry.self, InBodyScan.self, BodyMeasurement.self, SyncState.self], inMemory: true)
+            .modelContainer(for: [WeightEntry.self, Scan.self, Measurement.self, SyncState.self], inMemory: true)
     }
     .preferredColorScheme(.dark)
 }

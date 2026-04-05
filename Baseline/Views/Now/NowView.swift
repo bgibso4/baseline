@@ -264,5 +264,5 @@ private enum StatsRange: CaseIterable {
 
 #Preview {
     NowView()
-        .modelContainer(for: [WeightEntry.self, InBodyScan.self, BodyMeasurement.self, SyncState.self], inMemory: true)
+        .modelContainer(for: [WeightEntry.self, Scan.self, Measurement.self, SyncState.self], inMemory: true)
 }

@@ -9,8 +9,8 @@ struct BaselineApp: App {
         do {
             let schema = Schema([
                 WeightEntry.self,
-                InBodyScan.self,
-                BodyMeasurement.self,
+                Scan.self,
+                Measurement.self,
                 SyncState.self,
             ])
             let config = ModelConfiguration(

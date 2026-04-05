@@ -4,6 +4,8 @@ import SwiftData
 import SnapshotTesting
 @testable import Baseline
 
+private typealias Measurement = Baseline.Measurement
+
 /// Snapshot tests for `WeighInSheet`.
 ///
 /// Sheet content is rendered inside a fixed-layout frame that approximates a
@@ -47,8 +49,8 @@ final class WeighInSheetSnapshotTests: XCTestCase {
     private func makeContainer() -> ModelContainer {
         let schema = Schema([
             WeightEntry.self,
-            InBodyScan.self,
-            BodyMeasurement.self,
+            Scan.self,
+            Measurement.self,
             SyncState.self
         ])
         let config = ModelConfiguration(isStoredInMemoryOnly: true)
