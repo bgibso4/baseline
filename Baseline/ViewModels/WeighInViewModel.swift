@@ -44,5 +44,11 @@ class WeighInViewModel {
         }
 
         try? modelContext.save()
+
+        Task {
+            await HealthKitManager.saveWeight(
+                WeightEntry(weight: currentWeight, unit: unit, date: Date())
+            )
+        }
     }
 }

@@ -27,6 +27,9 @@ struct BaselineApp: App {
     var body: some Scene {
         WindowGroup {
             MainTabView()
+                .task {
+                    await HealthKitManager.requestAuthorizationIfNeeded()
+                }
         }
         .modelContainer(modelContainer)
     }

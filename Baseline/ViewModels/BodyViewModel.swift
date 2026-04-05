@@ -27,6 +27,13 @@ class BodyViewModel {
         let measurement = Measurement(date: Date(), type: type, valueCm: valueCm, notes: notesToSave)
         modelContext.insert(measurement)
         try? modelContext.save()
+
+        if type == .waist {
+            Task {
+                await HealthKitManager.saveWaistCircumference(valueCm: valueCm, date: Date())
+            }
+        }
+
         refresh()
     }
 
@@ -45,6 +52,11 @@ class BodyViewModel {
         let scan = Scan(date: Date(), type: type, source: source, payload: data, notes: notesToSave)
         modelContext.insert(scan)
         try? modelContext.save()
+
+        Task {
+            await HealthKitManager.saveScanMetrics(scan)
+        }
+
         refresh()
     }
 
