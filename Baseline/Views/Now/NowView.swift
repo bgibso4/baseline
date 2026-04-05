@@ -60,13 +60,13 @@ struct NowView: View {
                 }
             }
             .sheet(isPresented: $showWeighIn) {
-                // WeighInSheet implemented in Task 10
-                Text("Weigh In Sheet")
-                    .font(CadreTypography.headline)
-                    .foregroundStyle(CadreColors.textPrimary)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .background(CadreColors.bg)
-                    .presentationDetents([.medium])
+                WeighInSheet(
+                    lastWeight: vm?.todayEntry?.weight ?? vm?.lastWeight,
+                    unit: vm?.unit ?? "lb",
+                    onSave: { vm?.refresh() }
+                )
+                .presentationDetents([.medium, .large])
+                .presentationDragIndicator(.hidden)
             }
             .navigationDestination(isPresented: $showSettings) {
                 // Replaced in Task 18

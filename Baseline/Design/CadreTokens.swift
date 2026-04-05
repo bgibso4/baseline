@@ -81,6 +81,24 @@ enum CadreTypography {
     /// Use with `.tracking(0.3)` at the call site.
     static let buttonLabel = Font.system(size: 16, weight: .semibold)
 
+    // MARK: WeighIn sheet tokens
+    // Sizes/weights sourced from
+    // docs/mockups/weighin-APPROVED-2026-04-04.html
+
+    /// Stepper sheet hero number (`.weight-num`, 92px/700, -3px tracking).
+    /// Slightly larger than `weightHero` to suit the sheet context.
+    static let weighInHero = Font.system(size: 92, weight: .bold, design: .default)
+    /// "lb"/"kg" suffix beside weigh-in hero (`.weight-num .unit`, 26px/500).
+    static let weighInHeroUnit = Font.system(size: 26, weight: .medium)
+    /// Date pill chip label on sheet (`.sheet-date`, 13px/500).
+    static let dateChip = Font.system(size: 13, weight: .medium)
+    /// Delta preview text under hero (`.delta-preview`, 12px/400).
+    static let deltaPreview = Font.system(size: 12, weight: .regular)
+    /// Add notes/photo chip label (`.add-chip`, 12px/500).
+    static let addChip = Font.system(size: 12, weight: .medium)
+    /// Inline note field text (`.note-field`, 14px/400).
+    static let noteField = Font.system(size: 14, weight: .regular)
+
     /// Delta display (retained for other screens).
     static let deltaDisplay = Font.system(size: 17, weight: .medium, design: .rounded)
 
