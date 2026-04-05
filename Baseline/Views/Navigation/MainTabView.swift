@@ -2,12 +2,12 @@ import SwiftUI
 
 enum AppTab: Int, CaseIterable {
     case trends
-    case today
+    case now
     case body
 }
 
 struct MainTabView: View {
-    @State private var selectedTab: AppTab = .today
+    @State private var selectedTab: AppTab = .now
 
     var body: some View {
         TabView(selection: $selectedTab) {
@@ -21,7 +21,7 @@ struct MainTabView: View {
                 .tabItem {
                     Label("Now", systemImage: "scalemass.fill")
                 }
-                .tag(AppTab.today)
+                .tag(AppTab.now)
 
             BodyPlaceholder()
                 .tabItem {
