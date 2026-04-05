@@ -42,12 +42,12 @@ struct WeighInSheet: View {
                     .padding(.bottom, 14)
 
                 contentStack
-                    .padding(.horizontal, 22)
+                    .padding(.horizontal, CadreSpacing.sheetHorizontal)
 
                 Spacer(minLength: 0)
 
                 saveButton
-                    .padding(.horizontal, 22)
+                    .padding(.horizontal, CadreSpacing.sheetHorizontal)
                     .padding(.bottom, 12)
             }
         }
@@ -144,9 +144,8 @@ struct WeighInSheet: View {
     }
 
     private var deltaText: String {
-        guard let last = lastWeight, let current = vm?.currentWeight else {
-            return "First entry"
-        }
+        let current = vm?.currentWeight ?? lastWeight ?? 0
+        guard let last = lastWeight else { return "First entry" }
         let delta = (current - last).rounded(toPlaces: 1)
         if abs(delta) < 0.05 {
             return "Same as yesterday"
@@ -307,13 +306,6 @@ struct WeighInSheet: View {
                 .clipShape(RoundedRectangle(cornerRadius: 16))
         }
         .padding(.top, 40)
-    }
-}
-
-private extension Double {
-    func rounded(toPlaces places: Int) -> Double {
-        let divisor = pow(10.0, Double(places))
-        return (self * divisor).rounded() / divisor
     }
 }
 

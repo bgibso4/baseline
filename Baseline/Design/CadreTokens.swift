@@ -43,6 +43,9 @@ enum CadreSpacing {
     static let lg: CGFloat = 24
     static let xl: CGFloat = 32
     static let xxl: CGFloat = 48
+
+    /// Horizontal inset for sheet content — matches mockup padding (22pt)
+    static let sheetHorizontal: CGFloat = 22
 }
 
 // MARK: - Typography
