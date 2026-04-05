@@ -105,6 +105,40 @@ enum CadreTypography {
     /// Delta display (retained for other screens).
     static let deltaDisplay = Font.system(size: 17, weight: .medium, design: .rounded)
 
+    // MARK: Trends screen tokens
+    // Sizes/weights/tracking sourced from
+    // docs/mockups/trends-APPROVED-2026-04-05.html
+
+    /// Metric chip name label (`.metric-chip .metric-name`, 14px/600,
+    /// -0.1px tracking). Use with `.tracking(-0.1)` at the call site.
+    static let trendsMetricName = Font.system(size: 14, weight: .semibold)
+    /// Range tab option — M/6M/Y/All (`.range-tabs .opt`, 12px/500).
+    static let trendsRangeTab = Font.system(size: 12, weight: .medium)
+    /// Single-hero delta number (`.single-hero .main-num`, 44px/700,
+    /// -1.2px tracking). Use with `.tracking(-1.2)` at the call site.
+    static let trendsHero = Font.system(size: 44, weight: .bold)
+    /// Unit suffix beside hero delta (`.single-hero .main-num .unit`,
+    /// 15px/500).
+    static let trendsHeroUnit = Font.system(size: 15, weight: .medium)
+    /// Period sub-line beneath hero (`.hero-sub`, 11px/500).
+    static let trendsHeroSub = Font.system(size: 11, weight: .medium)
+    /// Chart axis labels (`.chart-y-labels`, `.chart-x-labels`, 9px/500).
+    static let trendsAxisLabel = Font.system(size: 9, weight: .medium)
+    /// Chart legend label (`.legend-item`, 9.5px/500).
+    static let trendsLegend = Font.system(size: 9, weight: .medium)
+    /// Stats row uppercase caption (`.stat .label`, 9px/600, 0.5px tracking).
+    /// Use with `.tracking(0.5)` at the call site.
+    static let trendsStatLabel = Font.system(size: 9, weight: .semibold)
+    /// Stats row numeric value (`.stat .value`, 15px/700).
+    static let trendsStatValue = Font.system(size: 15, weight: .bold)
+    /// Stats row unit suffix (`.stat .value .unit`, 9px/400).
+    static let trendsStatUnit = Font.system(size: 9, weight: .regular)
+    /// Empty-state title (`.chart-empty-state .ei-title`, 13px/600,
+    /// -0.1px tracking). Use with `.tracking(-0.1)` at the call site.
+    static let trendsEmptyTitle = Font.system(size: 13, weight: .semibold)
+    /// Empty-state body copy (`.chart-empty-state .ei-body`, 11px/500).
+    static let trendsEmptyBody = Font.system(size: 11, weight: .medium)
+
     // MARK: History screen tokens
 
     /// History row date ("Wed, Apr 3") — 15pt medium.

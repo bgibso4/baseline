@@ -11,7 +11,7 @@ struct MainTabView: View {
 
     var body: some View {
         TabView(selection: $selectedTab) {
-            TrendsPlaceholder()
+            TrendsView()
                 .tabItem {
                     Label("Trends", systemImage: "chart.xyaxis.line")
                 }
@@ -35,20 +35,6 @@ struct MainTabView: View {
 }
 
 // MARK: - Placeholder screens (replaced in later tasks)
-
-private struct TrendsPlaceholder: View {
-    var body: some View {
-        NavigationStack {
-            ZStack {
-                CadreColors.bg.ignoresSafeArea()
-                Text("Trends")
-                    .font(CadreTypography.title)
-                    .foregroundStyle(CadreColors.textPrimary)
-            }
-            .navigationTitle("Trends")
-        }
-    }
-}
 
 private struct BodyPlaceholder: View {
     var body: some View {
