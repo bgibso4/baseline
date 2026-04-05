@@ -15,6 +15,7 @@ struct BodyView: View {
     private let injectedVM: BodyViewModel?
     @State private var vm: BodyViewModel?
     @State private var showLogMeasurement = false
+    @State private var showScanEntry = false
 
     init(viewModel: BodyViewModel? = nil) {
         self.injectedVM = viewModel
@@ -61,6 +62,11 @@ struct BodyView: View {
                 .presentationDetents([.medium, .large])
                 .presentationDragIndicator(.hidden)
         }
+        .fullScreenCover(isPresented: $showScanEntry) {
+            vm?.refresh()
+        } content: {
+            ScanEntryFlow()
+        }
     }
 
     // MARK: - Body Composition
@@ -71,7 +77,7 @@ struct BodyView: View {
                 title: "Body Composition",
                 meta: scanMetaText,
                 action: {
-                    // TODO: Task 17 — open scan entry flow
+                    showScanEntry = true
                 }
             )
 
