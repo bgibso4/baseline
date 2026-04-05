@@ -3,7 +3,7 @@ import SwiftData
 import Observation
 
 @Observable
-class TodayViewModel {
+class NowViewModel {
     private let modelContext: ModelContext
 
     var todayEntry: WeightEntry?

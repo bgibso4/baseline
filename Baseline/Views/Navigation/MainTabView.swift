@@ -17,7 +17,7 @@ struct MainTabView: View {
                 }
                 .tag(AppTab.trends)
 
-            TodayView()
+            NowView()
                 .tabItem {
                     Label("Now", systemImage: "scalemass.fill")
                 }

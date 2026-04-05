@@ -4,31 +4,31 @@ import SwiftData
 import SnapshotTesting
 @testable import Baseline
 
-/// Snapshot tests for `TodayView`.
+/// Snapshot tests for `NowView`.
 ///
 /// Uses XCTest (not Swift Testing) because swift-snapshot-testing's
 /// `assertSnapshot` integrates with XCTest's failure recording. Reference
-/// images live in `__Snapshots__/TodayViewSnapshotTests/` alongside this file.
+/// images live in `__Snapshots__/NowViewSnapshotTests/` alongside this file.
 ///
 /// Configuration: iPhone 13 Pro layout, dark mode, default Dynamic Type.
 /// The app is dark-mode-only in v1, so no light variant is captured.
 ///
-/// Async state note: `TodayView` creates its `TodayViewModel` in `.onAppear`
+/// Async state note: `NowView` creates its `NowViewModel` in `.onAppear`
 /// and calls `refresh()` synchronously. Snapshot rendering triggers `onAppear`
 /// as part of its view hosting, so the rendered image captures the loaded
 /// (post-refresh) state without needing an explicit delay.
-final class TodayViewSnapshotTests: XCTestCase {
+final class NowViewSnapshotTests: XCTestCase {
 
     /// Set to `true` locally to regenerate the reference image, then set back
     /// to `false` and commit both this file and the new reference PNG.
     private let isRecording = false
 
     @MainActor
-    func testTodayView_DarkMode_iPhone17() {
+    func testNowView_DarkMode_iPhone17() {
         let container = makeContainer()
         seedFourteenDays(into: container.mainContext)
 
-        let view = TodayView()
+        let view = NowView()
             .modelContainer(container)
 
         assertSnapshot(

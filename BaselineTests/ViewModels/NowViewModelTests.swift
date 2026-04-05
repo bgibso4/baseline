@@ -2,7 +2,7 @@ import XCTest
 import SwiftData
 @testable import Baseline
 
-final class TodayViewModelTests: XCTestCase {
+final class NowViewModelTests: XCTestCase {
     var container: ModelContainer!
     var context: ModelContext!
 
@@ -21,7 +21,7 @@ final class TodayViewModelTests: XCTestCase {
     }
 
     func testTodayEntryNilWhenNoEntries() {
-        let vm = TodayViewModel(modelContext: context)
+        let vm = NowViewModel(modelContext: context)
         vm.refresh()
         XCTAssertNil(vm.todayEntry)
     }
@@ -31,7 +31,7 @@ final class TodayViewModelTests: XCTestCase {
         context.insert(entry)
         try! context.save()
 
-        let vm = TodayViewModel(modelContext: context)
+        let vm = NowViewModel(modelContext: context)
         vm.refresh()
         XCTAssertNotNil(vm.todayEntry)
         XCTAssertEqual(vm.todayEntry?.weight, 197.4)
@@ -45,7 +45,7 @@ final class TodayViewModelTests: XCTestCase {
         context.insert(todayEntry)
         try! context.save()
 
-        let vm = TodayViewModel(modelContext: context)
+        let vm = NowViewModel(modelContext: context)
         vm.refresh()
         let delta = try XCTUnwrap(vm.delta)
         XCTAssertEqual(delta, 0.6, accuracy: 0.01)
@@ -56,7 +56,7 @@ final class TodayViewModelTests: XCTestCase {
         context.insert(entry)
         try! context.save()
 
-        let vm = TodayViewModel(modelContext: context)
+        let vm = NowViewModel(modelContext: context)
         vm.refresh()
         XCTAssertNil(vm.delta)
     }
@@ -69,7 +69,7 @@ final class TodayViewModelTests: XCTestCase {
         context.insert(todayEntry)
         try! context.save()
 
-        let vm = TodayViewModel(modelContext: context)
+        let vm = NowViewModel(modelContext: context)
         vm.refresh()
         let delta = try XCTUnwrap(vm.delta)
         XCTAssertEqual(delta, 2.4, accuracy: 0.01)
@@ -83,7 +83,7 @@ final class TodayViewModelTests: XCTestCase {
         }
         try! context.save()
 
-        let vm = TodayViewModel(modelContext: context)
+        let vm = NowViewModel(modelContext: context)
         vm.refresh()
         XCTAssertEqual(vm.recentWeights.count, 10)
     }
@@ -94,7 +94,7 @@ final class TodayViewModelTests: XCTestCase {
         context.insert(entry)
         try! context.save()
 
-        let vm = TodayViewModel(modelContext: context)
+        let vm = NowViewModel(modelContext: context)
         vm.refresh()
         let lastWeight = try XCTUnwrap(vm.lastWeight)
         XCTAssertEqual(lastWeight, 197.4)

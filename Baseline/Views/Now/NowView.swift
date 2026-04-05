@@ -6,9 +6,9 @@ import SwiftData
 /// Visual target: `docs/mockups/today-APPROVED-variant-a-2026-04-04.html`.
 /// Layout: toolbar (gear / list) → hero arc + number + range toggle (centered
 /// in open area) → stats card → Weigh In button anchored above tab bar.
-struct TodayView: View {
+struct NowView: View {
     @Environment(\.modelContext) private var modelContext
-    @State private var vm: TodayViewModel?
+    @State private var vm: NowViewModel?
     @State private var showWeighIn = false
     @State private var showSettings = false
     @State private var showHistory = false
@@ -71,7 +71,7 @@ struct TodayView: View {
             }
             .onAppear {
                 if vm == nil {
-                    vm = TodayViewModel(modelContext: modelContext)
+                    vm = NowViewModel(modelContext: modelContext)
                 }
                 vm?.refresh()
             }
@@ -323,6 +323,6 @@ private struct ArcShape: Shape {
 }
 
 #Preview {
-    TodayView()
+    NowView()
         .modelContainer(for: [WeightEntry.self, InBodyScan.self, BodyMeasurement.self, SyncState.self], inMemory: true)
 }
