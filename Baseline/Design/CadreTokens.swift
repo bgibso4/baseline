@@ -27,6 +27,11 @@ enum CadreColors {
     static let negative = Color(hex: "FF3B30")
     static let neutral = Color(hex: "8E8E9A")
 
+    // Delta direction — mockup body-v1 uses `--up: #8FA880` (sage green)
+    // and `--down: #6B7B94` (accent/dusty blue). "down" == accent for lowerIsBetter.
+    static let deltaUp = Color(hex: "8FA880")
+    static let deltaDown = Color(hex: "6B7B94")
+
     // Chart
     static let chartLine = Color(hex: "6B7B94")
     static let chartMovingAverage = Color(hex: "B89968")
@@ -104,6 +109,38 @@ enum CadreTypography {
 
     /// Delta display (retained for other screens).
     static let deltaDisplay = Font.system(size: 17, weight: .medium, design: .rounded)
+
+    // MARK: Body tab tokens
+    // Sizes/weights sourced from
+    // docs/mockups/body-v1-2026-04-05.html (Variant B tiles)
+    // docs/mockups/body-v4-refinements-2026-04-05.html (log measurement sheet)
+
+    /// Section header title (`.sh-title`, 11px/700, 0.6px tracking, uppercase).
+    /// Use with `.tracking(0.6)` at the call site.
+    static let bodySectionTitle = Font.system(size: 11, weight: .bold)
+    /// Section header metadata (`.sh-meta`, 10px/500).
+    static let bodySectionMeta = Font.system(size: 10, weight: .medium)
+    /// Tile metric label (`.t-name`, 10px/600, 0.4px tracking, uppercase).
+    /// Use with `.tracking(0.4)` at the call site.
+    static let tileLabel = Font.system(size: 10, weight: .semibold)
+    /// Tile value number (`.t-val`, 24px/700, -0.6px tracking).
+    /// Use with `.tracking(-0.6)` at the call site.
+    static let tileValue = Font.system(size: 24, weight: .bold)
+    /// Tile unit suffix (`.t-val .unit`, 11px/500).
+    static let tileUnit = Font.system(size: 11, weight: .medium)
+    /// Tile delta indicator (`.t-delta`, 10px/600).
+    static let tileDelta = Font.system(size: 10, weight: .semibold)
+    /// Scan history card title (14px/700, -0.2px tracking).
+    static let scanHistoryTitle = Font.system(size: 14, weight: .bold)
+    /// Scan history card metadata (11px/500).
+    static let scanHistoryMeta = Font.system(size: 11, weight: .medium)
+    /// Log measurement sheet hero number (`.v-num`, 56px/700, -1.6px tracking).
+    /// Use with `.tracking(-1.6)` at the call site.
+    static let measurementHero = Font.system(size: 56, weight: .bold)
+    /// Log measurement sheet unit suffix (`.v-num .unit`, 18px/500).
+    static let measurementHeroUnit = Font.system(size: 18, weight: .medium)
+    /// Metric picker chip name (`.mname`, 14px/600).
+    static let measurementPickerName = Font.system(size: 14, weight: .semibold)
 
     // MARK: Trends screen tokens
     // Sizes/weights/tracking sourced from

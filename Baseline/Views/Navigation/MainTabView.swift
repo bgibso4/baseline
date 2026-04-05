@@ -23,7 +23,7 @@ struct MainTabView: View {
                 }
                 .tag(AppTab.now)
 
-            BodyPlaceholder()
+            BodyView()
                 .tabItem {
                     Label("Body", systemImage: "figure.stand")
                 }
@@ -31,22 +31,6 @@ struct MainTabView: View {
         }
         .tint(CadreColors.accent)
         .preferredColorScheme(.dark)
-    }
-}
-
-// MARK: - Placeholder screens (replaced in later tasks)
-
-private struct BodyPlaceholder: View {
-    var body: some View {
-        NavigationStack {
-            ZStack {
-                CadreColors.bg.ignoresSafeArea()
-                Text("Body")
-                    .font(CadreTypography.title)
-                    .foregroundStyle(CadreColors.textPrimary)
-            }
-            .navigationTitle("Body")
-        }
     }
 }
 
