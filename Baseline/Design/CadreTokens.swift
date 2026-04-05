@@ -57,10 +57,37 @@ enum CadreTypography {
     static let footnote = Font.system(size: 13, weight: .regular)
     static let caption = Font.system(size: 12, weight: .regular)
 
-    // Weight display — the big number on Today screen
-    static let weightDisplay = Font.system(size: 64, weight: .bold, design: .rounded)
-    static let weightUnit = Font.system(size: 20, weight: .medium, design: .rounded)
+    // MARK: Now screen tokens
+    // Sizes/weights/tracking sourced from
+    // docs/mockups/today-APPROVED-variant-a-2026-04-04.html
+
+    /// Giant hero number (`.weight-num`, 84px/700, letter-spacing -2.5px).
+    /// Use with `.tracking(-2.5)` at the call site.
+    static let weightHero = Font.system(size: 84, weight: .bold, design: .default)
+    /// "lb"/"kg" suffix beside hero number (`.weight-num .unit`, 24px/500).
+    static let weightUnit = Font.system(size: 24, weight: .medium)
+    /// "Today" caption under hero number (`.today-label`, 13px/500).
+    static let todayLabel = Font.system(size: 13, weight: .medium)
+    /// 30D/90D/All segmented toggle (`.toggle .opt`, 12px/500).
+    static let toggleOption = Font.system(size: 12, weight: .medium)
+    /// LOWEST/AVERAGE/HIGHEST uppercase caption (`.stat .label`,
+    /// 9px/600, 0.5px tracking, uppercase). Use with `.tracking(0.5)`.
+    static let statLabel = Font.system(size: 9, weight: .semibold)
+    /// Stat card numeric value (`.stat .value`, 18px/700).
+    static let statValue = Font.system(size: 18, weight: .bold)
+    /// Stat card unit suffix (`.stat .value .unit`, 10px/400).
+    static let statUnit = Font.system(size: 10, weight: .regular)
+    /// Primary "Weigh In" button (`.weigh-btn`, 16px/600, 0.3px tracking).
+    /// Use with `.tracking(0.3)` at the call site.
+    static let buttonLabel = Font.system(size: 16, weight: .semibold)
+
+    /// Delta display (retained for other screens).
     static let deltaDisplay = Font.system(size: 17, weight: .medium, design: .rounded)
+
+    /// Deprecated: superseded by `weightHero` (84pt) on the Now screen.
+    /// Retained temporarily; remove once no longer referenced.
+    @available(*, deprecated, message: "Use weightHero (84pt) — matches approved Now mockup.")
+    static let weightDisplay = Font.system(size: 64, weight: .bold, design: .rounded)
 }
 
 // MARK: - Corner Radius

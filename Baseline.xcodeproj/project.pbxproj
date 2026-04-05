@@ -7,8 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		034B820F8E972206E2C1980F /* testNowView_DarkMode_iPhone17.1.png in Resources */ = {isa = PBXBuildFile; fileRef = 81CCCE5B013288FDC7625B2D /* testNowView_DarkMode_iPhone17.1.png */; };
 		08579081DC36E8CE4BF75D81 /* SnapshotTesting in Frameworks */ = {isa = PBXBuildFile; productRef = F942F12A281ABA96EF8FFA4D /* SnapshotTesting */; };
+		0D82FB85309F585B25DFA19B /* ArcIndicatorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08676595D1E00491EDB74DF5 /* ArcIndicatorView.swift */; };
 		14FE980511237871E2644BEE /* BaselineApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 007A5A45919FF650EAB251AE /* BaselineApp.swift */; };
 		179A4D608746808CFCE3A729 /* UnitConversionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB289EC0E5CC9756E1B62116 /* UnitConversionTests.swift */; };
 		25952DDEC892809F909C7E92 /* NowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C209CE8946DB31F979041D1A /* NowView.swift */; };
@@ -16,6 +16,7 @@
 		416BB9FECD67376B100EFFAC /* BaselineWidgets.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = D25FD52DA7EFC4286FE7A191 /* BaselineWidgets.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		4F5996756FAB95C53E59DEFE /* WeighInViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C5711FD50AF3ED47B8906EC /* WeighInViewModelTests.swift */; };
 		4FEB35F248ED1757BCA0DC3F /* NowViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E0B169BE6D18A1AF3E2C9B2 /* NowViewModel.swift */; };
+		6AC1FE662BB8374653D0EDD0 /* testNowView_DarkMode_iPhone13Pro.1.png in Resources */ = {isa = PBXBuildFile; fileRef = 259F301EF2210DEFF2801026 /* testNowView_DarkMode_iPhone13Pro.1.png */; };
 		6D6219BA93D116415510FF64 /* NowViewSnapshotTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2DD62082CE52C25DD0DC3AA5 /* NowViewSnapshotTests.swift */; };
 		7F2647C6A3C1B0DE829C5847 /* WeightEntryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F133F7888A7F42479BC2329D /* WeightEntryTests.swift */; };
 		7F56CCBB22A690D800512F96 /* DateFormatting.swift in Sources */ = {isa = PBXBuildFile; fileRef = 90026F3A1D7167909BB75A33 /* DateFormatting.swift */; };
@@ -67,7 +68,9 @@
 
 /* Begin PBXFileReference section */
 		007A5A45919FF650EAB251AE /* BaselineApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BaselineApp.swift; sourceTree = "<group>"; };
+		08676595D1E00491EDB74DF5 /* ArcIndicatorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArcIndicatorView.swift; sourceTree = "<group>"; };
 		1AF6412F243C441BE0D8164E /* NowViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NowViewModelTests.swift; sourceTree = "<group>"; };
+		259F301EF2210DEFF2801026 /* testNowView_DarkMode_iPhone13Pro.1.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = testNowView_DarkMode_iPhone13Pro.1.png; sourceTree = "<group>"; };
 		2DD62082CE52C25DD0DC3AA5 /* NowViewSnapshotTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NowViewSnapshotTests.swift; sourceTree = "<group>"; };
 		312ECD390BFC532EC10D9819 /* WeightEntry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeightEntry.swift; sourceTree = "<group>"; };
 		4CBC035387A8087081A7BDD0 /* BaselineWidgets.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BaselineWidgets.swift; sourceTree = "<group>"; };
@@ -81,7 +84,6 @@
 		76B6D911AF8339B62A988B99 /* MainTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainTabView.swift; sourceTree = "<group>"; };
 		7C5711FD50AF3ED47B8906EC /* WeighInViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeighInViewModelTests.swift; sourceTree = "<group>"; };
 		7FB8FE60E06088A3CD2FDE17 /* MeasurementType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeasurementType.swift; sourceTree = "<group>"; };
-		81CCCE5B013288FDC7625B2D /* testNowView_DarkMode_iPhone17.1.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = testNowView_DarkMode_iPhone17.1.png; sourceTree = "<group>"; };
 		88AF6FD6DF3173BDBDB33E58 /* Baseline.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Baseline.entitlements; sourceTree = "<group>"; };
 		90026F3A1D7167909BB75A33 /* DateFormatting.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DateFormatting.swift; sourceTree = "<group>"; };
 		917EC6C734FA7FDEF274FFAD /* Baseline.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = Baseline.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -174,6 +176,7 @@
 		726591C6CB6E676E532B2279 /* Components */ = {
 			isa = PBXGroup;
 			children = (
+				08676595D1E00491EDB74DF5 /* ArcIndicatorView.swift */,
 				A1F7BB657D83894D1E5B4400 /* SparklineView.swift */,
 			);
 			path = Components;
@@ -200,7 +203,7 @@
 		82D855C2B7288DB83CCE831F /* NowViewSnapshotTests */ = {
 			isa = PBXGroup;
 			children = (
-				81CCCE5B013288FDC7625B2D /* testNowView_DarkMode_iPhone17.1.png */,
+				259F301EF2210DEFF2801026 /* testNowView_DarkMode_iPhone13Pro.1.png */,
 			);
 			path = NowViewSnapshotTests;
 			sourceTree = "<group>";
@@ -388,7 +391,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				034B820F8E972206E2C1980F /* testNowView_DarkMode_iPhone17.1.png in Resources */,
+				6AC1FE662BB8374653D0EDD0 /* testNowView_DarkMode_iPhone13Pro.1.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -413,6 +416,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				0D82FB85309F585B25DFA19B /* ArcIndicatorView.swift in Sources */,
 				14FE980511237871E2644BEE /* BaselineApp.swift in Sources */,
 				9190571A252AD986B58681CA /* BodyMeasurement.swift in Sources */,
 				AE4F08FFC7E7366D526B7FE5 /* CadreTokens.swift in Sources */,

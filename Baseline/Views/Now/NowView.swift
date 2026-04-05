@@ -14,6 +14,15 @@ struct NowView: View {
     @State private var showHistory = false
     @State private var selectedRange: StatsRange = .thirtyDays
 
+    /// When non-nil, the view uses this VM directly and skips the `.onAppear`
+    /// lazy init. Lets snapshot/unit tests pre-load state synchronously.
+    private let injectedVM: NowViewModel?
+
+    init(viewModel: NowViewModel? = nil) {
+        self.injectedVM = viewModel
+        self._vm = State(initialValue: viewModel)
+    }
+
     var body: some View {
         NavigationStack {
             ZStack {
@@ -70,6 +79,9 @@ struct NowView: View {
                     .foregroundStyle(CadreColors.textPrimary)
             }
             .onAppear {
+                // If a VM was injected, skip lazy init entirely — the caller
+                // has already refreshed. This keeps snapshot tests deterministic.
+                guard injectedVM == nil else { return }
                 if vm == nil {
                     vm = NowViewModel(modelContext: modelContext)
                 }
@@ -85,8 +97,9 @@ struct NowView: View {
             ArcIndicatorView(fraction: arcFraction) {
                 VStack(spacing: 10) {
                     weightNumber
+                    // "Today" caption inside the arc
                     Text("Today")
-                        .font(.system(size: 13, weight: .medium))
+                        .font(CadreTypography.todayLabel)
                         .foregroundStyle(CadreColors.textSecondary)
                 }
             }
@@ -98,23 +111,23 @@ struct NowView: View {
 
     private var weightNumber: some View {
         let displayWeight = vm?.todayEntry?.weight ?? vm?.lastWeight
-        let unit = vm?.todayEntry?.unit
-            ?? UserDefaults.standard.string(forKey: "weightUnit")
-            ?? "lb"
+        let unit = vm?.unit ?? "lb"
         let dimmed = vm?.todayEntry == nil && displayWeight != nil
 
         return HStack(alignment: .firstTextBaseline, spacing: 4) {
             if let weight = displayWeight {
+                // Hero weight number — 84pt bold, -2.5 tracking (mockup .weight-num)
                 Text(UnitConversion.formatWeight(weight, unit: unit))
-                    .font(.system(size: 84, weight: .bold, design: .default))
+                    .font(CadreTypography.weightHero)
                     .tracking(-2.5)
                     .foregroundStyle(dimmed ? CadreColors.textTertiary : CadreColors.textPrimary)
+                // Unit suffix — 24pt medium (mockup .weight-num .unit)
                 Text(unit)
-                    .font(.system(size: 24, weight: .medium))
+                    .font(CadreTypography.weightUnit)
                     .foregroundStyle(CadreColors.textSecondary)
             } else {
                 Text("—")
-                    .font(.system(size: 84, weight: .bold))
+                    .font(CadreTypography.weightHero)
                     .foregroundStyle(CadreColors.textTertiary)
             }
         }
@@ -125,8 +138,9 @@ struct NowView: View {
     private var rangeToggle: some View {
         HStack(spacing: 0) {
             ForEach(StatsRange.allCases, id: \.self) { option in
+                // 30D / 90D / All segment — 12pt medium (mockup .toggle .opt)
                 Text(option.label)
-                    .font(.system(size: 12, weight: .medium))
+                    .font(CadreTypography.toggleOption)
                     .foregroundStyle(selectedRange == option ? CadreColors.textPrimary : CadreColors.textSecondary)
                     .padding(.vertical, 7)
                     .padding(.horizontal, 18)
@@ -135,7 +149,10 @@ struct NowView: View {
                             .fill(selectedRange == option ? CadreColors.cardElevated : Color.clear)
                     )
                     .contentShape(Rectangle())
-                    .onTapGesture { selectedRange = option }
+                    .onTapGesture {
+                        // TODO: wire to VM window (follow-up) — currently inert.
+                        selectedRange = option
+                    }
             }
         }
         .padding(3)
@@ -166,19 +183,22 @@ struct NowView: View {
     }
 
     private func statCell(label: String, value: Double?) -> some View {
-        let unit = vm?.todayEntry?.unit ?? "lb"
+        let unit = vm?.unit ?? "lb"
         return VStack(spacing: 6) {
+            // Uppercase caption — 9pt semibold, 0.5px tracking (mockup .stat .label)
             Text(label)
-                .font(.system(size: 9, weight: .semibold))
+                .font(CadreTypography.statLabel)
                 .tracking(0.5)
                 .foregroundStyle(CadreColors.textTertiary)
             HStack(alignment: .firstTextBaseline, spacing: 2) {
+                // Stat value — 18pt bold (mockup .stat .value)
                 Text(value.map { UnitConversion.formatWeight($0, unit: unit) } ?? "—")
-                    .font(.system(size: 18, weight: .bold))
+                    .font(CadreTypography.statValue)
                     .foregroundStyle(CadreColors.textPrimary)
                 if value != nil {
+                    // Stat unit suffix — 10pt regular (mockup .stat .value .unit)
                     Text(unit)
-                        .font(.system(size: 10, weight: .regular))
+                        .font(CadreTypography.statUnit)
                         .foregroundStyle(CadreColors.textTertiary)
                 }
             }
@@ -193,8 +213,9 @@ struct NowView: View {
         Button {
             showWeighIn = true
         } label: {
+            // Primary button label — 16pt semibold, 0.3px tracking (mockup .weigh-btn)
             Text("Weigh In")
-                .font(.system(size: 16, weight: .semibold))
+                .font(CadreTypography.buttonLabel)
                 .tracking(0.3)
                 .foregroundStyle(.white)
                 .frame(maxWidth: .infinity)
@@ -240,85 +261,6 @@ private enum StatsRange: CaseIterable {
         case .ninetyDays: return "90D"
         case .all: return "All"
         }
-    }
-}
-
-// MARK: - Arc indicator
-
-/// 270° arc (from 225° bottom-left around the top to -45° bottom-right) with a
-/// filled segment showing `fraction` (0...1) of the range, plus an endpoint dot.
-/// Label content sits centered inside the arc.
-private struct ArcIndicatorView<Content: View>: View {
-    let fraction: Double?
-    @ViewBuilder let content: () -> Content
-
-    // Matches mockup: 290 × 248 SVG, radius 145, center at (145, 145)
-    private let size = CGSize(width: 290, height: 248)
-    private let radius: CGFloat = 145
-    private let strokeWidth: CGFloat = 7
-    // Arc spans 270°, from 135° (bottom-left) clockwise to 45° (bottom-right)
-    // i.e. start at 135°, sweep 270° clockwise.
-    private let startAngle = Angle.degrees(135)
-    private let sweep: Double = 270
-
-    var body: some View {
-        ZStack {
-            // Background arc
-            ArcShape(startAngle: startAngle, sweepDegrees: sweep, radius: radius)
-                .stroke(CadreColors.divider, style: StrokeStyle(lineWidth: strokeWidth, lineCap: .round))
-
-            // Progress arc
-            if let fraction {
-                ArcShape(startAngle: startAngle, sweepDegrees: sweep * fraction, radius: radius)
-                    .stroke(CadreColors.accent, style: StrokeStyle(lineWidth: strokeWidth, lineCap: .round))
-
-                // Endpoint dot
-                endpointDot(at: fraction)
-            }
-
-            // Center content
-            content()
-                .position(x: size.width / 2, y: radius)
-        }
-        .frame(width: size.width, height: size.height)
-    }
-
-    private func endpointDot(at fraction: Double) -> some View {
-        let angle = startAngle + .degrees(sweep * fraction)
-        let center = CGPoint(x: size.width / 2, y: radius)
-        let x = center.x + radius * CGFloat(cos(angle.radians))
-        let y = center.y + radius * CGFloat(sin(angle.radians))
-        return ZStack {
-            Circle()
-                .fill(CadreColors.accent)
-                .frame(width: 18, height: 18)
-            Circle()
-                .fill(CadreColors.textPrimary)
-                .frame(width: 7, height: 7)
-        }
-        .position(x: x, y: y)
-    }
-}
-
-/// Arc drawn from `startAngle`, sweeping clockwise by `sweepDegrees` around the
-/// view's top-center (x = width/2, y = radius). Matches the SVG arc convention
-/// used in the approved mockup.
-private struct ArcShape: Shape {
-    let startAngle: Angle
-    let sweepDegrees: Double
-    let radius: CGFloat
-
-    func path(in rect: CGRect) -> Path {
-        var path = Path()
-        let center = CGPoint(x: rect.width / 2, y: radius)
-        path.addArc(
-            center: center,
-            radius: radius,
-            startAngle: startAngle,
-            endAngle: startAngle + .degrees(sweepDegrees),
-            clockwise: false
-        )
-        return path
     }
 }
 

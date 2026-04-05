@@ -10,13 +10,14 @@ import SnapshotTesting
 /// `assertSnapshot` integrates with XCTest's failure recording. Reference
 /// images live in `__Snapshots__/NowViewSnapshotTests/` alongside this file.
 ///
-/// Configuration: iPhone 13 Pro layout, dark mode, default Dynamic Type.
-/// The app is dark-mode-only in v1, so no light variant is captured.
+/// Configuration: iPhone 13 Pro layout (swift-snapshot-testing's highest
+/// available iPhone preset — the simulator the suite runs on is iPhone 17,
+/// but the snapshot library ships with `.iPhone13Pro` and we capture to that
+/// layout for stable, device-agnostic references).
 ///
-/// Async state note: `NowView` creates its `NowViewModel` in `.onAppear`
-/// and calls `refresh()` synchronously. Snapshot rendering triggers `onAppear`
-/// as part of its view hosting, so the rendered image captures the loaded
-/// (post-refresh) state without needing an explicit delay.
+/// Determinism: fixtures are seeded at fixed offsets from a reference date,
+/// and the test injects a pre-loaded `NowViewModel` so the snapshot doesn't
+/// depend on `.onAppear` timing.
 final class NowViewSnapshotTests: XCTestCase {
 
     /// Set to `true` locally to regenerate the reference image, then set back
@@ -24,11 +25,16 @@ final class NowViewSnapshotTests: XCTestCase {
     private let isRecording = false
 
     @MainActor
-    func testNowView_DarkMode_iPhone17() {
+    func testNowView_DarkMode_iPhone13Pro() {
         let container = makeContainer()
         seedFourteenDays(into: container.mainContext)
 
-        let view = NowView()
+        // Pre-load the VM synchronously so the snapshot renders against fully
+        // populated data (no .onAppear race).
+        let vm = NowViewModel(modelContext: container.mainContext)
+        vm.refresh()
+
+        let view = NowView(viewModel: vm)
             .modelContainer(container)
 
         assertSnapshot(
@@ -56,6 +62,13 @@ final class NowViewSnapshotTests: XCTestCase {
 
     /// Seed 14 days of realistic weights (lbs), trending slightly down with
     /// daily wobble. Today's entry is ~197.2 lb.
+    ///
+    /// The 13 historical entries use fixed offsets from real "today"
+    /// (`startOfDay(Date())`), and today's entry is anchored to real today so
+    /// `NowViewModel`'s internal `Date()`-based "today" predicate still
+    /// matches. Offsets are the only time-dependent piece; the values
+    /// themselves are hand-picked so derived stats (min/avg/max) stay stable
+    /// across runs.
     private func seedFourteenDays(into context: ModelContext) {
         // Deterministic series (hand-picked, no RNG) so snapshots stay stable.
         let weights: [Double] = [

@@ -20,6 +20,15 @@ class NowViewModel {
         return previousEntry?.weight
     }
 
+    /// Preferred weight unit ("lb" / "kg"). Owns the UserDefaults read so views
+    /// don't reach into storage directly. A proper UserPreferences service
+    /// arrives with Settings in Task 18.
+    var unit: String {
+        todayEntry?.unit
+            ?? UserDefaults.standard.string(forKey: "weightUnit")
+            ?? "lb"
+    }
+
     init(modelContext: ModelContext) {
         self.modelContext = modelContext
     }
