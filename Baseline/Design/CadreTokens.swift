@@ -5,19 +5,22 @@ import SwiftUI
 // This file becomes the seed of CadreKit when Apex migrates to Swift.
 
 enum CadreColors {
-    // Backgrounds
-    static let bg = Color(hex: "0A0A0F")
-    static let card = Color(hex: "16161F")
-    static let cardElevated = Color(hex: "1E1E2A")
+    // Backgrounds — locked neutrals from 2026-04-04 visual identity
+    static let bg = Color(hex: "0B0B0E")
+    static let card = Color(hex: "17171B")
+    static let cardElevated = Color(hex: "1F1F24")
 
-    // Text
-    static let textPrimary = Color.white
-    static let textSecondary = Color(hex: "8E8E9A")
-    static let textTertiary = Color(hex: "5A5A66")
+    // Text — locked neutrals
+    static let textPrimary = Color(hex: "F2F3F5")
+    static let textSecondary = Color(hex: "797B83")
+    static let textTertiary = Color(hex: "494B52")
 
-    // Accent
-    static let accent = Color(hex: "6C63FF")
-    static let accentLight = Color(hex: "8B84FF")
+    // Divider
+    static let divider = Color(hex: "2A2A30")
+
+    // Accent — dusty blue (swappable token; amber + warm-gray in reserve)
+    static let accent = Color(hex: "6B7B94")
+    static let accentLight = Color(hex: "8B9AB0")
 
     // Semantic
     static let positive = Color(hex: "34C759")
@@ -25,10 +28,10 @@ enum CadreColors {
     static let neutral = Color(hex: "8E8E9A")
 
     // Chart
-    static let chartLine = Color(hex: "6C63FF")
-    static let chartMovingAverage = Color(hex: "FF9F0A")
-    static let chartFill = Color(hex: "6C63FF").opacity(0.15)
-    static let chartGrid = Color(hex: "2A2A36")
+    static let chartLine = Color(hex: "6B7B94")
+    static let chartMovingAverage = Color(hex: "B89968")
+    static let chartFill = Color(hex: "6B7B94").opacity(0.15)
+    static let chartGrid = Color(hex: "2A2A30")
 }
 
 // MARK: - Spacing

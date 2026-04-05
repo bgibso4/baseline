@@ -17,9 +17,9 @@ struct MainTabView: View {
                 }
                 .tag(AppTab.trends)
 
-            TodayPlaceholder()
+            TodayView()
                 .tabItem {
-                    Label("Today", systemImage: "scalemass.fill")
+                    Label("Now", systemImage: "scalemass.fill")
                 }
                 .tag(AppTab.today)
 
@@ -35,31 +35,6 @@ struct MainTabView: View {
 }
 
 // MARK: - Placeholder screens (replaced in later tasks)
-
-private struct TodayPlaceholder: View {
-    var body: some View {
-        NavigationStack {
-            ZStack {
-                CadreColors.bg.ignoresSafeArea()
-                Text("Today")
-                    .font(CadreTypography.title)
-                    .foregroundStyle(CadreColors.textPrimary)
-            }
-            .toolbar {
-                ToolbarItem(placement: .topBarLeading) {
-                    Button { } label: {
-                        Image(systemName: "gearshape")
-                    }
-                }
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button { } label: {
-                        Image(systemName: "list.bullet")
-                    }
-                }
-            }
-        }
-    }
-}
 
 private struct TrendsPlaceholder: View {
     var body: some View {
