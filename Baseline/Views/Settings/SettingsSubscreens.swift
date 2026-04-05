@@ -540,9 +540,31 @@ struct CadreSyncView: View {
 
 // MARK: - Export CSV
 
-/// Sub-screen 07: Export screen — stub until Task 19.
+/// Sub-screen 07: Export CSV files for weights, measurements, and scans.
 struct ExportCSVView: View {
     let viewModel: SettingsViewModel
+    @Environment(\.modelContext) private var modelContext
+
+    @State private var includeWeights = true
+    @State private var includeMeasurements = true
+    @State private var includeScans = true
+
+    private var exportItems: [ExportItem] {
+        var items: [ExportItem] = []
+        if includeWeights {
+            let csv = CSVExporter.exportWeights(context: modelContext)
+            items.append(ExportItem(filename: "baseline-weights.csv", content: csv))
+        }
+        if includeMeasurements {
+            let csv = CSVExporter.exportMeasurements(context: modelContext)
+            items.append(ExportItem(filename: "baseline-measurements.csv", content: csv))
+        }
+        if includeScans {
+            let csv = CSVExporter.exportScans(context: modelContext)
+            items.append(ExportItem(filename: "baseline-scans.csv", content: csv))
+        }
+        return items
+    }
 
     var body: some View {
         ZStack {
@@ -571,11 +593,36 @@ struct ExportCSVView: View {
                 .padding(.top, 24)
                 .padding(.bottom, 8)
 
-                // Placeholder — Task 19 adds checkboxes + export button
-                Text("Coming in a future update.")
-                    .font(.system(size: 13, weight: .medium))
-                    .foregroundStyle(CadreColors.textTertiary)
+                // Toggles
+                VStack(spacing: 0) {
+                    exportToggle("Weights", isOn: $includeWeights)
+                    Rectangle().fill(CadreColors.divider).frame(height: 0.5)
+                    exportToggle("Measurements", isOn: $includeMeasurements)
+                    Rectangle().fill(CadreColors.divider).frame(height: 0.5)
+                    exportToggle("Scans", isOn: $includeScans)
+                }
+                .background(CadreColors.card, in: RoundedRectangle(cornerRadius: 14))
+                .padding(.horizontal, 22)
+                .padding(.top, 20)
+
+                // Share button
+                if !exportItems.isEmpty {
+                    let urls = exportItems.compactMap { $0.temporaryFileURL() }
+                    ShareLink(items: urls) {
+                        HStack(spacing: 8) {
+                            Image(systemName: "square.and.arrow.up")
+                                .font(.system(size: 14, weight: .medium))
+                            Text("Export \(exportItems.count) file\(exportItems.count == 1 ? "" : "s")")
+                                .font(.custom("Exo 2", size: 14).weight(.semibold))
+                        }
+                        .foregroundStyle(CadreColors.bg)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 14)
+                        .background(CadreColors.accent, in: RoundedRectangle(cornerRadius: 12))
+                    }
+                    .padding(.horizontal, 22)
                     .padding(.top, 24)
+                }
 
                 Spacer()
             }
@@ -590,6 +637,33 @@ struct ExportCSVView: View {
             }
         }
         .toolbarBackground(CadreColors.bg, for: .navigationBar)
+    }
+
+    private func exportToggle(_ label: String, isOn: Binding<Bool>) -> some View {
+        Toggle(isOn: isOn) {
+            Text(label)
+                .font(.system(size: 14, weight: .medium))
+                .foregroundStyle(CadreColors.textPrimary)
+        }
+        .tint(CadreColors.accent)
+        .padding(.horizontal, 16)
+        .padding(.vertical, 12)
+    }
+}
+
+/// Helper for creating temporary CSV files for sharing.
+private struct ExportItem {
+    let filename: String
+    let content: String
+
+    func temporaryFileURL() -> URL? {
+        let url = FileManager.default.temporaryDirectory.appendingPathComponent(filename)
+        do {
+            try content.write(to: url, atomically: true, encoding: .utf8)
+            return url
+        } catch {
+            return nil
+        }
     }
 }
 
