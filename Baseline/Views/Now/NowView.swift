@@ -69,9 +69,7 @@ struct NowView: View {
                 .presentationDragIndicator(.hidden)
             }
             .navigationDestination(isPresented: $showSettings) {
-                // Replaced in Task 18
-                Text("Settings")
-                    .foregroundStyle(CadreColors.textPrimary)
+                SettingsView()
             }
             .navigationDestination(isPresented: $showHistory) {
                 HistoryView()

@@ -32,6 +32,12 @@ enum CadreColors {
     static let deltaUp = Color(hex: "8FA880")
     static let deltaDown = Color(hex: "6B7B94")
 
+    // Danger — settings delete, destructive actions (mockup --danger: #C17171)
+    static let danger = Color(hex: "C17171")
+
+    // Success — connected status badges (mockup --success: #8FA880)
+    static let success = Color(hex: "8FA880")
+
     // Chart
     static let chartLine = Color(hex: "6B7B94")
     static let chartMovingAverage = Color(hex: "B89968")
