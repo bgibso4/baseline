@@ -3,14 +3,14 @@ import SwiftData
 
 @Model
 final class Scan {
-    var id: UUID
-    var date: Date
-    var type: String
-    var source: String
+    var id: UUID = UUID()
+    var date: Date = Date()
+    var type: String = ""
+    var source: String = ""
     var notes: String?
-    var payloadData: Data
-    var createdAt: Date
-    var updatedAt: Date
+    var payloadData: Data = Data()
+    var createdAt: Date = Date()
+    var updatedAt: Date = Date()
 
     init(date: Date, type: ScanType, source: ScanSource, payload: Data, notes: String? = nil) {
         self.id = UUID()

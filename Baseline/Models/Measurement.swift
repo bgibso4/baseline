@@ -3,13 +3,13 @@ import SwiftData
 
 @Model
 final class Measurement {
-    var id: UUID
-    var date: Date
-    var type: String
-    var valueCm: Double
+    var id: UUID = UUID()
+    var date: Date = Date()
+    var type: String = ""
+    var valueCm: Double = 0
     var notes: String?
-    var createdAt: Date
-    var updatedAt: Date
+    var createdAt: Date = Date()
+    var updatedAt: Date = Date()
 
     init(date: Date, type: MeasurementType, valueCm: Double, notes: String? = nil) {
         self.id = UUID()
