@@ -51,18 +51,22 @@ struct NowView: View {
                 ToolbarItem(placement: .topBarLeading) {
                     Button { showSettings = true } label: {
                         Image(systemName: "gearshape")
-                            .font(.system(size: 20, weight: .regular))
+                            .font(.system(size: 16, weight: .regular))
                             .foregroundStyle(CadreColors.textSecondary)
                     }
+                    .buttonStyle(.plain)
                 }
                 ToolbarItem(placement: .topBarTrailing) {
                     Button { showHistory = true } label: {
                         Image(systemName: "line.3.horizontal")
-                            .font(.system(size: 20, weight: .regular))
+                            .font(.system(size: 16, weight: .regular))
                             .foregroundStyle(CadreColors.textSecondary)
                     }
+                    .buttonStyle(.plain)
                 }
             }
+            .toolbarBackgroundVisibility(.hidden, for: .navigationBar)
+            .navigationBarTitleDisplayMode(.inline)
             .sheet(isPresented: $showWeighIn) {
                 WeighInSheet(
                     lastWeight: vm?.todayEntry?.weight ?? vm?.lastWeight,
@@ -175,12 +179,9 @@ struct NowView: View {
 
     // MARK: - Bottom block (stats + button)
 
-    private let weighInTip = WeighInTip()
-
     private var bottomBlock: some View {
         VStack(spacing: 18) {
             statsCard
-            TipView(weighInTip)
             weighInButton
         }
     }
@@ -241,21 +242,37 @@ struct NowView: View {
 
     // MARK: - Derived data
 
+    /// Filters all weight entries by the selected range toggle.
+    private var filteredWeights: [WeightEntry] {
+        guard let weights = vm?.recentWeights else { return [] }
+        let calendar = Calendar.current
+        let now = Date()
+        switch selectedRange {
+        case .thirtyDays:
+            let cutoff = calendar.date(byAdding: .day, value: -30, to: now)!
+            return weights.filter { $0.date >= cutoff }
+        case .ninetyDays:
+            let cutoff = calendar.date(byAdding: .day, value: -90, to: now)!
+            return weights.filter { $0.date >= cutoff }
+        case .all:
+            return weights
+        }
+    }
+
     /// Where today's weight sits within the recent min–max range, 0...1.
     /// Returns nil if we lack data for a meaningful arc.
     private var arcFraction: Double? {
         guard let current = vm?.todayEntry?.weight ?? vm?.lastWeight,
-              let weights = vm?.recentWeights,
-              weights.count >= 2
+              filteredWeights.count >= 2
         else { return nil }
 
-        let values = weights.map(\.weight)
+        let values = filteredWeights.map(\.weight)
         guard let lo = values.min(), let hi = values.max(), hi > lo else { return nil }
         return max(0, min(1, (current - lo) / (hi - lo)))
     }
 
     private var computedStats: (lowest: Double?, average: Double?, highest: Double?) {
-        let values = (vm?.recentWeights ?? []).map(\.weight)
+        let values = filteredWeights.map(\.weight)
         guard !values.isEmpty else { return (nil, nil, nil) }
         let avg = values.reduce(0, +) / Double(values.count)
         return (values.min(), avg, values.max())

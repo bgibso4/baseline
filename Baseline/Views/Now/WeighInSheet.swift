@@ -1,5 +1,6 @@
 import SwiftUI
 import SwiftData
+import PhotosUI
 
 /// Sheet presented from Now screen for logging today's weight.
 ///
@@ -17,7 +18,10 @@ struct WeighInSheet: View {
 
     @State private var vm: WeighInViewModel?
     @State private var showNoteField: Bool = false
-    @State private var showPhotoStub: Bool = false
+    @State private var showDatePicker: Bool = false
+    @State private var selectedDate: Date = Date()
+    @State private var selectedPhoto: PhotosPickerItem?
+    @State private var photoData: Data?
 
     init(
         lastWeight: Double?,
@@ -89,33 +93,56 @@ struct WeighInSheet: View {
             if showNoteField {
                 noteFieldView
                     .padding(.top, 16)
+                    .transition(.opacity.combined(with: .move(edge: .top)))
             }
 
-            if showPhotoStub {
-                photoStubView
+            if let photoData, let uiImage = UIImage(data: photoData) {
+                // TODO: persist photo data to WeightEntry (no photo field yet)
+                Image(uiImage: uiImage)
+                    .resizable()
+                    .scaledToFill()
+                    .frame(height: 120)
+                    .clipShape(RoundedRectangle(cornerRadius: 12))
                     .padding(.top, 16)
+                    .transition(.opacity.combined(with: .move(edge: .top)))
             }
         }
     }
 
+    private var dateChipLabel: String {
+        DateFormatting.isToday(selectedDate) ? "Today" : DateFormatting.fullDate(selectedDate)
+    }
+
     private var dateChip: some View {
-        Button {
-            // TODO: date picker — design calls for graphical DatePicker, out of scope for Task 10
-        } label: {
-            HStack(spacing: 8) {
-                Text("Today")
-                    .font(CadreTypography.dateChip)
-                    .foregroundStyle(CadreColors.textPrimary)
-                Image(systemName: "chevron.down")
-                    .font(.system(size: 9, weight: .bold))
-                    .foregroundStyle(CadreColors.textTertiary)
+        VStack(spacing: 0) {
+            Button {
+                withAnimation(.easeInOut(duration: 0.25)) {
+                    showDatePicker.toggle()
+                }
+            } label: {
+                HStack(spacing: 8) {
+                    Text(dateChipLabel)
+                        .font(CadreTypography.dateChip)
+                        .foregroundStyle(CadreColors.textPrimary)
+                    Image(systemName: "chevron.down")
+                        .font(.system(size: 9, weight: .bold))
+                        .foregroundStyle(CadreColors.textTertiary)
+                }
+                .padding(.horizontal, 14)
+                .padding(.vertical, 8)
+                .background(CadreColors.card)
+                .clipShape(RoundedRectangle(cornerRadius: 10))
             }
-            .padding(.horizontal, 14)
-            .padding(.vertical, 8)
-            .background(CadreColors.card)
-            .clipShape(RoundedRectangle(cornerRadius: 10))
+            .buttonStyle(.plain)
+
+            if showDatePicker {
+                DatePicker("", selection: $selectedDate, displayedComponents: .date)
+                    .datePickerStyle(.graphical)
+                    .tint(CadreColors.accent)
+                    .padding(.horizontal, CadreSpacing.sheetHorizontal)
+                    .transition(.opacity.combined(with: .move(edge: .top)))
+            }
         }
-        .buttonStyle(.plain)
     }
 
     private var weightDisplay: some View {
@@ -191,33 +218,44 @@ struct WeighInSheet: View {
                 systemImage: "square.and.pencil",
                 filled: showNoteField
             ) {
-                showNoteField.toggle()
+                withAnimation(.easeInOut(duration: 0.25)) {
+                    showNoteField.toggle()
+                }
             }
-            chip(
-                label: showPhotoStub ? "Photo" : "Add photo",
-                systemImage: "camera",
-                filled: showPhotoStub
-            ) {
-                // TODO: wire PhotosPicker + storage
-                showPhotoStub.toggle()
+            PhotosPicker(selection: $selectedPhoto, matching: .images) {
+                chip(label: photoData != nil ? "Photo" : "Add photo", systemImage: "camera", filled: photoData != nil)
+            }
+            .buttonStyle(.plain)
+            .onChange(of: selectedPhoto) { _, newValue in
+                Task {
+                    if let data = try? await newValue?.loadTransferable(type: Data.self) {
+                        withAnimation(.easeInOut(duration: 0.25)) {
+                            photoData = data
+                        }
+                    }
+                }
             }
         }
     }
 
+    private func chip(label: String, systemImage: String, filled: Bool) -> some View {
+        HStack(spacing: 6) {
+            Image(systemName: systemImage)
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundStyle(filled ? CadreColors.accent : CadreColors.textSecondary)
+            Text(label)
+                .font(CadreTypography.addChip)
+                .foregroundStyle(filled ? CadreColors.textPrimary : CadreColors.textSecondary)
+        }
+        .padding(.horizontal, 14)
+        .padding(.vertical, 8)
+        .background(filled ? CadreColors.cardElevated : CadreColors.card)
+        .clipShape(RoundedRectangle(cornerRadius: 10))
+    }
+
     private func chip(label: String, systemImage: String, filled: Bool, action: @escaping () -> Void) -> some View {
         Button(action: action) {
-            HStack(spacing: 6) {
-                Image(systemName: systemImage)
-                    .font(.system(size: 12, weight: .semibold))
-                    .foregroundStyle(filled ? CadreColors.accent : CadreColors.textSecondary)
-                Text(label)
-                    .font(CadreTypography.addChip)
-                    .foregroundStyle(filled ? CadreColors.textPrimary : CadreColors.textSecondary)
-            }
-            .padding(.horizontal, 14)
-            .padding(.vertical, 8)
-            .background(filled ? CadreColors.cardElevated : CadreColors.card)
-            .clipShape(RoundedRectangle(cornerRadius: 10))
+            chip(label: label, systemImage: systemImage, filled: filled)
         }
         .buttonStyle(.plain)
     }
@@ -247,56 +285,12 @@ struct WeighInSheet: View {
         .clipShape(RoundedRectangle(cornerRadius: 12))
     }
 
-    private var photoStubView: some View {
-        // TODO: wire PhotosPicker + storage — visual stub only
-        HStack(spacing: 12) {
-            RoundedRectangle(cornerRadius: 8)
-                .fill(LinearGradient(
-                    colors: [CadreColors.accent, CadreColors.accent.opacity(0.6)],
-                    startPoint: .topLeading,
-                    endPoint: .bottomTrailing
-                ))
-                .frame(width: 56, height: 56)
-                .overlay(
-                    Image(systemName: "camera")
-                        .font(.system(size: 20, weight: .regular))
-                        .foregroundStyle(CadreColors.textPrimary)
-                )
-            VStack(alignment: .leading, spacing: 2) {
-                Text("Tap to add photo")
-                    .font(.system(size: 13, weight: .medium))
-                    .foregroundStyle(CadreColors.textPrimary)
-                Text("Photos picker not yet wired")
-                    .font(.system(size: 11, weight: .regular))
-                    .foregroundStyle(CadreColors.textTertiary)
-            }
-            Spacer(minLength: 0)
-            Button {
-                showPhotoStub = false
-            } label: {
-                Image(systemName: "xmark")
-                    .font(.system(size: 14, weight: .semibold))
-                    .foregroundStyle(CadreColors.textSecondary)
-                    .padding(4)
-            }
-            .buttonStyle(.plain)
-        }
-        .padding(.horizontal, 14)
-        .frame(height: 80)
-        .background(
-            LinearGradient(
-                colors: [CadreColors.divider, CadreColors.card],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
-        )
-        .clipShape(RoundedRectangle(cornerRadius: 12))
-    }
+    // Photo stub removed — replaced with PhotosPicker in addChipsRow
 
     private var saveButton: some View {
         // 40px margin above Save button per DESIGN_DECISIONS.md
         Button {
-            vm?.save()
+            vm?.save(date: selectedDate)
             Haptics.success()
             onSave?()
             dismiss()

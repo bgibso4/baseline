@@ -15,6 +15,8 @@ struct LogMeasurementSheet: View {
     @State private var selectedType: MeasurementType = .waist
     @State private var currentValue: Double = 34.0
     @State private var showTypePicker = false
+    @State private var showDatePicker = false
+    @State private var selectedDate = Date()
 
     init(viewModel: BodyViewModel? = nil) {
         self.injectedVM = viewModel
@@ -79,28 +81,44 @@ struct LogMeasurementSheet: View {
         }
     }
 
+    private var dateChipLabel: String {
+        DateFormatting.isToday(selectedDate) ? "Today" : DateFormatting.fullDate(selectedDate)
+    }
+
     private var dateChip: some View {
-        Button {
-            // TODO: date picker — same pattern as WeighInSheet
-        } label: {
-            HStack(spacing: 6) {
-                Text("Today")
-                    .font(CadreTypography.dateChip)
-                    .foregroundStyle(CadreColors.textPrimary)
-                Image(systemName: "chevron.down")
-                    .font(.system(size: 9, weight: .bold))
-                    .foregroundStyle(CadreColors.textTertiary)
+        VStack(spacing: 0) {
+            Button {
+                withAnimation(.easeInOut(duration: 0.25)) {
+                    showDatePicker.toggle()
+                }
+            } label: {
+                HStack(spacing: 6) {
+                    Text(dateChipLabel)
+                        .font(CadreTypography.dateChip)
+                        .foregroundStyle(CadreColors.textPrimary)
+                    Image(systemName: "chevron.down")
+                        .font(.system(size: 9, weight: .bold))
+                        .foregroundStyle(CadreColors.textTertiary)
+                }
+                .padding(.horizontal, 14)
+                .padding(.vertical, 8)
+                .background(CadreColors.card)
+                .overlay(
+                    RoundedRectangle(cornerRadius: CadreRadius.full)
+                        .stroke(CadreColors.divider, lineWidth: 1)
+                )
+                .clipShape(RoundedRectangle(cornerRadius: CadreRadius.full))
             }
-            .padding(.horizontal, 14)
-            .padding(.vertical, 8)
-            .background(CadreColors.card)
-            .overlay(
-                RoundedRectangle(cornerRadius: CadreRadius.full)
-                    .stroke(CadreColors.divider, lineWidth: 1)
-            )
-            .clipShape(RoundedRectangle(cornerRadius: CadreRadius.full))
+            .buttonStyle(.plain)
+
+            if showDatePicker {
+                DatePicker("", selection: $selectedDate, displayedComponents: .date)
+                    .datePickerStyle(.graphical)
+                    .tint(CadreColors.accent)
+                    .padding(.horizontal, CadreSpacing.sheetHorizontal)
+                    .transition(.opacity.combined(with: .move(edge: .top)))
+            }
         }
-        .buttonStyle(.plain)
     }
 
     /// Metric picker chip — tappable, shows current type with chevron.
@@ -200,7 +218,7 @@ struct LogMeasurementSheet: View {
             // Convert display inches to cm for storage
             let valueCm = currentValue * 2.54
             let resolvedVM = bodyVM ?? injectedVM
-            resolvedVM?.saveMeasurement(type: selectedType, valueCm: valueCm)
+            resolvedVM?.saveMeasurement(type: selectedType, valueCm: valueCm, date: selectedDate)
             Haptics.success()
             dismiss()
         } label: {

@@ -24,13 +24,13 @@ class WeighInViewModel {
         currentWeight = (currentWeight - 0.1).rounded(toPlaces: 1)
     }
 
-    func save() {
-        let today = Calendar.current.startOfDay(for: Date())
+    func save(date: Date = Date()) {
+        let targetDay = Calendar.current.startOfDay(for: date)
         let trimmedNotes = notes.trimmingCharacters(in: .whitespacesAndNewlines)
         let notesToSave: String? = trimmedNotes.isEmpty ? nil : trimmedNotes
 
         var descriptor = FetchDescriptor<WeightEntry>(
-            predicate: #Predicate { $0.date == today }
+            predicate: #Predicate { $0.date == targetDay }
         )
         descriptor.fetchLimit = 1
 
@@ -41,7 +41,7 @@ class WeighInViewModel {
             existing.updatedAt = Date()
             savedEntry = existing
         } else {
-            let entry = WeightEntry(weight: currentWeight, unit: unit, date: Date(), notes: notesToSave)
+            let entry = WeightEntry(weight: currentWeight, unit: unit, date: date, notes: notesToSave)
             modelContext.insert(entry)
             savedEntry = entry
         }
@@ -51,7 +51,7 @@ class WeighInViewModel {
 
         Task {
             await HealthKitManager.saveWeight(
-                WeightEntry(weight: currentWeight, unit: unit, date: Date())
+                WeightEntry(weight: currentWeight, unit: unit, date: date)
             )
         }
     }

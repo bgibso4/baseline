@@ -21,10 +21,10 @@ class BodyViewModel {
 
     // MARK: - Tape Measurements
 
-    func saveMeasurement(type: MeasurementType, valueCm: Double, notes: String? = nil) {
+    func saveMeasurement(type: MeasurementType, valueCm: Double, date: Date = Date(), notes: String? = nil) {
         let trimmed = notes?.trimmingCharacters(in: .whitespacesAndNewlines)
         let notesToSave: String? = (trimmed?.isEmpty ?? true) ? nil : trimmed
-        let measurement = Measurement(date: Date(), type: type, valueCm: valueCm, notes: notesToSave)
+        let measurement = Measurement(date: date, type: type, valueCm: valueCm, notes: notesToSave)
         modelContext.insert(measurement)
         try? modelContext.save()
         SyncHelper.mirrorRecord(measurement)

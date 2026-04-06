@@ -20,6 +20,8 @@ import TipKit
 struct TrendsView: View {
     @Environment(\.modelContext) private var modelContext
     @State private var vm: TrendsViewModel?
+    @State private var showMetricPicker = false
+    @State private var showFullscreen = false
 
     /// Synchronous VM injection (snapshot / unit tests). Mirrors the
     /// `NowView(viewModel:)` pattern.
@@ -55,6 +57,9 @@ struct TrendsView: View {
                 }
             }
             .navigationBarHidden(true)
+            .fullScreenCover(isPresented: $showFullscreen) {
+                fullscreenChartView
+            }
             .onAppear {
                 guard injectedVM == nil else { return }
                 if vm == nil {
@@ -80,40 +85,94 @@ struct TrendsView: View {
         }
     }
 
-    // MARK: - Metric chip (stub)
-    // TODO: wire metric dropdown (Weight / Body Fat % / Skeletal Muscle / etc.)
-    // once TrendsViewModel supports multi-metric. See DESIGN_DECISIONS.md
-    // (2026-04-05 Trends architecture).
+    // MARK: - Metric chip
+
     private var metricChip: some View {
-        HStack(spacing: 10) {
-            ZStack {
-                RoundedRectangle(cornerRadius: CadreRadius.sm)
-                    .fill(CadreColors.cardElevated)
-                    .frame(width: 28, height: 28)
-                Image(systemName: "scalemass")
-                    .font(.system(size: 14, weight: .semibold))
-                    .foregroundStyle(CadreColors.accent)
+        Button {
+            showMetricPicker = true
+        } label: {
+            HStack(spacing: 10) {
+                ZStack {
+                    RoundedRectangle(cornerRadius: CadreRadius.sm)
+                        .fill(CadreColors.cardElevated)
+                        .frame(width: 28, height: 28)
+                    Image(systemName: "scalemass")
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundStyle(CadreColors.accent)
+                }
+                // Metric name — 14pt semibold, -0.1 tracking (mockup .metric-chip .metric-name)
+                Text("Weight")
+                    .font(CadreTypography.trendsMetricName)
+                    .tracking(-0.1)
+                    .foregroundStyle(CadreColors.textPrimary)
+                Spacer()
+                Image(systemName: "chevron.down")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundStyle(CadreColors.textTertiary)
             }
-            // Metric name — 14pt semibold, -0.1 tracking (mockup .metric-chip .metric-name)
-            Text("Weight")
-                .font(CadreTypography.trendsMetricName)
-                .tracking(-0.1)
-                .foregroundStyle(CadreColors.textPrimary)
-            Spacer()
-            Image(systemName: "chevron.down")
-                .font(.system(size: 12, weight: .semibold))
-                .foregroundStyle(CadreColors.textTertiary)
+            .padding(.horizontal, 14)
+            .padding(.vertical, 12)
+            .background(
+                RoundedRectangle(cornerRadius: CadreRadius.md)
+                    .fill(CadreColors.card)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: CadreRadius.md)
+                            .stroke(CadreColors.divider, lineWidth: 1)
+                    )
+            )
         }
-        .padding(.horizontal, 14)
-        .padding(.vertical, 12)
-        .background(
-            RoundedRectangle(cornerRadius: CadreRadius.md)
-                .fill(CadreColors.card)
-                .overlay(
-                    RoundedRectangle(cornerRadius: CadreRadius.md)
-                        .stroke(CadreColors.divider, lineWidth: 1)
-                )
-        )
+        .buttonStyle(.plain)
+        .sheet(isPresented: $showMetricPicker) {
+            metricPickerSheet
+                .presentationDetents([.medium])
+                .presentationDragIndicator(.visible)
+        }
+    }
+
+    private var metricPickerSheet: some View {
+        NavigationStack {
+            ZStack {
+                CadreColors.bg.ignoresSafeArea()
+                List {
+                    metricPickerRow(name: "Weight", icon: "scalemass", available: true)
+                    metricPickerRow(name: "Body Fat %", icon: "drop.fill", available: false)
+                    metricPickerRow(name: "Skeletal Muscle", icon: "figure.strengthtraining.traditional", available: false)
+                    metricPickerRow(name: "BMI", icon: "chart.bar", available: false)
+                    metricPickerRow(name: "Fat Mass", icon: "scalemass", available: false)
+                }
+                .scrollContentBackground(.hidden)
+            }
+            .navigationTitle("Metric")
+            .navigationBarTitleDisplayMode(.inline)
+        }
+    }
+
+    private func metricPickerRow(name: String, icon: String, available: Bool) -> some View {
+        Button {
+            if available { showMetricPicker = false }
+        } label: {
+            HStack {
+                Image(systemName: icon)
+                    .font(.system(size: 14))
+                    .foregroundStyle(available ? CadreColors.accent : CadreColors.textTertiary)
+                    .frame(width: 24)
+                Text(name)
+                    .font(.system(size: 14, weight: .medium))
+                    .foregroundStyle(available ? CadreColors.textPrimary : CadreColors.textTertiary)
+                Spacer()
+                if available {
+                    Image(systemName: "checkmark")
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundStyle(CadreColors.accent)
+                } else {
+                    Text("Coming soon")
+                        .font(.system(size: 11, weight: .medium))
+                        .foregroundStyle(CadreColors.textTertiary)
+                }
+            }
+        }
+        .disabled(!available)
+        .listRowBackground(CadreColors.card)
     }
 
     // MARK: - Range tabs (M / 6M / Y / All)
@@ -254,7 +313,7 @@ struct TrendsView: View {
                 }
             }
             .chartYScale(domain: .automatic(includesZero: false))
-            .frame(height: 180)
+            .frame(height: 280)
             .accessibilityElement(children: .ignore)
             .accessibilityLabel("Weight trend chart with \(entries.count) data points")
 
@@ -266,14 +325,19 @@ struct TrendsView: View {
     }
 
     private var expandStub: some View {
-        Image(systemName: "arrow.up.left.and.arrow.down.right")
-            .font(.system(size: 10, weight: .semibold))
-            .foregroundStyle(CadreColors.textSecondary)
-            .frame(width: 24, height: 24)
-            .background(
-                RoundedRectangle(cornerRadius: 6)
-                    .fill(CadreColors.divider.opacity(0.7))
-            )
+        Button {
+            showFullscreen = true
+        } label: {
+            Image(systemName: "arrow.up.left.and.arrow.down.right")
+                .font(.system(size: 10, weight: .semibold))
+                .foregroundStyle(CadreColors.textSecondary)
+                .frame(width: 24, height: 24)
+                .background(
+                    RoundedRectangle(cornerRadius: 6)
+                        .fill(CadreColors.divider.opacity(0.7))
+                )
+        }
+        .buttonStyle(.plain)
     }
 
     // MARK: - Legend
@@ -388,7 +452,7 @@ struct TrendsView: View {
             .chartXAxis(.hidden)
             .chartYAxis(.hidden)
             .chartYScale(domain: (entry.weight - 2)...(entry.weight + 2))
-            .frame(height: 180)
+            .frame(height: 280)
 
             expandStub
         }
@@ -423,6 +487,101 @@ struct TrendsView: View {
     }
 
     // MARK: - Period subtitle helper
+
+    // MARK: - Fullscreen chart
+
+    private var fullscreenChartView: some View {
+        let entries = vm?.entries ?? []
+        let ma = vm?.movingAverage ?? []
+        return ZStack {
+            CadreColors.bg.ignoresSafeArea()
+
+            VStack(spacing: 0) {
+                HStack {
+                    Spacer()
+                    Button {
+                        showFullscreen = false
+                    } label: {
+                        Image(systemName: "xmark.circle.fill")
+                            .font(.system(size: 28, weight: .regular))
+                            .foregroundStyle(CadreColors.textSecondary)
+                    }
+                    .buttonStyle(.plain)
+                    .padding()
+                }
+
+                if entries.count >= 2 {
+                    Chart {
+                        ForEach(entries, id: \.id) { entry in
+                            LineMark(
+                                x: .value("Date", entry.date),
+                                y: .value("Weight", entry.weight),
+                                series: .value("Series", "raw")
+                            )
+                            .foregroundStyle(CadreColors.textTertiary.opacity(0.7))
+                            .lineStyle(StrokeStyle(lineWidth: 1.3, lineCap: .round, lineJoin: .round))
+                        }
+                        ForEach(entries, id: \.id) { entry in
+                            PointMark(
+                                x: .value("Date", entry.date),
+                                y: .value("Weight", entry.weight)
+                            )
+                            .foregroundStyle(CadreColors.textTertiary.opacity(0.7))
+                            .symbolSize(10)
+                        }
+                        ForEach(ma) { point in
+                            LineMark(
+                                x: .value("Date", point.date),
+                                y: .value("MA", point.value),
+                                series: .value("Series", "ma")
+                            )
+                            .foregroundStyle(CadreColors.chartLine)
+                            .lineStyle(StrokeStyle(lineWidth: 2.6, lineCap: .round, lineJoin: .round))
+                        }
+                    }
+                    .chartXAxis {
+                        AxisMarks(values: .automatic(desiredCount: 5)) { _ in
+                            AxisValueLabel()
+                                .foregroundStyle(CadreColors.textTertiary)
+                                .font(CadreTypography.trendsAxisLabel)
+                        }
+                    }
+                    .chartYAxis {
+                        AxisMarks(position: .trailing, values: .automatic(desiredCount: 6)) { _ in
+                            AxisGridLine()
+                                .foregroundStyle(CadreColors.chartGrid)
+                            AxisValueLabel()
+                                .foregroundStyle(CadreColors.textTertiary)
+                                .font(CadreTypography.trendsAxisLabel)
+                        }
+                    }
+                    .chartYScale(domain: .automatic(includesZero: false))
+                    .padding(.horizontal)
+                    .padding(.bottom, 40)
+                } else if let entry = entries.first {
+                    Chart {
+                        PointMark(
+                            x: .value("Date", entry.date),
+                            y: .value("Weight", entry.weight)
+                        )
+                        .foregroundStyle(CadreColors.chartLine)
+                        .symbolSize(80)
+                    }
+                    .chartXAxis(.hidden)
+                    .chartYAxis(.hidden)
+                    .chartYScale(domain: (entry.weight - 2)...(entry.weight + 2))
+                    .padding(.horizontal)
+                    .padding(.bottom, 40)
+                } else {
+                    Spacer()
+                    Text("No data")
+                        .font(CadreTypography.trendsEmptyTitle)
+                        .foregroundStyle(CadreColors.textTertiary)
+                    Spacer()
+                }
+            }
+        }
+    }
 
     /// Builds the "Mar 6 – Apr 4 · −0.8 lb / week" string under the hero.
     /// Falls back to "N entries in range" when the entry count is low enough

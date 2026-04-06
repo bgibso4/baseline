@@ -51,10 +51,8 @@ class NowViewModel {
         previousDescriptor.fetchLimit = 1
         previousEntry = try? modelContext.fetch(previousDescriptor).first
 
-        // Fetch last 14 days for sparkline
-        let twoWeeksAgo = Calendar.current.date(byAdding: .day, value: -14, to: today)!
+        // Fetch all weight entries for stats (filtered by range in the view)
         let recentDescriptor = FetchDescriptor<WeightEntry>(
-            predicate: #Predicate { $0.date >= twoWeeksAgo },
             sortBy: [SortDescriptor(\.date, order: .forward)]
         )
         recentWeights = (try? modelContext.fetch(recentDescriptor)) ?? []

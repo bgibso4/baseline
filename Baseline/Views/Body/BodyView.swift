@@ -89,9 +89,12 @@ struct BodyView: View {
             if let tiles = bodyCompTiles, !tiles.isEmpty {
                 LazyVGrid(columns: tileColumns, spacing: 8) {
                     ForEach(tiles, id: \.label) { tile in
-                        Button {
-                            // TODO: navigate to Trends with this metric pre-selected
-                            // (Trends multi-metric switching is future work)
+                        NavigationLink {
+                            MetricHistoryView(
+                                metricName: tile.label,
+                                unit: tile.unit,
+                                entries: bodyCompHistory(for: tile.label)
+                            )
                         } label: {
                             MetricTile(
                                 sfSymbol: tile.sfSymbol,
@@ -126,8 +129,12 @@ struct BodyView: View {
             if !tiles.isEmpty {
                 LazyVGrid(columns: tileColumns, spacing: 8) {
                     ForEach(tiles, id: \.label) { tile in
-                        Button {
-                            // TODO: navigate to Trends with this metric pre-selected
+                        NavigationLink {
+                            MetricHistoryView(
+                                metricName: tile.label,
+                                unit: tile.unit,
+                                entries: measurementHistory(for: tile.label)
+                            )
                         } label: {
                             MetricTile(
                                 sfSymbol: tile.sfSymbol,
@@ -149,8 +156,11 @@ struct BodyView: View {
 
     private var scanHistoryCard: some View {
         NavigationLink {
-            // TODO: Task 17 follow-up — scan history list
-            scanHistoryPlaceholder
+            ScanHistoryView(
+                scans: vm?.recentScans ?? [],
+                onDelete: { scan in vm?.deleteScan(scan) },
+                decodedPayload: { scan in vm?.decodedPayload(for: scan) }
+            )
         } label: {
             HStack(spacing: 12) {
                 Image(systemName: "doc.text.magnifyingglass")
@@ -184,21 +194,7 @@ struct BodyView: View {
         .buttonStyle(.plain)
     }
 
-    private var scanHistoryPlaceholder: some View {
-        ZStack {
-            CadreColors.bg.ignoresSafeArea()
-            VStack(spacing: 12) {
-                Image(systemName: "doc.text.magnifyingglass")
-                    .font(.system(size: 36, weight: .light))
-                    .foregroundStyle(CadreColors.textTertiary)
-                Text("Scan history coming soon")
-                    .font(CadreTypography.footnote)
-                    .foregroundStyle(CadreColors.textTertiary)
-            }
-        }
-        .navigationTitle("Scans")
-        .navigationBarTitleDisplayMode(.inline)
-    }
+    // Scan history placeholder removed — replaced by ScanHistoryView
 
     // MARK: - Section Header
 
@@ -349,6 +345,49 @@ struct BodyView: View {
         let formatter = DateFormatter()
         formatter.dateFormat = "MMM d"
         return "Last logged \u{00B7} \(formatter.string(from: m.date))"
+    }
+
+    // MARK: - Metric History Helpers
+
+    /// Extract history for a body comp metric across all scans (reverse chronological).
+    private func bodyCompHistory(for label: String) -> [(date: Date, value: String)] {
+        guard let scans = vm?.recentScans else { return [] }
+        return scans.compactMap { scan -> (date: Date, value: String)? in
+            guard let content = vm?.decodedPayload(for: scan) else { return nil }
+            switch content {
+            case .inBody(let p):
+                let val: String? = {
+                    switch label {
+                    case "Body Fat": return String(format: "%.1f", p.bodyFatPct)
+                    case "Skeletal Muscle": return String(format: "%.1f", p.skeletalMuscleMassKg)
+                    case "Fat Mass": return String(format: "%.1f", p.bodyFatMassKg)
+                    case "BMI": return String(format: "%.1f", p.bmi)
+                    case "Total Body Water": return String(format: "%.1f", p.totalBodyWaterL)
+                    case "BMR": return String(format: "%.0f", p.basalMetabolicRate)
+                    case "InBody Score": return p.inBodyScore.map { String(format: "%.0f", $0) }
+                    case "Lean Body Mass": return p.leanBodyMassKg.map { String(format: "%.1f", $0) }
+                    default: return nil
+                    }
+                }()
+                guard let v = val else { return nil }
+                return (date: scan.date, value: v)
+            }
+        }
+    }
+
+    /// Extract history for a tape measurement metric (reverse chronological).
+    private func measurementHistory(for label: String) -> [(date: Date, value: String)] {
+        guard let allMeasurements = vm?.latestMeasurements else { return [] }
+        // Find the MeasurementType matching this label
+        guard let type = MeasurementType.allCases.first(where: { $0.tileLabel == label }) else { return [] }
+        // latestMeasurements only has one per type; for full history we'd need
+        // a new VM method. For now, return what we have.
+        return allMeasurements
+            .filter { $0.measurementType == type }
+            .map { m in
+                let inches = m.valueCm / 2.54
+                return (date: m.date, value: String(format: "%.1f", inches))
+            }
     }
 
     private var scanHistorySubtitle: String {
