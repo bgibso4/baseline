@@ -19,9 +19,13 @@ struct ScanHistoryView: View {
             } else {
                 List {
                     ForEach(scans, id: \.id) { scan in
-                        scanRow(scan)
-                            .listRowBackground(CadreColors.card)
-                            .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
+                        NavigationLink {
+                            ScanDetailView(scan: scan)
+                        } label: {
+                            scanRow(scan)
+                        }
+                        .listRowBackground(CadreColors.card)
+                        .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
                     }
                     .onDelete { indexSet in
                         for index in indexSet {

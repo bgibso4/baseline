@@ -49,30 +49,47 @@ enum AppTheme: String, CaseIterable, Identifiable {
 class SettingsViewModel {
     private let defaults: UserDefaults
 
+    // Stored sentinels that @Observable can track.
+    // Mutating these triggers SwiftUI view updates for the corresponding
+    // computed properties that read from UserDefaults.
+    private var _nameVersion = 0
+    private var _heightFeetVersion = 0
+    private var _heightInchesVersion = 0
+    private var _heightCmVersion = 0
+    private var _birthdayVersion = 0
+    private var _genderVersion = 0
+    private var _weightUnitVersion = 0
+    private var _lengthUnitVersion = 0
+    private var _themeVersion = 0
+    private var _syncEnabledVersion = 0
+    private var _syncAPIURLVersion = 0
+    private var _syncAPIKeyVersion = 0
+
     // MARK: Profile
 
     var name: String {
-        get { defaults.string(forKey: "userName") ?? "" }
-        set { defaults.set(newValue, forKey: "userName") }
+        get { _ = _nameVersion; return defaults.string(forKey: "userName") ?? "" }
+        set { defaults.set(newValue, forKey: "userName"); _nameVersion += 1 }
     }
 
     var heightFeet: Int {
-        get { defaults.integer(forKey: "heightFeet") }
-        set { defaults.set(newValue, forKey: "heightFeet") }
+        get { _ = _heightFeetVersion; return defaults.integer(forKey: "heightFeet") }
+        set { defaults.set(newValue, forKey: "heightFeet"); _heightFeetVersion += 1 }
     }
 
     var heightInches: Int {
-        get { defaults.integer(forKey: "heightInches") }
-        set { defaults.set(newValue, forKey: "heightInches") }
+        get { _ = _heightInchesVersion; return defaults.integer(forKey: "heightInches") }
+        set { defaults.set(newValue, forKey: "heightInches"); _heightInchesVersion += 1 }
     }
 
     var heightCm: Int {
-        get { defaults.integer(forKey: "heightCm") }
-        set { defaults.set(newValue, forKey: "heightCm") }
+        get { _ = _heightCmVersion; return defaults.integer(forKey: "heightCm") }
+        set { defaults.set(newValue, forKey: "heightCm"); _heightCmVersion += 1 }
     }
 
     var birthday: Date? {
         get {
+            _ = _birthdayVersion
             let interval = defaults.double(forKey: "birthdayInterval")
             return interval > 0 ? Date(timeIntervalSince1970: interval) : nil
         }
@@ -82,54 +99,58 @@ class SettingsViewModel {
             } else {
                 defaults.removeObject(forKey: "birthdayInterval")
             }
+            _birthdayVersion += 1
         }
     }
 
     var gender: Gender? {
         get {
-            defaults.string(forKey: "gender").flatMap { Gender(rawValue: $0) }
+            _ = _genderVersion
+            return defaults.string(forKey: "gender").flatMap { Gender(rawValue: $0) }
         }
         set {
             defaults.set(newValue?.rawValue, forKey: "gender")
+            _genderVersion += 1
         }
     }
 
     // MARK: Units
 
     var weightUnit: String {
-        get { defaults.string(forKey: "weightUnit") ?? "lb" }
-        set { defaults.set(newValue, forKey: "weightUnit") }
+        get { _ = _weightUnitVersion; return defaults.string(forKey: "weightUnit") ?? "lb" }
+        set { defaults.set(newValue, forKey: "weightUnit"); _weightUnitVersion += 1 }
     }
 
     var lengthUnit: String {
-        get { defaults.string(forKey: "lengthUnit") ?? "in" }
-        set { defaults.set(newValue, forKey: "lengthUnit") }
+        get { _ = _lengthUnitVersion; return defaults.string(forKey: "lengthUnit") ?? "in" }
+        set { defaults.set(newValue, forKey: "lengthUnit"); _lengthUnitVersion += 1 }
     }
 
     // MARK: Appearance
 
     var theme: AppTheme {
         get {
-            defaults.string(forKey: "theme").flatMap { AppTheme(rawValue: $0) } ?? .dark
+            _ = _themeVersion
+            return defaults.string(forKey: "theme").flatMap { AppTheme(rawValue: $0) } ?? .dark
         }
-        set { defaults.set(newValue.rawValue, forKey: "theme") }
+        set { defaults.set(newValue.rawValue, forKey: "theme"); _themeVersion += 1 }
     }
 
     // MARK: Integrations
 
     var syncEnabled: Bool {
-        get { defaults.bool(forKey: "cadreSyncEnabled") }
-        set { defaults.set(newValue, forKey: "cadreSyncEnabled") }
+        get { _ = _syncEnabledVersion; return defaults.bool(forKey: "cadreSyncEnabled") }
+        set { defaults.set(newValue, forKey: "cadreSyncEnabled"); _syncEnabledVersion += 1 }
     }
 
     var syncAPIURL: String {
-        get { defaults.string(forKey: "cadreSyncAPIURL") ?? "" }
-        set { defaults.set(newValue, forKey: "cadreSyncAPIURL") }
+        get { _ = _syncAPIURLVersion; return defaults.string(forKey: "cadreSyncAPIURL") ?? "" }
+        set { defaults.set(newValue, forKey: "cadreSyncAPIURL"); _syncAPIURLVersion += 1 }
     }
 
     var syncAPIKey: String {
-        get { defaults.string(forKey: "cadreSyncAPIKey") ?? "" }
-        set { defaults.set(newValue, forKey: "cadreSyncAPIKey") }
+        get { _ = _syncAPIKeyVersion; return defaults.string(forKey: "cadreSyncAPIKey") ?? "" }
+        set { defaults.set(newValue, forKey: "cadreSyncAPIKey"); _syncAPIKeyVersion += 1 }
     }
 
     // MARK: Computed

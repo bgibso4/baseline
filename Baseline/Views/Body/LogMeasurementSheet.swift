@@ -40,8 +40,30 @@ struct LogMeasurementSheet: View {
                     .padding(.horizontal, CadreSpacing.sheetHorizontal)
                     .padding(.bottom, 12)
             }
+
+            // Date picker overlay — floats on top without affecting layout
+            if showDatePicker {
+                Color.black.opacity(0.5)
+                    .ignoresSafeArea()
+                    .onTapGesture {
+                        withAnimation { showDatePicker = false }
+                    }
+
+                VStack {
+                    DatePicker("", selection: $selectedDate, in: ...Date(), displayedComponents: .date)
+                        .datePickerStyle(.graphical)
+                        .tint(CadreColors.accent)
+                        .labelsHidden()
+                        .padding()
+                        .background(
+                            RoundedRectangle(cornerRadius: 16)
+                                .fill(CadreColors.card)
+                        )
+                        .padding(.horizontal, 16)
+                }
+            }
         }
-        .presentationDetents(showDatePicker ? [.large] : [.medium, .large])
+        .presentationDetents([.medium, .large])
         .onAppear {
             if injectedVM == nil, bodyVM == nil {
                 bodyVM = BodyViewModel(modelContext: modelContext)
@@ -90,39 +112,29 @@ struct LogMeasurementSheet: View {
     }
 
     private var dateChip: some View {
-        VStack(spacing: 0) {
-            Button {
-                withAnimation(.easeInOut(duration: 0.25)) {
-                    showDatePicker.toggle()
-                }
-            } label: {
-                HStack(spacing: 6) {
-                    Text(dateChipLabel)
-                        .font(CadreTypography.dateChip)
-                        .foregroundStyle(CadreColors.textPrimary)
-                    Image(systemName: "chevron.down")
-                        .font(.system(size: 9, weight: .bold))
-                        .foregroundStyle(CadreColors.textTertiary)
-                }
-                .padding(.horizontal, 14)
-                .padding(.vertical, 8)
-                .background(CadreColors.card)
-                .overlay(
-                    RoundedRectangle(cornerRadius: CadreRadius.full)
-                        .stroke(CadreColors.divider, lineWidth: 1)
-                )
-                .clipShape(RoundedRectangle(cornerRadius: CadreRadius.full))
+        Button {
+            withAnimation(.easeInOut(duration: 0.25)) {
+                showDatePicker.toggle()
             }
-            .buttonStyle(.plain)
-
-            if showDatePicker {
-                DatePicker("", selection: $selectedDate, in: ...Date(), displayedComponents: .date)
-                    .datePickerStyle(.graphical)
-                    .tint(CadreColors.accent)
-                    .padding(.horizontal, CadreSpacing.sheetHorizontal)
-                    .transition(.opacity.combined(with: .move(edge: .top)))
+        } label: {
+            HStack(spacing: 6) {
+                Text(dateChipLabel)
+                    .font(CadreTypography.dateChip)
+                    .foregroundStyle(CadreColors.textPrimary)
+                Image(systemName: "chevron.down")
+                    .font(.system(size: 9, weight: .bold))
+                    .foregroundStyle(CadreColors.textTertiary)
             }
+            .padding(.horizontal, 14)
+            .padding(.vertical, 8)
+            .background(CadreColors.card)
+            .overlay(
+                RoundedRectangle(cornerRadius: CadreRadius.full)
+                    .stroke(CadreColors.divider, lineWidth: 1)
+            )
+            .clipShape(RoundedRectangle(cornerRadius: CadreRadius.full))
         }
+        .buttonStyle(.plain)
     }
 
     /// Metric picker chip — tappable, shows current type with chevron.

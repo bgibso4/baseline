@@ -65,6 +65,7 @@
 		91FD42A3C02E08E269B0F10E /* BodyView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45BF63CA3A1291DFEE103E60 /* BodyView.swift */; };
 		921D43A164E135DC0C85E731 /* TrendsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = E8F6256EFFB58304F26A96B9 /* TrendsViewModel.swift */; };
 		92B02A5AE4EBA1597947A801 /* UnitConversion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A9525A1638C18453603A9F6 /* UnitConversion.swift */; };
+		9525FADCC968F0DEB4768D53 /* ScanDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F9E0701D264BBEE3B1833E0D /* ScanDetailView.swift */; };
 		9DDDD276C649F100FFF941FE /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F33E3CB74C4DCE41C764260D /* SettingsView.swift */; };
 		A03E1D29BD1EFF2BB8B7CD74 /* WeightEntry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 312ECD390BFC532EC10D9819 /* WeightEntry.swift */; };
 		A16B5583BE60ABD8BF6FA519 /* DoubleExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48CD5547B419BCE4B9D76860 /* DoubleExtensions.swift */; };
@@ -218,6 +219,7 @@
 		F33E3CB74C4DCE41C764260D /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		F48EFFC280B6AF1B4D90AADE /* MetricTile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetricTile.swift; sourceTree = "<group>"; };
 		F4B62AE88FB82E485614E3D0 /* Scan.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Scan.swift; sourceTree = "<group>"; };
+		F9E0701D264BBEE3B1833E0D /* ScanDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScanDetailView.swift; sourceTree = "<group>"; };
 		FD91A7FB375167742BA11341 /* APIClientTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIClientTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -383,6 +385,7 @@
 				AD4E470CCBF62D6FEE5203DE /* CameraView.swift */,
 				A274239D844A8E6B1DA7FBC5 /* LogMeasurementSheet.swift */,
 				5998E990E3771B0504227A72 /* MetricHistoryView.swift */,
+				F9E0701D264BBEE3B1833E0D /* ScanDetailView.swift */,
 				CE9D81237D70C24BBA30C9BA /* ScanEntryFlow.swift */,
 				44F25E2DF4D4198F90CBFA5F /* ScanHistoryView.swift */,
 			);
@@ -781,6 +784,7 @@
 				4FEB35F248ED1757BCA0DC3F /* NowViewModel.swift in Sources */,
 				04F44A835CB9B8EACDFF760F /* OutboundMirror.swift in Sources */,
 				2EE2989E437EB8C57BBBE7F4 /* Scan.swift in Sources */,
+				9525FADCC968F0DEB4768D53 /* ScanDetailView.swift in Sources */,
 				04B4C973B1D44501C353ED03 /* ScanEntryFlow.swift in Sources */,
 				3E91E4B24AC961ADA451AEC8 /* ScanEntryViewModel.swift in Sources */,
 				A57EEB8655AA931F183DCC5A /* ScanHistoryView.swift in Sources */,
