@@ -10,6 +10,10 @@ struct SettingsView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var vm: SettingsViewModel
     @State private var showDeleteConfirmation = false
+    #if DEBUG
+    @State private var showLoadConfirm = false
+    @State private var showClearConfirm = false
+    #endif
 
     init(viewModel: SettingsViewModel? = nil) {
         self._vm = State(initialValue: viewModel ?? SettingsViewModel())
@@ -28,6 +32,9 @@ struct SettingsView: View {
                     dataSection
                     aboutSection
                     resetSection
+                    #if DEBUG
+                    developerSection
+                    #endif
                 }
                 .padding(.bottom, CadreSpacing.xl)
             }
@@ -55,6 +62,32 @@ struct SettingsView: View {
         } message: {
             Text("This is permanent. Your data cannot be recovered.")
         }
+        #if DEBUG
+        .confirmationDialog(
+            "Load test data?",
+            isPresented: $showLoadConfirm,
+            titleVisibility: .visible
+        ) {
+            Button("Load Test Data") {
+                TestDataSeeder.seed(context: modelContext)
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("This will replace all existing data with sample entries.")
+        }
+        .confirmationDialog(
+            "Clear all data?",
+            isPresented: $showClearConfirm,
+            titleVisibility: .visible
+        ) {
+            Button("Clear Everything", role: .destructive) {
+                TestDataSeeder.clearAll(context: modelContext)
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("This will delete all weight entries, scans, and measurements.")
+        }
+        #endif
     }
 
     // MARK: - Profile Section
@@ -268,6 +301,43 @@ struct SettingsView: View {
             }
         }
     }
+
+    // MARK: - Developer Section (DEBUG only)
+
+    #if DEBUG
+    private var developerSection: some View {
+        SettingsSectionView(title: "DEVELOPER") {
+            Button {
+                showLoadConfirm = true
+            } label: {
+                SettingsRow(
+                    icon: "flask",
+                    label: "Load Test Data",
+                    value: nil,
+                    style: .action
+                )
+            }
+            SettingsDivider()
+            Button {
+                showClearConfirm = true
+            } label: {
+                SettingsRow(
+                    icon: "xmark.bin",
+                    label: "Clear All Data",
+                    value: nil,
+                    style: .danger
+                )
+            }
+
+            Text("Debug build only. Load realistic sample data to preview the app.")
+                .font(.system(size: 11))
+                .foregroundStyle(CadreColors.textTertiary)
+                .padding(.horizontal, 22)
+                .padding(.top, 8)
+                .padding(.bottom, 4)
+        }
+    }
+    #endif
 }
 
 // MARK: - Supporting Components
