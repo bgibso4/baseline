@@ -9,12 +9,21 @@ struct BaselineApp: App {
     let modelContainer: ModelContainer
     let mirror: OutboundMirror
 
+    /// Shared App Group container URL for SwiftData store.
+    /// Both the main app and the widget extension read from this location.
+    static let appGroupURL: URL = {
+        FileManager.default
+            .containerURL(forSecurityApplicationGroupIdentifier: "group.com.cadre.baseline")!
+            .appendingPathComponent("Baseline.store")
+    }()
+
     init() {
-        // User data — syncs to iCloud via CloudKit
+        // User data — syncs to iCloud via CloudKit, stored in shared App Group container
         let cloudSchema = Schema([WeightEntry.self, Scan.self, BaselineMeasurement.self])
         let cloudConfig = ModelConfiguration(
             "Baseline",
             schema: cloudSchema,
+            url: BaselineApp.appGroupURL,
             cloudKitDatabase: .automatic
         )
 
