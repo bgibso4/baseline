@@ -167,6 +167,7 @@ struct LogMeasurementSheet: View {
             }
             .buttonStyle(.plain)
             .buttonRepeatBehavior(.enabled)
+            .accessibilityLabel("Decrease \(selectedType.displayName) by 0.1")
 
             Button {
                 currentValue = (currentValue + 0.1).rounded(toPlaces: 1)
@@ -176,6 +177,7 @@ struct LogMeasurementSheet: View {
             }
             .buttonStyle(.plain)
             .buttonRepeatBehavior(.enabled)
+            .accessibilityLabel("Increase \(selectedType.displayName) by 0.1")
         }
     }
 

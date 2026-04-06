@@ -69,6 +69,15 @@ struct MetricTile: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(CadreColors.card)
         .clipShape(RoundedRectangle(cornerRadius: CadreRadius.md))
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(tileAccessibilityLabel)
+    }
+
+    private var tileAccessibilityLabel: String {
+        var parts = ["\(label): \(value)"]
+        if !unit.isEmpty { parts[0] += " \(unit)" }
+        if let delta { parts.append("change: \(delta.text)") }
+        return parts.joined(separator: ", ")
     }
 
     // MARK: - Private

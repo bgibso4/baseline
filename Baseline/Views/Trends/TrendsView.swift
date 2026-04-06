@@ -255,6 +255,8 @@ struct TrendsView: View {
             }
             .chartYScale(domain: .automatic(includesZero: false))
             .frame(height: 180)
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel("Weight trend chart with \(entries.count) data points")
 
             // Expand icon — visual stub, no-op.
             // TODO: wire to landscape fullscreen chart once landscape view is

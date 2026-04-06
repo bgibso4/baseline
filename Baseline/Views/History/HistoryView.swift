@@ -133,6 +133,16 @@ private struct HistoryRow: View {
             }
             .frame(minWidth: 70, alignment: .trailing)
         }
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(rowAccessibilityLabel)
+    }
+
+    private var rowAccessibilityLabel: String {
+        var label = "\(DateFormatting.weekdayShort(entry.date)), \(UnitConversion.formatWeight(entry.weight, unit: entry.unit)) \(entry.unit)"
+        if let delta {
+            label += ", \(deltaText(delta)) change"
+        }
+        return label
     }
 
     private func deltaText(_ d: Double) -> String {

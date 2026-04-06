@@ -168,6 +168,7 @@ struct WeighInSheet: View {
             }
             .buttonStyle(.plain)
             .buttonRepeatBehavior(.enabled)
+            .accessibilityLabel("Decrease weight by 0.1")
 
             Button {
                 vm?.increment()
@@ -179,6 +180,7 @@ struct WeighInSheet: View {
             }
             .buttonStyle(.plain)
             .buttonRepeatBehavior(.enabled)
+            .accessibilityLabel("Increase weight by 0.1")
         }
     }
 

@@ -2,6 +2,9 @@ import SwiftUI
 import SwiftData
 import TipKit
 
+// TODO: Dynamic Type — the app uses Exo 2 custom font with fixed sizes throughout.
+// Converting to Dynamic Type would be a large refactor. Track as future work.
+
 /// Today (now) screen — landing glance at current weight.
 ///
 /// Visual target: `docs/mockups/today-APPROVED-variant-a-2026-04-04.html`.
@@ -130,6 +133,16 @@ struct NowView: View {
         }
         .lineLimit(1)
         .minimumScaleFactor(0.6)
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(weightAccessibilityLabel)
+    }
+
+    private var weightAccessibilityLabel: String {
+        let displayWeight = vm?.todayEntry?.weight ?? vm?.lastWeight
+        let unit = vm?.unit ?? "lb"
+        guard let weight = displayWeight else { return "No weight recorded" }
+        let dimmedNote = (vm?.todayEntry == nil) ? ", from a previous day" : ""
+        return "\(UnitConversion.formatWeight(weight, unit: unit)) \(unit)\(dimmedNote)"
     }
 
     private var rangeToggle: some View {
