@@ -20,22 +20,91 @@ enum TimeRange: String, CaseIterable {
     }
 }
 
+/// Metric group for the picker sheet.
+enum TrendMetricGroup: String, CaseIterable {
+    case core = "Core"
+    case bodyComposition = "Body Composition"
+    case segmentalLean = "Segmental Lean"
+    case segmentalFat = "Segmental Fat"
+    case measurements = "Measurements"
+}
+
 /// Selectable metric for the Trends chart.
 enum TrendMetric: String, CaseIterable {
+    // Core
     case weight = "Weight"
     case bodyFatPct = "Body Fat %"
     case skeletalMuscle = "Skeletal Muscle"
     case bmi = "BMI"
     case fatMass = "Fat Mass"
+
+    // Body Composition
+    case leanBodyMass = "Lean Body Mass"
+    case totalBodyWater = "Total Body Water"
+    case icw = "ICW"
+    case ecw = "ECW"
+    case dryLeanMass = "Dry Lean Mass"
+    case bmr = "BMR"
+    case inBodyScore = "InBody Score"
+
+    // Segmental Lean
+    case rightArmLean = "Right Arm (Lean)"
+    case leftArmLean = "Left Arm (Lean)"
+    case trunkLean = "Trunk (Lean)"
+    case rightLegLean = "Right Leg (Lean)"
+    case leftLegLean = "Left Leg (Lean)"
+
+    // Segmental Fat
+    case rightArmFat = "Right Arm (Fat)"
+    case leftArmFat = "Left Arm (Fat)"
+    case trunkFat = "Trunk (Fat)"
+    case rightLegFat = "Right Leg (Fat)"
+    case leftLegFat = "Left Leg (Fat)"
+
+    // Measurements
     case waist = "Waist"
+    case chest = "Chest"
+    case neck = "Neck"
+    case hips = "Hips"
+    case armLeft = "Arm · L"
+    case armRight = "Arm · R"
+    case thighLeft = "Thigh · L"
+    case thighRight = "Thigh · R"
+    case calfLeft = "Calf · L"
+    case calfRight = "Calf · R"
+
+    var group: TrendMetricGroup {
+        switch self {
+        case .weight, .bodyFatPct, .skeletalMuscle, .bmi, .fatMass:
+            return .core
+        case .leanBodyMass, .totalBodyWater, .icw, .ecw, .dryLeanMass, .bmr, .inBodyScore:
+            return .bodyComposition
+        case .rightArmLean, .leftArmLean, .trunkLean, .rightLegLean, .leftLegLean:
+            return .segmentalLean
+        case .rightArmFat, .leftArmFat, .trunkFat, .rightLegFat, .leftLegFat:
+            return .segmentalFat
+        case .waist, .chest, .neck, .hips, .armLeft, .armRight, .thighLeft, .thighRight, .calfLeft, .calfRight:
+            return .measurements
+        }
+    }
 
     var unit: String {
         switch self {
-        case .weight: return "lb"
-        case .bodyFatPct: return "%"
-        case .skeletalMuscle, .fatMass: return "lb"
-        case .bmi: return ""
-        case .waist: return "in"
+        case .weight, .skeletalMuscle, .fatMass, .leanBodyMass, .dryLeanMass:
+            return "lb"
+        case .bodyFatPct:
+            return "%"
+        case .bmi, .inBodyScore:
+            return ""
+        case .totalBodyWater, .icw, .ecw:
+            return "L"
+        case .bmr:
+            return "kcal"
+        case .rightArmLean, .leftArmLean, .trunkLean, .rightLegLean, .leftLegLean,
+             .rightArmFat, .leftArmFat, .trunkFat, .rightLegFat, .leftLegFat:
+            return "lb"
+        case .waist, .chest, .neck, .hips, .armLeft, .armRight, .thighLeft, .thighRight, .calfLeft, .calfRight:
+            return "in"
         }
     }
 
@@ -46,7 +115,54 @@ enum TrendMetric: String, CaseIterable {
         case .skeletalMuscle: return "figure.strengthtraining.traditional"
         case .bmi: return "chart.bar"
         case .fatMass: return "scalemass"
+        case .leanBodyMass: return "figure.stand"
+        case .totalBodyWater: return "drop"
+        case .icw: return "drop.halffull"
+        case .ecw: return "drop.halffull"
+        case .dryLeanMass: return "figure.stand"
+        case .bmr: return "flame"
+        case .inBodyScore: return "star"
+        case .rightArmLean, .leftArmLean: return "figure.arms.open"
+        case .trunkLean: return "figure.stand"
+        case .rightLegLean, .leftLegLean: return "figure.walk"
+        case .rightArmFat, .leftArmFat: return "figure.arms.open"
+        case .trunkFat: return "figure.stand"
+        case .rightLegFat, .leftLegFat: return "figure.walk"
         case .waist: return "ruler"
+        case .chest: return "heart"
+        case .neck: return "circle.dotted"
+        case .hips: return "figure.stand"
+        case .armLeft, .armRight: return "figure.arms.open"
+        case .thighLeft, .thighRight: return "figure.walk"
+        case .calfLeft, .calfRight: return "figure.run"
+        }
+    }
+
+    /// Whether this metric is derived from scan data (as opposed to weight entries or tape measurements).
+    var isScanDerived: Bool {
+        switch self {
+        case .weight: return false
+        case .waist, .chest, .neck, .hips, .armLeft, .armRight, .thighLeft, .thighRight, .calfLeft, .calfRight:
+            return false
+        default:
+            return true
+        }
+    }
+
+    /// The corresponding MeasurementType for tape-based metrics, nil for non-measurement metrics.
+    var measurementType: MeasurementType? {
+        switch self {
+        case .waist: return .waist
+        case .chest: return .chest
+        case .neck: return .neck
+        case .hips: return .hips
+        case .armLeft: return .armLeft
+        case .armRight: return .armRight
+        case .thighLeft: return .thighLeft
+        case .thighRight: return .thighRight
+        case .calfLeft: return .calfLeft
+        case .calfRight: return .calfRight
+        default: return nil
         }
     }
 }
@@ -95,6 +211,8 @@ class TrendsViewModel {
         switch selectedMetric {
         case .weight:
             refreshWeight()
+
+        // Core scan metrics
         case .bodyFatPct:
             refreshScanMetric { $0.bodyFatPct }
         case .skeletalMuscle:
@@ -103,8 +221,50 @@ class TrendsViewModel {
             refreshScanMetric { $0.bmi }
         case .fatMass:
             refreshScanMetric { UnitConversion.kgToLb($0.bodyFatMassKg) }
-        case .waist:
-            refreshWaist()
+
+        // Body Composition
+        case .leanBodyMass:
+            refreshOptionalScanMetric { $0.leanBodyMassKg.map { UnitConversion.kgToLb($0) } }
+        case .totalBodyWater:
+            refreshScanMetric { $0.totalBodyWaterL }
+        case .icw:
+            refreshOptionalScanMetric { $0.intracellularWaterL }
+        case .ecw:
+            refreshOptionalScanMetric { $0.extracellularWaterL }
+        case .dryLeanMass:
+            refreshOptionalScanMetric { $0.dryLeanMassKg.map { UnitConversion.kgToLb($0) } }
+        case .bmr:
+            refreshScanMetric { $0.basalMetabolicRate }
+        case .inBodyScore:
+            refreshOptionalScanMetric { $0.inBodyScore }
+
+        // Segmental Lean
+        case .rightArmLean:
+            refreshOptionalScanMetric { $0.rightArmLeanKg.map { UnitConversion.kgToLb($0) } }
+        case .leftArmLean:
+            refreshOptionalScanMetric { $0.leftArmLeanKg.map { UnitConversion.kgToLb($0) } }
+        case .trunkLean:
+            refreshOptionalScanMetric { $0.trunkLeanKg.map { UnitConversion.kgToLb($0) } }
+        case .rightLegLean:
+            refreshOptionalScanMetric { $0.rightLegLeanKg.map { UnitConversion.kgToLb($0) } }
+        case .leftLegLean:
+            refreshOptionalScanMetric { $0.leftLegLeanKg.map { UnitConversion.kgToLb($0) } }
+
+        // Segmental Fat
+        case .rightArmFat:
+            refreshOptionalScanMetric { $0.rightArmFatKg.map { UnitConversion.kgToLb($0) } }
+        case .leftArmFat:
+            refreshOptionalScanMetric { $0.leftArmFatKg.map { UnitConversion.kgToLb($0) } }
+        case .trunkFat:
+            refreshOptionalScanMetric { $0.trunkFatKg.map { UnitConversion.kgToLb($0) } }
+        case .rightLegFat:
+            refreshOptionalScanMetric { $0.rightLegFatKg.map { UnitConversion.kgToLb($0) } }
+        case .leftLegFat:
+            refreshOptionalScanMetric { $0.leftLegFatKg.map { UnitConversion.kgToLb($0) } }
+
+        // Measurements (tape)
+        case .waist, .chest, .neck, .hips, .armLeft, .armRight, .thighLeft, .thighRight, .calfLeft, .calfRight:
+            refreshMeasurement()
         }
 
         calculateMovingAverage()
@@ -158,25 +318,57 @@ class TrendsViewModel {
         }
     }
 
-    // MARK: - Waist (tape measurement)
+    // MARK: - Optional scan-derived metrics
 
-    private func refreshWaist() {
+    private func refreshOptionalScanMetric(extract: (InBodyPayload) -> Double?) {
         entries = []
+        let sort = [SortDescriptor(\Scan.date, order: .forward)]
+
+        let scans: [Scan]
+        if let days = timeRange.days {
+            let today = Calendar.current.startOfDay(for: Date())
+            let startDate = Calendar.current.date(byAdding: .day, value: -days, to: today)!
+            let descriptor = FetchDescriptor<Scan>(
+                predicate: #Predicate { $0.date > startDate },
+                sortBy: sort
+            )
+            scans = (try? modelContext.fetch(descriptor)) ?? []
+        } else {
+            let descriptor = FetchDescriptor<Scan>(sortBy: sort)
+            scans = (try? modelContext.fetch(descriptor)) ?? []
+        }
+
+        dataPoints = scans.compactMap { scan in
+            guard let content = try? scan.decoded(),
+                  case .inBody(let payload) = content,
+                  let value = extract(payload) else { return nil }
+            return TrendDataPoint(date: scan.date, value: value)
+        }
+    }
+
+    // MARK: - Tape measurements (generic)
+
+    private func refreshMeasurement() {
+        entries = []
+        guard let measType = selectedMetric.measurementType else {
+            dataPoints = []
+            return
+        }
         let sort = [SortDescriptor(\Measurement.date, order: .forward)]
-        let waistRaw = MeasurementType.waist.rawValue
+        let typeRaw = measType.rawValue
 
         let measurements: [Measurement]
         if let days = timeRange.days {
             let today = Calendar.current.startOfDay(for: Date())
             let startDate = Calendar.current.date(byAdding: .day, value: -days, to: today)!
             let descriptor = FetchDescriptor<Measurement>(
-                predicate: #Predicate { $0.type == waistRaw && $0.date > startDate },
+                predicate: #Predicate { $0.type == typeRaw && $0.date > startDate },
                 sortBy: sort
             )
             measurements = (try? modelContext.fetch(descriptor)) ?? []
         } else {
             let descriptor = FetchDescriptor<Measurement>(
-                predicate: #Predicate { $0.type == waistRaw },
+                predicate: #Predicate { $0.type == typeRaw },
                 sortBy: sort
             )
             measurements = (try? modelContext.fetch(descriptor)) ?? []
@@ -185,6 +377,83 @@ class TrendsViewModel {
         dataPoints = measurements.map { m in
             TrendDataPoint(date: m.date, value: m.valueCm / 2.54)
         }
+    }
+
+    // MARK: - Available metrics (only those with data)
+
+    /// Returns metrics that have at least one data point, grouped by category.
+    func computeAvailableMetrics() -> [TrendMetric] {
+        var available: [TrendMetric] = []
+
+        // Check weight
+        var weightDescriptor = FetchDescriptor<WeightEntry>()
+        weightDescriptor.fetchLimit = 1
+        let hasWeight = ((try? modelContext.fetch(weightDescriptor))?.isEmpty == false)
+        if hasWeight { available.append(.weight) }
+
+        // Check scans — decode first scan to see which optional fields exist
+        let scanDescriptor = FetchDescriptor<Scan>(sortBy: [SortDescriptor(\Scan.date, order: .reverse)])
+        let scans = (try? modelContext.fetch(scanDescriptor)) ?? []
+        if !scans.isEmpty {
+            // Always-present scan metrics
+            available.append(contentsOf: [.bodyFatPct, .skeletalMuscle, .bmi, .fatMass, .totalBodyWater, .bmr])
+
+            // Check optional fields across all scans
+            var hasField: [TrendMetric: Bool] = [:]
+            let optionalMetrics: [(TrendMetric, (InBodyPayload) -> Double?)] = [
+                (.leanBodyMass, { $0.leanBodyMassKg }),
+                (.icw, { $0.intracellularWaterL }),
+                (.ecw, { $0.extracellularWaterL }),
+                (.dryLeanMass, { $0.dryLeanMassKg }),
+                (.inBodyScore, { $0.inBodyScore }),
+                (.rightArmLean, { $0.rightArmLeanKg }),
+                (.leftArmLean, { $0.leftArmLeanKg }),
+                (.trunkLean, { $0.trunkLeanKg }),
+                (.rightLegLean, { $0.rightLegLeanKg }),
+                (.leftLegLean, { $0.leftLegLeanKg }),
+                (.rightArmFat, { $0.rightArmFatKg }),
+                (.leftArmFat, { $0.leftArmFatKg }),
+                (.trunkFat, { $0.trunkFatKg }),
+                (.rightLegFat, { $0.rightLegFatKg }),
+                (.leftLegFat, { $0.leftLegFatKg }),
+            ]
+
+            for scan in scans {
+                guard let content = try? scan.decoded(),
+                      case .inBody(let payload) = content else { continue }
+                for (metric, extractor) in optionalMetrics {
+                    if hasField[metric] != true && extractor(payload) != nil {
+                        hasField[metric] = true
+                    }
+                }
+                // Early exit if all found
+                if hasField.count == optionalMetrics.count { break }
+            }
+
+            for (metric, _) in optionalMetrics where hasField[metric] == true {
+                available.append(metric)
+            }
+        }
+
+        // Check measurements
+        let measurementMetrics: [TrendMetric] = [.waist, .chest, .neck, .hips, .armLeft, .armRight, .thighLeft, .thighRight, .calfLeft, .calfRight]
+        for metric in measurementMetrics {
+            guard let measType = metric.measurementType else { continue }
+            let typeRaw = measType.rawValue
+            let descriptor = FetchDescriptor<Measurement>(
+                predicate: #Predicate { $0.type == typeRaw },
+                sortBy: [SortDescriptor(\Measurement.date)]
+            )
+            if let results = try? modelContext.fetch(descriptor), !results.isEmpty {
+                available.append(metric)
+            }
+        }
+
+        // Sort by the canonical allCases order
+        let order = Dictionary(uniqueKeysWithValues: TrendMetric.allCases.enumerated().map { ($0.element, $0.offset) })
+        available.sort { (order[$0] ?? 0) < (order[$1] ?? 0) }
+
+        return available
     }
 
     // MARK: - Moving Average

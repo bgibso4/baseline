@@ -46,8 +46,10 @@ struct TrendsView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(AppState.self) private var appState: AppState?
     @State private var vm: TrendsViewModel?
-    @State private var showMetricDropdown = false
+    @State private var showMetricSheet = false
     @State private var compareEnabled = false
+    @State private var secondaryMetric: TrendMetric?
+    @State private var availableMetrics: [TrendMetric] = TrendMetric.allCases
     @State private var showFullscreen = false
 
     /// Synchronous VM injection (snapshot / unit tests).
@@ -64,7 +66,6 @@ struct TrendsView: View {
             ZStack(alignment: .top) {
                 CadreColors.bg.ignoresSafeArea()
 
-                // Main content — always at base layer
                 VStack(spacing: 0) {
                     metricChipButton
                         .padding(.horizontal, CadreSpacing.sheetHorizontal)
@@ -82,33 +83,26 @@ struct TrendsView: View {
 
                     Spacer(minLength: 0)
                 }
-
-                // Dropdown overlay — sits on TOP of everything when visible
-                if showMetricDropdown {
-                    // Dismiss backdrop
-                    Color.black.opacity(0.3)
-                        .ignoresSafeArea()
-                        .onTapGesture {
-                            withAnimation(.easeInOut(duration: 0.2)) {
-                                showMetricDropdown = false
-                            }
-                        }
-
-                    // Dropdown menu positioned below chip
-                    VStack {
-                        metricDropdownMenu
-                            .padding(.horizontal, CadreSpacing.sheetHorizontal)
-                            .padding(.top, 60) // below the chip (chip height ~52 + top padding)
-                        Spacer()
-                    }
-                    .transition(.opacity.combined(with: .scale(scale: 0.95, anchor: .top)))
-                }
             }
-            .animation(.easeInOut(duration: 0.2), value: showMetricDropdown)
             .navigationBarHidden(true)
             .fullScreenCover(isPresented: $showFullscreen) {
                 LandscapeHostingController(content: fullscreenChartContent)
                     .ignoresSafeArea()
+            }
+            .sheet(isPresented: $showMetricSheet) {
+                MetricPickerSheet(
+                    selectedMetric: Binding(
+                        get: { vm?.selectedMetric ?? .weight },
+                        set: { vm?.selectedMetric = $0 }
+                    ),
+                    compareEnabled: $compareEnabled,
+                    secondaryMetric: $secondaryMetric,
+                    availableMetrics: availableMetrics,
+                    onDismiss: { vm?.refresh() }
+                )
+                .presentationDetents([.medium, .large])
+                .presentationDragIndicator(.hidden)
+                .presentationBackground(Color(red: 28/255, green: 28/255, blue: 34/255))
             }
             .onAppear {
                 guard injectedVM == nil else { return }
@@ -121,6 +115,7 @@ struct TrendsView: View {
                     vm?.selectedMetric = metric
                 }
                 vm?.refresh()
+                availableMetrics = vm?.computeAvailableMetrics() ?? TrendMetric.allCases
             }
             .onChange(of: appState?.trendMetric) { _, newValue in
                 if let newValue, let metric = TrendMetric(rawValue: newValue) {
@@ -154,30 +149,51 @@ struct TrendsView: View {
 
     // MARK: - Metric chip button (always visible)
 
+    private let amber = Color(red: 1.0, green: 0.75, blue: 0.0)
+
     private var metricChipButton: some View {
         Button {
-            withAnimation(.easeInOut(duration: 0.25)) {
-                showMetricDropdown.toggle()
-            }
+            showMetricSheet = true
         } label: {
             HStack(spacing: 10) {
-                ZStack {
-                    RoundedRectangle(cornerRadius: CadreRadius.sm)
-                        .fill(CadreColors.cardElevated)
-                        .frame(width: 28, height: 28)
-                    Image(systemName: selectedMetric.icon)
-                        .font(.system(size: 14, weight: .semibold))
-                        .foregroundStyle(CadreColors.accent)
+                if compareEnabled, let secondary = secondaryMetric {
+                    // Dual-icon stack for compare mode
+                    ZStack {
+                        RoundedRectangle(cornerRadius: CadreRadius.sm)
+                            .fill(CadreColors.cardElevated)
+                            .frame(width: 28, height: 28)
+                        Image(systemName: selectedMetric.icon)
+                            .font(.system(size: 14, weight: .semibold))
+                            .foregroundStyle(CadreColors.accent)
+                            .offset(x: -3, y: -2)
+                        Image(systemName: secondary.icon)
+                            .font(.system(size: 10, weight: .semibold))
+                            .foregroundStyle(amber)
+                            .offset(x: 5, y: 4)
+                    }
+                    Text("\(selectedMetric.rawValue) \u{00B7} \(secondary.rawValue)")
+                        .font(CadreTypography.trendsMetricName)
+                        .tracking(-0.1)
+                        .foregroundStyle(CadreColors.textPrimary)
+                        .lineLimit(1)
+                } else {
+                    ZStack {
+                        RoundedRectangle(cornerRadius: CadreRadius.sm)
+                            .fill(CadreColors.cardElevated)
+                            .frame(width: 28, height: 28)
+                        Image(systemName: selectedMetric.icon)
+                            .font(.system(size: 14, weight: .semibold))
+                            .foregroundStyle(CadreColors.accent)
+                    }
+                    Text(selectedMetric.rawValue)
+                        .font(CadreTypography.trendsMetricName)
+                        .tracking(-0.1)
+                        .foregroundStyle(CadreColors.textPrimary)
                 }
-                Text(selectedMetric.rawValue)
-                    .font(CadreTypography.trendsMetricName)
-                    .tracking(-0.1)
-                    .foregroundStyle(CadreColors.textPrimary)
                 Spacer()
                 Image(systemName: "chevron.down")
                     .font(.system(size: 12, weight: .semibold))
                     .foregroundStyle(CadreColors.textTertiary)
-                    .rotationEffect(.degrees(showMetricDropdown ? 180 : 0))
             }
             .padding(.horizontal, 14)
             .padding(.vertical, 12)
@@ -189,195 +205,6 @@ struct TrendsView: View {
                             .stroke(CadreColors.divider, lineWidth: 1)
                     )
             )
-        }
-        .buttonStyle(.plain)
-    }
-
-    // MARK: - Metric dropdown (overlay, not push)
-
-    private var metricDropdownMenu: some View {
-        VStack(spacing: 0) {
-            // Section label
-            HStack {
-                Text("Metric")
-                    .font(.system(size: 11, weight: .semibold))
-                    .tracking(0.5)
-                    .foregroundStyle(CadreColors.textTertiary)
-                    .textCase(.uppercase)
-                Spacer()
-            }
-            .padding(.horizontal, 12)
-            .padding(.top, 10)
-            .padding(.bottom, 4)
-
-            // Metric rows
-            ForEach(TrendMetric.allCases, id: \.self) { metric in
-                metricDropdownRow(metric: metric)
-            }
-
-            // Divider
-            Rectangle()
-                .fill(Color.white.opacity(0.06))
-                .frame(height: 0.5)
-                .padding(.horizontal, 12)
-                .padding(.vertical, 6)
-
-            // Compare toggle row
-            HStack(spacing: 10) {
-                ZStack {
-                    RoundedRectangle(cornerRadius: 6)
-                        .fill(CadreColors.cardElevated)
-                        .frame(width: 24, height: 24)
-                    Image(systemName: "arrow.triangle.swap")
-                        .font(.system(size: 11, weight: .semibold))
-                        .foregroundStyle(CadreColors.textSecondary)
-                }
-                VStack(alignment: .leading, spacing: 1) {
-                    Text("Compare")
-                        .font(.system(size: 14, weight: .medium))
-                        .foregroundStyle(CadreColors.textPrimary)
-                    Text("Overlay a second metric")
-                        .font(.system(size: 10))
-                        .foregroundStyle(CadreColors.textTertiary)
-                }
-                Spacer()
-                Toggle("", isOn: $compareEnabled)
-                    .labelsHidden()
-                    .tint(CadreColors.accent)
-            }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 9)
-
-            // Compare sections (shown when toggle is ON)
-            if compareEnabled {
-                Rectangle()
-                    .fill(Color.white.opacity(0.06))
-                    .frame(height: 0.5)
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 4)
-
-                // Previous period
-                HStack {
-                    Text("Previous period")
-                        .font(.system(size: 11, weight: .semibold))
-                        .tracking(0.5)
-                        .foregroundStyle(CadreColors.textTertiary)
-                        .textCase(.uppercase)
-                    Spacer()
-                }
-                .padding(.horizontal, 12)
-                .padding(.top, 6)
-                .padding(.bottom, 4)
-
-                compareOptionRow(label: "Last month", icon: "calendar")
-                compareOptionRow(label: "Last year", icon: "calendar.badge.clock")
-
-                // Program section
-                HStack {
-                    Text("Program")
-                        .font(.system(size: 11, weight: .semibold))
-                        .tracking(0.5)
-                        .foregroundStyle(CadreColors.textTertiary)
-                        .textCase(.uppercase)
-                    Spacer()
-                }
-                .padding(.horizontal, 12)
-                .padding(.top, 8)
-                .padding(.bottom, 4)
-
-                HStack(spacing: 10) {
-                    Image(systemName: "flag")
-                        .font(.system(size: 12))
-                        .foregroundStyle(CadreColors.textTertiary)
-                        .frame(width: 24)
-                    Text("Apex phases")
-                        .font(.system(size: 14, weight: .medium))
-                        .foregroundStyle(CadreColors.textTertiary)
-                    Spacer()
-                    Text("Soon")
-                        .font(.system(size: 10, weight: .medium))
-                        .foregroundStyle(CadreColors.textTertiary)
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 3)
-                        .background(CadreColors.cardElevated)
-                        .clipShape(RoundedRectangle(cornerRadius: 6))
-                }
-                .padding(.horizontal, 12)
-                .padding(.vertical, 9)
-            }
-        }
-        .padding(.bottom, 8)
-        .background(
-            RoundedRectangle(cornerRadius: 14)
-                .fill(Color(red: 30/255, green: 30/255, blue: 36/255).opacity(0.98))
-                .background(
-                    RoundedRectangle(cornerRadius: 14)
-                        .fill(.ultraThinMaterial)
-                )
-                .overlay(
-                    RoundedRectangle(cornerRadius: 14)
-                        .stroke(Color.white.opacity(0.06), lineWidth: 0.5)
-                )
-                .shadow(color: .black.opacity(0.5), radius: 18, y: 12)
-        )
-    }
-
-    private func metricDropdownRow(metric: TrendMetric) -> some View {
-        let isActive = selectedMetric == metric
-        return Button {
-            vm?.selectedMetric = metric
-            vm?.refresh()
-            withAnimation(.easeInOut(duration: 0.25)) {
-                showMetricDropdown = false
-            }
-            Haptics.selection()
-        } label: {
-            HStack(spacing: 10) {
-                ZStack {
-                    RoundedRectangle(cornerRadius: 6)
-                        .fill(isActive ? CadreColors.accent.opacity(0.15) : CadreColors.cardElevated)
-                        .frame(width: 24, height: 24)
-                    Image(systemName: metric.icon)
-                        .font(.system(size: 12, weight: .semibold))
-                        .foregroundStyle(isActive ? CadreColors.accent : CadreColors.textSecondary)
-                }
-                Text(metric.rawValue)
-                    .font(.system(size: 14, weight: .medium))
-                    .foregroundStyle(CadreColors.textPrimary)
-                Spacer()
-                if isActive {
-                    Image(systemName: "checkmark")
-                        .font(.system(size: 14, weight: .semibold))
-                        .foregroundStyle(CadreColors.accent)
-                }
-            }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 9)
-            .background(
-                RoundedRectangle(cornerRadius: 9)
-                    .fill(isActive ? CadreColors.accent.opacity(0.06) : Color.clear)
-            )
-            .padding(.horizontal, 4)
-        }
-        .buttonStyle(.plain)
-    }
-
-    private func compareOptionRow(label: String, icon: String) -> some View {
-        Button {
-            // Visual only for v1
-        } label: {
-            HStack(spacing: 10) {
-                Image(systemName: icon)
-                    .font(.system(size: 12))
-                    .foregroundStyle(CadreColors.textSecondary)
-                    .frame(width: 24)
-                Text(label)
-                    .font(.system(size: 14, weight: .medium))
-                    .foregroundStyle(CadreColors.textPrimary)
-                Spacer()
-            }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 9)
         }
         .buttonStyle(.plain)
     }

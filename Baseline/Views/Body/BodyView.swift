@@ -419,13 +419,17 @@ struct BodyView: View {
     }
 
     /// Maps a body comp tile label to the corresponding Trends metric name.
-    /// Returns nil for metrics not yet available on the Trends tab.
+    /// All scan-derived metrics route to Trends with the matching TrendMetric.
     private func trendMetricName(for tileLabel: String) -> String? {
         switch tileLabel {
-        case "Body Fat": return "Body Fat %"
-        case "Skeletal Muscle": return "Skeletal Muscle"
-        case "BMI": return "BMI"
-        case "Fat Mass": return "Fat Mass"
+        case "Body Fat": return TrendMetric.bodyFatPct.rawValue
+        case "Skeletal Muscle": return TrendMetric.skeletalMuscle.rawValue
+        case "BMI": return TrendMetric.bmi.rawValue
+        case "Fat Mass": return TrendMetric.fatMass.rawValue
+        case "Total Body Water": return TrendMetric.totalBodyWater.rawValue
+        case "BMR": return TrendMetric.bmr.rawValue
+        case "InBody Score": return TrendMetric.inBodyScore.rawValue
+        case "Lean Body Mass": return TrendMetric.leanBodyMass.rawValue
         default: return nil
         }
     }

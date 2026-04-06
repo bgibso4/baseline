@@ -93,6 +93,7 @@
 		E3888989405060A77C5CAE6B /* NowViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1AF6412F243C441BE0D8164E /* NowViewModelTests.swift */; };
 		E44F4F2EA294750C5F86D8A2 /* testHistoryView_DarkMode_iPhone13Pro.1.png in Resources */ = {isa = PBXBuildFile; fileRef = 1BF47DA1A29A20B42AE37685 /* testHistoryView_DarkMode_iPhone13Pro.1.png */; };
 		E9AE862F20C7238325BF97E0 /* WeighInSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3AFDA887F36DFDC283876B7 /* WeighInSheet.swift */; };
+		EF2CA9F84B2BD89396902B60 /* MetricPickerSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A36E8D666AC44FF62BE94B0 /* MetricPickerSheet.swift */; };
 		F6398E5CF415C6B9B8CE5BC2 /* HealthKitManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32B28DC15F13A362B58FD326 /* HealthKitManager.swift */; };
 /* End PBXBuildFile section */
 
@@ -134,6 +135,7 @@
 		08676595D1E00491EDB74DF5 /* ArcIndicatorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArcIndicatorView.swift; sourceTree = "<group>"; };
 		16180890AC21C5FBC902279E /* BodyViewSnapshotTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BodyViewSnapshotTests.swift; sourceTree = "<group>"; };
 		18F90EA3B79CAA8467685396 /* HealthKitManagerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthKitManagerTests.swift; sourceTree = "<group>"; };
+		1A36E8D666AC44FF62BE94B0 /* MetricPickerSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetricPickerSheet.swift; sourceTree = "<group>"; };
 		1AF6412F243C441BE0D8164E /* NowViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NowViewModelTests.swift; sourceTree = "<group>"; };
 		1BF47DA1A29A20B42AE37685 /* testHistoryView_DarkMode_iPhone13Pro.1.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = testHistoryView_DarkMode_iPhone13Pro.1.png; sourceTree = "<group>"; };
 		2019690E1B79A00585C461C5 /* TestDataSeeder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestDataSeeder.swift; sourceTree = "<group>"; };
@@ -309,6 +311,7 @@
 		3BC7C789A95F943AC4BD95C8 /* Trends */ = {
 			isa = PBXGroup;
 			children = (
+				1A36E8D666AC44FF62BE94B0 /* MetricPickerSheet.swift */,
 				4F67EB45DA1DAE23E04AD404 /* TrendsView.swift */,
 			);
 			path = Trends;
@@ -771,6 +774,7 @@
 				03B854855B71B24B7DBCC6C6 /* Measurement.swift in Sources */,
 				B4B2BCBF2B921FC88D9E902D /* MeasurementType.swift in Sources */,
 				0C50ABA464D39A2FE1AAC9FC /* MetricHistoryView.swift in Sources */,
+				EF2CA9F84B2BD89396902B60 /* MetricPickerSheet.swift in Sources */,
 				C1C042DFC415E09CB44AA96B /* MetricTile.swift in Sources */,
 				D2A1F9D86C1D03A751893F99 /* MirrorableRecord.swift in Sources */,
 				25952DDEC892809F909C7E92 /* NowView.swift in Sources */,
