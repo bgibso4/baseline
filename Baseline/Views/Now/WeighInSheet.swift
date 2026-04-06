@@ -45,16 +45,17 @@ struct WeighInSheet: View {
                     .padding(.top, 10)
                     .padding(.bottom, 14)
 
-                contentStack
-                    .padding(.horizontal, CadreSpacing.sheetHorizontal)
-
-                Spacer(minLength: 0)
+                ScrollView {
+                    contentStack
+                        .padding(.horizontal, CadreSpacing.sheetHorizontal)
+                }
 
                 saveButton
                     .padding(.horizontal, CadreSpacing.sheetHorizontal)
                     .padding(.bottom, 12)
             }
         }
+        .presentationDetents(showDatePicker ? [.large] : [.medium, .large])
         .onAppear {
             guard injectedVM == nil, vm == nil else { return }
             vm = WeighInViewModel(
@@ -101,7 +102,8 @@ struct WeighInSheet: View {
                 Image(uiImage: uiImage)
                     .resizable()
                     .scaledToFill()
-                    .frame(height: 120)
+                    .frame(height: 150)
+                    .clipped()
                     .clipShape(RoundedRectangle(cornerRadius: 12))
                     .padding(.top, 16)
                     .transition(.opacity.combined(with: .move(edge: .top)))

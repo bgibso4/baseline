@@ -37,6 +37,7 @@
 		3F839DAE75B52120DDEB6224 /* CloudflareOutboundMirror.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA714D5002EBF0AEE77EE339 /* CloudflareOutboundMirror.swift */; };
 		416BB9FECD67376B100EFFAC /* BaselineWidgets.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = D25FD52DA7EFC4286FE7A191 /* BaselineWidgets.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		44407861EB6DA9740AE44A5E /* TrendsViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68553E59F2B6033D1954BE5D /* TrendsViewModelTests.swift */; };
+		4468566A53F28207A9455BBB /* AppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 80B55EB26A45854292DC73E4 /* AppState.swift */; };
 		4523CA930F4F96F1E090D1E5 /* testSettingsView_DarkMode.1.png in Resources */ = {isa = PBXBuildFile; fileRef = 62E0D24F3CB2F0A200FAAD19 /* testSettingsView_DarkMode.1.png */; };
 		4630EE25F5933B769FFC11FF /* APIClientTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD91A7FB375167742BA11341 /* APIClientTests.swift */; };
 		4F5996756FAB95C53E59DEFE /* WeighInViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C5711FD50AF3ED47B8906EC /* WeighInViewModelTests.swift */; };
@@ -173,6 +174,7 @@
 		7C5711FD50AF3ED47B8906EC /* WeighInViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeighInViewModelTests.swift; sourceTree = "<group>"; };
 		7FB8FE60E06088A3CD2FDE17 /* MeasurementType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeasurementType.swift; sourceTree = "<group>"; };
 		8044E19E7B426BDCE5DA9922 /* SyncHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncHelper.swift; sourceTree = "<group>"; };
+		80B55EB26A45854292DC73E4 /* AppState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppState.swift; sourceTree = "<group>"; };
 		88AF6FD6DF3173BDBDB33E58 /* Baseline.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Baseline.entitlements; sourceTree = "<group>"; };
 		8B2778585A57DC61D42C98DD /* testScanEntry_ManualForm.1.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = testScanEntry_ManualForm.1.png; sourceTree = "<group>"; };
 		8F76CA414AF7805F2B73F420 /* BaselineTips.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BaselineTips.swift; sourceTree = "<group>"; };
@@ -585,6 +587,7 @@
 		F39CD542012A303480245EC2 /* Models */ = {
 			isa = PBXGroup;
 			children = (
+				80B55EB26A45854292DC73E4 /* AppState.swift */,
 				2BB58E9F38A99C7C4D86D8DF /* Measurement.swift */,
 				7FB8FE60E06088A3CD2FDE17 /* MeasurementType.swift */,
 				F4B62AE88FB82E485614E3D0 /* Scan.swift */,
@@ -746,6 +749,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				E0288A71F6279F2726D154B0 /* APIClient.swift in Sources */,
+				4468566A53F28207A9455BBB /* AppState.swift in Sources */,
 				0D82FB85309F585B25DFA19B /* ArcIndicatorView.swift in Sources */,
 				14FE980511237871E2644BEE /* BaselineApp.swift in Sources */,
 				785C5DEE4B6E4E89A3FB7D25 /* BaselineTips.swift in Sources */,

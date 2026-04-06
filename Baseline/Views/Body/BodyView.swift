@@ -12,6 +12,7 @@ import TipKit
 /// with that metric pre-selected (stubbed for now).
 struct BodyView: View {
     @Environment(\.modelContext) private var modelContext
+    @Environment(AppState.self) private var appState: AppState?
 
     private let injectedVM: BodyViewModel?
     @State private var vm: BodyViewModel?
@@ -64,7 +65,6 @@ struct BodyView: View {
         }
         .sheet(isPresented: $showLogMeasurement) {
             LogMeasurementSheet(viewModel: vm)
-                .presentationDetents([.medium, .large])
                 .presentationDragIndicator(.hidden)
         }
         .fullScreenCover(isPresented: $showScanEntry) {
@@ -89,23 +89,40 @@ struct BodyView: View {
             if let tiles = bodyCompTiles, !tiles.isEmpty {
                 LazyVGrid(columns: tileColumns, spacing: 8) {
                     ForEach(tiles, id: \.label) { tile in
-                        NavigationLink {
-                            MetricHistoryView(
-                                metricName: tile.label,
-                                unit: tile.unit,
-                                entries: bodyCompHistory(for: tile.label)
-                            )
-                        } label: {
-                            MetricTile(
-                                sfSymbol: tile.sfSymbol,
-                                label: tile.label,
-                                value: tile.value,
-                                unit: tile.unit,
-                                delta: tile.delta,
-                                isSecondaryAccent: tile.isSecondary
-                            )
+                        if let trendName = trendMetricName(for: tile.label) {
+                            Button {
+                                appState?.trendMetric = trendName
+                                appState?.selectedTab = .trends
+                            } label: {
+                                MetricTile(
+                                    sfSymbol: tile.sfSymbol,
+                                    label: tile.label,
+                                    value: tile.value,
+                                    unit: tile.unit,
+                                    delta: tile.delta,
+                                    isSecondaryAccent: tile.isSecondary
+                                )
+                            }
+                            .buttonStyle(.plain)
+                        } else {
+                            NavigationLink {
+                                MetricHistoryView(
+                                    metricName: tile.label,
+                                    unit: tile.unit,
+                                    entries: bodyCompHistory(for: tile.label)
+                                )
+                            } label: {
+                                MetricTile(
+                                    sfSymbol: tile.sfSymbol,
+                                    label: tile.label,
+                                    value: tile.value,
+                                    unit: tile.unit,
+                                    delta: tile.delta,
+                                    isSecondaryAccent: tile.isSecondary
+                                )
+                            }
+                            .buttonStyle(.plain)
                         }
-                        .buttonStyle(.plain)
                     }
                 }
                 .padding(.horizontal, CadreSpacing.sheetHorizontal)
@@ -388,6 +405,18 @@ struct BodyView: View {
                 let inches = m.valueCm / 2.54
                 return (date: m.date, value: String(format: "%.1f", inches))
             }
+    }
+
+    /// Maps a body comp tile label to the corresponding Trends metric name.
+    /// Returns nil for metrics not yet available on the Trends tab.
+    private func trendMetricName(for tileLabel: String) -> String? {
+        switch tileLabel {
+        case "Body Fat": return "Body Fat %"
+        case "Skeletal Muscle": return "Skeletal Muscle"
+        case "BMI": return "BMI"
+        case "Fat Mass": return "Fat Mass"
+        default: return nil
+        }
     }
 
     private var scanHistorySubtitle: String {

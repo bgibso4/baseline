@@ -109,36 +109,72 @@ private struct HistoryRow: View {
     let entry: WeightEntry
     let delta: Double?
 
+    private var dayNumber: String {
+        let cal = Calendar.current
+        return "\(cal.component(.day, from: entry.date))"
+    }
+
+    private var monthYear: String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "MMM yyyy"
+        return formatter.string(from: entry.date)
+    }
+
+    private var weekday: String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "EEE"
+        return formatter.string(from: entry.date)
+    }
+
     var body: some View {
-        HStack(spacing: CadreSpacing.md) {
-            Text(DateFormatting.weekdayShort(entry.date))
-                .font(CadreTypography.historyDate)
-                .foregroundStyle(CadreColors.textPrimary)
+        VStack(spacing: 0) {
+            HStack(spacing: 16) {
+                // Date block — mirrors ScanHistoryView pattern
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(dayNumber)
+                        .font(.system(size: 28, weight: .bold))
+                        .foregroundStyle(CadreColors.textPrimary)
+                    Text(monthYear)
+                        .font(.system(size: 12, weight: .medium))
+                        .foregroundStyle(CadreColors.textSecondary)
+                }
+                .frame(width: 60, alignment: .leading)
 
-            Spacer(minLength: CadreSpacing.sm)
+                Spacer()
 
-            if let delta {
-                Text(deltaText(delta))
-                    .font(CadreTypography.historyDelta)
-                    .foregroundStyle(deltaColor(delta))
+                // Weight + delta
+                VStack(alignment: .trailing, spacing: 4) {
+                    HStack(alignment: .firstTextBaseline, spacing: 3) {
+                        Text(UnitConversion.formatWeight(entry.weight, unit: entry.unit))
+                            .font(.system(size: 22, weight: .bold))
+                            .foregroundStyle(CadreColors.textPrimary)
+                        Text(entry.unit)
+                            .font(.system(size: 13, weight: .medium))
+                            .foregroundStyle(CadreColors.textSecondary)
+                    }
+                    if let delta {
+                        Text(UnitConversion.formatDelta(delta))
+                            .font(.system(size: 13, weight: .medium))
+                            .foregroundStyle(deltaColor(delta))
+                    }
+                }
             }
 
-            HStack(alignment: .firstTextBaseline, spacing: 3) {
-                Text(UnitConversion.formatWeight(entry.weight, unit: entry.unit))
-                    .font(CadreTypography.historyValue)
-                    .foregroundStyle(CadreColors.textPrimary)
-                Text(entry.unit)
-                    .font(CadreTypography.historyNotes)
+            // Notes caption below (if present)
+            if let notes = entry.notes, !notes.isEmpty {
+                Text(notes)
+                    .font(.system(size: 11, weight: .regular))
                     .foregroundStyle(CadreColors.textTertiary)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.top, 6)
             }
-            .frame(minWidth: 70, alignment: .trailing)
         }
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(rowAccessibilityLabel)
     }
 
     private var rowAccessibilityLabel: String {
-        var label = "\(DateFormatting.weekdayShort(entry.date)), \(UnitConversion.formatWeight(entry.weight, unit: entry.unit)) \(entry.unit)"
+        var label = "\(weekday), \(monthYear) \(dayNumber), \(UnitConversion.formatWeight(entry.weight, unit: entry.unit)) \(entry.unit)"
         if let delta {
             label += ", \(deltaText(delta)) change"
         }
@@ -148,7 +184,7 @@ private struct HistoryRow: View {
     private func deltaText(_ d: Double) -> String {
         let rounded = (d * 10).rounded() / 10
         if abs(rounded) < 0.05 { return "0.0" }
-        let sign = rounded > 0 ? "+" : "−"
+        let sign = rounded > 0 ? "+" : "\u{2212}"
         return "\(sign)\(String(format: "%.1f", abs(rounded)))"
     }
 

@@ -56,9 +56,12 @@ struct BaselineApp: App {
         SyncHelper.mirror = outboundMirror
     }
 
+    @State private var appState = AppState()
+
     var body: some Scene {
         WindowGroup {
             MainTabView()
+                .environment(appState)
                 .task {
                     try? Tips.configure([
                         .displayFrequency(.weekly)

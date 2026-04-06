@@ -73,7 +73,6 @@ struct NowView: View {
                     unit: vm?.unit ?? "lb",
                     onSave: { vm?.refresh() }
                 )
-                .presentationDetents([.medium, .large])
                 .presentationDragIndicator(.hidden)
             }
             .navigationDestination(isPresented: $showSettings) {

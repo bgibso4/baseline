@@ -31,16 +31,17 @@ struct LogMeasurementSheet: View {
                     .padding(.top, 10)
                     .padding(.bottom, 14)
 
-                contentStack
-                    .padding(.horizontal, CadreSpacing.sheetHorizontal)
-
-                Spacer(minLength: 0)
+                ScrollView {
+                    contentStack
+                        .padding(.horizontal, CadreSpacing.sheetHorizontal)
+                }
 
                 saveButton
                     .padding(.horizontal, CadreSpacing.sheetHorizontal)
                     .padding(.bottom, 12)
             }
         }
+        .presentationDetents(showDatePicker ? [.large] : [.medium, .large])
         .onAppear {
             if injectedVM == nil, bodyVM == nil {
                 bodyVM = BodyViewModel(modelContext: modelContext)

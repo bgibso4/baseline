@@ -19,8 +19,10 @@ import TipKit
 /// (Trends architecture, 2026-04-05).
 struct TrendsView: View {
     @Environment(\.modelContext) private var modelContext
+    @Environment(AppState.self) private var appState: AppState?
     @State private var vm: TrendsViewModel?
-    @State private var showMetricPicker = false
+    @State private var showMetricDropdown = false
+    @State private var selectedMetricName: String = "Weight"
     @State private var showFullscreen = false
 
     /// Synchronous VM injection (snapshot / unit tests). Mirrors the
@@ -59,6 +61,14 @@ struct TrendsView: View {
             .navigationBarHidden(true)
             .fullScreenCover(isPresented: $showFullscreen) {
                 fullscreenChartView
+                    .onAppear {
+                        guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene else { return }
+                        windowScene.requestGeometryUpdate(.iOS(interfaceOrientations: .landscape))
+                    }
+                    .onDisappear {
+                        guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene else { return }
+                        windowScene.requestGeometryUpdate(.iOS(interfaceOrientations: .portrait))
+                    }
             }
             .onAppear {
                 guard injectedVM == nil else { return }
@@ -66,6 +76,13 @@ struct TrendsView: View {
                     vm = TrendsViewModel(modelContext: modelContext)
                 }
                 vm?.refresh()
+                // Pick up metric requested by another tab (e.g. Body → Trends)
+                if let metric = appState?.trendMetric {
+                    selectedMetricName = metric
+                }
+            }
+            .onChange(of: appState?.trendMetric) { _, newValue in
+                if let newValue { selectedMetricName = newValue }
             }
         }
     }
@@ -85,94 +102,102 @@ struct TrendsView: View {
         }
     }
 
-    // MARK: - Metric chip
+    // MARK: - Metric chip (inline dropdown)
+
+    /// All selectable metrics. Icon maps used by both chip and dropdown rows.
+    private static let metrics: [(name: String, icon: String)] = [
+        ("Weight", "scalemass"),
+        ("Body Fat %", "drop.fill"),
+        ("Skeletal Muscle", "figure.strengthtraining.traditional"),
+        ("BMI", "chart.bar"),
+        ("Fat Mass", "scalemass"),
+    ]
 
     private var metricChip: some View {
+        VStack(spacing: 0) {
+            Button {
+                withAnimation(.easeInOut(duration: 0.25)) {
+                    showMetricDropdown.toggle()
+                }
+            } label: {
+                HStack(spacing: 10) {
+                    ZStack {
+                        RoundedRectangle(cornerRadius: CadreRadius.sm)
+                            .fill(CadreColors.cardElevated)
+                            .frame(width: 28, height: 28)
+                        Image(systemName: Self.metrics.first(where: { $0.name == selectedMetricName })?.icon ?? "scalemass")
+                            .font(.system(size: 14, weight: .semibold))
+                            .foregroundStyle(CadreColors.accent)
+                    }
+                    // Metric name — 14pt semibold, -0.1 tracking (mockup .metric-chip .metric-name)
+                    Text(selectedMetricName)
+                        .font(CadreTypography.trendsMetricName)
+                        .tracking(-0.1)
+                        .foregroundStyle(CadreColors.textPrimary)
+                    Spacer()
+                    Image(systemName: "chevron.down")
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundStyle(CadreColors.textTertiary)
+                        .rotationEffect(.degrees(showMetricDropdown ? 180 : 0))
+                }
+                .padding(.horizontal, 14)
+                .padding(.vertical, 12)
+                .background(
+                    RoundedRectangle(cornerRadius: CadreRadius.md)
+                        .fill(CadreColors.card)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: CadreRadius.md)
+                                .stroke(CadreColors.divider, lineWidth: 1)
+                        )
+                )
+            }
+            .buttonStyle(.plain)
+
+            if showMetricDropdown {
+                VStack(spacing: 0) {
+                    ForEach(Self.metrics, id: \.name) { metric in
+                        metricDropdownRow(name: metric.name, icon: metric.icon)
+                        if metric.name != Self.metrics.last?.name {
+                            Divider()
+                                .background(CadreColors.divider)
+                        }
+                    }
+                }
+                .background(CadreColors.card)
+                .clipShape(RoundedRectangle(cornerRadius: 12))
+                .padding(.top, 4)
+                .transition(.opacity.combined(with: .move(edge: .top)))
+            }
+        }
+    }
+
+    private func metricDropdownRow(name: String, icon: String) -> some View {
         Button {
-            showMetricPicker = true
+            // TODO: Wire each metric to its actual data source in TrendsViewModel.
+            selectedMetricName = name
+            withAnimation(.easeInOut(duration: 0.25)) {
+                showMetricDropdown = false
+            }
         } label: {
             HStack(spacing: 10) {
-                ZStack {
-                    RoundedRectangle(cornerRadius: CadreRadius.sm)
-                        .fill(CadreColors.cardElevated)
-                        .frame(width: 28, height: 28)
-                    Image(systemName: "scalemass")
-                        .font(.system(size: 14, weight: .semibold))
-                        .foregroundStyle(CadreColors.accent)
-                }
-                // Metric name — 14pt semibold, -0.1 tracking (mockup .metric-chip .metric-name)
-                Text("Weight")
-                    .font(CadreTypography.trendsMetricName)
-                    .tracking(-0.1)
-                    .foregroundStyle(CadreColors.textPrimary)
-                Spacer()
-                Image(systemName: "chevron.down")
-                    .font(.system(size: 12, weight: .semibold))
-                    .foregroundStyle(CadreColors.textTertiary)
-            }
-            .padding(.horizontal, 14)
-            .padding(.vertical, 12)
-            .background(
-                RoundedRectangle(cornerRadius: CadreRadius.md)
-                    .fill(CadreColors.card)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: CadreRadius.md)
-                            .stroke(CadreColors.divider, lineWidth: 1)
-                    )
-            )
-        }
-        .buttonStyle(.plain)
-        .sheet(isPresented: $showMetricPicker) {
-            metricPickerSheet
-                .presentationDetents([.medium])
-                .presentationDragIndicator(.visible)
-        }
-    }
-
-    private var metricPickerSheet: some View {
-        NavigationStack {
-            ZStack {
-                CadreColors.bg.ignoresSafeArea()
-                List {
-                    metricPickerRow(name: "Weight", icon: "scalemass", available: true)
-                    metricPickerRow(name: "Body Fat %", icon: "drop.fill", available: false)
-                    metricPickerRow(name: "Skeletal Muscle", icon: "figure.strengthtraining.traditional", available: false)
-                    metricPickerRow(name: "BMI", icon: "chart.bar", available: false)
-                    metricPickerRow(name: "Fat Mass", icon: "scalemass", available: false)
-                }
-                .scrollContentBackground(.hidden)
-            }
-            .navigationTitle("Metric")
-            .navigationBarTitleDisplayMode(.inline)
-        }
-    }
-
-    private func metricPickerRow(name: String, icon: String, available: Bool) -> some View {
-        Button {
-            if available { showMetricPicker = false }
-        } label: {
-            HStack {
                 Image(systemName: icon)
                     .font(.system(size: 14))
-                    .foregroundStyle(available ? CadreColors.accent : CadreColors.textTertiary)
+                    .foregroundStyle(CadreColors.accent)
                     .frame(width: 24)
                 Text(name)
                     .font(.system(size: 14, weight: .medium))
-                    .foregroundStyle(available ? CadreColors.textPrimary : CadreColors.textTertiary)
+                    .foregroundStyle(CadreColors.textPrimary)
                 Spacer()
-                if available {
+                if name == selectedMetricName {
                     Image(systemName: "checkmark")
                         .font(.system(size: 14, weight: .semibold))
                         .foregroundStyle(CadreColors.accent)
-                } else {
-                    Text("Coming soon")
-                        .font(.system(size: 11, weight: .medium))
-                        .foregroundStyle(CadreColors.textTertiary)
                 }
             }
+            .padding(.horizontal, 14)
+            .padding(.vertical, 12)
         }
-        .disabled(!available)
-        .listRowBackground(CadreColors.card)
+        .buttonStyle(.plain)
     }
 
     // MARK: - Range tabs (M / 6M / Y / All)
@@ -264,64 +289,61 @@ struct TrendsView: View {
     // MARK: - Chart (Swift Charts)
 
     private func chartBlock(entries: [WeightEntry], movingAverage: [MovingAveragePoint]) -> some View {
-        ZStack(alignment: .topTrailing) {
-            Chart {
-                // Raw daily line — dim, thin (mockup: #494B52, 1.3px, 0.7 opacity)
-                ForEach(entries, id: \.id) { entry in
-                    LineMark(
-                        x: .value("Date", entry.date),
-                        y: .value("Weight", entry.weight),
-                        series: .value("Series", "raw")
-                    )
-                    .foregroundStyle(CadreColors.textTertiary.opacity(0.7))
-                    .lineStyle(StrokeStyle(lineWidth: 1.3, lineCap: .round, lineJoin: .round))
-                }
-                // Points on raw series
-                ForEach(entries, id: \.id) { entry in
-                    PointMark(
-                        x: .value("Date", entry.date),
-                        y: .value("Weight", entry.weight)
-                    )
-                    .foregroundStyle(CadreColors.textTertiary.opacity(0.7))
-                    .symbolSize(10)
-                }
-                // 7-day moving average — thicker accent line (mockup: #6B7B94, 2.6px)
-                ForEach(movingAverage) { point in
-                    LineMark(
-                        x: .value("Date", point.date),
-                        y: .value("MA", point.value),
-                        series: .value("Series", "ma")
-                    )
-                    .foregroundStyle(CadreColors.chartLine)
-                    .lineStyle(StrokeStyle(lineWidth: 2.6, lineCap: .round, lineJoin: .round))
-                }
+        Chart {
+            // Raw daily line — dim, thin (mockup: #494B52, 1.3px, 0.7 opacity)
+            ForEach(entries, id: \.id) { entry in
+                LineMark(
+                    x: .value("Date", entry.date),
+                    y: .value("Weight", entry.weight),
+                    series: .value("Series", "raw")
+                )
+                .foregroundStyle(CadreColors.textTertiary.opacity(0.7))
+                .lineStyle(StrokeStyle(lineWidth: 1.3, lineCap: .round, lineJoin: .round))
             }
-            .chartXAxis {
-                AxisMarks(values: .automatic(desiredCount: 3)) { _ in
-                    AxisValueLabel()
-                        .foregroundStyle(CadreColors.textTertiary)
-                        .font(CadreTypography.trendsAxisLabel)
-                }
+            // Points on raw series
+            ForEach(entries, id: \.id) { entry in
+                PointMark(
+                    x: .value("Date", entry.date),
+                    y: .value("Weight", entry.weight)
+                )
+                .foregroundStyle(CadreColors.textTertiary.opacity(0.7))
+                .symbolSize(10)
             }
-            .chartYAxis {
-                AxisMarks(position: .trailing, values: .automatic(desiredCount: 4)) { _ in
-                    AxisGridLine()
-                        .foregroundStyle(CadreColors.chartGrid)
-                    AxisValueLabel()
-                        .foregroundStyle(CadreColors.textTertiary)
-                        .font(CadreTypography.trendsAxisLabel)
-                }
+            // 7-day moving average — thicker accent line (mockup: #6B7B94, 2.6px)
+            ForEach(movingAverage) { point in
+                LineMark(
+                    x: .value("Date", point.date),
+                    y: .value("MA", point.value),
+                    series: .value("Series", "ma")
+                )
+                .foregroundStyle(CadreColors.chartLine)
+                .lineStyle(StrokeStyle(lineWidth: 2.6, lineCap: .round, lineJoin: .round))
             }
-            .chartYScale(domain: .automatic(includesZero: false))
-            .frame(height: 280)
-            .accessibilityElement(children: .ignore)
-            .accessibilityLabel("Weight trend chart with \(entries.count) data points")
-
-            // Expand icon — visual stub, no-op.
-            // TODO: wire to landscape fullscreen chart once landscape view is
-            // built (trends-compare-v3-2026-04-05.html).
-            expandStub
         }
+        .chartXAxis {
+            AxisMarks(values: .automatic(desiredCount: 3)) { _ in
+                AxisValueLabel()
+                    .foregroundStyle(CadreColors.textTertiary)
+                    .font(CadreTypography.trendsAxisLabel)
+            }
+        }
+        .chartYAxis {
+            AxisMarks(position: .trailing, values: .automatic(desiredCount: 4)) { _ in
+                AxisGridLine()
+                    .foregroundStyle(CadreColors.chartGrid)
+                AxisValueLabel()
+                    .foregroundStyle(CadreColors.textTertiary)
+                    .font(CadreTypography.trendsAxisLabel)
+            }
+        }
+        .chartYScale(domain: .automatic(includesZero: false))
+        .frame(height: 280)
+        .overlay(alignment: .topTrailing) {
+            expandStub
+                .padding(8)
+        }
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("Weight trend chart with \(entries.count) data points")
     }
 
     private var expandStub: some View {
@@ -440,21 +462,21 @@ struct TrendsView: View {
     }
 
     private func singlePointChart(entry: WeightEntry) -> some View {
-        ZStack(alignment: .topTrailing) {
-            Chart {
-                PointMark(
-                    x: .value("Date", entry.date),
-                    y: .value("Weight", entry.weight)
-                )
-                .foregroundStyle(CadreColors.chartLine)
-                .symbolSize(80)
-            }
-            .chartXAxis(.hidden)
-            .chartYAxis(.hidden)
-            .chartYScale(domain: (entry.weight - 2)...(entry.weight + 2))
-            .frame(height: 280)
-
+        Chart {
+            PointMark(
+                x: .value("Date", entry.date),
+                y: .value("Weight", entry.weight)
+            )
+            .foregroundStyle(CadreColors.chartLine)
+            .symbolSize(80)
+        }
+        .chartXAxis(.hidden)
+        .chartYAxis(.hidden)
+        .chartYScale(domain: (entry.weight - 2)...(entry.weight + 2))
+        .frame(height: 280)
+        .overlay(alignment: .topTrailing) {
             expandStub
+                .padding(8)
         }
     }
 

@@ -7,10 +7,11 @@ enum AppTab: Int, CaseIterable {
 }
 
 struct MainTabView: View {
-    @State private var selectedTab: AppTab = .now
+    @Environment(AppState.self) private var appState: AppState?
 
     var body: some View {
-        TabView(selection: $selectedTab) {
+        @Bindable var state = appState ?? AppState()
+        TabView(selection: $state.selectedTab) {
             TrendsView()
                 .tabItem {
                     Label("Trends", systemImage: "chart.xyaxis.line")
@@ -31,6 +32,7 @@ struct MainTabView: View {
         }
         .tint(CadreColors.accent)
         .preferredColorScheme(.dark)
+        .toolbarBackgroundVisibility(.hidden, for: .tabBar)
     }
 }
 

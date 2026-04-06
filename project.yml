@@ -2,7 +2,7 @@ name: Baseline
 options:
   bundleIdPrefix: com.cadre
   deploymentTarget:
-    iOS: "17.0"
+    iOS: "26.0"
   xcodeVersion: "16.0"
   generateEmptyDirectories: true
   groupSortPosition: top
@@ -27,6 +27,7 @@ targets:
     info:
       path: Baseline/Info.plist
       properties:
+        UILaunchScreen: {}
         NSHealthUpdateUsageDescription: "Baseline writes your weight and body composition to Apple Health so other apps can access it."
         NSCameraUsageDescription: "Baseline uses the camera to scan InBody printouts and extract your body composition data."
     settings:
