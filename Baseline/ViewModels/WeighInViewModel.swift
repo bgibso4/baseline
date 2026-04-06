@@ -34,16 +34,20 @@ class WeighInViewModel {
         )
         descriptor.fetchLimit = 1
 
+        let savedEntry: WeightEntry
         if let existing = try? modelContext.fetch(descriptor).first {
             existing.weight = currentWeight
             existing.notes = notesToSave
             existing.updatedAt = Date()
+            savedEntry = existing
         } else {
             let entry = WeightEntry(weight: currentWeight, unit: unit, date: Date(), notes: notesToSave)
             modelContext.insert(entry)
+            savedEntry = entry
         }
 
         try? modelContext.save()
+        SyncHelper.mirrorRecord(savedEntry)
 
         Task {
             await HealthKitManager.saveWeight(

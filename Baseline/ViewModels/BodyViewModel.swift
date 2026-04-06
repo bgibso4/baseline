@@ -27,6 +27,7 @@ class BodyViewModel {
         let measurement = Measurement(date: Date(), type: type, valueCm: valueCm, notes: notesToSave)
         modelContext.insert(measurement)
         try? modelContext.save()
+        SyncHelper.mirrorRecord(measurement)
 
         if type == .waist {
             Task {
@@ -52,6 +53,7 @@ class BodyViewModel {
         let scan = Scan(date: Date(), type: type, source: source, payload: data, notes: notesToSave)
         modelContext.insert(scan)
         try? modelContext.save()
+        SyncHelper.mirrorRecord(scan)
 
         Task {
             await HealthKitManager.saveScanMetrics(scan)
