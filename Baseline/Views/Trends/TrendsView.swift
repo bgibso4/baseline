@@ -130,6 +130,7 @@ struct TrendsView: View {
                     .onTapGesture {
                         vm?.timeRange = range
                         vm?.refresh()
+                        Haptics.selection()
                     }
             }
         }

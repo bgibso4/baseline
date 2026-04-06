@@ -160,6 +160,7 @@ struct WeighInSheet: View {
         HStack(spacing: 100) {
             Button {
                 vm?.decrement()
+                Haptics.light()
             } label: {
                 Image(systemName: "minus.circle.fill")
                     .font(.system(size: 64, weight: .regular))
@@ -170,6 +171,7 @@ struct WeighInSheet: View {
 
             Button {
                 vm?.increment()
+                Haptics.light()
             } label: {
                 Image(systemName: "plus.circle.fill")
                     .font(.system(size: 64, weight: .regular))
@@ -293,6 +295,7 @@ struct WeighInSheet: View {
         // 40px margin above Save button per DESIGN_DECISIONS.md
         Button {
             vm?.save()
+            Haptics.success()
             onSave?()
             dismiss()
         } label: {

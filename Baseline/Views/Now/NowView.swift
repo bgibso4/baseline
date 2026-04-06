@@ -148,6 +148,7 @@ struct NowView: View {
                     .onTapGesture {
                         // TODO: wire to VM window (follow-up) — currently inert.
                         selectedRange = option
+                        Haptics.selection()
                     }
             }
         }

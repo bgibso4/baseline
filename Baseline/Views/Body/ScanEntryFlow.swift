@@ -467,6 +467,7 @@ struct ScanEntryFlow: View {
         Button {
             do {
                 try vm.save()
+                Haptics.success()
                 dismiss()
             } catch {
                 vm.errorMessage = error.localizedDescription

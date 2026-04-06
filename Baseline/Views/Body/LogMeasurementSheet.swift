@@ -161,6 +161,7 @@ struct LogMeasurementSheet: View {
         HStack(spacing: 80) {
             Button {
                 currentValue = (currentValue - 0.1).rounded(toPlaces: 1)
+                Haptics.light()
             } label: {
                 stepperCircle(systemName: "minus")
             }
@@ -169,6 +170,7 @@ struct LogMeasurementSheet: View {
 
             Button {
                 currentValue = (currentValue + 0.1).rounded(toPlaces: 1)
+                Haptics.light()
             } label: {
                 stepperCircle(systemName: "plus")
             }
@@ -197,6 +199,7 @@ struct LogMeasurementSheet: View {
             let valueCm = currentValue * 2.54
             let resolvedVM = bodyVM ?? injectedVM
             resolvedVM?.saveMeasurement(type: selectedType, valueCm: valueCm)
+            Haptics.success()
             dismiss()
         } label: {
             Text("Save")
