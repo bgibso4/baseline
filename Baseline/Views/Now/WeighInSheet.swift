@@ -45,17 +45,17 @@ struct WeighInSheet: View {
                     .padding(.top, 10)
                     .padding(.bottom, 14)
 
-                ScrollView {
-                    contentStack
-                        .padding(.horizontal, CadreSpacing.sheetHorizontal)
-                }
+                contentStack
+                    .padding(.horizontal, CadreSpacing.sheetHorizontal)
+
+                Spacer(minLength: 0)
 
                 saveButton
                     .padding(.horizontal, CadreSpacing.sheetHorizontal)
                     .padding(.bottom, 12)
             }
         }
-        .presentationDetents(showDatePicker ? [.large] : [.medium, .large])
+        .presentationDetents(sheetDetents)
         .onAppear {
             guard injectedVM == nil, vm == nil else { return }
             vm = WeighInViewModel(
@@ -64,6 +64,17 @@ struct WeighInSheet: View {
                 unit: unit
             )
         }
+        .onChange(of: selectedDate) { _, _ in
+            withAnimation { showDatePicker = false }
+        }
+    }
+
+    /// Adaptive sheet detents based on content state.
+    private var sheetDetents: Set<PresentationDetent> {
+        if showDatePicker || photoData != nil {
+            return [.large]
+        }
+        return [.medium]
     }
 
     // MARK: - Sections
@@ -102,7 +113,7 @@ struct WeighInSheet: View {
                 Image(uiImage: uiImage)
                     .resizable()
                     .scaledToFill()
-                    .frame(height: 150)
+                    .frame(height: 120)
                     .clipped()
                     .clipShape(RoundedRectangle(cornerRadius: 12))
                     .padding(.top, 16)
@@ -138,7 +149,7 @@ struct WeighInSheet: View {
             .buttonStyle(.plain)
 
             if showDatePicker {
-                DatePicker("", selection: $selectedDate, displayedComponents: .date)
+                DatePicker("", selection: $selectedDate, in: ...Date(), displayedComponents: .date)
                     .datePickerStyle(.graphical)
                     .tint(CadreColors.accent)
                     .padding(.horizontal, CadreSpacing.sheetHorizontal)

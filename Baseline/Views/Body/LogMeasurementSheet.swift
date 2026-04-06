@@ -52,6 +52,9 @@ struct LogMeasurementSheet: View {
             // Seed current value from latest measurement of selected type
             loadLatestValue()
         }
+        .onChange(of: selectedDate) { _, _ in
+            withAnimation { showDatePicker = false }
+        }
         .sheet(isPresented: $showTypePicker) {
             typePickerSheet
                 .presentationDetents([.medium])
@@ -113,7 +116,7 @@ struct LogMeasurementSheet: View {
             .buttonStyle(.plain)
 
             if showDatePicker {
-                DatePicker("", selection: $selectedDate, displayedComponents: .date)
+                DatePicker("", selection: $selectedDate, in: ...Date(), displayedComponents: .date)
                     .datePickerStyle(.graphical)
                     .tint(CadreColors.accent)
                     .padding(.horizontal, CadreSpacing.sheetHorizontal)

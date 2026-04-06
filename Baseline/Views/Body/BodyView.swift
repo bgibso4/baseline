@@ -146,22 +146,38 @@ struct BodyView: View {
             if !tiles.isEmpty {
                 LazyVGrid(columns: tileColumns, spacing: 8) {
                     ForEach(tiles, id: \.label) { tile in
-                        NavigationLink {
-                            MetricHistoryView(
-                                metricName: tile.label,
-                                unit: tile.unit,
-                                entries: measurementHistory(for: tile.label)
-                            )
-                        } label: {
-                            MetricTile(
-                                sfSymbol: tile.sfSymbol,
-                                label: tile.label,
-                                value: tile.value,
-                                unit: tile.unit,
-                                delta: tile.delta
-                            )
+                        if let trendName = trendMetricNameForMeasurement(tile.label) {
+                            Button {
+                                appState?.trendMetric = trendName
+                                appState?.selectedTab = .trends
+                            } label: {
+                                MetricTile(
+                                    sfSymbol: tile.sfSymbol,
+                                    label: tile.label,
+                                    value: tile.value,
+                                    unit: tile.unit,
+                                    delta: tile.delta
+                                )
+                            }
+                            .buttonStyle(.plain)
+                        } else {
+                            NavigationLink {
+                                MetricHistoryView(
+                                    metricName: tile.label,
+                                    unit: tile.unit,
+                                    entries: measurementHistory(for: tile.label)
+                                )
+                            } label: {
+                                MetricTile(
+                                    sfSymbol: tile.sfSymbol,
+                                    label: tile.label,
+                                    value: tile.value,
+                                    unit: tile.unit,
+                                    delta: tile.delta
+                                )
+                            }
+                            .buttonStyle(.plain)
                         }
-                        .buttonStyle(.plain)
                     }
                 }
                 .padding(.horizontal, CadreSpacing.sheetHorizontal)
@@ -415,6 +431,15 @@ struct BodyView: View {
         case "Skeletal Muscle": return "Skeletal Muscle"
         case "BMI": return "BMI"
         case "Fat Mass": return "Fat Mass"
+        default: return nil
+        }
+    }
+
+    /// Maps a measurement tile label to Trends metric name.
+    /// Waist is the only tape measurement with a dedicated trend line.
+    private func trendMetricNameForMeasurement(_ tileLabel: String) -> String? {
+        switch tileLabel {
+        case "Waist": return "Waist"
         default: return nil
         }
     }
