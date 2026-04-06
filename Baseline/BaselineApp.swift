@@ -1,5 +1,6 @@
 import SwiftUI
 import SwiftData
+import TipKit
 
 private typealias BaselineMeasurement = Baseline.Measurement
 
@@ -49,6 +50,11 @@ struct BaselineApp: App {
     var body: some Scene {
         WindowGroup {
             MainTabView()
+                .task {
+                    try? Tips.configure([
+                        .displayFrequency(.weekly)
+                    ])
+                }
                 .task {
                     await HealthKitManager.requestAuthorizationIfNeeded()
                 }

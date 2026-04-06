@@ -1,5 +1,6 @@
 import SwiftUI
 import SwiftData
+import TipKit
 
 /// Today (now) screen — landing glance at current weight.
 ///
@@ -161,9 +162,12 @@ struct NowView: View {
 
     // MARK: - Bottom block (stats + button)
 
+    private let weighInTip = WeighInTip()
+
     private var bottomBlock: some View {
         VStack(spacing: 18) {
             statsCard
+            TipView(weighInTip)
             weighInButton
         }
     }

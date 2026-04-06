@@ -1,5 +1,6 @@
 import SwiftUI
 import SwiftData
+import TipKit
 
 /// Body tab — 2-column tile grid of body composition and measurement metrics.
 ///
@@ -16,6 +17,7 @@ struct BodyView: View {
     @State private var vm: BodyViewModel?
     @State private var showLogMeasurement = false
     @State private var showScanEntry = false
+    private let scanTip = ScanTip()
 
     init(viewModel: BodyViewModel? = nil) {
         self.injectedVM = viewModel
@@ -36,6 +38,9 @@ struct BodyView: View {
 
                 ScrollView {
                     VStack(spacing: 0) {
+                        TipView(scanTip)
+                            .padding(.horizontal, CadreSpacing.sheetHorizontal)
+                            .padding(.top, 8)
                         bodyCompositionSection
                         scanHistoryCard
                             .padding(.horizontal, CadreSpacing.sheetHorizontal)

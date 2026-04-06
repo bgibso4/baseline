@@ -1,6 +1,7 @@
 import SwiftUI
 import SwiftData
 import Charts
+import TipKit
 
 /// Trends tab — weight trend over selectable time range.
 ///
@@ -23,6 +24,7 @@ struct TrendsView: View {
     /// Synchronous VM injection (snapshot / unit tests). Mirrors the
     /// `NowView(viewModel:)` pattern.
     private let injectedVM: TrendsViewModel?
+    private let trendsTip = TrendsTip()
 
     init(viewModel: TrendsViewModel? = nil) {
         self.injectedVM = viewModel
@@ -42,6 +44,10 @@ struct TrendsView: View {
                     rangeTabs
                         .padding(.horizontal, CadreSpacing.sheetHorizontal)
                         .padding(.top, 10)
+
+                    TipView(trendsTip)
+                        .padding(.horizontal, CadreSpacing.sheetHorizontal)
+                        .padding(.top, 8)
 
                     content
 
