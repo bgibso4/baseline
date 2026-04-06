@@ -78,6 +78,16 @@ class BodyViewModel {
         try? scan.decoded()
     }
 
+    /// Fetch all measurements of a given type (reverse chronological).
+    func allMeasurements(ofType type: MeasurementType) -> [Measurement] {
+        let typeRaw = type.rawValue
+        let descriptor = FetchDescriptor<Measurement>(
+            predicate: #Predicate { $0.type == typeRaw },
+            sortBy: [SortDescriptor(\.date, order: .reverse)]
+        )
+        return (try? modelContext.fetch(descriptor)) ?? []
+    }
+
     // MARK: - Private
 
     private func loadLatestMeasurements() {

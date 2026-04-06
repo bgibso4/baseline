@@ -100,8 +100,8 @@ struct NowView: View {
             ArcIndicatorView(fraction: arcFraction) {
                 VStack(spacing: 10) {
                     weightNumber
-                    // "Today" caption inside the arc
-                    Text("Today")
+                    // Date caption inside the arc — "Today" or relative date
+                    Text(heroDateLabel)
                         .font(CadreTypography.todayLabel)
                         .foregroundStyle(CadreColors.textSecondary)
                 }
@@ -110,6 +110,25 @@ struct NowView: View {
 
             rangeToggle
         }
+    }
+
+    private var heroDateLabel: String {
+        if vm?.todayEntry != nil {
+            return "Today"
+        }
+        guard let previous = vm?.previousEntry else {
+            return "Today"
+        }
+        return relativeDate(from: previous.date)
+    }
+
+    private func relativeDate(from date: Date) -> String {
+        let calendar = Calendar.current
+        if calendar.isDateInToday(date) { return "Today" }
+        if calendar.isDateInYesterday(date) { return "Yesterday" }
+        let days = calendar.dateComponents([.day], from: calendar.startOfDay(for: date), to: calendar.startOfDay(for: Date())).day ?? 0
+        if days < 7 { return "\(days) days ago" }
+        return DateFormatting.shortDay(date)
     }
 
     private var weightNumber: some View {

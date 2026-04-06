@@ -2,6 +2,36 @@ import SwiftUI
 import SwiftData
 import Charts
 import TipKit
+import UIKit
+
+// MARK: - Landscape Hosting (forces landscape orientation for fullscreen chart)
+
+private struct LandscapeHostingController<Content: View>: UIViewControllerRepresentable {
+    let content: Content
+
+    func makeUIViewController(context: Context) -> UIHostingController<Content> {
+        LandscapeHostingVC(rootView: content)
+    }
+
+    func updateUIViewController(_ uiViewController: UIHostingController<Content>, context: Context) {
+        uiViewController.rootView = content
+    }
+}
+
+private class LandscapeHostingVC<Content: View>: UIHostingController<Content> {
+    override var supportedInterfaceOrientations: UIInterfaceOrientationMask {
+        .landscape
+    }
+
+    override var preferredInterfaceOrientationForPresentation: UIInterfaceOrientation {
+        .landscapeRight
+    }
+
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        setNeedsUpdateOfSupportedInterfaceOrientations()
+    }
+}
 
 /// Trends tab — metric trend over selectable time range.
 ///
@@ -31,38 +61,14 @@ struct TrendsView: View {
 
     var body: some View {
         NavigationStack {
-            ZStack {
+            ZStack(alignment: .top) {
                 CadreColors.bg.ignoresSafeArea()
 
-                // Tap outside dropdown to close
-                if showMetricDropdown {
-                    Color.clear
-                        .contentShape(Rectangle())
-                        .onTapGesture {
-                            withAnimation(.easeInOut(duration: 0.25)) {
-                                showMetricDropdown = false
-                            }
-                        }
-                        .ignoresSafeArea()
-                        .zIndex(5)
-                }
-
+                // Main content — always at base layer
                 VStack(spacing: 0) {
-                    // Metric chip with overlay dropdown
-                    ZStack(alignment: .top) {
-                        metricChipButton
-                            .padding(.horizontal, CadreSpacing.sheetHorizontal)
-
-                        if showMetricDropdown {
-                            metricDropdownMenu
-                                .padding(.horizontal, CadreSpacing.sheetHorizontal)
-                                .padding(.top, 52)
-                                .zIndex(10)
-                                .transition(.opacity.combined(with: .scale(scale: 0.95, anchor: .top)))
-                        }
-                    }
-                    .zIndex(showMetricDropdown ? 10 : 0)
-                    .padding(.top, CadreSpacing.md)
+                    metricChipButton
+                        .padding(.horizontal, CadreSpacing.sheetHorizontal)
+                        .padding(.top, CadreSpacing.md)
 
                     rangeTabs
                         .padding(.horizontal, CadreSpacing.sheetHorizontal)
@@ -76,10 +82,33 @@ struct TrendsView: View {
 
                     Spacer(minLength: 0)
                 }
+
+                // Dropdown overlay — sits on TOP of everything when visible
+                if showMetricDropdown {
+                    // Dismiss backdrop
+                    Color.black.opacity(0.3)
+                        .ignoresSafeArea()
+                        .onTapGesture {
+                            withAnimation(.easeInOut(duration: 0.2)) {
+                                showMetricDropdown = false
+                            }
+                        }
+
+                    // Dropdown menu positioned below chip
+                    VStack {
+                        metricDropdownMenu
+                            .padding(.horizontal, CadreSpacing.sheetHorizontal)
+                            .padding(.top, 60) // below the chip (chip height ~52 + top padding)
+                        Spacer()
+                    }
+                    .transition(.opacity.combined(with: .scale(scale: 0.95, anchor: .top)))
+                }
             }
+            .animation(.easeInOut(duration: 0.2), value: showMetricDropdown)
             .navigationBarHidden(true)
             .fullScreenCover(isPresented: $showFullscreen) {
-                fullscreenChartView
+                LandscapeHostingController(content: fullscreenChartContent)
+                    .ignoresSafeArea()
             }
             .onAppear {
                 guard injectedVM == nil else { return }
@@ -416,12 +445,17 @@ struct TrendsView: View {
     // MARK: - Hero (latest value)
 
     private func heroBlock(latestValue: Double, unit: String, delta: Double, sub: String) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
+        let latestDate = vm?.dataPoints.last?.date
+        let isLatestToday = latestDate.map { Calendar.current.isDateInToday($0) } ?? false
+        // Weight dims when no entry today; scan metrics always show full color
+        let dimmed = (selectedMetric == .weight) && !isLatestToday
+
+        return VStack(alignment: .leading, spacing: 8) {
             HStack(alignment: .firstTextBaseline, spacing: 6) {
                 Text(formatValue(latestValue))
                     .font(CadreTypography.trendsHero)
                     .tracking(-1.2)
-                    .foregroundStyle(CadreColors.accent)
+                    .foregroundStyle(dimmed ? CadreColors.textTertiary : CadreColors.accent)
                 if !unit.isEmpty {
                     Text(unit)
                         .font(CadreTypography.trendsHeroUnit)
@@ -431,11 +465,27 @@ struct TrendsView: View {
             .lineLimit(1)
             .minimumScaleFactor(0.7)
 
-            Text(sub)
-                .font(CadreTypography.trendsHeroSub)
-                .foregroundStyle(CadreColors.textTertiary)
+            // Date label for hero — "Today" or relative date for weight; period subtitle otherwise
+            if selectedMetric == .weight, let date = latestDate {
+                Text(heroRelativeDate(from: date))
+                    .font(CadreTypography.trendsHeroSub)
+                    .foregroundStyle(CadreColors.textTertiary)
+            } else {
+                Text(sub)
+                    .font(CadreTypography.trendsHeroSub)
+                    .foregroundStyle(CadreColors.textTertiary)
+            }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    private func heroRelativeDate(from date: Date) -> String {
+        let calendar = Calendar.current
+        if calendar.isDateInToday(date) { return "Today" }
+        if calendar.isDateInYesterday(date) { return "Yesterday" }
+        let days = calendar.dateComponents([.day], from: calendar.startOfDay(for: date), to: calendar.startOfDay(for: Date())).day ?? 0
+        if days < 7 { return "\(days) days ago" }
+        return DateFormatting.shortDay(date)
     }
 
     // MARK: - Chart (Swift Charts)
@@ -654,7 +704,7 @@ struct TrendsView: View {
 
     // MARK: - Fullscreen chart (landscape two-column layout)
 
-    private var fullscreenChartView: some View {
+    private var fullscreenChartContent: some View {
         let points = vm?.dataPoints ?? []
         let ma = vm?.movingAverage ?? []
         let unit = selectedMetric.unit
@@ -791,16 +841,6 @@ struct TrendsView: View {
             }
         }
         .statusBarHidden()
-        .onAppear {
-            guard let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene else { return }
-            scene.requestGeometryUpdate(.iOS(interfaceOrientations: .landscape))
-            UIViewController.attemptRotationToDeviceOrientation()
-        }
-        .onDisappear {
-            guard let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene else { return }
-            scene.requestGeometryUpdate(.iOS(interfaceOrientations: .portrait))
-            UIViewController.attemptRotationToDeviceOrientation()
-        }
     }
 
     // MARK: - Helpers

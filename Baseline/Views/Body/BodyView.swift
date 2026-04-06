@@ -408,19 +408,14 @@ struct BodyView: View {
         }
     }
 
-    /// Extract history for a tape measurement metric (reverse chronological).
+    /// Extract full history for a tape measurement metric (reverse chronological).
     private func measurementHistory(for label: String) -> [(date: Date, value: String)] {
-        guard let allMeasurements = vm?.latestMeasurements else { return [] }
-        // Find the MeasurementType matching this label
         guard let type = MeasurementType.allCases.first(where: { $0.tileLabel == label }) else { return [] }
-        // latestMeasurements only has one per type; for full history we'd need
-        // a new VM method. For now, return what we have.
-        return allMeasurements
-            .filter { $0.measurementType == type }
-            .map { m in
-                let inches = m.valueCm / 2.54
-                return (date: m.date, value: String(format: "%.1f", inches))
-            }
+        let all = vm?.allMeasurements(ofType: type) ?? []
+        return all.map { m in
+            let inches = m.valueCm / 2.54
+            return (date: m.date, value: String(format: "%.1f", inches))
+        }
     }
 
     /// Maps a body comp tile label to the corresponding Trends metric name.
@@ -436,12 +431,9 @@ struct BodyView: View {
     }
 
     /// Maps a measurement tile label to Trends metric name.
-    /// Waist is the only tape measurement with a dedicated trend line.
+    /// All measurements navigate to their own history view, not Trends.
     private func trendMetricNameForMeasurement(_ tileLabel: String) -> String? {
-        switch tileLabel {
-        case "Waist": return "Waist"
-        default: return nil
-        }
+        return nil
     }
 
     private var scanHistorySubtitle: String {
