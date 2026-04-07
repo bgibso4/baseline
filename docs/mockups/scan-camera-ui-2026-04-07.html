@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>InBody 570 Scan — Camera UI & Capture Flow</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #0a0a0f; color: #e8e8ec; font-family: -apple-system, BlinkMacSystemFont, sans-serif; padding: 32px; }
+  h1 { font-size: 22px; font-weight: 700; margin-bottom: 6px; }
+  h2 { font-size: 16px; font-weight: 600; margin: 32px 0 12px; color: #6B7B94; text-transform: uppercase; letter-spacing: 0.5px; }
+  h3 { font-size: 14px; font-weight: 600; margin-bottom: 8px; }
+  .subtitle { font-size: 13px; color: #8888a0; margin-bottom: 24px; }
+  .row { display: flex; gap: 24px; margin-bottom: 32px; flex-wrap: wrap; }
+  .phone { width: 280px; flex-shrink: 0; }
+  .phone-frame { background: #111; border-radius: 24px; border: 2px solid #222; overflow: hidden; }
+  .phone-label { font-size: 11px; color: #8888a0; text-align: center; margin-top: 8px; font-weight: 500; }
+  .viewfinder { position: relative; height: 520px; display: flex; align-items: center; justify-content: center; }
+  .guide-frame { width: 200px; height: 290px; position: relative; }
+  .corner { position: absolute; width: 24px; height: 24px; }
+  .corner.tl { top: 0; left: 0; border-top: 3px solid; border-left: 3px solid; border-radius: 4px 0 0 0; }
+  .corner.tr { top: 0; right: 0; border-top: 3px solid; border-right: 3px solid; border-radius: 0 4px 0 0; }
+  .corner.bl { bottom: 0; left: 0; border-bottom: 3px solid; border-left: 3px solid; border-radius: 0 0 0 4px; }
+  .corner.br { bottom: 0; right: 0; border-bottom: 3px solid; border-right: 3px solid; border-radius: 0 0 4px 0; }
+  .dashed-guide { position: absolute; inset: 3px; border: 1.5px dashed rgba(107,123,148,0.35); border-radius: 6px; }
+  .solid-guide { position: absolute; inset: 3px; border: 1.5px solid rgba(76,175,80,0.3); border-radius: 6px; }
+  .hint-badge { position: absolute; bottom: 90px; left: 0; right: 0; text-align: center; }
+  .hint-badge span { font-size: 12px; padding: 6px 16px; border-radius: 20px; }
+  .hint-framing span { background: rgba(0,0,0,0.6); color: #aab; }
+  .hint-ready span { background: rgba(76,175,80,0.15); color: #4CAF50; }
+  .hint-close span { background: rgba(0,0,0,0.6); color: #B89968; }
+  .shutter { position: absolute; bottom: 24px; left: 50%; transform: translateX(-50%); }
+  .shutter-ring { width: 58px; height: 58px; border-radius: 50%; border: 3.5px solid; display: flex; align-items: center; justify-content: center; }
+  .shutter-fill { width: 46px; height: 46px; border-radius: 50%; background: white; }
+  .close-btn { position: absolute; top: 16px; left: 16px; width: 30px; height: 30px; border-radius: 50%; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; color: white; font-size: 14px; }
+  .sheet-sim { position: absolute; inset: 10px; background: rgba(255,255,255,0.06); border-radius: 4px; padding: 14px; }
+  .sheet-sim .logo { font-size: 7px; color: rgba(255,255,255,0.25); font-weight: bold; letter-spacing: 1px; }
+  .sheet-sim .line { height: 1.5px; background: rgba(255,255,255,0.08); margin-top: 5px; }
+  .accent { color: #6B7B94; }
+  .amber { color: #B89968; }
+  .green { color: #4CAF50; }
+
+  /* Flow diagram */
+  .flow { display: flex; align-items: flex-start; gap: 8px; flex-wrap: wrap; justify-content: center; margin: 16px 0; }
+  .flow-box { background: #14141c; border: 1px solid #333; border-radius: 10px; padding: 12px 16px; text-align: center; min-width: 110px; }
+  .flow-box .step { font-size: 9px; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+  .flow-box .desc { font-size: 12px; }
+  .flow-box .sub { font-size: 10px; color: #8888a0; margin-top: 3px; }
+  .flow-arrow { color: #555; font-size: 18px; padding-top: 12px; }
+  .flow-branch { display: flex; gap: 32px; margin-top: 12px; justify-content: center; }
+  .branch { text-align: center; }
+  .branch-label { font-size: 10px; margin-bottom: 6px; }
+
+  /* Region map */
+  .region-map { display: flex; gap: 16px; margin: 16px 0; }
+  .region-col { flex: 1; }
+  .region-header { padding: 5px 10px; border-radius: 6px 6px 0 0; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: white; }
+  .region-list { border: 1px solid #222; border-top: none; padding: 8px; }
+  .region-item { padding: 7px 8px; margin: 3px 0; border-radius: 5px; font-size: 11px; color: #aab; border-left: 3px solid; }
+  .region-item strong { color: #e8e8ec; display: block; margin-bottom: 2px; }
+  .note-box { margin-top: 12px; padding: 12px; background: rgba(107,123,148,0.06); border-radius: 8px; font-size: 11px; color: #aab; line-height: 1.5; }
+  .note-box strong { color: #e8e8ec; }
+
+  .section { margin-bottom: 40px; }
+</style>
+</head>
+<body>
+
+<h1>InBody 570 Scan — Camera UI & Capture Flow</h1>
+<p class="subtitle">Camera states, retry logic, and region-based OCR architecture</p>
+
+<!-- ========== CAMERA STATES ========== -->
+<div class="section">
+<h2>1. Camera UI States</h2>
+<div class="row">
+
+  <!-- Framing state -->
+  <div class="phone">
+    <div class="phone-frame">
+      <div class="viewfinder">
+        <div class="close-btn">✕</div>
+        <div class="guide-frame">
+          <div class="corner tl" style="border-color:#6B7B94;"></div>
+          <div class="corner tr" style="border-color:#6B7B94;"></div>
+          <div class="corner bl" style="border-color:#6B7B94;"></div>
+          <div class="corner br" style="border-color:#6B7B94;"></div>
+          <div class="dashed-guide"></div>
+          <div style="position:absolute;top:12px;left:50%;transform:translateX(-50%);font-size:8px;color:rgba(107,123,148,0.5);letter-spacing:1.5px;">InBody</div>
+        </div>
+        <div class="hint-badge hint-framing"><span>Align sheet within frame</span></div>
+        <div class="shutter"><div class="shutter-ring" style="border-color:white;"><div class="shutter-fill"></div></div></div>
+      </div>
+    </div>
+    <div class="phone-label">Framing — waiting for alignment</div>
+  </div>
+
+  <!-- Ready state -->
+  <div class="phone">
+    <div class="phone-frame">
+      <div class="viewfinder">
+        <div class="close-btn">✕</div>
+        <div class="guide-frame">
+          <div class="corner tl" style="border-color:#4CAF50;"></div>
+          <div class="corner tr" style="border-color:#4CAF50;"></div>
+          <div class="corner bl" style="border-color:#4CAF50;"></div>
+          <div class="corner br" style="border-color:#4CAF50;"></div>
+          <div class="solid-guide"></div>
+          <div class="sheet-sim">
+            <div class="logo">InBody</div>
+            <div class="line" style="width:55%;"></div>
+            <div class="line" style="width:75%;"></div>
+            <div class="line" style="width:65%;"></div>
+            <div class="line" style="width:80%;margin-top:12px;"></div>
+            <div class="line" style="width:50%;"></div>
+            <div class="line" style="width:70%;"></div>
+          </div>
+        </div>
+        <div class="hint-badge hint-ready"><span>Good — tap to capture</span></div>
+        <div class="shutter"><div class="shutter-ring" style="border-color:#4CAF50;"><div class="shutter-fill"></div></div></div>
+      </div>
+    </div>
+    <div class="phone-label">Ready — sheet detected, green brackets</div>
+  </div>
+
+  <!-- Processing state -->
+  <div class="phone">
+    <div class="phone-frame">
+      <div class="viewfinder" style="background:#0d0d14;">
+        <div style="text-align:center;">
+          <div style="width:40px;height:40px;border:3px solid #333;border-top-color:#6B7B94;border-radius:50%;margin:0 auto 16px;animation-name:none;"></div>
+          <div style="font-size:14px;font-weight:600;margin-bottom:6px;">Processing scan...</div>
+          <div style="font-size:11px;color:#8888a0;">Extracting values from image</div>
+        </div>
+      </div>
+    </div>
+    <div class="phone-label">Processing — OCR running</div>
+  </div>
+
+</div>
+</div>
+
+<!-- ========== RETRY FLOW ========== -->
+<div class="section">
+<h2>2. Capture & Retry Logic</h2>
+<div class="flow">
+  <div class="flow-box" style="border-color:#6B7B94;">
+    <div class="step accent">Step 1</div>
+    <div class="desc">Full-page capture</div>
+    <div class="sub">Guided camera UI</div>
+  </div>
+  <div class="flow-arrow">→</div>
+  <div class="flow-box" style="border-color:#6B7B94;">
+    <div class="step accent">OCR</div>
+    <div class="desc">Region extraction</div>
+    <div class="sub">Per-section crop + parse</div>
+  </div>
+  <div class="flow-arrow">→</div>
+  <div class="flow-box" style="border-color:#B89968;">
+    <div class="step amber">Check</div>
+    <div class="desc">Fields missing?</div>
+    <div class="sub">Confidence &lt; 0.7</div>
+  </div>
+</div>
+<div class="flow-branch">
+  <div class="branch">
+    <div class="branch-label amber">↓ Yes (1st attempt)</div>
+    <div class="flow-box" style="border-color:#B89968;margin-bottom:10px;">
+      <div class="desc">"Try again with<br>better lighting"</div>
+      <div class="sub">Full re-scan</div>
+    </div>
+    <div class="branch-label amber">↓ Still missing (2nd)</div>
+    <div class="flow-box" style="border-color:#B89968;">
+      <div class="desc">"Zoom in on<br>[section name]"</div>
+      <div class="sub">Reference thumbnail shown</div>
+    </div>
+  </div>
+  <div class="branch">
+    <div class="branch-label green">↓ All good / after retry</div>
+    <div class="flow-box" style="border-color:#4CAF50;">
+      <div class="desc">Review screen</div>
+      <div class="sub">Amber flags on low-confidence</div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ========== REGION MAP ========== -->
+<div class="section">
+<h2>3. Region-Based OCR — InBody 570 Layout Map</h2>
+<p style="font-size:12px;color:#8888a0;margin-bottom:16px;">Each section is cropped independently and parsed with section-specific logic. Eliminates cross-section number confusion.</p>
+
+<div class="region-map">
+  <div class="region-col">
+    <div class="region-header" style="background:#6B7B94;">Left Column Regions</div>
+    <div class="region-list">
+      <div class="region-item" style="border-color:#6B7B94;background:rgba(107,123,148,0.06);">
+        <strong>Body Composition Analysis</strong>
+        Intracellular Water, Extracellular Water, Dry Lean Mass, Body Fat Mass
+      </div>
+      <div class="region-item" style="border-color:#6B7B94;background:rgba(107,123,148,0.06);">
+        <strong>Muscle-Fat Analysis</strong>
+        Weight, SMM, Body Fat Mass (with bar chart values)
+      </div>
+      <div class="region-item" style="border-color:#6B7B94;background:rgba(107,123,148,0.06);">
+        <strong>Obesity Analysis</strong>
+        BMI, PBF (Percent Body Fat)
+      </div>
+      <div class="region-item" style="border-color:#6B7B94;background:rgba(107,123,148,0.06);">
+        <strong>Segmental Lean Analysis</strong>
+        Right Arm, Left Arm, Trunk, Right Leg, Left Leg
+      </div>
+      <div class="region-item" style="border-color:#6B7B94;background:rgba(107,123,148,0.06);">
+        <strong>ECW/TBW Analysis</strong>
+        ECW/TBW ratio
+      </div>
+    </div>
+  </div>
+  <div class="region-col">
+    <div class="region-header" style="background:#B89968;">Right Column Regions</div>
+    <div class="region-list">
+      <div class="region-item" style="border-color:#B89968;background:rgba(184,153,104,0.06);">
+        <strong>Body Fat / Lean Body Mass</strong>
+        Body Fat Mass, Lean Body Mass, TBW
+      </div>
+      <div class="region-item" style="border-color:#B89968;background:rgba(184,153,104,0.06);">
+        <strong>Segmental Fat Analysis</strong>
+        Right Arm, Left Arm, Trunk, Right Leg, Left Leg
+      </div>
+      <div class="region-item" style="border-color:#B89968;background:rgba(184,153,104,0.06);">
+        <strong>Basal Metabolic Rate</strong>
+        BMR (kcal)
+      </div>
+      <div class="region-item" style="border-color:#B89968;background:rgba(184,153,104,0.06);">
+        <strong>InBody Score</strong>
+        Score (0-100)
+      </div>
+      <div class="region-item" style="border-color:#B89968;background:rgba(184,153,104,0.06);">
+        <strong>Visceral Fat Level</strong>
+        Level (1-20)
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="note-box">
+  <strong>How region extraction works:</strong><br>
+  1. Capture full page → perspective-correct using detected sheet edges<br>
+  2. Crop predefined rectangular regions (calibrated to InBody 570 layout)<br>
+  3. OCR each region independently with Vision framework<br>
+  4. Parse each region with section-specific extractors (knows field order + expected format)<br>
+  5. Score confidence per field using Vision's per-observation confidence values
+</div>
+</div>
+
+</body>
+</html>
