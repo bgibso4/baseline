@@ -345,7 +345,9 @@ class TrendsViewModel {
             entries = (try? modelContext.fetch(descriptor)) ?? []
         }
 
-        dataPoints = entries.map { TrendDataPoint(date: $0.date, value: $0.weight) }
+        dataPoints = entries.map { entry in
+            TrendDataPoint(date: entry.date, value: UnitConversion.displayWeight(entry.weight, storedUnit: entry.unit))
+        }
     }
 
     // MARK: - Scan-derived metrics
