@@ -140,6 +140,58 @@ final class ScanTests: XCTestCase {
         }
     }
 
+    // MARK: - New Fields
+
+    func testInBodyPayload_NewFieldsDefaultToNil() {
+        let payload = InBodyPayload(
+            weightKg: 90.0,
+            skeletalMuscleMassKg: 40.0,
+            bodyFatMassKg: 15.0,
+            bodyFatPct: 16.7,
+            totalBodyWaterL: 55.0,
+            bmi: 25.0,
+            basalMetabolicRate: 1850
+        )
+        XCTAssertNil(payload.ecwTbwRatio)
+        XCTAssertNil(payload.skeletalMuscleIndex)
+        XCTAssertNil(payload.visceralFatLevel)
+        XCTAssertNil(payload.rightArmLeanPct)
+        XCTAssertNil(payload.rightArmFatPct)
+        XCTAssertNil(payload.trunkLeanPct)
+        XCTAssertNil(payload.trunkFatPct)
+    }
+
+    func testInBodyPayload_NewFieldsRoundTrip() throws {
+        var payload = InBodyPayload(
+            weightKg: 90.0, skeletalMuscleMassKg: 40.0, bodyFatMassKg: 15.0,
+            bodyFatPct: 16.7, totalBodyWaterL: 55.0, bmi: 25.0, basalMetabolicRate: 1850
+        )
+        payload.ecwTbwRatio = 0.380
+        payload.skeletalMuscleIndex = 10.4
+        payload.visceralFatLevel = 3
+        payload.rightArmLeanPct = 112.4
+        payload.trunkFatPct = 94.5
+
+        let data = try JSONEncoder().encode(payload)
+        let decoded = try JSONDecoder().decode(InBodyPayload.self, from: data)
+        XCTAssertEqual(decoded.ecwTbwRatio, 0.380)
+        XCTAssertEqual(decoded.skeletalMuscleIndex, 10.4)
+        XCTAssertEqual(decoded.visceralFatLevel, 3)
+        XCTAssertEqual(decoded.rightArmLeanPct, 112.4)
+        XCTAssertEqual(decoded.trunkFatPct, 94.5)
+    }
+
+    func testInBodyPayload_BackwardsCompatible() throws {
+        let oldJSON = """
+        {"weightKg":90,"skeletalMuscleMassKg":40,"bodyFatMassKg":15,"bodyFatPct":16.7,"totalBodyWaterL":55,"bmi":25,"basalMetabolicRate":1850}
+        """
+        let decoded = try JSONDecoder().decode(InBodyPayload.self, from: oldJSON.data(using: .utf8)!)
+        XCTAssertEqual(decoded.weightKg, 90)
+        XCTAssertNil(decoded.ecwTbwRatio)
+        XCTAssertNil(decoded.skeletalMuscleIndex)
+        XCTAssertNil(decoded.rightArmLeanPct)
+    }
+
     // MARK: - Enums
 
     func testScanTypeCases() {
