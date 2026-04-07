@@ -59,4 +59,19 @@ enum UnitConversion {
         let (value, unit) = displayLength(cm)
         return (String(format: "%.1f", value), unit)
     }
+
+    // MARK: - Weight Entry Helpers
+
+    /// The user's preferred weight unit ("lb" or "kg").
+    static var preferredWeightUnit: String {
+        UserDefaults.standard.string(forKey: "weightUnit") ?? "lb"
+    }
+
+    /// Convert a weight entry's stored value to the user's preferred display unit.
+    /// `storedWeight` is the raw value, `storedUnit` is "lb" or "kg".
+    static func displayWeight(_ storedWeight: Double, storedUnit: String) -> Double {
+        let pref = preferredWeightUnit
+        if storedUnit == pref { return storedWeight }
+        return storedUnit == "lb" ? lbToKg(storedWeight) : kgToLb(storedWeight)
+    }
 }

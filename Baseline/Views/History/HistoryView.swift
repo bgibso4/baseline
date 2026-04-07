@@ -109,6 +109,12 @@ private struct HistoryRow: View {
     let entry: WeightEntry
     let delta: Double?
 
+    private var displayUnit: String { UnitConversion.preferredWeightUnit }
+
+    private var displayWeight: Double {
+        UnitConversion.displayWeight(entry.weight, storedUnit: entry.unit)
+    }
+
     private var dayNumber: String {
         let cal = Calendar.current
         return "\(cal.component(.day, from: entry.date))"
@@ -142,13 +148,13 @@ private struct HistoryRow: View {
 
                 Spacer()
 
-                // Weight + delta
+                // Weight + delta — always in user's preferred unit
                 VStack(alignment: .trailing, spacing: 4) {
                     HStack(alignment: .firstTextBaseline, spacing: 3) {
-                        Text(UnitConversion.formatWeight(entry.weight, unit: entry.unit))
+                        Text(UnitConversion.formatWeight(displayWeight, unit: displayUnit))
                             .font(.system(size: 22, weight: .bold))
                             .foregroundStyle(CadreColors.textPrimary)
-                        Text(entry.unit)
+                        Text(displayUnit)
                             .font(.system(size: 13, weight: .medium))
                             .foregroundStyle(CadreColors.textSecondary)
                     }
@@ -174,7 +180,7 @@ private struct HistoryRow: View {
     }
 
     private var rowAccessibilityLabel: String {
-        var label = "\(weekday), \(monthYear) \(dayNumber), \(UnitConversion.formatWeight(entry.weight, unit: entry.unit)) \(entry.unit)"
+        var label = "\(weekday), \(monthYear) \(dayNumber), \(UnitConversion.formatWeight(displayWeight, unit: displayUnit)) \(displayUnit)"
         if let delta {
             label += ", \(deltaText(delta)) change"
         }
@@ -204,6 +210,7 @@ private struct EditEntrySheet: View {
     let onSave: (Double, String) -> Void
     let onDelete: () -> Void
 
+    private let displayUnit: String
     @State private var weightText: String
     @State private var notes: String
 
@@ -215,7 +222,10 @@ private struct EditEntrySheet: View {
         self.entry = entry
         self.onSave = onSave
         self.onDelete = onDelete
-        self._weightText = State(initialValue: String(format: "%.1f", entry.weight))
+        let pref = UnitConversion.preferredWeightUnit
+        self.displayUnit = pref
+        let displayW = UnitConversion.displayWeight(entry.weight, storedUnit: entry.unit)
+        self._weightText = State(initialValue: String(format: "%.1f", displayW))
         self._notes = State(initialValue: entry.notes ?? "")
     }
 
@@ -231,7 +241,7 @@ private struct EditEntrySheet: View {
                             .keyboardType(.decimalPad)
                             .multilineTextAlignment(.trailing)
                             .foregroundStyle(CadreColors.textPrimary)
-                        Text(entry.unit)
+                        Text(displayUnit)
                             .foregroundStyle(CadreColors.textTertiary)
                     }
                     HStack {
@@ -274,7 +284,16 @@ private struct EditEntrySheet: View {
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Save") {
                         if let w = Double(weightText) {
-                            onSave(w, notes)
+                            // Convert from display unit back to the entry's stored unit
+                            let storedW: Double
+                            if displayUnit == entry.unit {
+                                storedW = w
+                            } else if displayUnit == "lb" {
+                                storedW = UnitConversion.lbToKg(w)
+                            } else {
+                                storedW = UnitConversion.kgToLb(w)
+                            }
+                            onSave(storedW, notes)
                         }
                         dismiss()
                     }

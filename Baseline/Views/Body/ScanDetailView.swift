@@ -253,32 +253,50 @@ struct ScanEditView: View {
 
     @State private var errorMessage: String?
 
+    /// User's preferred mass unit — read once at init so the form is consistent.
+    private let massPref: String
+
+    /// Display label for mass fields ("kg" or "lb").
+    private var massUnit: String { massPref }
+
     init(scan: Scan, payload: InBodyPayload) {
         self.scan = scan
         self.payload = payload
-        // Pre-populate all fields from the existing payload
-        _weightKg = State(initialValue: Self.fmt(payload.weightKg))
-        _skeletalMuscleMassKg = State(initialValue: Self.fmt(payload.skeletalMuscleMassKg))
-        _bodyFatMassKg = State(initialValue: Self.fmt(payload.bodyFatMassKg))
+
+        let pref = UserDefaults.standard.string(forKey: "weightUnit") ?? "lb"
+        self.massPref = pref
+
+        // Convert kg → display unit for mass fields
+        let m: (Double) -> String = { kg in
+            Self.fmt(pref == "kg" ? kg : UnitConversion.kgToLb(kg))
+        }
+        let om: (Double?) -> String = { kg in
+            guard let kg else { return "" }
+            return Self.fmt(pref == "kg" ? kg : UnitConversion.kgToLb(kg))
+        }
+
+        _weightKg = State(initialValue: m(payload.weightKg))
+        _skeletalMuscleMassKg = State(initialValue: m(payload.skeletalMuscleMassKg))
+        _bodyFatMassKg = State(initialValue: m(payload.bodyFatMassKg))
         _bodyFatPct = State(initialValue: Self.fmt(payload.bodyFatPct))
         _totalBodyWaterL = State(initialValue: Self.fmt(payload.totalBodyWaterL))
         _bmi = State(initialValue: Self.fmt(payload.bmi))
         _basalMetabolicRate = State(initialValue: Self.fmt(payload.basalMetabolicRate))
         _intracellularWaterL = State(initialValue: Self.optFmt(payload.intracellularWaterL))
         _extracellularWaterL = State(initialValue: Self.optFmt(payload.extracellularWaterL))
-        _dryLeanMassKg = State(initialValue: Self.optFmt(payload.dryLeanMassKg))
-        _leanBodyMassKg = State(initialValue: Self.optFmt(payload.leanBodyMassKg))
+        _dryLeanMassKg = State(initialValue: om(payload.dryLeanMassKg))
+        _leanBodyMassKg = State(initialValue: om(payload.leanBodyMassKg))
         _inBodyScore = State(initialValue: Self.optFmt(payload.inBodyScore))
-        _rightArmLeanKg = State(initialValue: Self.optFmt(payload.rightArmLeanKg))
-        _leftArmLeanKg = State(initialValue: Self.optFmt(payload.leftArmLeanKg))
-        _trunkLeanKg = State(initialValue: Self.optFmt(payload.trunkLeanKg))
-        _rightLegLeanKg = State(initialValue: Self.optFmt(payload.rightLegLeanKg))
-        _leftLegLeanKg = State(initialValue: Self.optFmt(payload.leftLegLeanKg))
-        _rightArmFatKg = State(initialValue: Self.optFmt(payload.rightArmFatKg))
-        _leftArmFatKg = State(initialValue: Self.optFmt(payload.leftArmFatKg))
-        _trunkFatKg = State(initialValue: Self.optFmt(payload.trunkFatKg))
-        _rightLegFatKg = State(initialValue: Self.optFmt(payload.rightLegFatKg))
-        _leftLegFatKg = State(initialValue: Self.optFmt(payload.leftLegFatKg))
+        _rightArmLeanKg = State(initialValue: om(payload.rightArmLeanKg))
+        _leftArmLeanKg = State(initialValue: om(payload.leftArmLeanKg))
+        _trunkLeanKg = State(initialValue: om(payload.trunkLeanKg))
+        _rightLegLeanKg = State(initialValue: om(payload.rightLegLeanKg))
+        _leftLegLeanKg = State(initialValue: om(payload.leftLegLeanKg))
+        _rightArmFatKg = State(initialValue: om(payload.rightArmFatKg))
+        _leftArmFatKg = State(initialValue: om(payload.leftArmFatKg))
+        _trunkFatKg = State(initialValue: om(payload.trunkFatKg))
+        _rightLegFatKg = State(initialValue: om(payload.rightLegFatKg))
+        _leftLegFatKg = State(initialValue: om(payload.leftLegFatKg))
     }
 
     private var canSave: Bool {
@@ -347,10 +365,10 @@ struct ScanEditView: View {
     private var editFormFields: some View {
         VStack(spacing: 0) {
             formSectionLabel("Core")
-            formRow("Weight", value: $weightKg, unit: "kg")
+            formRow("Weight", value: $weightKg, unit: massUnit)
             formRow("Body Fat", value: $bodyFatPct, unit: "%")
-            formRow("Skeletal Muscle", value: $skeletalMuscleMassKg, unit: "kg")
-            formRow("Body Fat Mass", value: $bodyFatMassKg, unit: "kg")
+            formRow("Skeletal Muscle", value: $skeletalMuscleMassKg, unit: massUnit)
+            formRow("Body Fat Mass", value: $bodyFatMassKg, unit: massUnit)
             formRow("BMI", value: $bmi, unit: "")
             formRow("BMR", value: $basalMetabolicRate, unit: "kcal")
             formRow("Total Body Water", value: $totalBodyWaterL, unit: "L")
@@ -358,23 +376,23 @@ struct ScanEditView: View {
             formSectionLabel("Body Composition")
             formRow("Intracellular Water", value: $intracellularWaterL, unit: "L")
             formRow("Extracellular Water", value: $extracellularWaterL, unit: "L")
-            formRow("Dry Lean Mass", value: $dryLeanMassKg, unit: "kg")
-            formRow("Lean Body Mass", value: $leanBodyMassKg, unit: "kg")
+            formRow("Dry Lean Mass", value: $dryLeanMassKg, unit: massUnit)
+            formRow("Lean Body Mass", value: $leanBodyMassKg, unit: massUnit)
             formRow("InBody Score", value: $inBodyScore, unit: "")
 
             formSectionLabel("Segmental Lean")
-            formRow("Right Arm", value: $rightArmLeanKg, unit: "kg")
-            formRow("Left Arm", value: $leftArmLeanKg, unit: "kg")
-            formRow("Trunk", value: $trunkLeanKg, unit: "kg")
-            formRow("Right Leg", value: $rightLegLeanKg, unit: "kg")
-            formRow("Left Leg", value: $leftLegLeanKg, unit: "kg")
+            formRow("Right Arm", value: $rightArmLeanKg, unit: massUnit)
+            formRow("Left Arm", value: $leftArmLeanKg, unit: massUnit)
+            formRow("Trunk", value: $trunkLeanKg, unit: massUnit)
+            formRow("Right Leg", value: $rightLegLeanKg, unit: massUnit)
+            formRow("Left Leg", value: $leftLegLeanKg, unit: massUnit)
 
             formSectionLabel("Segmental Fat")
-            formRow("Right Arm", value: $rightArmFatKg, unit: "kg")
-            formRow("Left Arm", value: $leftArmFatKg, unit: "kg")
-            formRow("Trunk", value: $trunkFatKg, unit: "kg")
-            formRow("Right Leg", value: $rightLegFatKg, unit: "kg")
-            formRow("Left Leg", value: $leftLegFatKg, unit: "kg")
+            formRow("Right Arm", value: $rightArmFatKg, unit: massUnit)
+            formRow("Left Arm", value: $leftArmFatKg, unit: massUnit)
+            formRow("Trunk", value: $trunkFatKg, unit: massUnit)
+            formRow("Right Leg", value: $rightLegFatKg, unit: massUnit)
+            formRow("Left Leg", value: $leftLegFatKg, unit: massUnit)
         }
         .padding(.bottom, 16)
     }
@@ -395,39 +413,49 @@ struct ScanEditView: View {
             Text(label)
                 .font(.system(size: 13, weight: .medium))
                 .foregroundStyle(CadreColors.textPrimary)
+                .frame(width: 140, alignment: .leading)
 
-            Spacer(minLength: 8)
+            TextField("", text: value)
+                .font(.system(size: 15, weight: .bold, design: .default))
+                .tracking(-0.2)
+                .foregroundStyle(CadreColors.textPrimary)
+                .keyboardType(.decimalPad)
+                .multilineTextAlignment(.trailing)
 
-            HStack(alignment: .firstTextBaseline, spacing: 3) {
-                TextField("", text: value)
-                    .font(.system(size: 15, weight: .bold, design: .default))
-                    .tracking(-0.2)
-                    .foregroundStyle(CadreColors.textPrimary)
-                    .keyboardType(.decimalPad)
-                    .multilineTextAlignment(.trailing)
-                    .frame(minWidth: 50)
-
-                if !unit.isEmpty {
-                    Text(unit)
-                        .font(.system(size: 10, weight: .medium))
-                        .foregroundStyle(CadreColors.textSecondary)
-                }
+            if !unit.isEmpty {
+                Text(unit)
+                    .font(.system(size: 10, weight: .medium))
+                    .foregroundStyle(CadreColors.textTertiary)
+                    .frame(width: 30, alignment: .trailing)
+            } else {
+                Spacer()
+                    .frame(width: 30)
             }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 8)
-            .background(CadreColors.card)
-            .overlay(
-                RoundedRectangle(cornerRadius: 9)
-                    .stroke(CadreColors.divider, lineWidth: 1)
-            )
-            .clipShape(RoundedRectangle(cornerRadius: 9))
-            .frame(minWidth: 92)
         }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 8)
+        .background(CadreColors.card)
+        .overlay(
+            RoundedRectangle(cornerRadius: 9)
+                .stroke(CadreColors.divider, lineWidth: 1)
+        )
+        .clipShape(RoundedRectangle(cornerRadius: 9))
         .padding(.horizontal, CadreSpacing.sheetHorizontal)
         .padding(.vertical, 4)
     }
 
     // MARK: - Save
+
+    /// Convert a display-unit mass value back to kg for storage.
+    private func toKg(_ value: Double) -> Double {
+        massPref == "kg" ? value : UnitConversion.lbToKg(value)
+    }
+
+    /// Convert an optional display-unit mass string back to kg.
+    private func optToKg(_ text: String) -> Double? {
+        guard let v = Double(text) else { return nil }
+        return toKg(v)
+    }
 
     private func saveEdits() {
         guard let w = Double(weightKg),
@@ -441,28 +469,28 @@ struct ScanEditView: View {
         }
 
         let updated = InBodyPayload(
-            weightKg: w,
-            skeletalMuscleMassKg: smm,
-            bodyFatMassKg: bfm,
+            weightKg: toKg(w),
+            skeletalMuscleMassKg: toKg(smm),
+            bodyFatMassKg: toKg(bfm),
             bodyFatPct: bf,
             totalBodyWaterL: tbw,
             bmi: b,
             basalMetabolicRate: bmrVal,
             intracellularWaterL: Double(intracellularWaterL),
             extracellularWaterL: Double(extracellularWaterL),
-            dryLeanMassKg: Double(dryLeanMassKg),
-            leanBodyMassKg: Double(leanBodyMassKg),
+            dryLeanMassKg: optToKg(dryLeanMassKg),
+            leanBodyMassKg: optToKg(leanBodyMassKg),
             inBodyScore: Double(inBodyScore),
-            rightArmLeanKg: Double(rightArmLeanKg),
-            leftArmLeanKg: Double(leftArmLeanKg),
-            trunkLeanKg: Double(trunkLeanKg),
-            rightLegLeanKg: Double(rightLegLeanKg),
-            leftLegLeanKg: Double(leftLegLeanKg),
-            rightArmFatKg: Double(rightArmFatKg),
-            leftArmFatKg: Double(leftArmFatKg),
-            trunkFatKg: Double(trunkFatKg),
-            rightLegFatKg: Double(rightLegFatKg),
-            leftLegFatKg: Double(leftLegFatKg)
+            rightArmLeanKg: optToKg(rightArmLeanKg),
+            leftArmLeanKg: optToKg(leftArmLeanKg),
+            trunkLeanKg: optToKg(trunkLeanKg),
+            rightLegLeanKg: optToKg(rightLegLeanKg),
+            leftLegLeanKg: optToKg(leftLegLeanKg),
+            rightArmFatKg: optToKg(rightArmFatKg),
+            leftArmFatKg: optToKg(leftArmFatKg),
+            trunkFatKg: optToKg(trunkFatKg),
+            rightLegFatKg: optToKg(rightLegFatKg),
+            leftLegFatKg: optToKg(leftLegFatKg)
         )
 
         guard let data = try? JSONEncoder().encode(updated) else { return }

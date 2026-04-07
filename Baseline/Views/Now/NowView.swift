@@ -277,20 +277,25 @@ struct NowView: View {
         }
     }
 
+    /// Convert a weight entry's stored value to the user's preferred display unit.
+    private func displayWeight(for entry: WeightEntry) -> Double {
+        UnitConversion.displayWeight(entry.weight, storedUnit: entry.unit)
+    }
+
     /// Where today's weight sits within the recent min–max range, 0...1.
     /// Returns nil if we lack data for a meaningful arc.
     private var arcFraction: Double? {
-        guard let current = vm?.todayEntry?.weight ?? vm?.lastWeight,
+        guard let current = vm?.lastWeight,
               filteredWeights.count >= 2
         else { return nil }
 
-        let values = filteredWeights.map(\.weight)
+        let values = filteredWeights.map { displayWeight(for: $0) }
         guard let lo = values.min(), let hi = values.max(), hi > lo else { return nil }
         return max(0, min(1, (current - lo) / (hi - lo)))
     }
 
     private var computedStats: (lowest: Double?, average: Double?, highest: Double?) {
-        let values = filteredWeights.map(\.weight)
+        let values = filteredWeights.map { displayWeight(for: $0) }
         guard !values.isEmpty else { return (nil, nil, nil) }
         let avg = values.reduce(0, +) / Double(values.count)
         return (values.min(), avg, values.max())

@@ -173,6 +173,10 @@ struct LogMeasurementSheet: View {
         .buttonStyle(.plain)
     }
 
+    private var lengthPref: String {
+        UserDefaults.standard.string(forKey: "lengthUnit") ?? "in"
+    }
+
     /// 56px hero number with unit suffix (mockup `.value-display .v-num`).
     private var valueDisplay: some View {
         HStack(alignment: .firstTextBaseline, spacing: 4) {
@@ -182,7 +186,7 @@ struct LogMeasurementSheet: View {
                 .foregroundStyle(CadreColors.textPrimary)
                 .contentTransition(.numericText())
                 .animation(.snappy, value: currentValue)
-            Text("in")
+            Text(lengthPref)
                 .font(CadreTypography.measurementHeroUnit)
                 .foregroundStyle(CadreColors.textSecondary)
         }
@@ -231,8 +235,8 @@ struct LogMeasurementSheet: View {
     /// 40px margin above save per DESIGN_DECISIONS.md.
     private var saveButton: some View {
         Button {
-            // Convert display inches to cm for storage
-            let valueCm = currentValue * 2.54
+            // Convert display value to cm for storage based on user's length preference
+            let valueCm = lengthPref == "cm" ? currentValue : UnitConversion.inToCm(currentValue)
             let resolvedVM = bodyVM ?? injectedVM
             resolvedVM?.saveMeasurement(type: selectedType, valueCm: valueCm, date: selectedDate)
             Haptics.success()
@@ -294,24 +298,31 @@ struct LogMeasurementSheet: View {
     private func loadLatestValue() {
         let resolvedVM = bodyVM ?? injectedVM
         if let latest = resolvedVM?.latestValue(for: selectedType) {
-            // Convert stored cm to display inches
-            currentValue = (latest.valueCm / 2.54).rounded(toPlaces: 1)
+            // Convert stored cm to user's preferred display unit
+            let pref = lengthPref
+            currentValue = pref == "cm"
+                ? latest.valueCm.rounded(toPlaces: 1)
+                : UnitConversion.cmToIn(latest.valueCm).rounded(toPlaces: 1)
         } else {
-            // Default starting values per type (inches)
             currentValue = defaultValue(for: selectedType)
         }
     }
 
+    /// Default starting values per type, in the user's preferred unit.
     private func defaultValue(for type: MeasurementType) -> Double {
-        switch type {
-        case .waist: return 34.0
-        case .hips: return 40.0
-        case .chest: return 42.0
-        case .neck: return 16.0
-        case .armLeft, .armRight: return 15.0
-        case .thighLeft, .thighRight: return 24.0
-        case .calfLeft, .calfRight: return 16.0
+        // Defaults are specified in inches; convert to cm if needed
+        let inchDefault: Double = switch type {
+        case .waist: 34.0
+        case .hips: 40.0
+        case .chest: 42.0
+        case .neck: 16.0
+        case .armLeft, .armRight: 15.0
+        case .thighLeft, .thighRight: 24.0
+        case .calfLeft, .calfRight: 16.0
         }
+        return lengthPref == "cm"
+            ? UnitConversion.inToCm(inchDefault).rounded(toPlaces: 1)
+            : inchDefault
     }
 }
 

@@ -9,16 +9,17 @@ struct SparklineView: View {
     var body: some View {
         if weights.count >= 2 {
             Chart(weights, id: \.id) { entry in
+                let w = UnitConversion.displayWeight(entry.weight, storedUnit: entry.unit)
                 LineMark(
                     x: .value("Date", entry.date),
-                    y: .value("Weight", entry.weight)
+                    y: .value("Weight", w)
                 )
                 .interpolationMethod(.catmullRom)
                 .foregroundStyle(CadreColors.chartLine)
 
                 AreaMark(
                     x: .value("Date", entry.date),
-                    y: .value("Weight", entry.weight)
+                    y: .value("Weight", w)
                 )
                 .interpolationMethod(.catmullRom)
                 .foregroundStyle(CadreColors.chartFill)

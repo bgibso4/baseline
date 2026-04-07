@@ -12,21 +12,25 @@ class NowViewModel {
 
     var delta: Double? {
         guard let today = todayEntry, let previous = previousEntry else { return nil }
-        return today.weight - previous.weight
+        let todayDisplay = UnitConversion.displayWeight(today.weight, storedUnit: today.unit)
+        let prevDisplay = UnitConversion.displayWeight(previous.weight, storedUnit: previous.unit)
+        return todayDisplay - prevDisplay
     }
 
+    /// Latest weight converted to the user's preferred display unit.
     var lastWeight: Double? {
-        if let todayEntry { return todayEntry.weight }
-        return previousEntry?.weight
+        if let todayEntry {
+            return UnitConversion.displayWeight(todayEntry.weight, storedUnit: todayEntry.unit)
+        }
+        guard let previousEntry else { return nil }
+        return UnitConversion.displayWeight(previousEntry.weight, storedUnit: previousEntry.unit)
     }
 
     /// Preferred weight unit ("lb" / "kg"). Owns the UserDefaults read so views
     /// don't reach into storage directly. A proper UserPreferences service
     /// arrives with Settings in Task 18.
     var unit: String {
-        todayEntry?.unit
-            ?? UserDefaults.standard.string(forKey: "weightUnit")
-            ?? "lb"
+        UnitConversion.preferredWeightUnit
     }
 
     init(modelContext: ModelContext) {
