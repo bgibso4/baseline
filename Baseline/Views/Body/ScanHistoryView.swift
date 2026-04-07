@@ -20,7 +20,7 @@ struct ScanHistoryView: View {
                 List {
                     ForEach(scans, id: \.id) { scan in
                         NavigationLink {
-                            ScanDetailView(scan: scan)
+                            ScanDetailView(scan: scan, onDelete: onDelete)
                         } label: {
                             scanRow(scan)
                         }
@@ -92,9 +92,10 @@ struct ScanHistoryView: View {
     private func metricsRow(_ content: ScanContent) -> some View {
         switch content {
         case .inBody(let p):
+            let smm = UnitConversion.formattedMass(p.skeletalMuscleMassKg)
             return HStack(spacing: 12) {
                 metricBadge("BF", value: String(format: "%.1f%%", p.bodyFatPct))
-                metricBadge("SMM", value: String(format: "%.1f", p.skeletalMuscleMassKg))
+                metricBadge("SMM", value: smm.text)
                 metricBadge("BMI", value: String(format: "%.1f", p.bmi))
             }
         }

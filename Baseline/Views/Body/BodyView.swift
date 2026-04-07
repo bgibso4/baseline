@@ -278,6 +278,8 @@ struct BodyView: View {
 
         switch content {
         case .inBody(let p):
+            let smm = UnitConversion.formattedMass(p.skeletalMuscleMassKg)
+            let fm = UnitConversion.formattedMass(p.bodyFatMassKg)
             var tiles: [TileData] = []
             tiles.append(TileData(
                 sfSymbol: "drop.fill",
@@ -290,15 +292,15 @@ struct BodyView: View {
             tiles.append(TileData(
                 sfSymbol: "figure.strengthtraining.traditional",
                 label: "Skeletal Muscle",
-                value: String(format: "%.1f", p.skeletalMuscleMassKg),
-                unit: "kg",
+                value: smm.text,
+                unit: smm.unit,
                 delta: nil
             ))
             tiles.append(TileData(
                 sfSymbol: "scalemass",
                 label: "Fat Mass",
-                value: String(format: "%.1f", p.bodyFatMassKg),
-                unit: "kg",
+                value: fm.text,
+                unit: fm.unit,
                 delta: nil,
                 isSecondary: true
             ))
@@ -333,11 +335,12 @@ struct BodyView: View {
                 ))
             }
             if let lbm = p.leanBodyMassKg {
+                let lbmDisplay = UnitConversion.formattedMass(lbm)
                 tiles.append(TileData(
                     sfSymbol: "figure.stand",
                     label: "Lean Body Mass",
-                    value: String(format: "%.1f", lbm),
-                    unit: "kg",
+                    value: lbmDisplay.text,
+                    unit: lbmDisplay.unit,
                     delta: nil
                 ))
             }
@@ -352,13 +355,12 @@ struct BodyView: View {
         let byType = Dictionary(grouping: measurements) { $0.type }
         return MeasurementType.allCases.compactMap { type -> TileData? in
             guard let m = byType[type.rawValue]?.first else { return nil }
-            // Display in inches for now (conversion: cm -> in)
-            let inches = m.valueCm / 2.54
+            let display = UnitConversion.formattedLength(m.valueCm)
             return TileData(
                 sfSymbol: type.sfSymbol,
                 label: type.tileLabel,
-                value: String(format: "%.1f", inches),
-                unit: "in",
+                value: display.text,
+                unit: display.unit,
                 delta: nil
             )
         }
@@ -392,13 +394,13 @@ struct BodyView: View {
                 let val: String? = {
                     switch label {
                     case "Body Fat": return String(format: "%.1f", p.bodyFatPct)
-                    case "Skeletal Muscle": return String(format: "%.1f", p.skeletalMuscleMassKg)
-                    case "Fat Mass": return String(format: "%.1f", p.bodyFatMassKg)
+                    case "Skeletal Muscle": return UnitConversion.formattedMass(p.skeletalMuscleMassKg).text
+                    case "Fat Mass": return UnitConversion.formattedMass(p.bodyFatMassKg).text
                     case "BMI": return String(format: "%.1f", p.bmi)
                     case "Total Body Water": return String(format: "%.1f", p.totalBodyWaterL)
                     case "BMR": return String(format: "%.0f", p.basalMetabolicRate)
                     case "InBody Score": return p.inBodyScore.map { String(format: "%.0f", $0) }
-                    case "Lean Body Mass": return p.leanBodyMassKg.map { String(format: "%.1f", $0) }
+                    case "Lean Body Mass": return p.leanBodyMassKg.map { UnitConversion.formattedMass($0).text }
                     default: return nil
                     }
                 }()
@@ -413,8 +415,8 @@ struct BodyView: View {
         guard let type = MeasurementType.allCases.first(where: { $0.tileLabel == label }) else { return [] }
         let all = vm?.allMeasurements(ofType: type) ?? []
         return all.map { m in
-            let inches = m.valueCm / 2.54
-            return (date: m.date, value: String(format: "%.1f", inches))
+            let display = UnitConversion.formattedLength(m.valueCm)
+            return (date: m.date, value: display.text)
         }
     }
 

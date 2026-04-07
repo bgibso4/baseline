@@ -68,6 +68,13 @@ class BodyViewModel {
         refresh()
     }
 
+    func updateScan(_ scan: Scan, payload: Data) {
+        scan.payloadData = payload
+        scan.updatedAt = Date()
+        try? modelContext.save()
+        refresh()
+    }
+
     // MARK: - Helpers
 
     func latestValue(for type: MeasurementType) -> Measurement? {

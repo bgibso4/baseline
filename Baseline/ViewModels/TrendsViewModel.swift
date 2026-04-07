@@ -89,9 +89,11 @@ enum TrendMetric: String, CaseIterable {
     }
 
     var unit: String {
+        let weightUnit = UserDefaults.standard.string(forKey: "weightUnit") ?? "lb"
+        let lengthUnit = UserDefaults.standard.string(forKey: "lengthUnit") ?? "in"
         switch self {
         case .weight, .skeletalMuscle, .fatMass, .leanBodyMass, .dryLeanMass:
-            return "lb"
+            return weightUnit
         case .bodyFatPct:
             return "%"
         case .bmi, .inBodyScore:
@@ -102,9 +104,9 @@ enum TrendMetric: String, CaseIterable {
             return "kcal"
         case .rightArmLean, .leftArmLean, .trunkLean, .rightLegLean, .leftLegLean,
              .rightArmFat, .leftArmFat, .trunkFat, .rightLegFat, .leftLegFat:
-            return "lb"
+            return weightUnit
         case .waist, .chest, .neck, .hips, .armLeft, .armRight, .thighLeft, .thighRight, .calfLeft, .calfRight:
-            return "in"
+            return lengthUnit
         }
     }
 
@@ -188,10 +190,14 @@ class TrendsViewModel {
 
     var timeRange: TimeRange = .month
     var selectedMetric: TrendMetric = .weight
+    var secondaryMetric: TrendMetric?
 
     /// Generic data points for the currently selected metric.
     var dataPoints: [TrendDataPoint] = []
     var movingAverage: [MovingAveragePoint] = []
+
+    /// Secondary metric data points (populated when compare is active).
+    var secondaryDataPoints: [TrendDataPoint] = []
 
     /// Legacy accessor — weight entries (only populated when metric == .weight).
     var entries: [WeightEntry] = []
@@ -216,15 +222,15 @@ class TrendsViewModel {
         case .bodyFatPct:
             refreshScanMetric { $0.bodyFatPct }
         case .skeletalMuscle:
-            refreshScanMetric { UnitConversion.kgToLb($0.skeletalMuscleMassKg) }
+            refreshScanMetric { UnitConversion.displayMass($0.skeletalMuscleMassKg).value }
         case .bmi:
             refreshScanMetric { $0.bmi }
         case .fatMass:
-            refreshScanMetric { UnitConversion.kgToLb($0.bodyFatMassKg) }
+            refreshScanMetric { UnitConversion.displayMass($0.bodyFatMassKg).value }
 
         // Body Composition
         case .leanBodyMass:
-            refreshOptionalScanMetric { $0.leanBodyMassKg.map { UnitConversion.kgToLb($0) } }
+            refreshOptionalScanMetric { $0.leanBodyMassKg.map { UnitConversion.displayMass($0).value } }
         case .totalBodyWater:
             refreshScanMetric { $0.totalBodyWaterL }
         case .icw:
@@ -232,7 +238,7 @@ class TrendsViewModel {
         case .ecw:
             refreshOptionalScanMetric { $0.extracellularWaterL }
         case .dryLeanMass:
-            refreshOptionalScanMetric { $0.dryLeanMassKg.map { UnitConversion.kgToLb($0) } }
+            refreshOptionalScanMetric { $0.dryLeanMassKg.map { UnitConversion.displayMass($0).value } }
         case .bmr:
             refreshScanMetric { $0.basalMetabolicRate }
         case .inBodyScore:
@@ -240,27 +246,27 @@ class TrendsViewModel {
 
         // Segmental Lean
         case .rightArmLean:
-            refreshOptionalScanMetric { $0.rightArmLeanKg.map { UnitConversion.kgToLb($0) } }
+            refreshOptionalScanMetric { $0.rightArmLeanKg.map { UnitConversion.displayMass($0).value } }
         case .leftArmLean:
-            refreshOptionalScanMetric { $0.leftArmLeanKg.map { UnitConversion.kgToLb($0) } }
+            refreshOptionalScanMetric { $0.leftArmLeanKg.map { UnitConversion.displayMass($0).value } }
         case .trunkLean:
-            refreshOptionalScanMetric { $0.trunkLeanKg.map { UnitConversion.kgToLb($0) } }
+            refreshOptionalScanMetric { $0.trunkLeanKg.map { UnitConversion.displayMass($0).value } }
         case .rightLegLean:
-            refreshOptionalScanMetric { $0.rightLegLeanKg.map { UnitConversion.kgToLb($0) } }
+            refreshOptionalScanMetric { $0.rightLegLeanKg.map { UnitConversion.displayMass($0).value } }
         case .leftLegLean:
-            refreshOptionalScanMetric { $0.leftLegLeanKg.map { UnitConversion.kgToLb($0) } }
+            refreshOptionalScanMetric { $0.leftLegLeanKg.map { UnitConversion.displayMass($0).value } }
 
         // Segmental Fat
         case .rightArmFat:
-            refreshOptionalScanMetric { $0.rightArmFatKg.map { UnitConversion.kgToLb($0) } }
+            refreshOptionalScanMetric { $0.rightArmFatKg.map { UnitConversion.displayMass($0).value } }
         case .leftArmFat:
-            refreshOptionalScanMetric { $0.leftArmFatKg.map { UnitConversion.kgToLb($0) } }
+            refreshOptionalScanMetric { $0.leftArmFatKg.map { UnitConversion.displayMass($0).value } }
         case .trunkFat:
-            refreshOptionalScanMetric { $0.trunkFatKg.map { UnitConversion.kgToLb($0) } }
+            refreshOptionalScanMetric { $0.trunkFatKg.map { UnitConversion.displayMass($0).value } }
         case .rightLegFat:
-            refreshOptionalScanMetric { $0.rightLegFatKg.map { UnitConversion.kgToLb($0) } }
+            refreshOptionalScanMetric { $0.rightLegFatKg.map { UnitConversion.displayMass($0).value } }
         case .leftLegFat:
-            refreshOptionalScanMetric { $0.leftLegFatKg.map { UnitConversion.kgToLb($0) } }
+            refreshOptionalScanMetric { $0.leftLegFatKg.map { UnitConversion.displayMass($0).value } }
 
         // Measurements (tape)
         case .waist, .chest, .neck, .hips, .armLeft, .armRight, .thighLeft, .thighRight, .calfLeft, .calfRight:
@@ -268,6 +274,57 @@ class TrendsViewModel {
         }
 
         calculateMovingAverage()
+        refreshSecondary()
+    }
+
+    /// Loads data for the secondary (compare) metric if set.
+    private func refreshSecondary() {
+        guard let metric = secondaryMetric else {
+            secondaryDataPoints = []
+            return
+        }
+
+        // Temporarily swap selectedMetric to reuse existing refresh logic
+        let primary = selectedMetric
+        let primaryData = dataPoints
+        let primaryMA = movingAverage
+        let primaryEntries = entries
+
+        selectedMetric = metric
+        switch metric {
+        case .weight: refreshWeight()
+        case .bodyFatPct: refreshScanMetric { $0.bodyFatPct }
+        case .skeletalMuscle: refreshScanMetric { UnitConversion.displayMass($0.skeletalMuscleMassKg).value }
+        case .bmi: refreshScanMetric { $0.bmi }
+        case .fatMass: refreshScanMetric { UnitConversion.displayMass($0.bodyFatMassKg).value }
+        case .leanBodyMass: refreshOptionalScanMetric { $0.leanBodyMassKg.map { UnitConversion.displayMass($0).value } }
+        case .totalBodyWater: refreshScanMetric { $0.totalBodyWaterL }
+        case .icw: refreshOptionalScanMetric { $0.intracellularWaterL }
+        case .ecw: refreshOptionalScanMetric { $0.extracellularWaterL }
+        case .dryLeanMass: refreshOptionalScanMetric { $0.dryLeanMassKg.map { UnitConversion.displayMass($0).value } }
+        case .bmr: refreshScanMetric { $0.basalMetabolicRate }
+        case .inBodyScore: refreshOptionalScanMetric { $0.inBodyScore }
+        case .rightArmLean: refreshOptionalScanMetric { $0.rightArmLeanKg.map { UnitConversion.displayMass($0).value } }
+        case .leftArmLean: refreshOptionalScanMetric { $0.leftArmLeanKg.map { UnitConversion.displayMass($0).value } }
+        case .trunkLean: refreshOptionalScanMetric { $0.trunkLeanKg.map { UnitConversion.displayMass($0).value } }
+        case .rightLegLean: refreshOptionalScanMetric { $0.rightLegLeanKg.map { UnitConversion.displayMass($0).value } }
+        case .leftLegLean: refreshOptionalScanMetric { $0.leftLegLeanKg.map { UnitConversion.displayMass($0).value } }
+        case .rightArmFat: refreshOptionalScanMetric { $0.rightArmFatKg.map { UnitConversion.displayMass($0).value } }
+        case .leftArmFat: refreshOptionalScanMetric { $0.leftArmFatKg.map { UnitConversion.displayMass($0).value } }
+        case .trunkFat: refreshOptionalScanMetric { $0.trunkFatKg.map { UnitConversion.displayMass($0).value } }
+        case .rightLegFat: refreshOptionalScanMetric { $0.rightLegFatKg.map { UnitConversion.displayMass($0).value } }
+        case .leftLegFat: refreshOptionalScanMetric { $0.leftLegFatKg.map { UnitConversion.displayMass($0).value } }
+        case .waist, .chest, .neck, .hips, .armLeft, .armRight, .thighLeft, .thighRight, .calfLeft, .calfRight:
+            refreshMeasurement()
+        }
+
+        secondaryDataPoints = dataPoints
+
+        // Restore primary
+        selectedMetric = primary
+        dataPoints = primaryData
+        movingAverage = primaryMA
+        entries = primaryEntries
     }
 
     // MARK: - Weight
@@ -375,7 +432,7 @@ class TrendsViewModel {
         }
 
         dataPoints = measurements.map { m in
-            TrendDataPoint(date: m.date, value: m.valueCm / 2.54)
+            TrendDataPoint(date: m.date, value: UnitConversion.displayLength(m.valueCm).value)
         }
     }
 

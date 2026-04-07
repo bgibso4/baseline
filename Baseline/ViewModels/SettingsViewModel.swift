@@ -123,7 +123,32 @@ class SettingsViewModel {
 
     var lengthUnit: String {
         get { _ = _lengthUnitVersion; return defaults.string(forKey: "lengthUnit") ?? "in" }
-        set { defaults.set(newValue, forKey: "lengthUnit"); _lengthUnitVersion += 1 }
+        set {
+            let oldValue = defaults.string(forKey: "lengthUnit") ?? "in"
+            defaults.set(newValue, forKey: "lengthUnit")
+            _lengthUnitVersion += 1
+            if oldValue != newValue {
+                convertHeight(from: oldValue, to: newValue)
+            }
+        }
+    }
+
+    /// Converts stored height values when the length unit changes.
+    private func convertHeight(from oldUnit: String, to newUnit: String) {
+        if oldUnit == "in" && newUnit == "cm" {
+            // inches → cm
+            let totalInches = (heightFeet * 12) + heightInches
+            if totalInches > 0 {
+                heightCm = Int(round(Double(totalInches) * 2.54))
+            }
+        } else if oldUnit == "cm" && newUnit == "in" {
+            // cm → inches
+            if heightCm > 0 {
+                let totalInches = Int(round(Double(heightCm) / 2.54))
+                heightFeet = totalInches / 12
+                heightInches = totalInches % 12
+            }
+        }
     }
 
     // MARK: Appearance
