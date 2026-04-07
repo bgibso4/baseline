@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Baseline — Typography: Pure vs Hybrid</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0B0B0E;
+    --card: #17171B;
+    --card-elevated: #1F1F24;
+    --text-primary: #F2F3F5;
+    --text-secondary: #797B83;
+    --text-tertiary: #494B52;
+    --divider: #2A2A30;
+    --accent: #6B7B94;
+    --negative: #A8624E;
+    --positive: #5C8A6A;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif;
+    background: #E8E8EA;
+    color: #1A1A1C;
+    padding: 40px 32px;
+    -webkit-font-smoothing: antialiased;
+    line-height: 1.4;
+  }
+
+  .page-header {
+    max-width: 1400px;
+    margin: 0 auto 32px;
+  }
+  .page-header h1 {
+    font-size: 32px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    margin-bottom: 6px;
+  }
+  .page-header p {
+    font-size: 14px;
+    color: #5A5A60;
+  }
+
+  .compare-grid {
+    max-width: 1400px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+  }
+
+  .phone {
+    background: var(--bg);
+    border-radius: 32px;
+    overflow: hidden;
+    aspect-ratio: 393 / 852;
+    position: relative;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+  }
+
+  .variant-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #1A1A1C;
+    margin-bottom: 8px;
+  }
+  .variant-sublabel {
+    font-size: 11px;
+    color: #6B6B72;
+    margin-bottom: 16px;
+  }
+
+  /* Phone content */
+  .status-bar {
+    padding: 14px 24px 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .status-bar .time {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+
+  .toolbar {
+    padding: 20px 24px 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .toolbar .icon {
+    width: 24px; height: 24px;
+    opacity: 0.7;
+  }
+  .toolbar .icon svg {
+    width: 100%; height: 100%;
+    stroke: var(--text-secondary);
+    fill: none;
+    stroke-width: 1.5;
+  }
+
+  .date-label {
+    text-align: center;
+    font-size: 14px;
+    color: var(--text-secondary);
+    margin-top: 32px;
+  }
+
+  .weight-hero {
+    text-align: center;
+    margin-top: 40px;
+    display: flex;
+    align-items: baseline;
+    justify-content: center;
+    gap: 4px;
+  }
+  .weight-hero .num {
+    font-size: 68px;
+    font-weight: 700;
+    color: var(--text-primary);
+    letter-spacing: -2px;
+    line-height: 1;
+  }
+  .weight-hero .unit {
+    font-size: 20px;
+    font-weight: 500;
+    color: var(--text-secondary);
+  }
+
+  .delta {
+    text-align: center;
+    margin-top: 20px;
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--negative);
+  }
+  .delta .muted {
+    color: var(--text-tertiary);
+    font-weight: 400;
+    font-size: 13px;
+    display: block;
+    margin-top: 4px;
+  }
+
+  .spark-card {
+    margin: 36px 24px 0;
+    padding: 14px 16px;
+    background: var(--card);
+    border-radius: 14px;
+  }
+  .spark-card .label {
+    font-size: 11px;
+    color: var(--text-tertiary);
+    margin-bottom: 8px;
+  }
+  .spark-card svg {
+    width: 100%;
+    height: 50px;
+  }
+  .spark-card svg path {
+    stroke: var(--accent);
+    stroke-width: 2;
+    fill: none;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  .spark-card svg circle {
+    fill: var(--accent);
+  }
+
+  .weigh-btn {
+    position: absolute;
+    bottom: 92px;
+    left: 24px;
+    right: 24px;
+    background: var(--accent);
+    color: #FFFFFF;
+    border-radius: 14px;
+    padding: 16px 0;
+    font-size: 15px;
+    font-weight: 600;
+    border: none;
+    text-align: center;
+  }
+
+  .tab-bar {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 72px;
+    background: #0F0F13;
+    border-top: 0.5px solid rgba(73, 75, 82, 0.3);
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    padding-bottom: 8px;
+  }
+  .tab-bar .tab {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+  }
+  .tab-bar .tab.active .icon {
+    background: var(--accent);
+  }
+  .tab-bar .tab .icon {
+    width: 20px; height: 20px;
+    border-radius: 50%;
+    border: 1.3px solid var(--text-tertiary);
+  }
+  .tab-bar .tab.active .icon {
+    border: none;
+  }
+  .tab-bar .tab .label {
+    font-size: 10px;
+    font-weight: 400;
+    color: var(--text-tertiary);
+  }
+  .tab-bar .tab.active .label {
+    color: var(--accent);
+    font-weight: 600;
+  }
+
+  /* === FONT ASSIGNMENTS === */
+
+  /* Variant 1: All Exo 2 */
+  .variant-exo .weight-hero .num,
+  .variant-exo .weight-hero .unit,
+  .variant-exo .delta,
+  .variant-exo .delta .muted,
+  .variant-exo .weigh-btn,
+  .variant-exo .tab .label,
+  .variant-exo .date-label,
+  .variant-exo .spark-card .label,
+  .variant-exo .status-bar .time {
+    font-family: "Exo 2", sans-serif;
+  }
+
+  /* Variant 2: All SF Pro (system) */
+  .variant-sf .weight-hero .num,
+  .variant-sf .weight-hero .unit,
+  .variant-sf .delta,
+  .variant-sf .delta .muted,
+  .variant-sf .weigh-btn,
+  .variant-sf .tab .label,
+  .variant-sf .date-label,
+  .variant-sf .spark-card .label,
+  .variant-sf .status-bar .time {
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", sans-serif;
+  }
+
+  /* Variant 3: Hybrid — Exo 2 display, SF Pro UI */
+  .variant-hybrid .weight-hero .num,
+  .variant-hybrid .weight-hero .unit {
+    font-family: "Exo 2", sans-serif;
+  }
+  .variant-hybrid .delta,
+  .variant-hybrid .delta .muted,
+  .variant-hybrid .weigh-btn,
+  .variant-hybrid .tab .label,
+  .variant-hybrid .date-label,
+  .variant-hybrid .spark-card .label,
+  .variant-hybrid .status-bar .time {
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", sans-serif;
+  }
+</style>
+</head>
+<body>
+  <div class="page-header">
+    <h1>Typography: Pure vs Hybrid</h1>
+    <p>Three approaches — all Exo 2, all SF Pro, or Exo 2 for display + SF Pro for UI chrome</p>
+  </div>
+
+  <div class="compare-grid">
+
+    <!-- VARIANT 1: All Exo 2 -->
+    <div>
+      <div class="variant-label">01 · All Exo 2</div>
+      <div class="variant-sublabel">Distinctive everywhere. Apex's font throughout.</div>
+      <div class="phone variant-exo">
+        <div class="status-bar"><span class="time">9:41</span></div>
+        <div class="toolbar">
+          <div class="icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3" fill="currentColor"/></svg></div>
+          <div class="icon"><svg viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></div>
+        </div>
+        <div class="date-label">Friday, April 4</div>
+        <div class="weight-hero">
+          <span class="num">197.4</span>
+          <span class="unit">lb</span>
+        </div>
+        <div class="delta">+0.6<span class="muted">from yesterday</span></div>
+        <div class="spark-card">
+          <div class="label">Last 14 days</div>
+          <svg viewBox="0 0 300 50" preserveAspectRatio="none">
+            <path d="M 0 38 C 10 36 14 34 24 34 C 34 34 40 42 44 42 C 56 42 60 35 66 35 C 78 35 84 30 88 30 C 100 30 106 36 110 36 C 122 36 128 28 132 28 C 144 28 150 22 154 22 C 166 22 172 28 176 28 C 188 28 194 20 198 20 C 210 20 216 24 220 24 C 232 24 238 16 244 16 C 256 16 272 14 280 12 C 285 11 290 10 300 10"/>
+            <circle cx="300" cy="10" r="4"/>
+          </svg>
+        </div>
+        <button class="weigh-btn">Weigh In</button>
+        <div class="tab-bar">
+          <div class="tab"><div class="icon"></div><div class="label">Trends</div></div>
+          <div class="tab active"><div class="icon"></div><div class="label">Now</div></div>
+          <div class="tab"><div class="icon"></div><div class="label">Body</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- VARIANT 2: All SF Pro -->
+    <div>
+      <div class="variant-label">02 · All SF Pro</div>
+      <div class="variant-sublabel">Native iOS. Zero font to ship. Safe default.</div>
+      <div class="phone variant-sf">
+        <div class="status-bar"><span class="time">9:41</span></div>
+        <div class="toolbar">
+          <div class="icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3" fill="currentColor"/></svg></div>
+          <div class="icon"><svg viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></div>
+        </div>
+        <div class="date-label">Friday, April 4</div>
+        <div class="weight-hero">
+          <span class="num">197.4</span>
+          <span class="unit">lb</span>
+        </div>
+        <div class="delta">+0.6<span class="muted">from yesterday</span></div>
+        <div class="spark-card">
+          <div class="label">Last 14 days</div>
+          <svg viewBox="0 0 300 50" preserveAspectRatio="none">
+            <path d="M 0 38 C 10 36 14 34 24 34 C 34 34 40 42 44 42 C 56 42 60 35 66 35 C 78 35 84 30 88 30 C 100 30 106 36 110 36 C 122 36 128 28 132 28 C 144 28 150 22 154 22 C 166 22 172 28 176 28 C 188 28 194 20 198 20 C 210 20 216 24 220 24 C 232 24 238 16 244 16 C 256 16 272 14 280 12 C 285 11 290 10 300 10"/>
+            <circle cx="300" cy="10" r="4"/>
+          </svg>
+        </div>
+        <button class="weigh-btn">Weigh In</button>
+        <div class="tab-bar">
+          <div class="tab"><div class="icon"></div><div class="label">Trends</div></div>
+          <div class="tab active"><div class="icon"></div><div class="label">Now</div></div>
+          <div class="tab"><div class="icon"></div><div class="label">Body</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- VARIANT 3: Hybrid -->
+    <div>
+      <div class="variant-label">03 · Hybrid — Exo 2 + SF Pro ⭐</div>
+      <div class="variant-sublabel">Exo 2 for hero display · SF Pro for UI chrome</div>
+      <div class="phone variant-hybrid">
+        <div class="status-bar"><span class="time">9:41</span></div>
+        <div class="toolbar">
+          <div class="icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3" fill="currentColor"/></svg></div>
+          <div class="icon"><svg viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></div>
+        </div>
+        <div class="date-label">Friday, April 4</div>
+        <div class="weight-hero">
+          <span class="num">197.4</span>
+          <span class="unit">lb</span>
+        </div>
+        <div class="delta">+0.6<span class="muted">from yesterday</span></div>
+        <div class="spark-card">
+          <div class="label">Last 14 days</div>
+          <svg viewBox="0 0 300 50" preserveAspectRatio="none">
+            <path d="M 0 38 C 10 36 14 34 24 34 C 34 34 40 42 44 42 C 56 42 60 35 66 35 C 78 35 84 30 88 30 C 100 30 106 36 110 36 C 122 36 128 28 132 28 C 144 28 150 22 154 22 C 166 22 172 28 176 28 C 188 28 194 20 198 20 C 210 20 216 24 220 24 C 232 24 238 16 244 16 C 256 16 272 14 280 12 C 285 11 290 10 300 10"/>
+            <circle cx="300" cy="10" r="4"/>
+          </svg>
+        </div>
+        <button class="weigh-btn">Weigh In</button>
+        <div class="tab-bar">
+          <div class="tab"><div class="icon"></div><div class="label">Trends</div></div>
+          <div class="tab active"><div class="icon"></div><div class="label">Now</div></div>
+          <div class="tab"><div class="icon"></div><div class="label">Body</div></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</body>
+</html>

@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Baseline — Body History + Fixes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0B0B0E; --card: #17171B; --card-elevated: #1F1F24;
+    --text-primary: #F2F3F5; --text-secondary: #797B83; --text-tertiary: #494B52;
+    --divider: #2A2A30; --accent: #6B7B94; --secondary: #B89968;
+    --danger: #C17171;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: "Exo 2", -apple-system, sans-serif; background: #E8E8EA; padding: 40px 24px; -webkit-font-smoothing: antialiased; }
+  .page-header { max-width: 1600px; margin: 0 auto 28px; font-family: -apple-system, sans-serif; }
+  .page-header h1 { font-size: 28px; font-weight: 700; letter-spacing: -0.4px; margin-bottom: 4px; }
+  .page-header p { font-size: 13px; color: #5A5A60; max-width: 840px; line-height: 1.5; }
+  .grid { max-width: 1600px; margin: 0 auto; display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
+  .variant-wrap { display: flex; flex-direction: column; gap: 8px; }
+  .variant-label { font-family: -apple-system, sans-serif; font-size: 13px; font-weight: 600; color: #1A1A1C; }
+  .variant-sub { font-family: -apple-system, sans-serif; font-size: 11px; color: #6B6B72; line-height: 1.4; }
+
+  .phone { width: 100%; aspect-ratio: 393 / 852; background: var(--bg); border-radius: 42px; overflow: hidden; position: relative; box-shadow: 0 12px 36px rgba(0,0,0,0.18); color: var(--text-primary); font-family: "Exo 2", sans-serif; display: flex; flex-direction: column; }
+  .status-bar { flex-shrink: 0; padding: 16px 28px 8px; display: flex; justify-content: space-between; font-size: 14px; font-weight: 600; }
+  .content { flex: 1; overflow-y: auto; }
+
+  /* Push header */
+  .push-header { flex-shrink: 0; padding: 14px 22px 8px; display: flex; align-items: center; gap: 12px; }
+  .push-header .back { width: 30px; height: 30px; border-radius: 15px; background: var(--card-elevated); display: flex; align-items: center; justify-content: center; color: var(--text-primary); }
+  .push-header .back svg { width: 14px; height: 14px; stroke: currentColor; stroke-width: 2.4; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+  .push-header .title { font-family: "Exo 2", sans-serif; font-size: 18px; font-weight: 700; color: var(--text-primary); letter-spacing: -0.3px; flex: 1; text-align: center; padding-right: 30px; }
+  .push-header .trail { width: 30px; height: 30px; border-radius: 15px; background: var(--card-elevated); display: flex; align-items: center; justify-content: center; color: var(--text-secondary); }
+  .push-header .trail svg { width: 14px; height: 14px; stroke: currentColor; stroke-width: 2.2; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+
+  /* Tab bar */
+  .tab-bar { flex-shrink: 0; height: 76px; background: rgba(11,11,14,0.9); backdrop-filter: blur(20px); border-top: 0.5px solid var(--divider); display: flex; padding: 10px 0 22px; }
+  .tab { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; color: var(--text-tertiary); }
+  .tab.active { color: var(--accent); }
+  .tab .icon { width: 24px; height: 24px; }
+  .tab .icon svg { width: 100%; height: 100%; stroke: currentColor; stroke-width: 1.8; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+  .tab.active .icon svg { stroke-width: 2.4; }
+  .tab .label { font-family: -apple-system, sans-serif; font-size: 9px; font-weight: 500; }
+  .tab.active .label { font-weight: 700; }
+
+  /* ======== 01: Log measurement sheet (FIXED) ======== */
+  .today-dimmed { position: absolute; inset: 0; background: var(--bg); opacity: 0.5; }
+  .sheet-backdrop { position: absolute; inset: 0; background: rgba(0,0,0,0.4); z-index: 3; }
+  .meas-sheet { position: absolute; left: 0; right: 0; bottom: 76px; background: #141419; border-top-left-radius: 24px; border-top-right-radius: 24px; padding: 0 22px 16px; z-index: 4; box-shadow: 0 -8px 32px rgba(0,0,0,0.3); display: flex; flex-direction: column; }
+  .sheet-handle { width: 36px; height: 5px; background: var(--text-tertiary); border-radius: 3px; margin: 10px auto 18px; }
+  .sheet-date { text-align: center; font-family: -apple-system, sans-serif; font-size: 13px; color: var(--text-secondary); font-weight: 500; }
+  .meas-picker-chip { margin: 16px 0 0; background: var(--card); border: 1px solid var(--divider); border-radius: 12px; padding: 12px 14px; display: flex; align-items: center; gap: 10px; font-family: -apple-system, sans-serif; }
+  .meas-picker-chip .mi { width: 28px; height: 28px; border-radius: 8px; background: var(--card-elevated); display: flex; align-items: center; justify-content: center; color: var(--accent); flex-shrink: 0; }
+  .meas-picker-chip .mi svg { width: 15px; height: 15px; stroke: currentColor; stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+  .meas-picker-chip .mname { flex: 1; font-size: 14px; font-weight: 600; color: var(--text-primary); }
+  .meas-picker-chip .chev { color: var(--text-tertiary); }
+  .meas-picker-chip .chev svg { width: 14px; height: 14px; stroke: currentColor; stroke-width: 2.2; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+  .value-display { text-align: center; margin-top: 22px; }
+  .value-display .v-num { font-family: "Exo 2", sans-serif; font-size: 56px; font-weight: 700; letter-spacing: -1.6px; line-height: 0.95; }
+  .value-display .v-num .unit { font-size: 18px; font-weight: 500; color: var(--text-secondary); margin-left: 4px; letter-spacing: 0; }
+  .stepper { margin-top: 20px; display: flex; justify-content: center; align-items: center; gap: 80px; }
+  .stepper .step-btn { width: 56px; height: 56px; border-radius: 50%; background: var(--card); border: 1.5px solid var(--accent); color: var(--accent); display: flex; align-items: center; justify-content: center; font-size: 28px; font-weight: 300; line-height: 1; }
+  .save-btn { width: 100%; margin-top: 40px; background: var(--accent); color: #FFFFFF; border-radius: 16px; padding: 16px 0; font-family: "Exo 2", sans-serif; font-size: 15px; font-weight: 600; letter-spacing: 0.3px; border: none; text-align: center; }
+
+  /* ======== 02: Scan history list ======== */
+  .scan-row { display: flex; align-items: center; gap: 14px; padding: 14px 22px; border-top: 0.5px solid var(--divider); }
+  .scan-row:first-of-type { border-top: none; }
+  .scan-row .s-date { width: 56px; flex-shrink: 0; font-family: -apple-system, sans-serif; }
+  .scan-row .s-date .day { font-size: 20px; font-weight: 700; color: var(--text-primary); line-height: 1; }
+  .scan-row .s-date .month { font-size: 10px; font-weight: 600; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 3px; }
+  .scan-row .s-metrics { flex: 1; display: flex; gap: 12px; }
+  .scan-row .s-metric { font-family: -apple-system, sans-serif; }
+  .scan-row .s-metric .sm-label { font-size: 9px; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.4px; font-weight: 600; }
+  .scan-row .s-metric .sm-val { font-family: "Exo 2", sans-serif; font-size: 14px; font-weight: 700; color: var(--text-primary); letter-spacing: -0.1px; margin-top: 2px; }
+  .scan-row .chev { color: var(--text-tertiary); }
+  .scan-row .chev svg { width: 14px; height: 14px; stroke: currentColor; stroke-width: 2.2; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+
+  /* ======== 03: Scan detail view ======== */
+  .scan-detail-hero { padding: 18px 22px 6px; }
+  .scan-detail-hero .sd-date-big { font-family: "Exo 2", sans-serif; font-size: 22px; font-weight: 700; color: var(--text-primary); letter-spacing: -0.3px; }
+  .scan-detail-hero .sd-date-sub { font-family: -apple-system, sans-serif; font-size: 11px; color: var(--text-tertiary); font-weight: 500; margin-top: 3px; }
+  .sd-section-label { font-family: -apple-system, sans-serif; font-size: 10px; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; padding: 18px 22px 8px; }
+  .sd-row { display: flex; align-items: center; justify-content: space-between; padding: 11px 22px; border-top: 0.5px solid var(--divider); }
+  .sd-row:first-of-type { border-top: none; }
+  .sd-row .sd-name { font-family: -apple-system, sans-serif; font-size: 13px; font-weight: 500; color: var(--text-primary); }
+  .sd-row .sd-val { font-family: "Exo 2", sans-serif; font-size: 15px; font-weight: 700; color: var(--text-primary); letter-spacing: -0.2px; }
+  .sd-row .sd-val .unit { font-size: 10px; color: var(--text-secondary); font-weight: 500; margin-left: 2px; }
+  .sd-actions { padding: 20px 22px 0; display: flex; flex-direction: column; gap: 8px; }
+  .sd-btn { display: flex; align-items: center; gap: 10px; padding: 13px 14px; background: var(--card); border: 1px solid var(--divider); border-radius: 12px; font-family: -apple-system, sans-serif; font-size: 14px; font-weight: 600; color: var(--text-primary); }
+  .sd-btn svg { width: 16px; height: 16px; stroke: currentColor; stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+  .sd-btn.danger { color: var(--danger); }
+
+  /* ======== 04: Metric entries list (Waist) ======== */
+  .entries-head { padding: 16px 22px 10px; }
+  .entries-head .eh-title { font-family: -apple-system, sans-serif; font-size: 11px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.6px; }
+  .entries-head .eh-meta { font-family: -apple-system, sans-serif; font-size: 10px; color: var(--text-tertiary); font-weight: 500; margin-top: 3px; }
+  .entry-row { display: flex; align-items: center; gap: 14px; padding: 12px 22px; border-top: 0.5px solid var(--divider); }
+  .entry-row:first-of-type { border-top: none; }
+  .entry-row .e-date { flex: 1; }
+  .entry-row .e-day { font-family: -apple-system, sans-serif; font-size: 13px; font-weight: 600; color: var(--text-primary); }
+  .entry-row .e-dow { font-family: -apple-system, sans-serif; font-size: 10px; color: var(--text-tertiary); font-weight: 500; margin-top: 2px; }
+  .entry-row .e-delta { font-family: -apple-system, sans-serif; font-size: 10px; font-weight: 600; color: var(--text-tertiary); min-width: 40px; text-align: right; }
+  .entry-row .e-delta.down { color: var(--accent); }
+  .entry-row .e-delta.up { color: var(--secondary); }
+  .entry-row .e-val { font-family: "Exo 2", sans-serif; font-size: 16px; font-weight: 700; color: var(--text-primary); letter-spacing: -0.2px; min-width: 58px; text-align: right; }
+  .entry-row .e-val .unit { font-size: 10px; color: var(--text-secondary); font-weight: 500; margin-left: 2px; }
+  .swipe-hint { margin-top: 12px; padding: 10px 22px; font-family: -apple-system, sans-serif; font-size: 10px; color: var(--text-tertiary); font-weight: 500; text-align: center; }
+
+  /* Swipe-revealed actions on entry row (illustrative) */
+  .entry-row.swiped { transform: translateX(-140px); transition: none; position: relative; z-index: 1; }
+  .entry-row.swiped + .swipe-actions { display: flex; }
+  .swipe-actions { display: none; position: absolute; right: 0; top: 0; bottom: 0; align-items: center; gap: 1px; }
+  .swipe-action { height: 100%; display: flex; align-items: center; justify-content: center; width: 70px; font-family: -apple-system, sans-serif; font-size: 11px; font-weight: 600; color: #fff; }
+  .swipe-action.edit { background: var(--accent); }
+  .swipe-action.delete { background: var(--danger); }
+  .swipe-row-wrap { position: relative; overflow: hidden; }
+</style>
+</head>
+<body>
+  <div class="page-header">
+    <h1>Body — history + log fixes</h1>
+    <p>Edit/delete flows for scans and measurements. Plus styling fixes on the Log measurement sheet (smaller number, proper spacing).</p>
+  </div>
+
+  <div class="grid">
+
+    <!-- 01: Log measurement sheet FIXED -->
+    <div class="variant-wrap">
+      <div class="variant-label">01 · Log measurement · fixed</div>
+      <div class="variant-sub">Number reduced from 72 → 56px (not hero-sized like Weight — measurements are secondary). 40px gap between stepper and Save button.</div>
+      <div class="phone">
+        <div class="today-dimmed"></div>
+        <div class="sheet-backdrop"></div>
+        <div class="meas-sheet">
+          <div class="sheet-handle"></div>
+          <div class="sheet-date">Saturday, April 5</div>
+          <div class="meas-picker-chip">
+            <div class="mi"><svg viewBox="0 0 24 24"><path d="M3 12h18M6 8v8M10 6v12M14 6v12M18 8v8"/></svg></div>
+            <div class="mname">Waist</div>
+            <div class="chev"><svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></div>
+          </div>
+          <div class="value-display">
+            <span class="v-num">34.5<span class="unit">in</span></span>
+          </div>
+          <div class="stepper">
+            <button class="step-btn">−</button>
+            <button class="step-btn">+</button>
+          </div>
+          <button class="save-btn">Save</button>
+        </div>
+        <div class="tab-bar" style="position: absolute; left: 0; right: 0; bottom: 0;">
+          <div class="tab"><div class="icon"><svg viewBox="0 0 24 24"><polyline points="3,17 9,11 13,15 21,7"/><polyline points="15,7 21,7 21,13"/></svg></div><div class="label">Trends</div></div>
+          <div class="tab"><div class="icon"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M12 8 L14.5 12.5 L9.5 12.5 Z" fill="currentColor" stroke="none"/></svg></div><div class="label">Now</div></div>
+          <div class="tab active"><div class="icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="5" r="2.5"/><line x1="12" y1="7.5" x2="12" y2="14"/><line x1="8" y1="10" x2="16" y2="10"/><line x1="12" y1="14" x2="9" y2="20"/><line x1="12" y1="14" x2="15" y2="20"/></svg></div><div class="label">Body</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 02: Scan history list -->
+    <div class="variant-wrap">
+      <div class="variant-label">02 · Scan history</div>
+      <div class="variant-sub">Pushed from Body tab (Body Comp section header → "Last scan Mar 25 ›" is tappable). List of past scans with quick metrics preview. Tap row → scan detail.</div>
+      <div class="phone">
+        <div class="status-bar"><span>9:41</span><span>⚡ 100%</span></div>
+        <div class="push-header">
+          <div class="back"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></div>
+          <div class="title">Scans</div>
+        </div>
+        <div class="content">
+          <div class="scan-row">
+            <div class="s-date"><div class="day">25</div><div class="month">Mar 2026</div></div>
+            <div class="s-metrics">
+              <div class="s-metric"><div class="sm-label">BF%</div><div class="sm-val">17.2</div></div>
+              <div class="s-metric"><div class="sm-label">Muscle</div><div class="sm-val">162.4</div></div>
+              <div class="s-metric"><div class="sm-label">BMI</div><div class="sm-val">24.1</div></div>
+            </div>
+            <div class="chev"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></div>
+          </div>
+          <div class="scan-row">
+            <div class="s-date"><div class="day">11</div><div class="month">Mar 2026</div></div>
+            <div class="s-metrics">
+              <div class="s-metric"><div class="sm-label">BF%</div><div class="sm-val">17.6</div></div>
+              <div class="s-metric"><div class="sm-label">Muscle</div><div class="sm-val">161.2</div></div>
+              <div class="s-metric"><div class="sm-label">BMI</div><div class="sm-val">24.2</div></div>
+            </div>
+            <div class="chev"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></div>
+          </div>
+          <div class="scan-row">
+            <div class="s-date"><div class="day">25</div><div class="month">Feb 2026</div></div>
+            <div class="s-metrics">
+              <div class="s-metric"><div class="sm-label">BF%</div><div class="sm-val">18.0</div></div>
+              <div class="s-metric"><div class="sm-label">Muscle</div><div class="sm-val">160.8</div></div>
+              <div class="s-metric"><div class="sm-label">BMI</div><div class="sm-val">24.3</div></div>
+            </div>
+            <div class="chev"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></div>
+          </div>
+          <div class="scan-row">
+            <div class="s-date"><div class="day">4</div><div class="month">Feb 2026</div></div>
+            <div class="s-metrics">
+              <div class="s-metric"><div class="sm-label">BF%</div><div class="sm-val">18.4</div></div>
+              <div class="s-metric"><div class="sm-label">Muscle</div><div class="sm-val">160.2</div></div>
+              <div class="s-metric"><div class="sm-label">BMI</div><div class="sm-val">24.4</div></div>
+            </div>
+            <div class="chev"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></div>
+          </div>
+          <div class="scan-row">
+            <div class="s-date"><div class="day">17</div><div class="month">Jan 2026</div></div>
+            <div class="s-metrics">
+              <div class="s-metric"><div class="sm-label">BF%</div><div class="sm-val">18.8</div></div>
+              <div class="s-metric"><div class="sm-label">Muscle</div><div class="sm-val">159.6</div></div>
+              <div class="s-metric"><div class="sm-label">BMI</div><div class="sm-val">24.5</div></div>
+            </div>
+            <div class="chev"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></div>
+          </div>
+          <div class="scan-row">
+            <div class="s-date"><div class="day">30</div><div class="month">Dec 2025</div></div>
+            <div class="s-metrics">
+              <div class="s-metric"><div class="sm-label">BF%</div><div class="sm-val">19.2</div></div>
+              <div class="s-metric"><div class="sm-label">Muscle</div><div class="sm-val">159.0</div></div>
+              <div class="s-metric"><div class="sm-label">BMI</div><div class="sm-val">24.6</div></div>
+            </div>
+            <div class="chev"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></div>
+          </div>
+        </div>
+        <div class="tab-bar">
+          <div class="tab"><div class="icon"><svg viewBox="0 0 24 24"><polyline points="3,17 9,11 13,15 21,7"/><polyline points="15,7 21,7 21,13"/></svg></div><div class="label">Trends</div></div>
+          <div class="tab"><div class="icon"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M12 8 L14.5 12.5 L9.5 12.5 Z" fill="currentColor" stroke="none"/></svg></div><div class="label">Now</div></div>
+          <div class="tab active"><div class="icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="5" r="2.5"/><line x1="12" y1="7.5" x2="12" y2="14"/><line x1="8" y1="10" x2="16" y2="10"/><line x1="12" y1="14" x2="9" y2="20"/><line x1="12" y1="14" x2="15" y2="20"/></svg></div><div class="label">Body</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 03: Scan detail (editable) -->
+    <div class="variant-wrap">
+      <div class="variant-label">03 · Scan detail · edit/delete</div>
+      <div class="variant-sub">Tap a scan → all its values. Edit = re-enter manually (or rescan). Delete = removes entire scan + all derived metric entries.</div>
+      <div class="phone">
+        <div class="status-bar"><span>9:41</span><span>⚡ 100%</span></div>
+        <div class="push-header">
+          <div class="back"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></div>
+          <div class="title">Scan Detail</div>
+          <div class="trail"></div>
+        </div>
+        <div class="content">
+          <div class="scan-detail-hero">
+            <div class="sd-date-big">March 25, 2026</div>
+            <div class="sd-date-sub">InBody 770 · 11 days ago</div>
+          </div>
+          <div class="sd-section-label">Composition</div>
+          <div class="sd-row"><div class="sd-name">Body Fat</div><div class="sd-val">17.2<span class="unit">%</span></div></div>
+          <div class="sd-row"><div class="sd-name">Skeletal Muscle</div><div class="sd-val">162.4<span class="unit">lb</span></div></div>
+          <div class="sd-row"><div class="sd-name">Body Fat Mass</div><div class="sd-val">33.6<span class="unit">lb</span></div></div>
+          <div class="sd-row"><div class="sd-name">Visceral Fat</div><div class="sd-val">8.5</div></div>
+          <div class="sd-row"><div class="sd-name">BMI</div><div class="sd-val">24.1</div></div>
+          <div class="sd-section-label">Composition</div>
+          <div class="sd-row"><div class="sd-name">Total Body Water</div><div class="sd-val">58.4<span class="unit">%</span></div></div>
+          <div class="sd-row"><div class="sd-name">BMR</div><div class="sd-val">1,782<span class="unit">cal</span></div></div>
+          <div class="sd-actions">
+            <button class="sd-btn"><svg viewBox="0 0 24 24"><path d="M11 4H5a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2h13a2 2 0 0 0 2-2v-6"/><path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>Edit scan</button>
+            <button class="sd-btn danger"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>Delete scan</button>
+          </div>
+        </div>
+        <div class="tab-bar" style="margin-top: auto;">
+          <div class="tab"><div class="icon"><svg viewBox="0 0 24 24"><polyline points="3,17 9,11 13,15 21,7"/><polyline points="15,7 21,7 21,13"/></svg></div><div class="label">Trends</div></div>
+          <div class="tab"><div class="icon"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M12 8 L14.5 12.5 L9.5 12.5 Z" fill="currentColor" stroke="none"/></svg></div><div class="label">Now</div></div>
+          <div class="tab active"><div class="icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="5" r="2.5"/><line x1="12" y1="7.5" x2="12" y2="14"/><line x1="8" y1="10" x2="16" y2="10"/><line x1="12" y1="14" x2="9" y2="20"/><line x1="12" y1="14" x2="15" y2="20"/></svg></div><div class="label">Body</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 04: Metric entries list (Waist) -->
+    <div class="variant-wrap">
+      <div class="variant-label">04 · Metric entries · Waist</div>
+      <div class="variant-sub">Accessed from Trends view via "Show all entries" link. Swipe row → Edit / Delete. Applies to any single-value metric (Weight, Body Fat %, Waist, etc.).</div>
+      <div class="phone">
+        <div class="status-bar"><span>9:41</span><span>⚡ 100%</span></div>
+        <div class="push-header">
+          <div class="back"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></div>
+          <div class="title">Waist · Entries</div>
+          <div class="trail"></div>
+        </div>
+        <div class="entries-head">
+          <div class="eh-title">All entries</div>
+          <div class="eh-meta">27 entries · since Oct 5, 2025</div>
+        </div>
+        <div class="content" style="margin-top: 0;">
+          <div class="entry-row">
+            <div class="e-date"><div class="e-day">Mar 30, 2026</div><div class="e-dow">Monday</div></div>
+            <div class="e-delta down">−0.5</div>
+            <div class="e-val">34.5<span class="unit">in</span></div>
+          </div>
+          <div class="swipe-row-wrap">
+            <div class="entry-row swiped">
+              <div class="e-date"><div class="e-day">Mar 23, 2026</div><div class="e-dow">Monday</div></div>
+              <div class="e-delta down">−0.3</div>
+              <div class="e-val">35.0<span class="unit">in</span></div>
+            </div>
+            <div class="swipe-actions">
+              <div class="swipe-action edit">Edit</div>
+              <div class="swipe-action delete">Delete</div>
+            </div>
+          </div>
+          <div class="entry-row">
+            <div class="e-date"><div class="e-day">Mar 16, 2026</div><div class="e-dow">Monday</div></div>
+            <div class="e-delta flat">±0.0</div>
+            <div class="e-val">35.3<span class="unit">in</span></div>
+          </div>
+          <div class="entry-row">
+            <div class="e-date"><div class="e-day">Mar 9, 2026</div><div class="e-dow">Monday</div></div>
+            <div class="e-delta down">−0.2</div>
+            <div class="e-val">35.3<span class="unit">in</span></div>
+          </div>
+          <div class="entry-row">
+            <div class="e-date"><div class="e-day">Mar 2, 2026</div><div class="e-dow">Monday</div></div>
+            <div class="e-delta down">−0.4</div>
+            <div class="e-val">35.5<span class="unit">in</span></div>
+          </div>
+          <div class="entry-row">
+            <div class="e-date"><div class="e-day">Feb 23, 2026</div><div class="e-dow">Monday</div></div>
+            <div class="e-delta down">−0.3</div>
+            <div class="e-val">35.9<span class="unit">in</span></div>
+          </div>
+          <div class="entry-row">
+            <div class="e-date"><div class="e-day">Feb 16, 2026</div><div class="e-dow">Monday</div></div>
+            <div class="e-delta up">+0.1</div>
+            <div class="e-val">36.2<span class="unit">in</span></div>
+          </div>
+        </div>
+        <div class="tab-bar">
+          <div class="tab active"><div class="icon"><svg viewBox="0 0 24 24"><polyline points="3,17 9,11 13,15 21,7"/><polyline points="15,7 21,7 21,13"/></svg></div><div class="label">Trends</div></div>
+          <div class="tab"><div class="icon"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M12 8 L14.5 12.5 L9.5 12.5 Z" fill="currentColor" stroke="none"/></svg></div><div class="label">Now</div></div>
+          <div class="tab"><div class="icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="5" r="2.5"/><line x1="12" y1="7.5" x2="12" y2="14"/><line x1="8" y1="10" x2="16" y2="10"/><line x1="12" y1="14" x2="9" y2="20"/><line x1="12" y1="14" x2="15" y2="20"/></svg></div><div class="label">Body</div></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</body>
+</html>

@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Baseline — Widget Variants</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0B0B0E; --card: #17171B; --card-elevated: #1F1F24;
+    --text-primary: #F2F3F5; --text-secondary: #797B83; --text-tertiary: #494B52;
+    --divider: #2A2A30; --accent: #6B7B94; --secondary: #B89968;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: "Exo 2", -apple-system, sans-serif; background: #E8E8EA; padding: 40px 24px; -webkit-font-smoothing: antialiased; }
+  .page-header { max-width: 1400px; margin: 0 auto 28px; font-family: -apple-system, sans-serif; }
+  .page-header h1 { font-size: 28px; font-weight: 700; letter-spacing: -0.4px; margin-bottom: 4px; }
+  .page-header p { font-size: 13px; color: #5A5A60; max-width: 860px; line-height: 1.5; }
+  .section-header { max-width: 1400px; margin: 32px auto 16px; font-family: -apple-system, sans-serif; font-size: 14px; font-weight: 700; color: #1A1A1C; text-transform: uppercase; letter-spacing: -0.1px; }
+
+  /* Widget container on "wallpaper" context */
+  .widget-row { max-width: 1400px; margin: 0 auto; display: flex; gap: 32px; flex-wrap: wrap; align-items: flex-start; }
+  .widget-wrap { display: flex; flex-direction: column; gap: 10px; }
+  .widget-label { font-family: -apple-system, sans-serif; font-size: 12px; font-weight: 700; color: #1A1A1C; }
+  .widget-sub { font-family: -apple-system, sans-serif; font-size: 10px; color: #6B6B72; line-height: 1.4; max-width: 170px; }
+  .widget-sub.wide { max-width: 340px; }
+
+  /* Widget bases */
+  .widget { background: var(--bg); border-radius: 22px; color: var(--text-primary); font-family: "Exo 2", sans-serif; position: relative; overflow: hidden; box-shadow: 0 12px 36px rgba(0,0,0,0.18); }
+
+  /* SMALL (2×2) — 160×160 */
+  .w-small { width: 160px; height: 160px; padding: 14px; display: flex; flex-direction: column; gap: 14px; }
+  .w-small .w-top { font-family: -apple-system, sans-serif; font-size: 10px; font-weight: 700; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.5px; display: flex; align-items: center; gap: 5px; }
+  .w-small .w-top .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
+  .w-small .w-hero { font-size: 42px; font-weight: 700; letter-spacing: -1.1px; line-height: 0.9; display: flex; align-items: baseline; gap: 3px; }
+  .w-small .w-hero .unit { font-size: 12px; color: var(--text-secondary); font-weight: 500; letter-spacing: 0; }
+  .w-small .w-delta { font-family: -apple-system, sans-serif; font-size: 11px; font-weight: 600; color: var(--accent); margin-top: 4px; }
+  .w-small .w-sub { font-family: -apple-system, sans-serif; font-size: 9px; color: var(--text-tertiary); font-weight: 500; }
+
+  /* MEDIUM (4×2) — 336×160 */
+  .w-medium { width: 336px; height: 160px; padding: 16px 18px; display: flex; flex-direction: column; gap: 14px; }
+  .w-medium .w-top { font-family: -apple-system, sans-serif; font-size: 10px; font-weight: 700; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.5px; display: flex; align-items: center; gap: 5px; }
+  .w-medium .w-top .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
+  .w-medium .w-top .date { margin-left: auto; font-weight: 600; }
+  .w-medium .w-main { display: flex; align-items: flex-end; gap: 18px; }
+  .w-medium .w-hero-col { }
+  .w-medium .w-hero-num { font-size: 48px; font-weight: 700; letter-spacing: -1.3px; line-height: 0.9; display: flex; align-items: baseline; gap: 4px; }
+  .w-medium .w-hero-num .unit { font-size: 14px; color: var(--text-secondary); font-weight: 500; letter-spacing: 0; }
+  .w-medium .w-delta { font-family: -apple-system, sans-serif; font-size: 11px; font-weight: 600; color: var(--accent); margin-top: 4px; }
+  .w-medium .w-chart { flex: 1; height: 56px; }
+  .w-medium .w-chart svg { width: 100%; height: 100%; display: block; }
+
+  /* LARGE (4×4) — 336×352 */
+  .w-large { width: 336px; height: 352px; padding: 18px 20px; display: flex; flex-direction: column; }
+  .w-large .w-top { font-family: -apple-system, sans-serif; font-size: 10px; font-weight: 700; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.5px; display: flex; align-items: center; gap: 5px; }
+  .w-large .w-top .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
+  .w-large .w-top .date { margin-left: auto; font-weight: 600; }
+  .w-large .w-hero { margin-top: 12px; }
+  .w-large .w-hero-num { font-size: 56px; font-weight: 700; letter-spacing: -1.5px; line-height: 0.9; display: flex; align-items: baseline; gap: 5px; }
+  .w-large .w-hero-num .unit { font-size: 16px; color: var(--text-secondary); font-weight: 500; letter-spacing: 0; }
+  .w-large .w-delta { font-family: -apple-system, sans-serif; font-size: 12px; font-weight: 600; color: var(--accent); margin-top: 6px; }
+  .w-large .w-chart { flex: 1; margin-top: 16px; position: relative; }
+  .w-large .w-chart svg { width: 100%; height: 100%; display: block; overflow: visible; }
+  .w-large .w-chart .y-labels { position: absolute; right: 0; top: 0; bottom: 16px; display: flex; flex-direction: column; justify-content: space-between; font-family: -apple-system, sans-serif; font-size: 8px; color: var(--text-tertiary); font-weight: 500; }
+  .w-large .w-chart .x-labels { position: absolute; left: 0; right: 0; bottom: 0; display: flex; justify-content: space-between; font-family: -apple-system, sans-serif; font-size: 8px; color: var(--text-tertiary); font-weight: 500; }
+  .w-large .w-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--divider); border-radius: 10px; overflow: hidden; margin-top: 14px; }
+  .w-large .w-stat { background: var(--card); padding: 8px 4px; text-align: center; }
+  .w-large .w-stat .label { font-family: -apple-system, sans-serif; font-size: 7px; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.4px; font-weight: 600; margin-bottom: 2px; }
+  .w-large .w-stat .value { font-size: 12px; font-weight: 700; }
+  .w-large .w-stat .value .unit { font-size: 7px; color: var(--text-tertiary); font-weight: 400; margin-left: 1px; }
+
+  /* LOCK SCREEN (iOS 16+) - these render on wallpaper, usually with translucent bg */
+  .lock-bg { background: linear-gradient(135deg, #2a3040 0%, #1a1f2c 50%, #0f1319 100%); padding: 20px; border-radius: 22px; display: inline-flex; align-items: center; justify-content: center; gap: 12px; }
+  .lock-bg.wide { padding: 20px 24px; min-width: 320px; }
+
+  /* LOCK Circular — 72×72 */
+  .w-circ { width: 72px; height: 72px; border-radius: 50%; background: rgba(255,255,255,0.25); backdrop-filter: blur(20px); display: flex; flex-direction: column; align-items: center; justify-content: center; color: #fff; }
+  .w-circ .label { font-family: -apple-system, sans-serif; font-size: 8px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.4px; opacity: 0.8; line-height: 1; }
+  .w-circ .num { font-family: "Exo 2", sans-serif; font-size: 20px; font-weight: 700; letter-spacing: -0.4px; line-height: 1.1; }
+  .w-circ .unit { font-family: -apple-system, sans-serif; font-size: 8px; font-weight: 600; opacity: 0.8; margin-top: -2px; }
+
+  /* LOCK Rectangular — 160×72 */
+  .w-rect { width: 160px; height: 72px; border-radius: 10px; background: rgba(255,255,255,0.22); backdrop-filter: blur(20px); padding: 9px 12px; display: flex; flex-direction: column; justify-content: space-between; color: #fff; }
+  .w-rect .top { font-family: -apple-system, sans-serif; font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; opacity: 0.75; display: flex; align-items: center; gap: 5px; }
+  .w-rect .top .dot { width: 5px; height: 5px; border-radius: 50%; background: #fff; opacity: 0.9; }
+  .w-rect .main { display: flex; align-items: baseline; gap: 8px; }
+  .w-rect .num { font-family: "Exo 2", sans-serif; font-size: 24px; font-weight: 700; letter-spacing: -0.6px; line-height: 1; }
+  .w-rect .num .u { font-size: 11px; font-weight: 500; opacity: 0.8; margin-left: 2px; }
+  .w-rect .delta { font-family: -apple-system, sans-serif; font-size: 11px; font-weight: 600; opacity: 0.9; }
+
+  /* LOCK Inline — text next to clock */
+  .w-inline { display: inline-flex; align-items: center; gap: 4px; color: #fff; opacity: 0.9; font-family: -apple-system, sans-serif; font-size: 13px; font-weight: 600; padding: 4px 10px; background: rgba(255,255,255,0.18); backdrop-filter: blur(20px); border-radius: 7px; }
+  .w-inline svg { width: 12px; height: 12px; stroke: currentColor; stroke-width: 2.4; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+
+  /* Mock clock for inline demo */
+  .clock-demo { color: #fff; font-family: -apple-system, sans-serif; font-weight: 300; font-size: 72px; letter-spacing: -2px; line-height: 1; opacity: 0.95; display: flex; align-items: center; gap: 14px; }
+
+  /* StandBy mode — phone-size landscape */
+  .standby-bg { background: #000; padding: 16px; border-radius: 24px; }
+  .w-standby { width: 540px; height: 240px; padding: 28px 36px; display: flex; align-items: center; gap: 32px; }
+  .w-standby .sb-left { flex: 0 0 180px; }
+  .w-standby .sb-top { font-family: -apple-system, sans-serif; font-size: 11px; font-weight: 700; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.6px; display: flex; align-items: center; gap: 6px; margin-bottom: 12px; }
+  .w-standby .sb-top .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); }
+  .w-standby .sb-num { font-size: 88px; font-weight: 700; letter-spacing: -2.4px; line-height: 0.88; display: flex; align-items: baseline; gap: 6px; color: var(--text-primary); }
+  .w-standby .sb-num .unit { font-size: 22px; color: var(--text-secondary); font-weight: 500; letter-spacing: 0; }
+  .w-standby .sb-delta { font-family: -apple-system, sans-serif; font-size: 14px; font-weight: 600; color: var(--accent); margin-top: 10px; }
+  .w-standby .sb-chart { flex: 1; height: 120px; position: relative; }
+  .w-standby .sb-chart svg { width: 100%; height: 100%; display: block; overflow: visible; }
+</style>
+</head>
+<body>
+  <div class="page-header">
+    <h1>Widgets — v1</h1>
+    <p>iOS widgets for Home Screen (Small / Medium / Large), Lock Screen (Circular / Rectangular / Inline), and StandBy mode. Tap any widget → opens app at Today screen.</p>
+  </div>
+
+  <div class="section-header">Home Screen</div>
+  <div class="widget-row">
+
+    <!-- SMALL -->
+    <div class="widget-wrap">
+      <div class="widget-label">Small · 2×2</div>
+      <div class="widget-sub">Just weight + delta. The minimum-viable glance. Tap → Today screen.</div>
+      <div class="widget w-small">
+        <div class="w-top"><span class="dot"></span>Today</div>
+        <div>
+          <div class="w-hero">197.4<span class="unit">lb</span></div>
+          <div class="w-delta">−0.3 from yesterday</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MEDIUM -->
+    <div class="widget-wrap">
+      <div class="widget-label">Medium · 4×2</div>
+      <div class="widget-sub wide">Weight + delta + 7-day sparkline. The sweet-spot widget — most information per pixel.</div>
+      <div class="widget w-medium">
+        <div class="w-top"><span class="dot"></span>Today<span class="date">Apr 5</span></div>
+        <div class="w-main">
+          <div class="w-hero-col">
+            <div class="w-hero-num">197.4<span class="unit">lb</span></div>
+            <div class="w-delta">−0.3 · −0.8 lb / wk</div>
+          </div>
+          <div class="w-chart">
+            <svg viewBox="0 0 160 56" preserveAspectRatio="none">
+              <polyline points="0,8 23,14 46,10 69,22 91,18 114,30 137,34 160,40"
+                stroke="#6B7B94" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke"/>
+              <circle cx="160" cy="40" r="3" fill="#6B7B94"/>
+              <circle cx="160" cy="40" r="1" fill="#F2F3F5"/>
+            </svg>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- LARGE -->
+    <div class="widget-wrap">
+      <div class="widget-label">Large · 4×4</div>
+      <div class="widget-sub wide">Full trend view. Weight, 30-day chart, stats row. Closest to the Today tab itself.</div>
+      <div class="widget w-large">
+        <div class="w-top"><span class="dot"></span>Weight · 30 days<span class="date">Apr 5</span></div>
+        <div class="w-hero">
+          <div class="w-hero-num">197.4<span class="unit">lb</span></div>
+          <div class="w-delta">−3.5 · −0.8 lb / wk</div>
+        </div>
+        <div class="w-chart">
+          <svg viewBox="0 0 300 140" preserveAspectRatio="none">
+            <line x1="0" y1="20" x2="300" y2="20" stroke="#2A2A30" stroke-width="0.5" stroke-dasharray="2,3"/>
+            <line x1="0" y1="60" x2="300" y2="60" stroke="#2A2A30" stroke-width="0.5" stroke-dasharray="2,3"/>
+            <line x1="0" y1="100" x2="300" y2="100" stroke="#2A2A30" stroke-width="0.5" stroke-dasharray="2,3"/>
+            <line x1="0" y1="140" x2="300" y2="140" stroke="#2A2A30" stroke-width="0.5" stroke-dasharray="2,3"/>
+            <polyline points="0,22 10,18 21,30 31,26 41,34 52,30 62,38 72,32 83,44 93,40 103,48 113,44 124,54 134,50 144,60 155,52 165,62 175,58 186,66 196,60 206,70 216,66 227,78 237,72 247,84 257,76 268,86 278,80 288,90 300,74"
+              stroke="#494B52" stroke-width="1" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="0.7" vector-effect="non-scaling-stroke"/>
+            <path d="M 31,26 C 70,34 100,44 124,54 S 200,70 247,80 L 300,86" stroke="#6B7B94" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke"/>
+            <circle cx="300" cy="86" r="3" fill="#6B7B94"/>
+            <circle cx="300" cy="86" r="1" fill="#F2F3F5"/>
+          </svg>
+          <div class="x-labels"><span>Mar 6</span><span>Mar 20</span><span>Apr 4</span></div>
+        </div>
+        <div class="w-stats">
+          <div class="w-stat"><div class="label">Start</div><div class="value">200.9<span class="unit">lb</span></div></div>
+          <div class="w-stat"><div class="label">Lowest</div><div class="value">196.7<span class="unit">lb</span></div></div>
+          <div class="w-stat"><div class="label">Current</div><div class="value">197.4<span class="unit">lb</span></div></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="section-header">Lock Screen (iOS 16+)</div>
+  <div class="widget-row">
+
+    <!-- CIRCULAR -->
+    <div class="widget-wrap">
+      <div class="widget-label">Circular · 72×72</div>
+      <div class="widget-sub">Just the whole-number weight. Sits next to clock, under status indicators.</div>
+      <div class="lock-bg">
+        <div class="w-circ">
+          <div class="label">Weight</div>
+          <div class="num">197</div>
+          <div class="unit">lb</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RECTANGULAR -->
+    <div class="widget-wrap">
+      <div class="widget-label">Rectangular · 160×72</div>
+      <div class="widget-sub">Weight + delta in compact format. Most data for the footprint.</div>
+      <div class="lock-bg">
+        <div class="w-rect">
+          <div class="top"><span class="dot"></span>Baseline</div>
+          <div class="main">
+            <div class="num">197.4<span class="u">lb</span></div>
+            <div class="delta">−0.3</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- INLINE -->
+    <div class="widget-wrap">
+      <div class="widget-label">Inline · above clock</div>
+      <div class="widget-sub">Text-only strip. Renders above the lock-screen time in the accent-customizable area.</div>
+      <div class="lock-bg wide" style="flex-direction: column; align-items: center; gap: 6px;">
+        <div class="w-inline">
+          <svg viewBox="0 0 24 24"><polyline points="7 13 12 8 17 13"/></svg>
+          197.4 lb · −0.3
+        </div>
+        <div class="clock-demo">9:41</div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="section-header">StandBy Mode (iOS 17+, iPhone charging sideways)</div>
+  <div class="widget-row">
+
+    <div class="widget-wrap">
+      <div class="widget-label">StandBy · landscape</div>
+      <div class="widget-sub wide">Full-bleed landscape widget when phone is docked. Huge number + chart, readable from across the room.</div>
+      <div class="standby-bg">
+        <div class="widget w-standby">
+          <div class="sb-left">
+            <div class="sb-top"><span class="dot"></span>Today · Apr 5</div>
+            <div class="sb-num">197.4<span class="unit">lb</span></div>
+            <div class="sb-delta">−0.3 · −0.8 lb / wk</div>
+          </div>
+          <div class="sb-chart">
+            <svg viewBox="0 0 320 120" preserveAspectRatio="none">
+              <line x1="0" y1="20" x2="320" y2="20" stroke="#2A2A30" stroke-width="0.5" stroke-dasharray="2,3"/>
+              <line x1="0" y1="60" x2="320" y2="60" stroke="#2A2A30" stroke-width="0.5" stroke-dasharray="2,3"/>
+              <line x1="0" y1="100" x2="320" y2="100" stroke="#2A2A30" stroke-width="0.5" stroke-dasharray="2,3"/>
+              <polyline points="0,22 11,18 22,30 33,26 44,34 55,30 66,38 77,32 88,44 99,40 110,48 121,44 132,54 143,50 154,60 165,52 176,62 187,58 198,66 209,60 220,70 231,66 242,78 253,72 264,84 275,76 286,86 297,80 308,90 320,74"
+                stroke="#494B52" stroke-width="1.2" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="0.7" vector-effect="non-scaling-stroke"/>
+              <path d="M 33,26 C 80,36 120,48 154,60 S 230,78 286,86 L 320,92" stroke="#6B7B94" stroke-width="2.6" fill="none" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke"/>
+              <circle cx="320" cy="92" r="4" fill="#6B7B94"/>
+              <circle cx="320" cy="92" r="1.5" fill="#F2F3F5"/>
+            </svg>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</body>
+</html>

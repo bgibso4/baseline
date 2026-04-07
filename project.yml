@@ -1,0 +1,106 @@
+name: Baseline
+options:
+  bundleIdPrefix: com.cadre
+  deploymentTarget:
+    iOS: "26.0"
+  xcodeVersion: "16.0"
+  generateEmptyDirectories: true
+  groupSortPosition: top
+
+settings:
+  base:
+    SWIFT_VERSION: "5.9"
+    MARKETING_VERSION: "1.0.0"
+    CURRENT_PROJECT_VERSION: 1
+
+packages:
+  SnapshotTesting:
+    url: https://github.com/pointfreeco/swift-snapshot-testing
+    from: 1.17.0
+
+schemes:
+  Baseline:
+    build:
+      targets:
+        Baseline: all
+        BaselineTests: [test]
+    run:
+      config: Debug
+    test:
+      config: Debug
+      targets:
+        - BaselineTests
+
+targets:
+  Baseline:
+    type: application
+    platform: iOS
+    sources:
+      - path: Baseline
+    info:
+      path: Baseline/Info.plist
+      properties:
+        UILaunchScreen: {}
+        UIBackgroundModes:
+          - remote-notification
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationPortrait
+          - UIInterfaceOrientationLandscapeLeft
+          - UIInterfaceOrientationLandscapeRight
+        NSHealthUpdateUsageDescription: "Baseline writes your weight and body composition to Apple Health so other apps can access it."
+        NSCameraUsageDescription: "Baseline uses the camera to scan InBody printouts and extract your body composition data."
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.cadre.baseline
+        CODE_SIGN_ENTITLEMENTS: Baseline/Baseline.entitlements
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+    entitlements:
+      path: Baseline/Baseline.entitlements
+      properties:
+        com.apple.developer.healthkit: true
+        com.apple.developer.healthkit.access: []
+        com.apple.developer.icloud-services:
+          - CloudDocuments
+          - CloudKit
+        com.apple.developer.icloud-container-identifiers:
+          - iCloud.com.cadre.baseline
+        com.apple.security.application-groups:
+          - group.com.cadre.baseline
+    dependencies:
+      - target: BaselineWidgets
+
+  BaselineTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources:
+      - path: BaselineTests
+    settings:
+      base:
+        GENERATE_INFOPLIST_FILE: YES
+    dependencies:
+      - target: Baseline
+      - package: SnapshotTesting
+        product: SnapshotTesting
+
+  BaselineWidgets:
+    type: app-extension
+    platform: iOS
+    info:
+      path: BaselineWidgets/Info.plist
+      properties:
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.widgetkit-extension
+    sources:
+      - path: BaselineWidgets
+      - path: Baseline/Models/WeightEntry.swift
+      - path: Baseline/Utilities/UnitConversion.swift
+      - path: Baseline/Utilities/DoubleExtensions.swift
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.cadre.baseline.widgets
+        GENERATE_INFOPLIST_FILE: NO
+    entitlements:
+      path: BaselineWidgets/BaselineWidgets.entitlements
+      properties:
+        com.apple.security.application-groups:
+          - group.com.cadre.baseline

@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Baseline — Dropdown States</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0B0B0E; --card: #17171B; --card-elevated: #1F1F24;
+    --text-primary: #F2F3F5; --text-secondary: #797B83; --text-tertiary: #494B52;
+    --divider: #2A2A30; --accent: #6B7B94; --secondary: #B89968;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: "Exo 2", -apple-system, sans-serif; background: #E8E8EA; padding: 40px 24px; -webkit-font-smoothing: antialiased; }
+  .page-header { max-width: 1000px; margin: 0 auto 28px; font-family: -apple-system, sans-serif; }
+  .page-header h1 { font-size: 28px; font-weight: 700; letter-spacing: -0.4px; margin-bottom: 4px; }
+  .page-header p { font-size: 13px; color: #5A5A60; max-width: 760px; line-height: 1.5; }
+  .grid { max-width: 1000px; margin: 0 auto; display: grid; grid-template-columns: repeat(2, 1fr); gap: 28px; }
+  .variant-wrap { display: flex; flex-direction: column; gap: 8px; }
+  .variant-label { font-family: -apple-system, sans-serif; font-size: 13px; font-weight: 600; color: #1A1A1C; }
+  .variant-sub { font-family: -apple-system, sans-serif; font-size: 11px; color: #6B6B72; line-height: 1.4; }
+
+  .phone { width: 100%; aspect-ratio: 393 / 852; background: var(--bg); border-radius: 42px; overflow: hidden; position: relative; box-shadow: 0 12px 36px rgba(0,0,0,0.18); color: var(--text-primary); font-family: "Exo 2", sans-serif; display: flex; flex-direction: column; }
+
+  .status-bar { flex-shrink: 0; padding: 16px 28px 8px; display: flex; justify-content: space-between; font-size: 14px; font-weight: 600; }
+
+  .metric-chip { flex-shrink: 0; margin: 14px 22px 0; background: var(--card); border: 1px solid var(--divider); border-radius: 12px; padding: 12px 14px; display: flex; align-items: center; gap: 10px; font-family: -apple-system, sans-serif; position: relative; }
+  .metric-chip .icon-dot { width: 28px; height: 28px; border-radius: 8px; background: var(--card-elevated); display: flex; align-items: center; justify-content: center; color: var(--accent); flex-shrink: 0; }
+  .metric-chip .icon-dot svg { width: 16px; height: 16px; stroke: currentColor; stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+  .metric-chip .icon-dot.secondary { color: var(--secondary); margin-left: -12px; z-index: 1; border: 1.5px solid var(--card); }
+  .metric-chip .metric-name { flex: 1; font-size: 14px; font-weight: 600; color: var(--text-primary); letter-spacing: -0.1px; }
+  .metric-chip .chev { color: var(--text-tertiary); }
+  .metric-chip .chev svg { width: 14px; height: 14px; stroke: currentColor; stroke-width: 2.2; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+
+  .dropdown-menu { position: absolute; top: 52px; left: 0; right: 0; background: rgba(30,30,36,0.98); backdrop-filter: blur(20px); border: 0.5px solid rgba(255,255,255,0.06); border-radius: 14px; padding: 4px; box-shadow: 0 12px 36px rgba(0,0,0,0.5); z-index: 10; font-family: -apple-system, sans-serif; }
+  .menu-section-label { font-size: 10px; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; padding: 8px 12px 4px; }
+  .menu-row { display: flex; align-items: center; gap: 10px; padding: 9px 12px; border-radius: 9px; }
+  .menu-row .mi { width: 24px; height: 24px; border-radius: 6px; background: rgba(255,255,255,0.05); display: flex; align-items: center; justify-content: center; color: var(--text-secondary); flex-shrink: 0; }
+  .menu-row .mi svg { width: 14px; height: 14px; stroke: currentColor; stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+  .menu-row.primary .mi { color: var(--accent); background: rgba(107,123,148,0.18); }
+  .menu-row.secondary .mi { color: var(--secondary); background: rgba(184,153,104,0.18); }
+  .menu-row .mname { flex: 1; font-size: 13.5px; font-weight: 500; color: var(--text-primary); }
+  .menu-row.primary .check { color: var(--accent); }
+  .menu-row.secondary .check { color: var(--secondary); }
+  .menu-row .check svg { width: 15px; height: 15px; stroke: currentColor; stroke-width: 2.5; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+  .menu-row .x-small { width: 18px; height: 18px; border-radius: 9px; background: rgba(255,255,255,0.05); display: flex; align-items: center; justify-content: center; color: var(--text-tertiary); margin-left: 4px; }
+  .menu-row .x-small svg { width: 9px; height: 9px; stroke: currentColor; stroke-width: 2.5; fill: none; stroke-linecap: round; }
+  .menu-row.disabled { opacity: 0.4; }
+  .menu-row .soon { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; padding: 2px 6px; border-radius: 4px; background: var(--card-elevated); color: var(--text-secondary); }
+  .menu-divider { height: 0.5px; background: rgba(255,255,255,0.06); margin: 6px 4px; }
+
+  .compare-toggle-row { display: flex; align-items: center; gap: 10px; padding: 10px 12px; }
+  .compare-toggle-row .mi { width: 24px; height: 24px; border-radius: 6px; background: rgba(255,255,255,0.05); display: flex; align-items: center; justify-content: center; color: var(--text-secondary); flex-shrink: 0; }
+  .compare-toggle-row .mi svg { width: 14px; height: 14px; stroke: currentColor; stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+  .compare-toggle-row .ct-text { flex: 1; }
+  .compare-toggle-row .ct-name { font-size: 13.5px; font-weight: 600; color: var(--text-primary); }
+  .compare-toggle-row .ct-hint { font-size: 10.5px; color: var(--text-tertiary); font-weight: 500; margin-top: 1px; }
+  .switch { width: 34px; height: 22px; background: var(--text-tertiary); border-radius: 11px; position: relative; flex-shrink: 0; }
+  .switch::after { content: ''; position: absolute; top: 2px; left: 2px; width: 18px; height: 18px; border-radius: 50%; background: #fff; }
+  .switch.on { background: var(--accent); }
+  .switch.on::after { left: auto; right: 2px; }
+
+  .page-dim { opacity: 0.15; pointer-events: none; }
+  .dim-rect { margin: 10px 22px 0; height: 44px; background: var(--card); border-radius: 10px; }
+  .dim-rect.wide { height: 180px; margin-top: 60px; }
+</style>
+</head>
+<body>
+  <div class="page-header">
+    <h1>Trends — Dropdown states</h1>
+    <p>Same dropdown, two states. Flipping Compare ON reveals additional compare-only sections (Previous period, Program). Metric rows can be primary OR secondary depending on what's set. Compare-only rows can only be secondary.</p>
+  </div>
+
+  <div class="grid">
+
+    <!-- STATE A: COMPARE OFF -->
+    <div class="variant-wrap">
+      <div class="variant-label">A · Compare OFF (shorter)</div>
+      <div class="variant-sub">Tight dropdown. Just metrics + toggle. Compare-only options hidden — they'd be noise.</div>
+      <div class="phone">
+        <div class="status-bar"><span>9:41</span><span>⚡ 100%</span></div>
+        <div class="metric-chip">
+          <div class="icon-dot"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 4v3M12 17v3M4 12h3M17 12h3"/></svg></div>
+          <div class="metric-name">Weight</div>
+          <div class="chev"><svg viewBox="0 0 24 24"><polyline points="18 15 12 9 6 15"/></svg></div>
+          <div class="dropdown-menu">
+            <div class="menu-section-label">Metric</div>
+            <div class="menu-row primary">
+              <div class="mi"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 4v3M12 17v3M4 12h3M17 12h3"/></svg></div>
+              <div class="mname">Weight</div>
+              <div class="check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+            </div>
+            <div class="menu-row">
+              <div class="mi"><svg viewBox="0 0 24 24"><path d="M12 2a7 7 0 0 0-7 7c0 5 7 13 7 13s7-8 7-13a7 7 0 0 0-7-7z"/></svg></div>
+              <div class="mname">Body Fat %</div>
+            </div>
+            <div class="menu-row">
+              <div class="mi"><svg viewBox="0 0 24 24"><path d="M6 4v16M18 4v16M6 12h12"/></svg></div>
+              <div class="mname">Skeletal Muscle</div>
+            </div>
+            <div class="menu-row">
+              <div class="mi"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></div>
+              <div class="mname">Visceral Fat</div>
+            </div>
+            <div class="menu-row">
+              <div class="mi"><svg viewBox="0 0 24 24"><path d="M3 12h18M6 8v8M10 6v12M14 6v12M18 8v8"/></svg></div>
+              <div class="mname">Waist</div>
+            </div>
+            <div class="menu-divider"></div>
+            <div class="compare-toggle-row">
+              <div class="mi"><svg viewBox="0 0 24 24"><polyline points="4 17 10 11 14 15 20 9"/><polyline points="4 7 10 13 14 9 20 15"/></svg></div>
+              <div class="ct-text">
+                <div class="ct-name">Compare</div>
+                <div class="ct-hint">Overlay a second metric</div>
+              </div>
+              <div class="switch"></div>
+            </div>
+          </div>
+        </div>
+        <div class="page-dim">
+          <div class="dim-rect"></div>
+          <div class="dim-rect wide"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STATE B: COMPARE ON (with more sections) -->
+    <div class="variant-wrap">
+      <div class="variant-label">B · Compare ON (taller)</div>
+      <div class="variant-sub">Reveals Previous period + Program sections. Body Fat % tapped → secondary (amber check). Tapping another row swaps secondary; nothing else is noisy.</div>
+      <div class="phone">
+        <div class="status-bar"><span>9:41</span><span>⚡ 100%</span></div>
+        <div class="metric-chip">
+          <div class="icon-dot"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 4v3M12 17v3M4 12h3M17 12h3"/></svg></div>
+          <div class="icon-dot secondary"><svg viewBox="0 0 24 24"><path d="M12 2a7 7 0 0 0-7 7c0 5 7 13 7 13s7-8 7-13a7 7 0 0 0-7-7z"/></svg></div>
+          <div class="metric-name" style="font-size: 13px;">Weight · Body Fat %</div>
+          <div class="chev"><svg viewBox="0 0 24 24"><polyline points="18 15 12 9 6 15"/></svg></div>
+          <div class="dropdown-menu">
+            <div class="menu-section-label">Metric</div>
+            <div class="menu-row primary">
+              <div class="mi"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 4v3M12 17v3M4 12h3M17 12h3"/></svg></div>
+              <div class="mname">Weight</div>
+              <div class="check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+            </div>
+            <div class="menu-row secondary">
+              <div class="mi"><svg viewBox="0 0 24 24"><path d="M12 2a7 7 0 0 0-7 7c0 5 7 13 7 13s7-8 7-13a7 7 0 0 0-7-7z"/></svg></div>
+              <div class="mname">Body Fat %</div>
+              <div class="check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+            </div>
+            <div class="menu-row">
+              <div class="mi"><svg viewBox="0 0 24 24"><path d="M6 4v16M18 4v16M6 12h12"/></svg></div>
+              <div class="mname">Skeletal Muscle</div>
+            </div>
+            <div class="menu-row">
+              <div class="mi"><svg viewBox="0 0 24 24"><path d="M3 12h18M6 8v8M10 6v12M14 6v12M18 8v8"/></svg></div>
+              <div class="mname">Waist</div>
+            </div>
+            <div class="menu-divider"></div>
+            <div class="menu-section-label">Previous period</div>
+            <div class="menu-row">
+              <div class="mi"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="15" rx="2"/><path d="M3 10h18M8 2v4M16 2v4"/></svg></div>
+              <div class="mname">Last month</div>
+            </div>
+            <div class="menu-row">
+              <div class="mi"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="15" rx="2"/><path d="M3 10h18M8 2v4M16 2v4"/></svg></div>
+              <div class="mname">Last year</div>
+            </div>
+            <div class="menu-divider"></div>
+            <div class="menu-section-label">Program</div>
+            <div class="menu-row disabled">
+              <div class="mi"><svg viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="12" rx="2"/><path d="M8 10v4M12 10v4M16 10v4"/></svg></div>
+              <div class="mname">Apex phases</div>
+              <div class="soon">Soon</div>
+            </div>
+            <div class="menu-divider"></div>
+            <div class="compare-toggle-row">
+              <div class="mi" style="color: var(--accent); background: rgba(107,123,148,0.18);"><svg viewBox="0 0 24 24"><polyline points="4 17 10 11 14 15 20 9"/><polyline points="4 7 10 13 14 9 20 15"/></svg></div>
+              <div class="ct-text">
+                <div class="ct-name">Compare</div>
+                <div class="ct-hint">Tap a row to set as secondary</div>
+              </div>
+              <div class="switch on"></div>
+            </div>
+          </div>
+        </div>
+        <div class="page-dim">
+          <div class="dim-rect"></div>
+          <div class="dim-rect wide"></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</body>
+</html>
