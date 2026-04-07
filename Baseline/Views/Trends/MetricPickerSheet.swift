@@ -14,7 +14,7 @@ struct MetricPickerSheet: View {
     @Environment(\.dismiss) private var dismiss
 
     private let sheetBg = Color(red: 28/255, green: 28/255, blue: 34/255)
-    private let amber = Color(red: 1.0, green: 0.75, blue: 0.0)
+    private let secondary = Color(hex: "B89968") // --secondary from design tokens (dusty secondary)
 
     var body: some View {
         VStack(spacing: 0) {
@@ -104,6 +104,8 @@ struct MetricPickerSheet: View {
                 // Primary is locked in compare mode; tap sets secondary
                 if !isPrimary {
                     secondaryMetric = metric
+                    onDismiss?()
+                    dismiss()
                 }
             } else {
                 selectedMetric = metric
@@ -115,13 +117,13 @@ struct MetricPickerSheet: View {
                 ZStack {
                     RoundedRectangle(cornerRadius: 6)
                         .fill(isPrimary ? CadreColors.accent.opacity(0.15)
-                              : isSecondary ? amber.opacity(0.15)
+                              : isSecondary ? secondary.opacity(0.15)
                               : CadreColors.cardElevated)
                         .frame(width: 26, height: 26)
                     Image(systemName: metric.icon)
                         .font(.system(size: 12, weight: .semibold))
                         .foregroundStyle(isPrimary ? CadreColors.accent
-                                         : isSecondary ? amber
+                                         : isSecondary ? secondary
                                          : CadreColors.textSecondary)
                 }
                 Text(metric.rawValue)
@@ -135,7 +137,7 @@ struct MetricPickerSheet: View {
                 } else if isSecondary {
                     Image(systemName: "checkmark")
                         .font(.system(size: 14, weight: .semibold))
-                        .foregroundStyle(amber)
+                        .foregroundStyle(secondary)
                 }
             }
             .padding(.horizontal, 16)
@@ -143,7 +145,7 @@ struct MetricPickerSheet: View {
             .background(
                 RoundedRectangle(cornerRadius: 9)
                     .fill(isPrimary ? CadreColors.accent.opacity(0.06)
-                          : isSecondary ? amber.opacity(0.06)
+                          : isSecondary ? secondary.opacity(0.06)
                           : Color.clear)
             )
             .padding(.horizontal, 4)

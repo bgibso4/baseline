@@ -14,6 +14,10 @@ struct BodyView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(AppState.self) private var appState: AppState?
 
+    // Track unit preferences so SwiftUI re-renders when they change
+    @AppStorage("weightUnit") private var weightUnit = "lb"
+    @AppStorage("lengthUnit") private var lengthUnit = "in"
+
     private let injectedVM: BodyViewModel?
     @State private var vm: BodyViewModel?
     @State private var showLogMeasurement = false
@@ -59,8 +63,10 @@ struct BodyView: View {
             }
         }
         .onAppear {
-            guard injectedVM == nil, vm == nil else { return }
-            vm = BodyViewModel(modelContext: modelContext)
+            guard injectedVM == nil else { return }
+            if vm == nil {
+                vm = BodyViewModel(modelContext: modelContext)
+            }
             vm?.refresh()
         }
         .sheet(isPresented: $showLogMeasurement) {
@@ -273,6 +279,8 @@ struct BodyView: View {
 
     /// Build tile data from the most recent scan payload.
     private var bodyCompTiles: [TileData]? {
+        // Reference @AppStorage so SwiftUI re-evaluates when unit changes
+        _ = weightUnit
         guard let scan = vm?.recentScans.first,
               let content = vm?.decodedPayload(for: scan) else { return nil }
 
@@ -351,6 +359,8 @@ struct BodyView: View {
     /// Build tile data from latest tape measurements (only metrics with data).
     /// Ordered by `MeasurementType.allCases` for consistent display.
     private var measurementTiles: [TileData] {
+        // Reference @AppStorage so SwiftUI re-evaluates when unit changes
+        _ = lengthUnit
         guard let measurements = vm?.latestMeasurements else { return [] }
         let byType = Dictionary(grouping: measurements) { $0.type }
         return MeasurementType.allCases.compactMap { type -> TileData? in
