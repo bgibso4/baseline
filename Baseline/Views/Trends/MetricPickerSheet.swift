@@ -9,6 +9,7 @@ struct MetricPickerSheet: View {
     @Binding var selectedMetric: TrendMetric
     @Binding var compareEnabled: Bool
     @Binding var secondaryMetric: TrendMetric?
+    @Binding var previousPeriod: PreviousPeriodType?
     let availableMetrics: [TrendMetric]
     var onDismiss: (() -> Void)?
     @Environment(\.dismiss) private var dismiss
@@ -40,8 +41,8 @@ struct MetricPickerSheet: View {
                             .padding(.vertical, 4)
 
                         sectionLabel("Previous Period")
-                        compareOptionRow(label: "Last month", icon: "calendar")
-                        compareOptionRow(label: "Last year", icon: "calendar.badge.clock")
+                        compareOptionRow(period: .lastMonth, icon: "calendar")
+                        compareOptionRow(period: .lastYear, icon: "calendar.badge.clock")
 
                         sectionLabel("Program")
                         programRow
@@ -103,6 +104,7 @@ struct MetricPickerSheet: View {
             if compareEnabled {
                 // Primary is locked in compare mode; tap sets secondary
                 if !isPrimary {
+                    previousPeriod = nil // Clear period when picking a metric
                     secondaryMetric = metric
                     onDismiss?()
                     dismiss()
@@ -173,22 +175,38 @@ struct MetricPickerSheet: View {
 
     // MARK: - Compare option rows
 
-    private func compareOptionRow(label: String, icon: String) -> some View {
-        Button {
-            // TODO: Previous period compare — requires dual-axis chart
+    private func compareOptionRow(period: PreviousPeriodType, icon: String) -> some View {
+        let isActive = previousPeriod == period
+        return Button {
+            Haptics.selection()
+            // Clear secondary metric when picking a period
+            secondaryMetric = nil
+            previousPeriod = period
+            onDismiss?()
+            dismiss()
         } label: {
             HStack(spacing: 10) {
                 Image(systemName: icon)
                     .font(.system(size: 12))
-                    .foregroundStyle(CadreColors.textSecondary)
+                    .foregroundStyle(isActive ? secondary : CadreColors.textSecondary)
                     .frame(width: 26)
-                Text(label)
+                Text(period.rawValue)
                     .font(.system(size: 14, weight: .medium))
                     .foregroundStyle(CadreColors.textPrimary)
                 Spacer()
+                if isActive {
+                    Image(systemName: "checkmark")
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundStyle(secondary)
+                }
             }
             .padding(.horizontal, 16)
             .padding(.vertical, 11)
+            .background(
+                RoundedRectangle(cornerRadius: 9)
+                    .fill(isActive ? secondary.opacity(0.06) : Color.clear)
+            )
+            .padding(.horizontal, 4)
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)

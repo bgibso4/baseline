@@ -132,8 +132,10 @@ struct BodyView: View {
                     }
                 }
                 .padding(.horizontal, CadreSpacing.sheetHorizontal)
+                .transition(.opacity)
             }
         }
+        .animation(.easeIn(duration: 0.25), value: bodyCompTiles?.count)
     }
 
     // MARK: - Measurements

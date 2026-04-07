@@ -54,6 +54,7 @@ struct TrendsView: View {
     @State private var showMetricSheet = false
     @State private var compareEnabled = false
     @State private var secondaryMetric: TrendMetric?
+    @State private var previousPeriod: PreviousPeriodType?
     @State private var availableMetrics: [TrendMetric] = TrendMetric.allCases
     @State private var showFullscreen = false
 
@@ -85,6 +86,8 @@ struct TrendsView: View {
                         .padding(.top, 8)
 
                     content
+                        .animation(.easeInOut(duration: 0.3), value: vm?.selectedMetric)
+                        .animation(.easeInOut(duration: 0.3), value: vm?.timeRange)
 
                     Spacer(minLength: 0)
                 }
@@ -102,6 +105,7 @@ struct TrendsView: View {
                     ),
                     compareEnabled: $compareEnabled,
                     secondaryMetric: $secondaryMetric,
+                    previousPeriod: $previousPeriod,
                     availableMetrics: availableMetrics,
                     onDismiss: { vm?.refresh() }
                 )
@@ -130,12 +134,28 @@ struct TrendsView: View {
             }
             .onChange(of: secondaryMetric) { _, newValue in
                 vm?.secondaryMetric = newValue
+                if let metric = newValue {
+                    vm?.compareMode = .metric(metric)
+                } else if previousPeriod == nil {
+                    vm?.compareMode = nil
+                }
+                vm?.refresh()
+            }
+            .onChange(of: previousPeriod) { _, newValue in
+                if let period = newValue {
+                    vm?.compareMode = .previousPeriod(period)
+                    vm?.secondaryMetric = nil
+                } else if secondaryMetric == nil {
+                    vm?.compareMode = nil
+                }
                 vm?.refresh()
             }
             .onChange(of: compareEnabled) { _, enabled in
                 if !enabled {
                     secondaryMetric = nil
+                    previousPeriod = nil
                     vm?.secondaryMetric = nil
+                    vm?.compareMode = nil
                 }
                 vm?.refresh()
             }
@@ -175,7 +195,7 @@ struct TrendsView: View {
         } label: {
             HStack(spacing: 10) {
                 if compareEnabled, let secondary = secondaryMetric {
-                    // Dual-icon stack for compare mode
+                    // Dual-icon stack for metric compare
                     ZStack {
                         RoundedRectangle(cornerRadius: CadreRadius.sm)
                             .fill(CadreColors.cardElevated)
@@ -190,6 +210,21 @@ struct TrendsView: View {
                             .offset(x: 5, y: 4)
                     }
                     Text("\(selectedMetric.rawValue) \u{00B7} \(secondary.rawValue)")
+                        .font(CadreTypography.trendsMetricName)
+                        .tracking(-0.1)
+                        .foregroundStyle(CadreColors.textPrimary)
+                        .lineLimit(1)
+                } else if compareEnabled, let period = previousPeriod {
+                    // Period compare chip
+                    ZStack {
+                        RoundedRectangle(cornerRadius: CadreRadius.sm)
+                            .fill(CadreColors.cardElevated)
+                            .frame(width: 28, height: 28)
+                        Image(systemName: selectedMetric.icon)
+                            .font(.system(size: 14, weight: .semibold))
+                            .foregroundStyle(CadreColors.accent)
+                    }
+                    Text("\(selectedMetric.rawValue) \u{00B7} vs \(period.rawValue)")
                         .font(CadreTypography.trendsMetricName)
                         .tracking(-0.1)
                         .foregroundStyle(CadreColors.textPrimary)
@@ -244,8 +279,10 @@ struct TrendsView: View {
                     )
                     .contentShape(Rectangle())
                     .onTapGesture {
-                        vm?.timeRange = range
-                        vm?.refresh()
+                        withAnimation(.snappy(duration: 0.25)) {
+                            vm?.timeRange = range
+                            vm?.refresh()
+                        }
                         Haptics.selection()
                     }
             }
@@ -277,6 +314,14 @@ struct TrendsView: View {
                 )
                 .padding(.horizontal, CadreSpacing.sheetHorizontal)
                 .padding(.top, 16)
+            } else if compareEnabled, let period = previousPeriod, !secondaryPoints.isEmpty {
+                dualHeroBlock(
+                    primaryValue: latestValue, primaryUnit: unit, primaryLabel: "Current",
+                    secondaryValue: secondaryPoints.last?.value ?? 0, secondaryUnit: unit, secondaryLabel: period.rawValue,
+                    sub: periodSub
+                )
+                .padding(.horizontal, CadreSpacing.sheetHorizontal)
+                .padding(.top, 16)
             } else {
                 heroBlock(latestValue: latestValue, unit: unit, delta: delta, sub: periodSub)
                     .padding(.horizontal, CadreSpacing.sheetHorizontal)
@@ -303,16 +348,15 @@ struct TrendsView: View {
 
     private func heroBlock(latestValue: Double, unit: String, delta: Double, sub: String) -> some View {
         let latestDate = vm?.dataPoints.last?.date
-        let isLatestToday = latestDate.map { Calendar.current.isDateInToday($0) } ?? false
-        // Weight dims when no entry today; scan metrics always show full color
-        let dimmed = (selectedMetric == .weight) && !isLatestToday
 
         return VStack(alignment: .leading, spacing: 8) {
             HStack(alignment: .firstTextBaseline, spacing: 6) {
                 Text(formatValue(latestValue))
                     .font(CadreTypography.trendsHero)
                     .tracking(-1.2)
-                    .foregroundStyle(dimmed ? CadreColors.textTertiary : CadreColors.accent)
+                    .foregroundStyle(CadreColors.textPrimary)
+                    .contentTransition(.numericText())
+                    .animation(.snappy, value: latestValue)
                 if !unit.isEmpty {
                     Text(unit)
                         .font(CadreTypography.trendsHeroUnit)
@@ -354,6 +398,7 @@ struct TrendsView: View {
                             .font(.system(size: 32, weight: .bold))
                             .tracking(-0.8)
                             .foregroundStyle(CadreColors.accent)
+                            .contentTransition(.numericText())
                         if !primaryUnit.isEmpty {
                             Text(primaryUnit)
                                 .font(.system(size: 12, weight: .medium))
@@ -372,6 +417,7 @@ struct TrendsView: View {
                             .font(.system(size: 32, weight: .bold))
                             .tracking(-0.8)
                             .foregroundStyle(secondaryColor)
+                            .contentTransition(.numericText())
                         if !secondaryUnit.isEmpty {
                             Text(secondaryUnit)
                                 .font(.system(size: 12, weight: .medium))
@@ -396,33 +442,84 @@ struct TrendsView: View {
         return DateFormatting.shortDay(date)
     }
 
+    // MARK: - Dual-axis normalization helpers
+
+    /// Normalize a value into 0–1 range given a min/max. Returns 0.5 if range is zero.
+    private func normalize(_ value: Double, min: Double, max: Double) -> Double {
+        guard max - min > 0 else { return 0.5 }
+        return (value - min) / (max - min)
+    }
+
+    /// Whether dual-axis normalization is needed (compare active with a different metric).
+    /// Previous period uses the same scale, so no normalization needed.
+    private var needsDualAxis: Bool {
+        guard compareEnabled, secondaryMetric != nil else { return false }
+        let secPoints = vm?.secondaryDataPoints ?? []
+        guard !secPoints.isEmpty else { return false }
+        // Previous period compare is same metric → same scale → no dual axis
+        if previousPeriod != nil { return false }
+        return true
+    }
+
+    /// Compute 4 evenly-spaced real-value tick labels for a given min/max range.
+    private func axisTickValues(min: Double, max: Double, count: Int = 4) -> [Double] {
+        guard max - min > 0 else { return [min] }
+        return (0..<count).map { i in
+            min + (max - min) * Double(i) / Double(count - 1)
+        }
+    }
+
     // MARK: - Chart (Swift Charts)
 
     private func chartBlock(points: [TrendDataPoint], movingAverage: [MovingAveragePoint]) -> some View {
         let secondaryPoints = vm?.secondaryDataPoints ?? []
+        let dualAxis = needsDualAxis
+        let hasPreviousPeriod = previousPeriod != nil && compareEnabled && !secondaryPoints.isEmpty
+
+        // Primary range (add 5% padding)
+        let pMin = vm?.minValue ?? 0
+        let pMax = vm?.maxValue ?? 0
+
+        // Secondary range
+        let sMin = vm?.secondaryMinValue ?? 0
+        let sMax = vm?.secondaryMaxValue ?? 0
+
+        // For previous period: merge both ranges since they share the same scale
+        let effectiveMin = hasPreviousPeriod ? Swift.min(pMin, sMin) : pMin
+        let effectiveMax = hasPreviousPeriod ? Swift.max(pMax, sMax) : pMax
+        let pPad = max((effectiveMax - effectiveMin) * 0.05, 0.1)
+        let primaryMin = effectiveMin - pPad
+        let primaryMax = effectiveMax + pPad
+
+        let sPad = max((sMax - sMin) * 0.05, 0.1)
+        let secMin = sMin - sPad
+        let secMax = sMax + sPad
 
         return Chart {
             ForEach(points) { point in
+                let yVal = dualAxis ? normalize(point.value, min: primaryMin, max: primaryMax) : point.value
                 LineMark(
                     x: .value("Date", point.date),
-                    y: .value("Value", point.value),
+                    y: .value("Value", yVal),
                     series: .value("Series", "raw")
                 )
                 .foregroundStyle(CadreColors.textTertiary.opacity(0.7))
                 .lineStyle(StrokeStyle(lineWidth: 1.3, lineCap: .round, lineJoin: .round))
             }
             ForEach(points) { point in
+                let yVal = dualAxis ? normalize(point.value, min: primaryMin, max: primaryMax) : point.value
                 PointMark(
                     x: .value("Date", point.date),
-                    y: .value("Value", point.value)
+                    y: .value("Value", yVal)
                 )
                 .foregroundStyle(CadreColors.textTertiary.opacity(0.7))
                 .symbolSize(10)
             }
             ForEach(movingAverage) { point in
+                let yVal = dualAxis ? normalize(point.value, min: primaryMin, max: primaryMax) : point.value
                 LineMark(
                     x: .value("Date", point.date),
-                    y: .value("MA", point.value),
+                    y: .value("MA", yVal),
                     series: .value("Series", "ma")
                 )
                 .foregroundStyle(CadreColors.chartLine)
@@ -432,17 +529,19 @@ struct TrendsView: View {
             // Secondary metric (compare mode)
             if compareEnabled && !secondaryPoints.isEmpty {
                 ForEach(secondaryPoints) { point in
+                    let yVal = dualAxis ? normalize(point.value, min: secMin, max: secMax) : point.value
                     PointMark(
                         x: .value("Date", point.date),
-                        y: .value("Secondary", point.value)
+                        y: .value("Value", yVal)
                     )
                     .foregroundStyle(secondaryColor)
                     .symbolSize(30)
                 }
                 ForEach(secondaryPoints) { point in
+                    let yVal = dualAxis ? normalize(point.value, min: secMin, max: secMax) : point.value
                     LineMark(
                         x: .value("Date", point.date),
-                        y: .value("Secondary", point.value),
+                        y: .value("Value", yVal),
                         series: .value("Series", "secondary")
                     )
                     .foregroundStyle(secondaryColor)
@@ -458,15 +557,40 @@ struct TrendsView: View {
             }
         }
         .chartYAxis {
-            AxisMarks(position: .trailing, values: .automatic(desiredCount: 4)) { _ in
-                AxisGridLine()
-                    .foregroundStyle(CadreColors.chartGrid)
-                AxisValueLabel()
-                    .foregroundStyle(CadreColors.textTertiary)
-                    .font(CadreTypography.trendsAxisLabel)
+            if dualAxis {
+                // Right axis: primary metric real values (stays on trailing like single-metric)
+                AxisMarks(position: .trailing, values: axisTickValues(min: primaryMin, max: primaryMax).map { normalize($0, min: primaryMin, max: primaryMax) }) { mark in
+                    AxisGridLine()
+                        .foregroundStyle(CadreColors.chartGrid)
+                    AxisValueLabel {
+                        let norm = mark.as(Double.self) ?? 0
+                        let real = primaryMin + norm * (primaryMax - primaryMin)
+                        Text(formatValue(real))
+                            .foregroundStyle(CadreColors.accent)
+                            .font(CadreTypography.trendsAxisLabel)
+                    }
+                }
+                // Left axis: secondary metric real values
+                AxisMarks(position: .leading, values: axisTickValues(min: secMin, max: secMax).map { normalize($0, min: secMin, max: secMax) }) { mark in
+                    AxisValueLabel {
+                        let norm = mark.as(Double.self) ?? 0
+                        let real = secMin + norm * (secMax - secMin)
+                        Text(formatValue(real))
+                            .foregroundStyle(secondaryColor)
+                            .font(CadreTypography.trendsAxisLabel)
+                    }
+                }
+            } else {
+                AxisMarks(position: .trailing, values: .automatic(desiredCount: 4)) { _ in
+                    AxisGridLine()
+                        .foregroundStyle(CadreColors.chartGrid)
+                    AxisValueLabel()
+                        .foregroundStyle(CadreColors.textTertiary)
+                        .font(CadreTypography.trendsAxisLabel)
+                }
             }
         }
-        .chartYScale(domain: .automatic(includesZero: false))
+        .chartYScale(domain: dualAxis ? 0.0...1.0 : (primaryMin)...(primaryMax))
         .frame(height: 280)
         .overlay(alignment: .topTrailing) {
             expandStub
@@ -496,17 +620,36 @@ struct TrendsView: View {
 
     private var legendBlock: some View {
         HStack(spacing: 14) {
-            legendItem(color: CadreColors.textTertiary, label: "Daily")
-            legendItem(color: CadreColors.chartLine, label: "7-day average")
+            if compareEnabled, let sec = secondaryMetric {
+                legendItem(color: CadreColors.accent, label: selectedMetric.rawValue)
+                legendItem(color: secondaryColor, label: sec.rawValue, dashed: true)
+            } else if compareEnabled, let period = previousPeriod {
+                legendItem(color: CadreColors.accent, label: "Current")
+                legendItem(color: secondaryColor, label: period.rawValue, dashed: true)
+            } else {
+                legendItem(color: CadreColors.textTertiary, label: "Daily")
+                legendItem(color: CadreColors.chartLine, label: "7-day average")
+            }
         }
         .frame(maxWidth: .infinity)
     }
 
-    private func legendItem(color: Color, label: String) -> some View {
+    private func legendItem(color: Color, label: String, dashed: Bool = false) -> some View {
         HStack(spacing: 5) {
-            RoundedRectangle(cornerRadius: 1)
-                .fill(color)
-                .frame(width: 12, height: 2)
+            if dashed {
+                HStack(spacing: 2) {
+                    ForEach(0..<3, id: \.self) { _ in
+                        RoundedRectangle(cornerRadius: 1)
+                            .fill(color)
+                            .frame(width: 3, height: 2)
+                    }
+                }
+                .frame(width: 12)
+            } else {
+                RoundedRectangle(cornerRadius: 1)
+                    .fill(color)
+                    .frame(width: 12, height: 2)
+            }
             Text(label)
                 .font(CadreTypography.trendsLegend)
                 .foregroundStyle(CadreColors.textSecondary)
@@ -539,6 +682,7 @@ struct TrendsView: View {
                 Text(value.map { formatValue($0) } ?? "\u{2014}")
                     .font(CadreTypography.trendsStatValue)
                     .foregroundStyle(CadreColors.textPrimary)
+                    .contentTransition(.numericText())
                 if value != nil && !unit.isEmpty {
                     Text(unit)
                         .font(CadreTypography.trendsStatUnit)
@@ -724,28 +868,46 @@ struct TrendsView: View {
 
                 // Right: chart fills remaining space
                 if points.count >= 2 {
+                    let fsDualAxis = hasSecondary && previousPeriod == nil
+                    let fsHasPreviousPeriod = previousPeriod != nil && hasSecondary
+                    let fsPMin = vm?.minValue ?? 0
+                    let fsPMax = vm?.maxValue ?? 0
+                    let fsSMin = vm?.secondaryMinValue ?? 0
+                    let fsSMax = vm?.secondaryMaxValue ?? 0
+                    let fsEffMin = fsHasPreviousPeriod ? Swift.min(fsPMin, fsSMin) : fsPMin
+                    let fsEffMax = fsHasPreviousPeriod ? Swift.max(fsPMax, fsSMax) : fsPMax
+                    let fsPPad = max((fsEffMax - fsEffMin) * 0.05, 0.1)
+                    let fsPrimaryMin = fsEffMin - fsPPad
+                    let fsPrimaryMax = fsEffMax + fsPPad
+                    let fsSPad = max((fsSMax - fsSMin) * 0.05, 0.1)
+                    let fsSecMin = fsSMin - fsSPad
+                    let fsSecMax = fsSMax + fsSPad
+
                     Chart {
                         ForEach(points) { point in
+                            let yVal = fsDualAxis ? normalize(point.value, min: fsPrimaryMin, max: fsPrimaryMax) : point.value
                             LineMark(
                                 x: .value("Date", point.date),
-                                y: .value("Value", point.value),
+                                y: .value("Value", yVal),
                                 series: .value("Series", "raw")
                             )
                             .foregroundStyle(CadreColors.textTertiary.opacity(0.7))
                             .lineStyle(StrokeStyle(lineWidth: 1.3, lineCap: .round, lineJoin: .round))
                         }
                         ForEach(points) { point in
+                            let yVal = fsDualAxis ? normalize(point.value, min: fsPrimaryMin, max: fsPrimaryMax) : point.value
                             PointMark(
                                 x: .value("Date", point.date),
-                                y: .value("Value", point.value)
+                                y: .value("Value", yVal)
                             )
                             .foregroundStyle(CadreColors.textTertiary.opacity(0.7))
                             .symbolSize(10)
                         }
                         ForEach(ma) { point in
+                            let yVal = fsDualAxis ? normalize(point.value, min: fsPrimaryMin, max: fsPrimaryMax) : point.value
                             LineMark(
                                 x: .value("Date", point.date),
-                                y: .value("MA", point.value),
+                                y: .value("MA", yVal),
                                 series: .value("Series", "ma")
                             )
                             .foregroundStyle(CadreColors.chartLine)
@@ -755,17 +917,19 @@ struct TrendsView: View {
                         // Secondary metric line (compare)
                         if hasSecondary {
                             ForEach(secondaryPoints) { point in
+                                let yVal = fsDualAxis ? normalize(point.value, min: fsSecMin, max: fsSecMax) : point.value
                                 PointMark(
                                     x: .value("Date", point.date),
-                                    y: .value("Secondary", point.value)
+                                    y: .value("Value", yVal)
                                 )
                                 .foregroundStyle(secondaryColor)
                                 .symbolSize(30)
                             }
                             ForEach(secondaryPoints) { point in
+                                let yVal = fsDualAxis ? normalize(point.value, min: fsSecMin, max: fsSecMax) : point.value
                                 LineMark(
                                     x: .value("Date", point.date),
-                                    y: .value("Secondary", point.value),
+                                    y: .value("Value", yVal),
                                     series: .value("Series", "secondary")
                                 )
                                 .foregroundStyle(secondaryColor)
@@ -781,15 +945,38 @@ struct TrendsView: View {
                         }
                     }
                     .chartYAxis {
-                        AxisMarks(position: .trailing, values: .automatic(desiredCount: 6)) { _ in
-                            AxisGridLine()
-                                .foregroundStyle(CadreColors.chartGrid)
-                            AxisValueLabel()
-                                .foregroundStyle(CadreColors.textTertiary)
-                                .font(CadreTypography.trendsAxisLabel)
+                        if fsDualAxis {
+                            AxisMarks(position: .trailing, values: axisTickValues(min: fsPrimaryMin, max: fsPrimaryMax).map { normalize($0, min: fsPrimaryMin, max: fsPrimaryMax) }) { mark in
+                                AxisGridLine()
+                                    .foregroundStyle(CadreColors.chartGrid)
+                                AxisValueLabel {
+                                    let norm = mark.as(Double.self) ?? 0
+                                    let real = fsPrimaryMin + norm * (fsPrimaryMax - fsPrimaryMin)
+                                    Text(formatValue(real))
+                                        .foregroundStyle(CadreColors.accent)
+                                        .font(CadreTypography.trendsAxisLabel)
+                                }
+                            }
+                            AxisMarks(position: .leading, values: axisTickValues(min: fsSecMin, max: fsSecMax).map { normalize($0, min: fsSecMin, max: fsSecMax) }) { mark in
+                                AxisValueLabel {
+                                    let norm = mark.as(Double.self) ?? 0
+                                    let real = fsSecMin + norm * (fsSecMax - fsSecMin)
+                                    Text(formatValue(real))
+                                        .foregroundStyle(secondaryColor)
+                                        .font(CadreTypography.trendsAxisLabel)
+                                }
+                            }
+                        } else {
+                            AxisMarks(position: .trailing, values: .automatic(desiredCount: 6)) { _ in
+                                AxisGridLine()
+                                    .foregroundStyle(CadreColors.chartGrid)
+                                AxisValueLabel()
+                                    .foregroundStyle(CadreColors.textTertiary)
+                                    .font(CadreTypography.trendsAxisLabel)
+                            }
                         }
                     }
-                    .chartYScale(domain: .automatic(includesZero: false))
+                    .chartYScale(domain: fsDualAxis ? 0.0...1.0 : (fsPrimaryMin)...(fsPrimaryMax))
                     .padding()
                 } else if let point = points.first {
                     Chart {

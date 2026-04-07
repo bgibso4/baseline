@@ -2,9 +2,6 @@ import SwiftUI
 import SwiftData
 import TipKit
 
-// TODO: Dynamic Type — the app uses Exo 2 custom font with fixed sizes throughout.
-// Converting to Dynamic Type would be a large refactor. Track as future work.
-
 /// Today (now) screen — landing glance at current weight.
 ///
 /// Visual target: `docs/mockups/today-APPROVED-variant-a-2026-04-04.html`.
@@ -111,6 +108,7 @@ struct NowView: View {
                 }
             }
             .frame(width: 290, height: 248)
+            .animation(.easeInOut(duration: 0.4), value: arcFraction)
 
             rangeToggle
         }
@@ -148,6 +146,8 @@ struct NowView: View {
                     .font(CadreTypography.weightHero)
                     .tracking(-2.5)
                     .foregroundStyle(dimmed ? CadreColors.textTertiary : CadreColors.textPrimary)
+                    .contentTransition(.numericText())
+                    .animation(.snappy, value: weight)
                 // Unit suffix — 24pt medium (mockup .weight-num .unit)
                 Text(unit)
                     .font(CadreTypography.weightUnit)
@@ -187,8 +187,9 @@ struct NowView: View {
                     )
                     .contentShape(Rectangle())
                     .onTapGesture {
-                        // TODO: wire to VM window (follow-up) — currently inert.
-                        selectedRange = option
+                        withAnimation(.snappy(duration: 0.25)) {
+                            selectedRange = option
+                        }
                         Haptics.selection()
                     }
             }
@@ -233,6 +234,7 @@ struct NowView: View {
                 Text(value.map { UnitConversion.formatWeight($0, unit: unit) } ?? "—")
                     .font(CadreTypography.statValue)
                     .foregroundStyle(CadreColors.textPrimary)
+                    .contentTransition(.numericText())
                 if value != nil {
                     // Stat unit suffix — 10pt regular (mockup .stat .value .unit)
                     Text(unit)

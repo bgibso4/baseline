@@ -8,15 +8,17 @@ class WeightEntry {
     var unit: String = "lb"
     var date: Date = Date()
     var notes: String?
+    @Attribute(.externalStorage) var photoData: Data?
     var createdAt: Date = Date()
     var updatedAt: Date = Date()
 
-    init(weight: Double, unit: String = "lb", date: Date = Date(), notes: String? = nil) {
+    init(weight: Double, unit: String = "lb", date: Date = Date(), notes: String? = nil, photoData: Data? = nil) {
         self.id = UUID()
         self.weight = weight
         self.unit = unit
         self.date = Calendar.current.startOfDay(for: date)
         self.notes = notes
+        self.photoData = photoData
         self.createdAt = Date()
         self.updatedAt = Date()
     }

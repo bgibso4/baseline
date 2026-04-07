@@ -169,6 +169,25 @@ enum TrendMetric: String, CaseIterable {
     }
 }
 
+/// What the compare overlay shows: another metric, or the same metric from a prior period.
+enum CompareMode: Equatable {
+    case metric(TrendMetric)
+    case previousPeriod(PreviousPeriodType)
+}
+
+enum PreviousPeriodType: String, CaseIterable {
+    case lastMonth = "Last month"
+    case lastYear = "Last year"
+
+    /// Number of days to shift the prior window forward for date-alignment.
+    var shiftDays: Int {
+        switch self {
+        case .lastMonth: return 30
+        case .lastYear: return 365
+        }
+    }
+}
+
 struct TrendDataPoint: Identifiable {
     let id = UUID()
     let date: Date
@@ -191,6 +210,7 @@ class TrendsViewModel {
     var timeRange: TimeRange = .month
     var selectedMetric: TrendMetric = .weight
     var secondaryMetric: TrendMetric?
+    var compareMode: CompareMode?
 
     /// Generic data points for the currently selected metric.
     var dataPoints: [TrendDataPoint] = []
@@ -204,6 +224,9 @@ class TrendsViewModel {
 
     var minValue: Double { dataPoints.map(\.value).min() ?? 0 }
     var maxValue: Double { dataPoints.map(\.value).max() ?? 0 }
+
+    var secondaryMinValue: Double { secondaryDataPoints.map(\.value).min() ?? 0 }
+    var secondaryMaxValue: Double { secondaryDataPoints.map(\.value).max() ?? 0 }
 
     /// Legacy aliases for weight-only tests.
     var minWeight: Double { minValue }
@@ -277,13 +300,26 @@ class TrendsViewModel {
         refreshSecondary()
     }
 
-    /// Loads data for the secondary (compare) metric if set.
+    /// Loads data for the secondary compare overlay.
     private func refreshSecondary() {
-        guard let metric = secondaryMetric else {
+        // Derive compareMode from secondaryMetric for backwards compat
+        let mode = compareMode ?? secondaryMetric.map { CompareMode.metric($0) }
+
+        guard let mode else {
             secondaryDataPoints = []
             return
         }
 
+        switch mode {
+        case .metric(let metric):
+            refreshSecondaryMetric(metric)
+        case .previousPeriod(let period):
+            refreshPreviousPeriod(period)
+        }
+    }
+
+    /// Load a different metric as the secondary series.
+    private func refreshSecondaryMetric(_ metric: TrendMetric) {
         // Temporarily swap selectedMetric to reuse existing refresh logic
         let primary = selectedMetric
         let primaryData = dataPoints
@@ -325,6 +361,84 @@ class TrendsViewModel {
         dataPoints = primaryData
         movingAverage = primaryMA
         entries = primaryEntries
+    }
+
+    /// Load the same metric from a prior period, shifting dates forward to align.
+    private func refreshPreviousPeriod(_ period: PreviousPeriodType) {
+        let calendar = Calendar.current
+        let shiftDays = period.shiftDays
+
+        // Save current state
+        let primary = selectedMetric
+        let primaryData = dataPoints
+        let primaryMA = movingAverage
+        let primaryEntries = entries
+        let primaryTimeRange = timeRange
+
+        // Temporarily set time range to load the prior window.
+        // We load "All" data and then filter to the prior window manually,
+        // because the refresh methods filter based on timeRange relative to today.
+        timeRange = .all
+        refresh_primary_only()
+
+        // Now dataPoints has ALL data for this metric. Filter to the prior period.
+        let currentEnd = calendar.startOfDay(for: Date())
+        let currentStart: Date
+        if let days = primaryTimeRange.days {
+            currentStart = calendar.date(byAdding: .day, value: -days, to: currentEnd)!
+        } else {
+            // "All" range — use the earliest primary data point as reference
+            currentStart = primaryData.first?.date ?? currentEnd
+        }
+
+        let priorEnd = currentStart
+        let priorStart = calendar.date(byAdding: .day, value: -shiftDays, to: priorEnd)!
+
+        // Filter to the prior window and shift dates forward
+        let priorPoints = dataPoints.compactMap { point -> TrendDataPoint? in
+            guard point.date >= priorStart && point.date < priorEnd else { return nil }
+            let shifted = calendar.date(byAdding: .day, value: shiftDays, to: point.date) ?? point.date
+            return TrendDataPoint(date: shifted, value: point.value)
+        }
+
+        secondaryDataPoints = priorPoints
+
+        // Restore
+        selectedMetric = primary
+        dataPoints = primaryData
+        movingAverage = primaryMA
+        entries = primaryEntries
+        timeRange = primaryTimeRange
+    }
+
+    /// Refresh just the primary metric data (no secondary, no MA) — used by previousPeriod.
+    private func refresh_primary_only() {
+        switch selectedMetric {
+        case .weight: refreshWeight()
+        case .bodyFatPct: refreshScanMetric { $0.bodyFatPct }
+        case .skeletalMuscle: refreshScanMetric { UnitConversion.displayMass($0.skeletalMuscleMassKg).value }
+        case .bmi: refreshScanMetric { $0.bmi }
+        case .fatMass: refreshScanMetric { UnitConversion.displayMass($0.bodyFatMassKg).value }
+        case .leanBodyMass: refreshOptionalScanMetric { $0.leanBodyMassKg.map { UnitConversion.displayMass($0).value } }
+        case .totalBodyWater: refreshScanMetric { $0.totalBodyWaterL }
+        case .icw: refreshOptionalScanMetric { $0.intracellularWaterL }
+        case .ecw: refreshOptionalScanMetric { $0.extracellularWaterL }
+        case .dryLeanMass: refreshOptionalScanMetric { $0.dryLeanMassKg.map { UnitConversion.displayMass($0).value } }
+        case .bmr: refreshScanMetric { $0.basalMetabolicRate }
+        case .inBodyScore: refreshOptionalScanMetric { $0.inBodyScore }
+        case .rightArmLean: refreshOptionalScanMetric { $0.rightArmLeanKg.map { UnitConversion.displayMass($0).value } }
+        case .leftArmLean: refreshOptionalScanMetric { $0.leftArmLeanKg.map { UnitConversion.displayMass($0).value } }
+        case .trunkLean: refreshOptionalScanMetric { $0.trunkLeanKg.map { UnitConversion.displayMass($0).value } }
+        case .rightLegLean: refreshOptionalScanMetric { $0.rightLegLeanKg.map { UnitConversion.displayMass($0).value } }
+        case .leftLegLean: refreshOptionalScanMetric { $0.leftLegLeanKg.map { UnitConversion.displayMass($0).value } }
+        case .rightArmFat: refreshOptionalScanMetric { $0.rightArmFatKg.map { UnitConversion.displayMass($0).value } }
+        case .leftArmFat: refreshOptionalScanMetric { $0.leftArmFatKg.map { UnitConversion.displayMass($0).value } }
+        case .trunkFat: refreshOptionalScanMetric { $0.trunkFatKg.map { UnitConversion.displayMass($0).value } }
+        case .rightLegFat: refreshOptionalScanMetric { $0.rightLegFatKg.map { UnitConversion.displayMass($0).value } }
+        case .leftLegFat: refreshOptionalScanMetric { $0.leftLegFatKg.map { UnitConversion.displayMass($0).value } }
+        case .waist, .chest, .neck, .hips, .armLeft, .armRight, .thighLeft, .thighRight, .calfLeft, .calfRight:
+            refreshMeasurement()
+        }
     }
 
     // MARK: - Weight

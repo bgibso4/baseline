@@ -25,6 +25,7 @@ struct WeighInSheet: View {
     @State private var selectedDate: Date = Date()
     @State private var selectedPhoto: PhotosPickerItem?
     @State private var photoData: Data?
+    @State private var showOverwriteAlert = false
 
     init(
         lastWeight: Double?,
@@ -134,7 +135,6 @@ struct WeighInSheet: View {
             }
 
             if let photoData, let uiImage = UIImage(data: photoData) {
-                // TODO: persist photo data to WeightEntry (no photo field yet)
                 Image(uiImage: uiImage)
                     .resizable()
                     .scaledToFill()
@@ -319,10 +319,11 @@ struct WeighInSheet: View {
     private var saveButton: some View {
         // 40px margin above Save button per DESIGN_DECISIONS.md
         Button {
-            vm?.save(date: selectedDate)
-            Haptics.success()
-            onSave?()
-            dismiss()
+            if vm?.existingEntry(for: selectedDate) != nil {
+                showOverwriteAlert = true
+            } else {
+                performSave()
+            }
         } label: {
             Text("Save")
                 .font(CadreTypography.buttonLabel)
@@ -334,6 +335,21 @@ struct WeighInSheet: View {
                 .clipShape(RoundedRectangle(cornerRadius: 16))
         }
         .padding(.top, 40)
+        .alert("Overwrite Entry?", isPresented: $showOverwriteAlert) {
+            Button("Cancel", role: .cancel) { }
+            Button("Overwrite", role: .destructive) {
+                performSave()
+            }
+        } message: {
+            Text("You already have a weigh-in for this date. Do you want to replace it?")
+        }
+    }
+
+    private func performSave() {
+        vm?.save(date: selectedDate, photoData: photoData)
+        Haptics.success()
+        onSave?()
+        dismiss()
     }
 }
 

@@ -18,6 +18,19 @@ packages:
     url: https://github.com/pointfreeco/swift-snapshot-testing
     from: 1.17.0
 
+schemes:
+  Baseline:
+    build:
+      targets:
+        Baseline: all
+        BaselineTests: [test]
+    run:
+      config: Debug
+    test:
+      config: Debug
+      targets:
+        - BaselineTests
+
 targets:
   Baseline:
     type: application
@@ -28,6 +41,8 @@ targets:
       path: Baseline/Info.plist
       properties:
         UILaunchScreen: {}
+        UIBackgroundModes:
+          - remote-notification
         UISupportedInterfaceOrientations:
           - UIInterfaceOrientationPortrait
           - UIInterfaceOrientationLandscapeLeft
