@@ -6,6 +6,9 @@ import SwiftData
 /// Row layout per design decisions: date block (day + month-year) on left,
 /// scan type (InBody 570) as title, 3 key metrics (BF / Muscle / BMI) inline.
 struct ScanHistoryView: View {
+    // Track unit preference so SwiftUI re-renders when it changes
+    @AppStorage("weightUnit") private var weightUnit = "lb"
+
     let scans: [Scan]
     let onDelete: (Scan) -> Void
     let decodedPayload: (Scan) -> ScanContent?
@@ -90,6 +93,7 @@ struct ScanHistoryView: View {
     }
 
     private func metricsRow(_ content: ScanContent) -> some View {
+        _ = weightUnit  // SwiftUI dependency: re-render when unit preference changes
         switch content {
         case .inBody(let p):
             let smm = UnitConversion.formattedMass(p.skeletalMuscleMassKg)

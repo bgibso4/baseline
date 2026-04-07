@@ -3,6 +3,9 @@ import SwiftUI
 /// Lightweight metric history — shows date + value rows for a single metric.
 /// Used when tapping body comp or measurement tiles on the Body tab.
 struct MetricHistoryView: View {
+    // Track unit preference so SwiftUI re-renders when it changes
+    @AppStorage("lengthUnit") private var lengthUnit = "in"
+
     let metricName: String
     let unit: String
     let entries: [(date: Date, value: String)]

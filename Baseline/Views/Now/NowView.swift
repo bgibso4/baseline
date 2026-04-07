@@ -12,6 +12,10 @@ import TipKit
 /// in open area) → stats card → Weigh In button anchored above tab bar.
 struct NowView: View {
     @Environment(\.modelContext) private var modelContext
+
+    // Track unit preference so SwiftUI re-renders when it changes
+    @AppStorage("weightUnit") private var weightUnit = "lb"
+
     @State private var vm: NowViewModel?
     @State private var showWeighIn = false
     @State private var showSettings = false
@@ -132,6 +136,7 @@ struct NowView: View {
     }
 
     private var weightNumber: some View {
+        _ = weightUnit  // SwiftUI dependency: re-render when unit preference changes
         let displayWeight = vm?.todayEntry?.weight ?? vm?.lastWeight
         let unit = vm?.unit ?? "lb"
         let dimmed = vm?.todayEntry == nil && displayWeight != nil
@@ -285,6 +290,7 @@ struct NowView: View {
     /// Where today's weight sits within the recent min–max range, 0...1.
     /// Returns nil if we lack data for a meaningful arc.
     private var arcFraction: Double? {
+        _ = weightUnit  // SwiftUI dependency: re-render when unit preference changes
         guard let current = vm?.lastWeight,
               filteredWeights.count >= 2
         else { return nil }
@@ -295,6 +301,7 @@ struct NowView: View {
     }
 
     private var computedStats: (lowest: Double?, average: Double?, highest: Double?) {
+        _ = weightUnit  // SwiftUI dependency: re-render when unit preference changes
         let values = filteredWeights.map { displayWeight(for: $0) }
         guard !values.isEmpty else { return (nil, nil, nil) }
         let avg = values.reduce(0, +) / Double(values.count)

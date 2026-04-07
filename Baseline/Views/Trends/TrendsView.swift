@@ -45,6 +45,11 @@ private class LandscapeHostingVC<Content: View>: UIHostingController<Content> {
 struct TrendsView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(AppState.self) private var appState: AppState?
+
+    // Track unit preferences so SwiftUI re-renders when they change
+    @AppStorage("weightUnit") private var weightUnit = "lb"
+    @AppStorage("lengthUnit") private var lengthUnit = "in"
+
     @State private var vm: TrendsViewModel?
     @State private var showMetricSheet = false
     @State private var compareEnabled = false
@@ -100,7 +105,7 @@ struct TrendsView: View {
                     availableMetrics: availableMetrics,
                     onDismiss: { vm?.refresh() }
                 )
-                .presentationDetents([.medium, .large])
+                .presentationDetents([.fraction(0.6)])
                 .presentationDragIndicator(.hidden)
                 .presentationBackground(Color(red: 28/255, green: 28/255, blue: 34/255))
             }
@@ -123,6 +128,19 @@ struct TrendsView: View {
                     vm?.refresh()
                 }
             }
+            .onChange(of: secondaryMetric) { _, newValue in
+                vm?.secondaryMetric = newValue
+                vm?.refresh()
+            }
+            .onChange(of: compareEnabled) { _, enabled in
+                if !enabled {
+                    secondaryMetric = nil
+                    vm?.secondaryMetric = nil
+                }
+                vm?.refresh()
+            }
+            .onChange(of: weightUnit) { _, _ in vm?.refresh() }
+            .onChange(of: lengthUnit) { _, _ in vm?.refresh() }
         }
     }
 
@@ -149,7 +167,7 @@ struct TrendsView: View {
 
     // MARK: - Metric chip button (always visible)
 
-    private let amber = Color(red: 1.0, green: 0.75, blue: 0.0)
+    private let secondaryColor = Color(hex: "B89968") // dusty secondaryColor from design tokens
 
     private var metricChipButton: some View {
         Button {
@@ -168,7 +186,7 @@ struct TrendsView: View {
                             .offset(x: -3, y: -2)
                         Image(systemName: secondary.icon)
                             .font(.system(size: 10, weight: .semibold))
-                            .foregroundStyle(amber)
+                            .foregroundStyle(secondaryColor)
                             .offset(x: 5, y: 4)
                     }
                     Text("\(selectedMetric.rawValue) \u{00B7} \(secondary.rawValue)")
@@ -248,10 +266,22 @@ struct TrendsView: View {
         let periodSub = periodSubtitle(points: points, unit: unit)
         let ma = vm?.movingAverage ?? []
 
+        let secondaryPoints = vm?.secondaryDataPoints ?? []
+
         return VStack(spacing: 0) {
-            heroBlock(latestValue: latestValue, unit: unit, delta: delta, sub: periodSub)
+            if compareEnabled, let secMetric = secondaryMetric, !secondaryPoints.isEmpty {
+                dualHeroBlock(
+                    primaryValue: latestValue, primaryUnit: unit, primaryLabel: selectedMetric.rawValue,
+                    secondaryValue: secondaryPoints.last?.value ?? 0, secondaryUnit: secMetric.unit, secondaryLabel: secMetric.rawValue,
+                    sub: periodSub
+                )
                 .padding(.horizontal, CadreSpacing.sheetHorizontal)
-                .padding(.top, 20)
+                .padding(.top, 16)
+            } else {
+                heroBlock(latestValue: latestValue, unit: unit, delta: delta, sub: periodSub)
+                    .padding(.horizontal, CadreSpacing.sheetHorizontal)
+                    .padding(.top, 20)
+            }
 
             chartBlock(points: points, movingAverage: ma)
                 .padding(.horizontal, CadreSpacing.sheetHorizontal)
@@ -306,6 +336,57 @@ struct TrendsView: View {
         .frame(maxWidth: .infinity, alignment: .leading)
     }
 
+    private func dualHeroBlock(
+        primaryValue: Double, primaryUnit: String, primaryLabel: String,
+        secondaryValue: Double, secondaryUnit: String, secondaryLabel: String,
+        sub: String
+    ) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(spacing: 22) {
+                // Primary
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(primaryLabel.uppercased())
+                        .font(.system(size: 9, weight: .bold))
+                        .tracking(0.5)
+                        .foregroundStyle(CadreColors.accent)
+                    HStack(alignment: .firstTextBaseline, spacing: 4) {
+                        Text(formatValue(primaryValue))
+                            .font(.system(size: 32, weight: .bold))
+                            .tracking(-0.8)
+                            .foregroundStyle(CadreColors.accent)
+                        if !primaryUnit.isEmpty {
+                            Text(primaryUnit)
+                                .font(.system(size: 12, weight: .medium))
+                                .foregroundStyle(CadreColors.textSecondary)
+                        }
+                    }
+                }
+                // Secondary
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(secondaryLabel.uppercased())
+                        .font(.system(size: 9, weight: .bold))
+                        .tracking(0.5)
+                        .foregroundStyle(secondaryColor)
+                    HStack(alignment: .firstTextBaseline, spacing: 4) {
+                        Text(formatValue(secondaryValue))
+                            .font(.system(size: 32, weight: .bold))
+                            .tracking(-0.8)
+                            .foregroundStyle(secondaryColor)
+                        if !secondaryUnit.isEmpty {
+                            Text(secondaryUnit)
+                                .font(.system(size: 12, weight: .medium))
+                                .foregroundStyle(CadreColors.textSecondary)
+                        }
+                    }
+                }
+            }
+            Text(sub)
+                .font(CadreTypography.trendsHeroSub)
+                .foregroundStyle(CadreColors.textTertiary)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
     private func heroRelativeDate(from date: Date) -> String {
         let calendar = Calendar.current
         if calendar.isDateInToday(date) { return "Today" }
@@ -318,7 +399,9 @@ struct TrendsView: View {
     // MARK: - Chart (Swift Charts)
 
     private func chartBlock(points: [TrendDataPoint], movingAverage: [MovingAveragePoint]) -> some View {
-        Chart {
+        let secondaryPoints = vm?.secondaryDataPoints ?? []
+
+        return Chart {
             ForEach(points) { point in
                 LineMark(
                     x: .value("Date", point.date),
@@ -344,6 +427,27 @@ struct TrendsView: View {
                 )
                 .foregroundStyle(CadreColors.chartLine)
                 .lineStyle(StrokeStyle(lineWidth: 2.6, lineCap: .round, lineJoin: .round))
+            }
+
+            // Secondary metric (compare mode)
+            if compareEnabled && !secondaryPoints.isEmpty {
+                ForEach(secondaryPoints) { point in
+                    PointMark(
+                        x: .value("Date", point.date),
+                        y: .value("Secondary", point.value)
+                    )
+                    .foregroundStyle(secondaryColor)
+                    .symbolSize(30)
+                }
+                ForEach(secondaryPoints) { point in
+                    LineMark(
+                        x: .value("Date", point.date),
+                        y: .value("Secondary", point.value),
+                        series: .value("Series", "secondary")
+                    )
+                    .foregroundStyle(secondaryColor)
+                    .lineStyle(StrokeStyle(lineWidth: 1.8, lineCap: .round, lineJoin: .round, dash: [4, 3]))
+                }
             }
         }
         .chartXAxis {
@@ -534,9 +638,11 @@ struct TrendsView: View {
     private var fullscreenChartContent: some View {
         let points = vm?.dataPoints ?? []
         let ma = vm?.movingAverage ?? []
+        let secondaryPoints = vm?.secondaryDataPoints ?? []
         let unit = selectedMetric.unit
         let latestValue = points.last?.value ?? 0
         let periodSub = periodSubtitle(points: points, unit: unit)
+        let hasSecondary = compareEnabled && secondaryMetric != nil && !secondaryPoints.isEmpty
 
         return ZStack {
             CadreColors.bg.ignoresSafeArea()
@@ -544,30 +650,69 @@ struct TrendsView: View {
             HStack(spacing: 0) {
                 // Left panel: metric info
                 VStack(alignment: .leading, spacing: 12) {
-                    // Metric name with icon dot
-                    HStack(spacing: 8) {
-                        Circle()
-                            .fill(CadreColors.accent)
-                            .frame(width: 8, height: 8)
-                        Text(selectedMetric.rawValue)
-                            .font(.system(size: 14, weight: .semibold))
-                            .foregroundStyle(CadreColors.textPrimary)
-                    }
+                    if hasSecondary, let secMetric = secondaryMetric {
+                        // Dual hero for compare mode
+                        // Primary
+                        HStack(spacing: 8) {
+                            Circle().fill(CadreColors.accent).frame(width: 8, height: 8)
+                            Text(selectedMetric.rawValue)
+                                .font(.system(size: 12, weight: .semibold))
+                                .foregroundStyle(CadreColors.textPrimary)
+                        }
+                        HStack(alignment: .firstTextBaseline, spacing: 4) {
+                            Text(formatValue(latestValue))
+                                .font(.system(size: 32, weight: .bold))
+                                .tracking(-0.8)
+                                .foregroundStyle(CadreColors.accent)
+                            if !unit.isEmpty {
+                                Text(unit)
+                                    .font(.system(size: 12, weight: .medium))
+                                    .foregroundStyle(CadreColors.textSecondary)
+                            }
+                        }
 
-                    // Hero value (latest)
-                    HStack(alignment: .firstTextBaseline, spacing: 4) {
-                        Text(formatValue(latestValue))
-                            .font(.system(size: 36, weight: .bold))
-                            .tracking(-1.0)
-                            .foregroundStyle(CadreColors.accent)
-                        if !unit.isEmpty {
-                            Text(unit)
-                                .font(.system(size: 14, weight: .medium))
-                                .foregroundStyle(CadreColors.textSecondary)
+                        // Divider
+                        Rectangle().fill(CadreColors.divider).frame(height: 0.5)
+
+                        // Secondary
+                        HStack(spacing: 8) {
+                            Circle().fill(secondaryColor).frame(width: 8, height: 8)
+                            Text(secMetric.rawValue)
+                                .font(.system(size: 12, weight: .semibold))
+                                .foregroundStyle(CadreColors.textPrimary)
+                        }
+                        HStack(alignment: .firstTextBaseline, spacing: 4) {
+                            Text(formatValue(secondaryPoints.last?.value ?? 0))
+                                .font(.system(size: 32, weight: .bold))
+                                .tracking(-0.8)
+                                .foregroundStyle(secondaryColor)
+                            if !secMetric.unit.isEmpty {
+                                Text(secMetric.unit)
+                                    .font(.system(size: 12, weight: .medium))
+                                    .foregroundStyle(CadreColors.textSecondary)
+                            }
+                        }
+                    } else {
+                        // Single metric hero
+                        HStack(spacing: 8) {
+                            Circle().fill(CadreColors.accent).frame(width: 8, height: 8)
+                            Text(selectedMetric.rawValue)
+                                .font(.system(size: 14, weight: .semibold))
+                                .foregroundStyle(CadreColors.textPrimary)
+                        }
+                        HStack(alignment: .firstTextBaseline, spacing: 4) {
+                            Text(formatValue(latestValue))
+                                .font(.system(size: 36, weight: .bold))
+                                .tracking(-1.0)
+                                .foregroundStyle(CadreColors.accent)
+                            if !unit.isEmpty {
+                                Text(unit)
+                                    .font(.system(size: 14, weight: .medium))
+                                    .foregroundStyle(CadreColors.textSecondary)
+                            }
                         }
                     }
 
-                    // Date range + rate
                     Text(periodSub)
                         .font(.system(size: 11, weight: .medium))
                         .foregroundStyle(CadreColors.textTertiary)
@@ -605,6 +750,27 @@ struct TrendsView: View {
                             )
                             .foregroundStyle(CadreColors.chartLine)
                             .lineStyle(StrokeStyle(lineWidth: 2.6, lineCap: .round, lineJoin: .round))
+                        }
+
+                        // Secondary metric line (compare)
+                        if hasSecondary {
+                            ForEach(secondaryPoints) { point in
+                                PointMark(
+                                    x: .value("Date", point.date),
+                                    y: .value("Secondary", point.value)
+                                )
+                                .foregroundStyle(secondaryColor)
+                                .symbolSize(30)
+                            }
+                            ForEach(secondaryPoints) { point in
+                                LineMark(
+                                    x: .value("Date", point.date),
+                                    y: .value("Secondary", point.value),
+                                    series: .value("Series", "secondary")
+                                )
+                                .foregroundStyle(secondaryColor)
+                                .lineStyle(StrokeStyle(lineWidth: 1.8, lineCap: .round, lineJoin: .round, dash: [4, 3]))
+                            }
                         }
                     }
                     .chartXAxis {

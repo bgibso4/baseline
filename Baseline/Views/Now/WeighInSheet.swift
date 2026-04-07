@@ -11,6 +11,9 @@ struct WeighInSheet: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
 
+    // Track unit preference so SwiftUI re-renders when it changes
+    @AppStorage("weightUnit") private var weightUnit = "lb"
+
     let lastWeight: Double?
     let unit: String
     private let injectedVM: WeighInViewModel?
@@ -171,6 +174,7 @@ struct WeighInSheet: View {
     }
 
     private var weightDisplay: some View {
+        _ = weightUnit  // SwiftUI dependency: re-render when unit preference changes
         // 92pt bold, -3px tracking hero (mockup .weight-num)
         let currentWeight = vm?.currentWeight ?? (lastWeight ?? 0)
         return HStack(alignment: .firstTextBaseline, spacing: 4) {

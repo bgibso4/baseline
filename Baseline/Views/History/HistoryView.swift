@@ -109,10 +109,14 @@ private struct HistoryRow: View {
     let entry: WeightEntry
     let delta: Double?
 
+    // Track unit preference so SwiftUI re-renders when it changes
+    @AppStorage("weightUnit") private var weightUnit = "lb"
+
     private var displayUnit: String { UnitConversion.preferredWeightUnit }
 
     private var displayWeight: Double {
-        UnitConversion.displayWeight(entry.weight, storedUnit: entry.unit)
+        _ = weightUnit  // SwiftUI dependency: re-render when unit preference changes
+        return UnitConversion.displayWeight(entry.weight, storedUnit: entry.unit)
     }
 
     private var dayNumber: String {

@@ -10,6 +10,9 @@ struct LogMeasurementSheet: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
 
+    // Track unit preference so SwiftUI re-renders when it changes
+    @AppStorage("lengthUnit") private var lengthUnit = "in"
+
     private let injectedVM: BodyViewModel?
     @State private var bodyVM: BodyViewModel?
     @State private var selectedType: MeasurementType = .waist
@@ -174,7 +177,7 @@ struct LogMeasurementSheet: View {
     }
 
     private var lengthPref: String {
-        UserDefaults.standard.string(forKey: "lengthUnit") ?? "in"
+        lengthUnit
     }
 
     /// 56px hero number with unit suffix (mockup `.value-display .v-num`).

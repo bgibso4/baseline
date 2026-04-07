@@ -6,6 +6,10 @@ import SwiftData
 struct ScanDetailView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
+
+    // Track unit preference so SwiftUI re-renders when it changes
+    @AppStorage("weightUnit") private var weightUnit = "lb"
+
     let scan: Scan
     var onDelete: ((Scan) -> Void)?
 
@@ -182,6 +186,7 @@ struct ScanDetailView: View {
 
     /// Row for mass values (kg) that converts based on user's weight unit preference.
     private func massRow(_ label: String, value: Double) -> some View {
+        _ = weightUnit  // SwiftUI dependency: re-render when unit preference changes
         let display = UnitConversion.formattedMass(value)
         return detailRow(label, value: display.text, unit: display.unit)
     }
