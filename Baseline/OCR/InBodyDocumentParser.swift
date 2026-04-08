@@ -744,18 +744,15 @@ struct InBodyDocumentParser {
                     print("[History] \(field.key): confirmed \(current) (history=\(historyValue)) conf→0.95")
                     #endif
                 } else {
-                    // They disagree — use history value if primary confidence was low
-                    if currentConf < 0.8 {
-                        setField(field.key, value: historyValue, on: &result)
-                        result.confidence[field.key] = 0.85
-                        #if DEBUG
-                        print("[History] \(field.key): overriding \(current) → \(historyValue) (history wins, primary conf=\(currentConf))")
-                        #endif
-                    } else {
-                        #if DEBUG
-                        print("[History] \(field.key): disagree primary=\(current)(conf=\(currentConf)) vs history=\(historyValue), keeping primary")
-                        #endif
-                    }
+                    // They disagree — always trust history over bar chart extraction.
+                    // The history section is a simple table with no bar charts, tick marks,
+                    // or bullet prefixes to confuse the OCR. Bar chart extraction is
+                    // inherently less reliable for these 4 fields.
+                    setField(field.key, value: historyValue, on: &result)
+                    result.confidence[field.key] = 0.85
+                    #if DEBUG
+                    print("[History] \(field.key): overriding \(current) → \(historyValue) (history always wins)")
+                    #endif
                 }
             } else {
                 // Primary missed it — use history value
