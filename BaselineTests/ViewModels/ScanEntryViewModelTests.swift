@@ -102,8 +102,8 @@ final class ScanEntryViewModelTests: XCTestCase {
         XCTAssertEqual(vm.totalBodyWaterL, "54")
         XCTAssertEqual(vm.bmi, "24.1")
         XCTAssertEqual(vm.basalMetabolicRate, "1842")
-        XCTAssertEqual(vm.intracellularWaterL, "33.5")
-        XCTAssertEqual(vm.rightArmLeanKg, "3.8")
+        XCTAssertEqual(vm.fieldValue("intracellularWaterL"), "33.5")
+        XCTAssertEqual(vm.fieldValue("rightArmLeanKg"), "3.8")
 
         // Low confidence flagging
         XCTAssertTrue(vm.lowConfidenceFields.contains("bmi"), "BMI should be flagged as low confidence")
@@ -145,8 +145,8 @@ final class ScanEntryViewModelTests: XCTestCase {
         vm.basalMetabolicRate = "1842"
 
         // Populate some optional fields
-        vm.intracellularWaterL = "33.5"
-        vm.rightArmLeanKg = "3.8"
+        vm.setField("intracellularWaterL", value: "33.5")
+        vm.setField("rightArmLeanKg", value: "3.8")
 
         try vm.save()
 
@@ -205,11 +205,11 @@ final class ScanEntryViewModelTests: XCTestCase {
 
         vm.populateFields(from: result)
 
-        XCTAssertEqual(vm.ecwTbwRatio, "0.380")
-        XCTAssertEqual(vm.skeletalMuscleIndex, "10.4")
-        XCTAssertEqual(vm.visceralFatLevel, "3")
-        XCTAssertEqual(vm.rightArmLeanPct, "112.4")
-        XCTAssertEqual(vm.trunkFatPct, "94.5")
+        XCTAssertEqual(vm.fieldValue("ecwTbwRatio"), "0.380")
+        XCTAssertEqual(vm.fieldValue("skeletalMuscleIndex"), "10.4")
+        XCTAssertEqual(vm.fieldValue("visceralFatLevel"), "3")
+        XCTAssertEqual(vm.fieldValue("rightArmLeanPct"), "112.4")
+        XCTAssertEqual(vm.fieldValue("trunkFatPct"), "94.5")
         XCTAssertNotNil(vm.scanDate)
     }
 

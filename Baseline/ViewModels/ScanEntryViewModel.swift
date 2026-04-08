@@ -40,56 +40,60 @@ class ScanEntryViewModel {
     var isProcessing = false
     var errorMessage: String?
 
-    // MARK: - Editable Fields (all 22 InBody 570 metrics as Strings)
+    // MARK: - Editable Fields (all 35 InBody 570 metrics as Strings)
+    // Stored as a dictionary to keep @Observable property count low and avoid
+    // stack overflow in Swift's type metadata reflection.
 
-    // Core (7)
-    var weightKg: String = ""
-    var skeletalMuscleMassKg: String = ""
-    var bodyFatMassKg: String = ""
-    var bodyFatPct: String = ""
-    var totalBodyWaterL: String = ""
-    var bmi: String = ""
-    var basalMetabolicRate: String = ""
-
-    // Body Composition (5)
-    var intracellularWaterL: String = ""
-    var extracellularWaterL: String = ""
-    var dryLeanMassKg: String = ""
-    var leanBodyMassKg: String = ""
-    var inBodyScore: String = ""
-
-    // Segmental Lean (5)
-    var rightArmLeanKg: String = ""
-    var leftArmLeanKg: String = ""
-    var trunkLeanKg: String = ""
-    var rightLegLeanKg: String = ""
-    var leftLegLeanKg: String = ""
-
-    // Segmental Fat (5)
-    var rightArmFatKg: String = ""
-    var leftArmFatKg: String = ""
-    var trunkFatKg: String = ""
-    var rightLegFatKg: String = ""
-    var leftLegFatKg: String = ""
-
-    // New fields (13)
-    var ecwTbwRatio: String = ""
-    var skeletalMuscleIndex: String = ""
-    var visceralFatLevel: String = ""
-    var rightArmLeanPct: String = ""
-    var leftArmLeanPct: String = ""
-    var trunkLeanPct: String = ""
-    var rightLegLeanPct: String = ""
-    var leftLegLeanPct: String = ""
-    var rightArmFatPct: String = ""
-    var leftArmFatPct: String = ""
-    var trunkFatPct: String = ""
-    var rightLegFatPct: String = ""
-    var leftLegFatPct: String = ""
-
+    var fields: [String: String] = [:]
     var scanDate: Date?
     var retryCount: Int = 0
     var userEditedFields: Set<String> = []
+
+    // Convenience accessors for the 7 required core fields + commonly used ones
+    var weightKg: String {
+        get { fields["weightKg", default: ""] }
+        set { fields["weightKg"] = newValue }
+    }
+    var skeletalMuscleMassKg: String {
+        get { fields["skeletalMuscleMassKg", default: ""] }
+        set { fields["skeletalMuscleMassKg"] = newValue }
+    }
+    var bodyFatMassKg: String {
+        get { fields["bodyFatMassKg", default: ""] }
+        set { fields["bodyFatMassKg"] = newValue }
+    }
+    var bodyFatPct: String {
+        get { fields["bodyFatPct", default: ""] }
+        set { fields["bodyFatPct"] = newValue }
+    }
+    var totalBodyWaterL: String {
+        get { fields["totalBodyWaterL", default: ""] }
+        set { fields["totalBodyWaterL"] = newValue }
+    }
+    var bmi: String {
+        get { fields["bmi", default: ""] }
+        set { fields["bmi"] = newValue }
+    }
+    var basalMetabolicRate: String {
+        get { fields["basalMetabolicRate", default: ""] }
+        set { fields["basalMetabolicRate"] = newValue }
+    }
+
+    /// Get any field value by key.
+    func fieldValue(_ key: String) -> String {
+        fields[key, default: ""]
+    }
+
+    /// Set any field value by key.
+    func setField(_ key: String, value: String) {
+        fields[key] = value
+    }
+
+    /// Subscript for convenient field access by key.
+    subscript(field key: String) -> String {
+        get { fields[key, default: ""] }
+        set { fields[key] = newValue }
+    }
 
     // MARK: - Low Confidence Tracking
 
@@ -164,158 +168,79 @@ class ScanEntryViewModel {
             return
         }
         // Snapshot user-edited string values before repopulating
-        let savedEdits = captureUserEditedValues()
+        let savedEdits = userEditedFields.reduce(into: [String: String]()) { dict, key in
+            dict[key] = fields[key, default: ""]
+        }
         current.merge(with: newResult, userEditedFields: userEditedFields)
         populateFields(from: current)
-        // Restore user-edited values that populateFields would have overwritten
-        restoreUserEditedValues(savedEdits)
-    }
-
-    private func captureUserEditedValues() -> [String: String] {
-        var snapshot: [String: String] = [:]
-        for key in userEditedFields {
-            snapshot[key] = stringValue(for: key)
-        }
-        return snapshot
-    }
-
-    private func restoreUserEditedValues(_ snapshot: [String: String]) {
-        for (key, value) in snapshot {
-            setStringValue(value, for: key)
+        // Restore user-edited values
+        for (key, value) in savedEdits {
+            fields[key] = value
         }
     }
-
-    // swiftlint:disable cyclomatic_complexity
-    private func stringValue(for key: String) -> String {
-        switch key {
-        case "weightKg": return weightKg
-        case "skeletalMuscleMassKg": return skeletalMuscleMassKg
-        case "bodyFatMassKg": return bodyFatMassKg
-        case "bodyFatPct": return bodyFatPct
-        case "totalBodyWaterL": return totalBodyWaterL
-        case "bmi": return bmi
-        case "basalMetabolicRate": return basalMetabolicRate
-        case "intracellularWaterL": return intracellularWaterL
-        case "extracellularWaterL": return extracellularWaterL
-        case "dryLeanMassKg": return dryLeanMassKg
-        case "leanBodyMassKg": return leanBodyMassKg
-        case "inBodyScore": return inBodyScore
-        case "rightArmLeanKg": return rightArmLeanKg
-        case "leftArmLeanKg": return leftArmLeanKg
-        case "trunkLeanKg": return trunkLeanKg
-        case "rightLegLeanKg": return rightLegLeanKg
-        case "leftLegLeanKg": return leftLegLeanKg
-        case "rightArmFatKg": return rightArmFatKg
-        case "leftArmFatKg": return leftArmFatKg
-        case "trunkFatKg": return trunkFatKg
-        case "rightLegFatKg": return rightLegFatKg
-        case "leftLegFatKg": return leftLegFatKg
-        case "ecwTbwRatio": return ecwTbwRatio
-        case "skeletalMuscleIndex": return skeletalMuscleIndex
-        case "visceralFatLevel": return visceralFatLevel
-        case "rightArmLeanPct": return rightArmLeanPct
-        case "leftArmLeanPct": return leftArmLeanPct
-        case "trunkLeanPct": return trunkLeanPct
-        case "rightLegLeanPct": return rightLegLeanPct
-        case "leftLegLeanPct": return leftLegLeanPct
-        case "rightArmFatPct": return rightArmFatPct
-        case "leftArmFatPct": return leftArmFatPct
-        case "trunkFatPct": return trunkFatPct
-        case "rightLegFatPct": return rightLegFatPct
-        case "leftLegFatPct": return leftLegFatPct
-        default: return ""
-        }
-    }
-
-    private func setStringValue(_ value: String, for key: String) {
-        switch key {
-        case "weightKg": weightKg = value
-        case "skeletalMuscleMassKg": skeletalMuscleMassKg = value
-        case "bodyFatMassKg": bodyFatMassKg = value
-        case "bodyFatPct": bodyFatPct = value
-        case "totalBodyWaterL": totalBodyWaterL = value
-        case "bmi": bmi = value
-        case "basalMetabolicRate": basalMetabolicRate = value
-        case "intracellularWaterL": intracellularWaterL = value
-        case "extracellularWaterL": extracellularWaterL = value
-        case "dryLeanMassKg": dryLeanMassKg = value
-        case "leanBodyMassKg": leanBodyMassKg = value
-        case "inBodyScore": inBodyScore = value
-        case "rightArmLeanKg": rightArmLeanKg = value
-        case "leftArmLeanKg": leftArmLeanKg = value
-        case "trunkLeanKg": trunkLeanKg = value
-        case "rightLegLeanKg": rightLegLeanKg = value
-        case "leftLegLeanKg": leftLegLeanKg = value
-        case "rightArmFatKg": rightArmFatKg = value
-        case "leftArmFatKg": leftArmFatKg = value
-        case "trunkFatKg": trunkFatKg = value
-        case "rightLegFatKg": rightLegFatKg = value
-        case "leftLegFatKg": leftLegFatKg = value
-        case "ecwTbwRatio": ecwTbwRatio = value
-        case "skeletalMuscleIndex": skeletalMuscleIndex = value
-        case "visceralFatLevel": visceralFatLevel = value
-        case "rightArmLeanPct": rightArmLeanPct = value
-        case "leftArmLeanPct": leftArmLeanPct = value
-        case "trunkLeanPct": trunkLeanPct = value
-        case "rightLegLeanPct": rightLegLeanPct = value
-        case "leftLegLeanPct": leftLegLeanPct = value
-        case "rightArmFatPct": rightArmFatPct = value
-        case "leftArmFatPct": leftArmFatPct = value
-        case "trunkFatPct": trunkFatPct = value
-        case "rightLegFatPct": rightLegFatPct = value
-        case "leftLegFatPct": leftLegFatPct = value
-        default: break
-        }
-    }
-    // swiftlint:enable cyclomatic_complexity
 
     func populateFields(from result: InBodyParseResult) {
         parseResult = result
 
+        func set(_ key: String, _ value: Double?, fmt: String = "auto") {
+            if let v = value {
+                switch fmt {
+                case "3": fields[key] = String(format: "%.3f", v)
+                case "0": fields[key] = String(format: "%.0f", v)
+                default: fields[key] = formatValue(v)
+                }
+            } else {
+                fields[key] = ""
+            }
+        }
+
         // Core
-        weightKg = result.weightKg.map { formatValue($0) } ?? ""
-        skeletalMuscleMassKg = result.skeletalMuscleMassKg.map { formatValue($0) } ?? ""
-        bodyFatMassKg = result.bodyFatMassKg.map { formatValue($0) } ?? ""
-        bodyFatPct = result.bodyFatPct.map { formatValue($0) } ?? ""
-        totalBodyWaterL = result.totalBodyWaterL.map { formatValue($0) } ?? ""
-        bmi = result.bmi.map { formatValue($0) } ?? ""
-        basalMetabolicRate = result.basalMetabolicRate.map { formatValue($0) } ?? ""
+        set("weightKg", result.weightKg)
+        set("skeletalMuscleMassKg", result.skeletalMuscleMassKg)
+        set("bodyFatMassKg", result.bodyFatMassKg)
+        set("bodyFatPct", result.bodyFatPct)
+        set("totalBodyWaterL", result.totalBodyWaterL)
+        set("bmi", result.bmi)
+        set("basalMetabolicRate", result.basalMetabolicRate)
 
         // Body Composition
-        intracellularWaterL = result.intracellularWaterL.map { formatValue($0) } ?? ""
-        extracellularWaterL = result.extracellularWaterL.map { formatValue($0) } ?? ""
-        dryLeanMassKg = result.dryLeanMassKg.map { formatValue($0) } ?? ""
-        leanBodyMassKg = result.leanBodyMassKg.map { formatValue($0) } ?? ""
-        inBodyScore = result.inBodyScore.map { formatValue($0) } ?? ""
+        set("intracellularWaterL", result.intracellularWaterL)
+        set("extracellularWaterL", result.extracellularWaterL)
+        set("dryLeanMassKg", result.dryLeanMassKg)
+        set("leanBodyMassKg", result.leanBodyMassKg)
+        set("inBodyScore", result.inBodyScore)
 
         // Segmental Lean
-        rightArmLeanKg = result.rightArmLeanKg.map { formatValue($0) } ?? ""
-        leftArmLeanKg = result.leftArmLeanKg.map { formatValue($0) } ?? ""
-        trunkLeanKg = result.trunkLeanKg.map { formatValue($0) } ?? ""
-        rightLegLeanKg = result.rightLegLeanKg.map { formatValue($0) } ?? ""
-        leftLegLeanKg = result.leftLegLeanKg.map { formatValue($0) } ?? ""
+        set("rightArmLeanKg", result.rightArmLeanKg)
+        set("leftArmLeanKg", result.leftArmLeanKg)
+        set("trunkLeanKg", result.trunkLeanKg)
+        set("rightLegLeanKg", result.rightLegLeanKg)
+        set("leftLegLeanKg", result.leftLegLeanKg)
 
         // Segmental Fat
-        rightArmFatKg = result.rightArmFatKg.map { formatValue($0) } ?? ""
-        leftArmFatKg = result.leftArmFatKg.map { formatValue($0) } ?? ""
-        trunkFatKg = result.trunkFatKg.map { formatValue($0) } ?? ""
-        rightLegFatKg = result.rightLegFatKg.map { formatValue($0) } ?? ""
-        leftLegFatKg = result.leftLegFatKg.map { formatValue($0) } ?? ""
+        set("rightArmFatKg", result.rightArmFatKg)
+        set("leftArmFatKg", result.leftArmFatKg)
+        set("trunkFatKg", result.trunkFatKg)
+        set("rightLegFatKg", result.rightLegFatKg)
+        set("leftLegFatKg", result.leftLegFatKg)
 
-        // New fields (13)
-        ecwTbwRatio = result.ecwTbwRatio.map { String(format: "%.3f", $0) } ?? ""
-        skeletalMuscleIndex = result.skeletalMuscleIndex.map { formatValue($0) } ?? ""
-        visceralFatLevel = result.visceralFatLevel.map { String(format: "%.0f", $0) } ?? ""
-        rightArmLeanPct = result.rightArmLeanPct.map { formatValue($0) } ?? ""
-        leftArmLeanPct = result.leftArmLeanPct.map { formatValue($0) } ?? ""
-        trunkLeanPct = result.trunkLeanPct.map { formatValue($0) } ?? ""
-        rightLegLeanPct = result.rightLegLeanPct.map { formatValue($0) } ?? ""
-        leftLegLeanPct = result.leftLegLeanPct.map { formatValue($0) } ?? ""
-        rightArmFatPct = result.rightArmFatPct.map { formatValue($0) } ?? ""
-        leftArmFatPct = result.leftArmFatPct.map { formatValue($0) } ?? ""
-        trunkFatPct = result.trunkFatPct.map { formatValue($0) } ?? ""
-        rightLegFatPct = result.rightLegFatPct.map { formatValue($0) } ?? ""
-        leftLegFatPct = result.leftLegFatPct.map { formatValue($0) } ?? ""
+        // ECW/TBW, SMI, Visceral Fat
+        set("ecwTbwRatio", result.ecwTbwRatio, fmt: "3")
+        set("skeletalMuscleIndex", result.skeletalMuscleIndex)
+        set("visceralFatLevel", result.visceralFatLevel, fmt: "0")
+
+        // Segmental sufficiency %
+        set("rightArmLeanPct", result.rightArmLeanPct)
+        set("leftArmLeanPct", result.leftArmLeanPct)
+        set("trunkLeanPct", result.trunkLeanPct)
+        set("rightLegLeanPct", result.rightLegLeanPct)
+        set("leftLegLeanPct", result.leftLegLeanPct)
+        set("rightArmFatPct", result.rightArmFatPct)
+        set("leftArmFatPct", result.leftArmFatPct)
+        set("trunkFatPct", result.trunkFatPct)
+        set("rightLegFatPct", result.rightLegFatPct)
+        set("leftLegFatPct", result.leftLegFatPct)
+
         scanDate = result.scanDate
 
         // Flag low-confidence fields
@@ -349,14 +274,16 @@ class ScanEntryViewModel {
     }
 
     func buildPayload() throws -> InBodyPayload {
+        func f(_ key: String) -> Double? { Double(fields[key, default: ""]) }
+
         var missing: [String] = []
-        let w = Double(weightKg); if w == nil { missing.append("Weight") }
-        let smm = Double(skeletalMuscleMassKg); if smm == nil { missing.append("Skeletal Muscle Mass") }
-        let bfm = Double(bodyFatMassKg); if bfm == nil { missing.append("Body Fat Mass") }
-        let bf = Double(bodyFatPct); if bf == nil { missing.append("Body Fat %") }
-        let tbw = Double(totalBodyWaterL); if tbw == nil { missing.append("Total Body Water") }
-        let b = Double(bmi); if b == nil { missing.append("BMI") }
-        let bmr = Double(basalMetabolicRate); if bmr == nil { missing.append("BMR") }
+        let w = f("weightKg"); if w == nil { missing.append("Weight") }
+        let smm = f("skeletalMuscleMassKg"); if smm == nil { missing.append("Skeletal Muscle Mass") }
+        let bfm = f("bodyFatMassKg"); if bfm == nil { missing.append("Body Fat Mass") }
+        let bf = f("bodyFatPct"); if bf == nil { missing.append("Body Fat %") }
+        let tbw = f("totalBodyWaterL"); if tbw == nil { missing.append("Total Body Water") }
+        let b = f("bmi"); if b == nil { missing.append("BMI") }
+        let bmr = f("basalMetabolicRate"); if bmr == nil { missing.append("BMR") }
 
         guard missing.isEmpty,
               let w, let smm, let bfm, let bf, let tbw, let b, let bmr else {
@@ -364,55 +291,37 @@ class ScanEntryViewModel {
         }
 
         var payload = InBodyPayload(
-            weightKg: w,
-            skeletalMuscleMassKg: smm,
-            bodyFatMassKg: bfm,
-            bodyFatPct: bf,
-            totalBodyWaterL: tbw,
-            bmi: b,
-            basalMetabolicRate: bmr,
-            intracellularWaterL: Double(intracellularWaterL),
-            extracellularWaterL: Double(extracellularWaterL),
-            dryLeanMassKg: Double(dryLeanMassKg),
-            leanBodyMassKg: Double(leanBodyMassKg),
-            inBodyScore: Double(inBodyScore),
-            rightArmLeanKg: Double(rightArmLeanKg),
-            leftArmLeanKg: Double(leftArmLeanKg),
-            trunkLeanKg: Double(trunkLeanKg),
-            rightLegLeanKg: Double(rightLegLeanKg),
-            leftLegLeanKg: Double(leftLegLeanKg),
-            rightArmFatKg: Double(rightArmFatKg),
-            leftArmFatKg: Double(leftArmFatKg),
-            trunkFatKg: Double(trunkFatKg),
-            rightLegFatKg: Double(rightLegFatKg),
-            leftLegFatKg: Double(leftLegFatKg),
-            ecwTbwRatio: nil,
-            skeletalMuscleIndex: nil,
-            visceralFatLevel: nil,
-            rightArmLeanPct: nil,
-            leftArmLeanPct: nil,
-            trunkLeanPct: nil,
-            rightLegLeanPct: nil,
-            leftLegLeanPct: nil,
-            rightArmFatPct: nil,
-            leftArmFatPct: nil,
-            trunkFatPct: nil,
-            rightLegFatPct: nil,
-            leftLegFatPct: nil
+            weightKg: w, skeletalMuscleMassKg: smm, bodyFatMassKg: bfm,
+            bodyFatPct: bf, totalBodyWaterL: tbw, bmi: b, basalMetabolicRate: bmr
         )
-        payload.ecwTbwRatio = Double(ecwTbwRatio)
-        payload.skeletalMuscleIndex = Double(skeletalMuscleIndex)
-        payload.visceralFatLevel = Double(visceralFatLevel)
-        payload.rightArmLeanPct = Double(rightArmLeanPct)
-        payload.leftArmLeanPct = Double(leftArmLeanPct)
-        payload.trunkLeanPct = Double(trunkLeanPct)
-        payload.rightLegLeanPct = Double(rightLegLeanPct)
-        payload.leftLegLeanPct = Double(leftLegLeanPct)
-        payload.rightArmFatPct = Double(rightArmFatPct)
-        payload.leftArmFatPct = Double(leftArmFatPct)
-        payload.trunkFatPct = Double(trunkFatPct)
-        payload.rightLegFatPct = Double(rightLegFatPct)
-        payload.leftLegFatPct = Double(leftLegFatPct)
+        payload.intracellularWaterL = f("intracellularWaterL")
+        payload.extracellularWaterL = f("extracellularWaterL")
+        payload.dryLeanMassKg = f("dryLeanMassKg")
+        payload.leanBodyMassKg = f("leanBodyMassKg")
+        payload.inBodyScore = f("inBodyScore")
+        payload.rightArmLeanKg = f("rightArmLeanKg")
+        payload.leftArmLeanKg = f("leftArmLeanKg")
+        payload.trunkLeanKg = f("trunkLeanKg")
+        payload.rightLegLeanKg = f("rightLegLeanKg")
+        payload.leftLegLeanKg = f("leftLegLeanKg")
+        payload.rightArmFatKg = f("rightArmFatKg")
+        payload.leftArmFatKg = f("leftArmFatKg")
+        payload.trunkFatKg = f("trunkFatKg")
+        payload.rightLegFatKg = f("rightLegFatKg")
+        payload.leftLegFatKg = f("leftLegFatKg")
+        payload.ecwTbwRatio = f("ecwTbwRatio")
+        payload.skeletalMuscleIndex = f("skeletalMuscleIndex")
+        payload.visceralFatLevel = f("visceralFatLevel")
+        payload.rightArmLeanPct = f("rightArmLeanPct")
+        payload.leftArmLeanPct = f("leftArmLeanPct")
+        payload.trunkLeanPct = f("trunkLeanPct")
+        payload.rightLegLeanPct = f("rightLegLeanPct")
+        payload.leftLegLeanPct = f("leftLegLeanPct")
+        payload.rightArmFatPct = f("rightArmFatPct")
+        payload.leftArmFatPct = f("leftArmFatPct")
+        payload.trunkFatPct = f("trunkFatPct")
+        payload.rightLegFatPct = f("rightLegFatPct")
+        payload.leftLegFatPct = f("leftLegFatPct")
         return payload
     }
 
