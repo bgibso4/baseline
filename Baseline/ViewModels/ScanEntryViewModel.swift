@@ -145,7 +145,7 @@ class ScanEntryViewModel {
         isProcessing = true
         errorMessage = nil
 
-        let result = await InBodyOCRParser.processImage(image)
+        let result = await InBodyDocumentParser.parse(image: image)
 
         if retryCount > 0 {
             mergeRetryResult(result)
