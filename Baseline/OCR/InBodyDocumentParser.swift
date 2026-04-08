@@ -447,7 +447,9 @@ struct InBodyDocumentParser {
                 let cleaned = candidate.text.replacingOccurrences(
                     of: #"^[^\dA-Za-z(]*"#, with: "", options: .regularExpression
                 )
-                if let value = parseNumericValue(cleaned) {
+                if let value = parseNumericValue(cleaned),
+                   // Reject garbled bullet candidates that parse to 0 — no real InBody value is 0.0
+                   !(candidate.hasBullet && value < 0.1) {
                     // Confidence: bullet > height-sorted > ambiguous
                     let conf: Float = candidate.hasBullet ? 0.9
                         : wasOnlyCandidate ? 0.85
@@ -480,9 +482,10 @@ struct InBodyDocumentParser {
         }
     }
 
-    /// Parses "X.Xlbs) | Y.Y%" or "X.Xlbs) - Y.Y%" to extract the percentage.
+    /// Parses "X.Xlbs) | Y.Y%" or "X.Xlbs) - Y.Y%" or "X.Xlbs) Y.Y%" to extract the percentage.
+    /// The separator (| or -) is optional because OCR sometimes drops it.
     private static func parseSegmentalFatPct(_ text: String) -> Double? {
-        let pattern = #"[\|\-]\s*(\d+\.?\d*)\s*%"#
+        let pattern = #"bs\)\s*[\|\-]?\s*(\d+\.?\d*)\s*%"#
         guard let regex = try? NSRegularExpression(pattern: pattern),
               let match = regex.firstMatch(in: text, range: NSRange(text.startIndex..., in: text)),
               let range = Range(match.range(at: 1), in: text) else { return nil }
