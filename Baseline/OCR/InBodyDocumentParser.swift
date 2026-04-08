@@ -98,6 +98,36 @@ struct InBodyDocumentParser {
             extractFromParagraphs(doc.paragraphs, into: &result, confidence: confidence)
             extractDate(from: doc, into: &result)
 
+            #if DEBUG
+            print("=== DOCUMENT PARSER RESULTS ===")
+            let fields: [(String, Double?)] = [
+                ("weightKg", result.weightKg), ("skeletalMuscleMassKg", result.skeletalMuscleMassKg),
+                ("bodyFatMassKg", result.bodyFatMassKg), ("bodyFatPct", result.bodyFatPct),
+                ("totalBodyWaterL", result.totalBodyWaterL), ("bmi", result.bmi),
+                ("basalMetabolicRate", result.basalMetabolicRate),
+                ("intracellularWaterL", result.intracellularWaterL),
+                ("extracellularWaterL", result.extracellularWaterL),
+                ("dryLeanMassKg", result.dryLeanMassKg), ("leanBodyMassKg", result.leanBodyMassKg),
+                ("inBodyScore", result.inBodyScore),
+                ("ecwTbwRatio", result.ecwTbwRatio), ("skeletalMuscleIndex", result.skeletalMuscleIndex),
+                ("visceralFatLevel", result.visceralFatLevel),
+                ("rightArmLeanKg", result.rightArmLeanKg), ("leftArmLeanKg", result.leftArmLeanKg),
+                ("trunkLeanKg", result.trunkLeanKg),
+                ("rightLegLeanKg", result.rightLegLeanKg), ("leftLegLeanKg", result.leftLegLeanKg),
+                ("rightArmFatKg", result.rightArmFatKg), ("leftArmFatKg", result.leftArmFatKg),
+                ("trunkFatKg", result.trunkFatKg),
+                ("rightLegFatKg", result.rightLegFatKg), ("leftLegFatKg", result.leftLegFatKg),
+            ]
+            print("--- PARSED FIELDS ---")
+            for (key, val) in fields {
+                if let v = val { print("  \(key): \(v)") }
+            }
+            if let date = result.scanDate { print("  scanDate: \(date)") }
+            let populated = fields.compactMap { $0.1 }.count
+            print("--- \(populated)/\(fields.count) fields populated ---")
+            print("=== END PARSER RESULTS ===")
+            #endif
+
         } catch {
             #if DEBUG
             print("[InBodyDocumentParser] RecognizeDocumentsRequest error: \(error)")
