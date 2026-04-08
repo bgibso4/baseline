@@ -52,6 +52,10 @@ final class InBodyDocumentParserTests: XCTestCase {
             ("Dry Lean Mass", "dryLeanMassKg"),
             ("Lean Body Mass", "leanBodyMassKg"),
             ("Visceral Fat Level", "visceralFatLevel"),
+            ("SMM", "skeletalMuscleMassKg"),
+            ("Right Arm Lean", "rightArmLeanKg"),
+            ("Left Leg Fat", "leftLegFatKg"),
+            ("Trunk Lean", "trunkLeanKg"),
         ]
         for (label, expectedKey) in variants {
             XCTAssertEqual(
