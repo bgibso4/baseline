@@ -238,8 +238,8 @@ struct ScanEntryFlow: View {
 
     private func cameraStep(vm: ScanEntryViewModel) -> some View {
         ZStack {
-            ScanCameraView(
-                onCapture: { image in
+            DocumentScannerView(
+                onScan: { image in
                     Task {
                         await vm.processImage(image)
                     }
