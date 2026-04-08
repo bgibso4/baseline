@@ -55,6 +55,46 @@ final class ScanEntrySnapshotTests: XCTestCase {
         )
     }
 
+    @MainActor
+    func testScanEntry_ReviewForm_WithLowConfidence() {
+        let container = makeContainer()
+        let vm = ScanEntryViewModel(modelContext: container.mainContext)
+        // Populate with sample OCR data including low-confidence fields
+        var parseResult = InBodyParseResult()
+        parseResult.weightKg = 82.5
+        parseResult.skeletalMuscleMassKg = 38.2
+        parseResult.bodyFatMassKg = 18.4
+        parseResult.bodyFatPct = 22.3
+        parseResult.totalBodyWaterL = 46.1
+        parseResult.bmi = 24.7
+        parseResult.basalMetabolicRate = 1820
+        parseResult.inBodyScore = 74
+        parseResult.ecwTbwRatio = 0.381
+        parseResult.confidence = [
+            "weightKg": 0.95,
+            "skeletalMuscleMassKg": 0.88,
+            "bodyFatMassKg": 0.60,  // below threshold — flagged
+            "bodyFatPct": 0.55,     // below threshold — flagged
+            "totalBodyWaterL": 0.91,
+            "bmi": 0.93,
+            "basalMetabolicRate": 0.50  // below threshold — flagged
+        ]
+        vm.populateFields(from: parseResult)
+        vm.currentStep = .review
+
+        let view = ScanEntryFlow(viewModel: vm)
+            .modelContainer(container)
+
+        assertSnapshot(
+            of: view,
+            as: .image(
+                layout: .device(config: .iPhone13Pro),
+                traits: UITraitCollection(userInterfaceStyle: .dark)
+            ),
+            record: isRecording
+        )
+    }
+
     // MARK: - Helpers
 
     private func makeContainer() -> ModelContainer {
