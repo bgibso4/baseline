@@ -100,6 +100,10 @@ struct InBodyDocumentParser {
             // Segmental lean: needs special handling (lbs vs % in same Y-band)
             extractSegmentalLean(doc.paragraphs, into: &result)
 
+            // Cross-reference: Body Composition History section has Weight, SMM, PBF, ECW/TBW
+            // in a simple tabular layout. Use these to validate/fill the bar chart extractions.
+            crossReferenceHistory(doc.paragraphs, into: &result)
+
             // Fallback: table-based extraction for anything position missed
             extractFromTables(doc.tables, into: &result, confidence: confidence)
 
@@ -644,6 +648,121 @@ struct InBodyDocumentParser {
                 }
                 #if DEBUG
                 print("[SegLean] \(seg.kgKey.replacingOccurrences(of: "LeanKg", with: "")): only 1 value = \(v)")
+                #endif
+            }
+        }
+    }
+
+    // MARK: - Body Composition History Cross-Reference
+
+    /// The Body Composition History section (near bottom of page) lists 4 key metrics
+    /// in a simple vertical layout with no bar charts or tick marks:
+    ///   Weight, SMM (Skeletal Muscle Mass), PBF (Body Fat %), ECW/TBW
+    ///
+    /// These are the exact fields that bar chart extraction struggles with most.
+    /// We use these as a cross-reference: if the primary extraction got a value,
+    /// compare with history; if they agree, boost confidence. If primary missed it,
+    /// use the history value.
+    static func crossReferenceHistory(
+        _ paragraphs: [DocumentObservation.Container.Text],
+        into result: inout InBodyParseResult
+    ) {
+        // Find the "Body Composition History" anchor
+        var historyY: Double?
+        for para in paragraphs {
+            let text = para.transcript.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
+            let box = para.boundingRegion.boundingBox
+            if text.hasPrefix("body composition history") && box.origin.x < 0.45 {
+                historyY = box.origin.y + box.height / 2
+                break
+            }
+        }
+        guard let anchorY = historyY else {
+            #if DEBUG
+            print("[History] Body Composition History anchor not found")
+            #endif
+            return
+        }
+
+        // The history section has 4 label-value pairs below the header.
+        // Labels are at x≈0.05, values at x≈0.19-0.26.
+        // Layout (offsets from anchor, going DOWN the page = decreasing Y):
+        //   Weight: ~0.030 below header
+        //   SMM:    ~0.060 below
+        //   PBF:    ~0.092 below
+        //   ECW/TBW: ~0.135 below
+        let historyFields: [(key: String, labelPattern: String, offset: Double)] = [
+            ("weightKg",             "weight",  0.030),
+            ("skeletalMuscleMassKg", "smm",     0.060),
+            ("bodyFatPct",           "pbf",     0.092),
+            ("ecwTbwRatio",          "ecw",     0.135),
+        ]
+
+        for field in historyFields {
+            let targetY = anchorY - field.offset
+            let yRange = (targetY - 0.015)...(targetY + 0.015)
+
+            // Find the numeric value in this Y band (x > 0.15 to skip labels)
+            var bestValue: Double?
+            var bestHeight: Double = 0
+
+            for para in paragraphs {
+                let box = para.boundingRegion.boundingBox
+                let centerY = box.origin.y + box.height / 2
+                let centerX = box.origin.x + box.width / 2
+
+                guard yRange.contains(centerY), centerX > 0.15, centerX < 0.35 else { continue }
+
+                let text = para.transcript
+                let collapsed = text.replacingOccurrences(
+                    of: #"(\d+)\.\s+(\d)"#, with: "$1.$2", options: .regularExpression
+                )
+                // Strip any leading non-numeric chars (OCR artifacts)
+                let cleaned = collapsed.replacingOccurrences(
+                    of: #"^[^\d]*"#, with: "", options: .regularExpression
+                )
+                guard let value = parseNumericValue(cleaned), value > 0.01 else { continue }
+
+                // Prefer taller text (actual values vs noise)
+                if box.height > bestHeight {
+                    bestValue = value
+                    bestHeight = box.height
+                }
+            }
+
+            guard let historyValue = bestValue else { continue }
+
+            let currentValue = getField(field.key, from: result)
+            let currentConf = result.confidence[field.key] ?? 0
+
+            if let current = currentValue {
+                // Compare: if history agrees (within 1%), boost confidence
+                let pctDiff = abs(current - historyValue) / max(abs(historyValue), 0.001)
+                if pctDiff < 0.01 {
+                    result.confidence[field.key] = max(currentConf, 0.95)
+                    #if DEBUG
+                    print("[History] \(field.key): confirmed \(current) (history=\(historyValue)) conf→0.95")
+                    #endif
+                } else {
+                    // They disagree — use history value if primary confidence was low
+                    if currentConf < 0.8 {
+                        setField(field.key, value: historyValue, on: &result)
+                        result.confidence[field.key] = 0.85
+                        #if DEBUG
+                        print("[History] \(field.key): overriding \(current) → \(historyValue) (history wins, primary conf=\(currentConf))")
+                        #endif
+                    } else {
+                        #if DEBUG
+                        print("[History] \(field.key): disagree primary=\(current)(conf=\(currentConf)) vs history=\(historyValue), keeping primary")
+                        #endif
+                    }
+                }
+            } else {
+                // Primary missed it — use history value
+                setField(field.key, value: historyValue, on: &result)
+                result.confidence[field.key] = 0.8
+                #if DEBUG
+                print("[History] \(field.key): filled from history = \(historyValue) conf=0.8")
                 #endif
             }
         }
