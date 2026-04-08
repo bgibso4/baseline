@@ -412,7 +412,10 @@ struct InBodyDocumentParser {
                       region.xRange.contains(centerX) else { continue }
 
                 let text = para.transcript
-                let hasBullet = text.range(of: #"^[=•\-·mш]*\s*\d"#, options: .regularExpression) != nil
+                // Detect bullet/marker prefix: any non-alphanumeric, non-paren, non-space
+                // chars before digits. Covers •, -, =, m=, --, ш, and any OCR-mangled bullets.
+                let hasBullet = text.range(of: #"^[^\dA-Za-z(\s]"#, options: .regularExpression) != nil
+                    || text.range(of: #"^m[=\s]"#, options: .regularExpression) != nil
                 candidates.append((text: text, centerX: centerX, hasBullet: hasBullet))
             }
 
@@ -427,10 +430,19 @@ struct InBodyDocumentParser {
                 toTry = candidates
             }
 
+            #if DEBUG
+            if region.preferBullet {
+                let bulletTexts = candidates.filter { $0.hasBullet }.map { $0.text }
+                let plainTexts = candidates.filter { !$0.hasBullet }.map { $0.text }
+                print("[Position] \(region.key) candidates — bullet: \(bulletTexts), plain: \(plainTexts)")
+            }
+            #endif
+
             // Extract the first valid numeric value
             for candidate in toTry {
+                // Strip any non-alphanumeric prefix characters
                 let cleaned = candidate.text.replacingOccurrences(
-                    of: #"^[=•\-·mш\s]*"#, with: "", options: .regularExpression
+                    of: #"^[^\dA-Za-z(]*"#, with: "", options: .regularExpression
                 )
                 if let value = parseNumericValue(cleaned) {
                     // For segmental fat, parse "X.Xlbs) | Y.Y%" pattern
