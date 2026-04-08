@@ -72,6 +72,25 @@ class ScanEntryViewModel {
     var rightLegFatKg: String = ""
     var leftLegFatKg: String = ""
 
+    // New fields (13)
+    var ecwTbwRatio: String = ""
+    var skeletalMuscleIndex: String = ""
+    var visceralFatLevel: String = ""
+    var rightArmLeanPct: String = ""
+    var leftArmLeanPct: String = ""
+    var trunkLeanPct: String = ""
+    var rightLegLeanPct: String = ""
+    var leftLegLeanPct: String = ""
+    var rightArmFatPct: String = ""
+    var leftArmFatPct: String = ""
+    var trunkFatPct: String = ""
+    var rightLegFatPct: String = ""
+    var leftLegFatPct: String = ""
+
+    var scanDate: Date?
+    var retryCount: Int = 0
+    var userEditedFields: Set<String> = []
+
     // MARK: - Low Confidence Tracking
 
     /// Field keys where OCR confidence was below threshold.
@@ -123,12 +142,132 @@ class ScanEntryViewModel {
         errorMessage = nil
 
         let result = await InBodyOCRParser.processImage(image)
-        self.parseResult = result
-        populateFields(from: result)
+
+        if retryCount > 0 {
+            mergeRetryResult(result)
+        } else {
+            self.parseResult = result
+            populateFields(from: result)
+        }
 
         isProcessing = false
         currentStep = .review
     }
+
+    func markFieldEdited(_ fieldKey: String) {
+        userEditedFields.insert(fieldKey)
+    }
+
+    func mergeRetryResult(_ newResult: InBodyParseResult) {
+        guard var current = parseResult else {
+            populateFields(from: newResult)
+            return
+        }
+        // Snapshot user-edited string values before repopulating
+        let savedEdits = captureUserEditedValues()
+        current.merge(with: newResult, userEditedFields: userEditedFields)
+        populateFields(from: current)
+        // Restore user-edited values that populateFields would have overwritten
+        restoreUserEditedValues(savedEdits)
+    }
+
+    private func captureUserEditedValues() -> [String: String] {
+        var snapshot: [String: String] = [:]
+        for key in userEditedFields {
+            snapshot[key] = stringValue(for: key)
+        }
+        return snapshot
+    }
+
+    private func restoreUserEditedValues(_ snapshot: [String: String]) {
+        for (key, value) in snapshot {
+            setStringValue(value, for: key)
+        }
+    }
+
+    // swiftlint:disable cyclomatic_complexity
+    private func stringValue(for key: String) -> String {
+        switch key {
+        case "weightKg": return weightKg
+        case "skeletalMuscleMassKg": return skeletalMuscleMassKg
+        case "bodyFatMassKg": return bodyFatMassKg
+        case "bodyFatPct": return bodyFatPct
+        case "totalBodyWaterL": return totalBodyWaterL
+        case "bmi": return bmi
+        case "basalMetabolicRate": return basalMetabolicRate
+        case "intracellularWaterL": return intracellularWaterL
+        case "extracellularWaterL": return extracellularWaterL
+        case "dryLeanMassKg": return dryLeanMassKg
+        case "leanBodyMassKg": return leanBodyMassKg
+        case "inBodyScore": return inBodyScore
+        case "rightArmLeanKg": return rightArmLeanKg
+        case "leftArmLeanKg": return leftArmLeanKg
+        case "trunkLeanKg": return trunkLeanKg
+        case "rightLegLeanKg": return rightLegLeanKg
+        case "leftLegLeanKg": return leftLegLeanKg
+        case "rightArmFatKg": return rightArmFatKg
+        case "leftArmFatKg": return leftArmFatKg
+        case "trunkFatKg": return trunkFatKg
+        case "rightLegFatKg": return rightLegFatKg
+        case "leftLegFatKg": return leftLegFatKg
+        case "ecwTbwRatio": return ecwTbwRatio
+        case "skeletalMuscleIndex": return skeletalMuscleIndex
+        case "visceralFatLevel": return visceralFatLevel
+        case "rightArmLeanPct": return rightArmLeanPct
+        case "leftArmLeanPct": return leftArmLeanPct
+        case "trunkLeanPct": return trunkLeanPct
+        case "rightLegLeanPct": return rightLegLeanPct
+        case "leftLegLeanPct": return leftLegLeanPct
+        case "rightArmFatPct": return rightArmFatPct
+        case "leftArmFatPct": return leftArmFatPct
+        case "trunkFatPct": return trunkFatPct
+        case "rightLegFatPct": return rightLegFatPct
+        case "leftLegFatPct": return leftLegFatPct
+        default: return ""
+        }
+    }
+
+    private func setStringValue(_ value: String, for key: String) {
+        switch key {
+        case "weightKg": weightKg = value
+        case "skeletalMuscleMassKg": skeletalMuscleMassKg = value
+        case "bodyFatMassKg": bodyFatMassKg = value
+        case "bodyFatPct": bodyFatPct = value
+        case "totalBodyWaterL": totalBodyWaterL = value
+        case "bmi": bmi = value
+        case "basalMetabolicRate": basalMetabolicRate = value
+        case "intracellularWaterL": intracellularWaterL = value
+        case "extracellularWaterL": extracellularWaterL = value
+        case "dryLeanMassKg": dryLeanMassKg = value
+        case "leanBodyMassKg": leanBodyMassKg = value
+        case "inBodyScore": inBodyScore = value
+        case "rightArmLeanKg": rightArmLeanKg = value
+        case "leftArmLeanKg": leftArmLeanKg = value
+        case "trunkLeanKg": trunkLeanKg = value
+        case "rightLegLeanKg": rightLegLeanKg = value
+        case "leftLegLeanKg": leftLegLeanKg = value
+        case "rightArmFatKg": rightArmFatKg = value
+        case "leftArmFatKg": leftArmFatKg = value
+        case "trunkFatKg": trunkFatKg = value
+        case "rightLegFatKg": rightLegFatKg = value
+        case "leftLegFatKg": leftLegFatKg = value
+        case "ecwTbwRatio": ecwTbwRatio = value
+        case "skeletalMuscleIndex": skeletalMuscleIndex = value
+        case "visceralFatLevel": visceralFatLevel = value
+        case "rightArmLeanPct": rightArmLeanPct = value
+        case "leftArmLeanPct": leftArmLeanPct = value
+        case "trunkLeanPct": trunkLeanPct = value
+        case "rightLegLeanPct": rightLegLeanPct = value
+        case "leftLegLeanPct": leftLegLeanPct = value
+        case "rightArmFatPct": rightArmFatPct = value
+        case "leftArmFatPct": leftArmFatPct = value
+        case "trunkFatPct": trunkFatPct = value
+        case "rightLegFatPct": rightLegFatPct = value
+        case "leftLegFatPct": leftLegFatPct = value
+        default: break
+        }
+    }
+    // swiftlint:enable cyclomatic_complexity
 
     func populateFields(from result: InBodyParseResult) {
         parseResult = result
@@ -163,6 +302,22 @@ class ScanEntryViewModel {
         rightLegFatKg = result.rightLegFatKg.map { formatValue($0) } ?? ""
         leftLegFatKg = result.leftLegFatKg.map { formatValue($0) } ?? ""
 
+        // New fields (13)
+        ecwTbwRatio = result.ecwTbwRatio.map { String(format: "%.3f", $0) } ?? ""
+        skeletalMuscleIndex = result.skeletalMuscleIndex.map { formatValue($0) } ?? ""
+        visceralFatLevel = result.visceralFatLevel.map { String(format: "%.0f", $0) } ?? ""
+        rightArmLeanPct = result.rightArmLeanPct.map { formatValue($0) } ?? ""
+        leftArmLeanPct = result.leftArmLeanPct.map { formatValue($0) } ?? ""
+        trunkLeanPct = result.trunkLeanPct.map { formatValue($0) } ?? ""
+        rightLegLeanPct = result.rightLegLeanPct.map { formatValue($0) } ?? ""
+        leftLegLeanPct = result.leftLegLeanPct.map { formatValue($0) } ?? ""
+        rightArmFatPct = result.rightArmFatPct.map { formatValue($0) } ?? ""
+        leftArmFatPct = result.leftArmFatPct.map { formatValue($0) } ?? ""
+        trunkFatPct = result.trunkFatPct.map { formatValue($0) } ?? ""
+        rightLegFatPct = result.rightLegFatPct.map { formatValue($0) } ?? ""
+        leftLegFatPct = result.leftLegFatPct.map { formatValue($0) } ?? ""
+        scanDate = result.scanDate
+
         // Flag low-confidence fields
         lowConfidenceFields = []
         for (key, confidence) in result.confidence {
@@ -188,7 +343,7 @@ class ScanEntryViewModel {
     func save() throws {
         let payload = try buildPayload()
         let data = try JSONEncoder().encode(payload)
-        let scan = Scan(date: Date(), type: selectedType, source: selectedSource, payload: data)
+        let scan = Scan(date: scanDate ?? Date(), type: selectedType, source: selectedSource, payload: data)
         modelContext.insert(scan)
         try modelContext.save()
     }
@@ -208,7 +363,7 @@ class ScanEntryViewModel {
             throw SaveError.missingRequiredFields(missing)
         }
 
-        return InBodyPayload(
+        var payload = InBodyPayload(
             weightKg: w,
             skeletalMuscleMassKg: smm,
             bodyFatMassKg: bfm,
@@ -230,8 +385,35 @@ class ScanEntryViewModel {
             leftArmFatKg: Double(leftArmFatKg),
             trunkFatKg: Double(trunkFatKg),
             rightLegFatKg: Double(rightLegFatKg),
-            leftLegFatKg: Double(leftLegFatKg)
+            leftLegFatKg: Double(leftLegFatKg),
+            ecwTbwRatio: nil,
+            skeletalMuscleIndex: nil,
+            visceralFatLevel: nil,
+            rightArmLeanPct: nil,
+            leftArmLeanPct: nil,
+            trunkLeanPct: nil,
+            rightLegLeanPct: nil,
+            leftLegLeanPct: nil,
+            rightArmFatPct: nil,
+            leftArmFatPct: nil,
+            trunkFatPct: nil,
+            rightLegFatPct: nil,
+            leftLegFatPct: nil
         )
+        payload.ecwTbwRatio = Double(ecwTbwRatio)
+        payload.skeletalMuscleIndex = Double(skeletalMuscleIndex)
+        payload.visceralFatLevel = Double(visceralFatLevel)
+        payload.rightArmLeanPct = Double(rightArmLeanPct)
+        payload.leftArmLeanPct = Double(leftArmLeanPct)
+        payload.trunkLeanPct = Double(trunkLeanPct)
+        payload.rightLegLeanPct = Double(rightLegLeanPct)
+        payload.leftLegLeanPct = Double(leftLegLeanPct)
+        payload.rightArmFatPct = Double(rightArmFatPct)
+        payload.leftArmFatPct = Double(leftArmFatPct)
+        payload.trunkFatPct = Double(trunkFatPct)
+        payload.rightLegFatPct = Double(rightLegFatPct)
+        payload.leftLegFatPct = Double(leftLegFatPct)
+        return payload
     }
 
     // MARK: - Helpers
