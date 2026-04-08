@@ -107,11 +107,26 @@ enum InBodyOCRParser {
         }
 
         // === Visceral Fat Level ===
-        // Pattern: "Level N"
+        // Pattern: "Level N" or standalone number near "Visceral Fat Level" label
         if let levelMatch = firstMatch(#"Level\s+(\d{1,2})"#, in: text) {
             let nums = extractAllNumbers(from: levelMatch)
             if let val = nums.first, val >= 1 && val <= 20 {
                 result.visceralFatLevel = val
+            }
+        }
+        // Fallback: look for a small number (1-20) near "Visceral Fat Level" label
+        if result.visceralFatLevel == nil {
+            for (i, line) in lines.enumerated() {
+                if line.lowercased().contains("visceral fat level") {
+                    for j in max(0, i-1)...min(lines.count-1, i+4) {
+                        let cleaned = lines[j].replacingOccurrences(of: " ", with: "")
+                        if let num = Double(cleaned), num >= 1 && num <= 20 {
+                            result.visceralFatLevel = num
+                            break
+                        }
+                    }
+                    if result.visceralFatLevel != nil { break }
+                }
             }
         }
 
@@ -151,11 +166,15 @@ enum InBodyOCRParser {
     private static func parseBodyCompBlock(lines: [String], result: inout InBodyParseResult) {
         // Find body comp section
         guard let startIdx = lines.firstIndex(where: { $0.lowercased().contains("body composition analysis") }) else { return }
-        let endIdx = lines[startIdx...].firstIndex(where: { $0.lowercased().contains("muscle-fat") }) ?? startIdx + 20
+
+        // DON'T stop at "Muscle-Fat Analysis" — OCR reads labels first (left column),
+        // then "Muscle-Fat Analysis" header, THEN the values (right column).
+        // Instead, look for "Obesity Analysis" or "SMM" as the end boundary.
+        let endIdx = lines[startIdx...].firstIndex(where: { $0.lowercased().contains("obesity analysis") }) ?? startIdx + 30
 
         // Collect standalone numbers (lines that are JUST a number)
         var values: [Double] = []
-        for j in (startIdx + 1)..<min(lines.count, endIdx + 5) {
+        for j in (startIdx + 1)..<min(lines.count, endIdx) {
             let trimmed = lines[j].trimmingCharacters(in: .whitespaces)
             let cleaned = trimmed.replacingOccurrences(of: " ", with: "")
             if let num = Double(cleaned), num > 5 && num < 250 {
@@ -348,35 +367,21 @@ enum InBodyOCRParser {
     }
 
     private static func parseEcwTbwNearLine(_ lineIdx: Int, lines: [String], result: inout InBodyParseResult) {
-        // Look for a bullet-marked ratio value near this line
-        // Pattern: "в 0. 369" or "ша 0.369" — any non-digit char before "0.3xx"
+        // Look for the actual ECW/TBW ratio value near this line.
         // Skip tick mark sequences like "0.390 0.400 0.410..."
+        // Accept: "0. 369" (standalone), "в 0. 369" (bullet-marked)
         for j in max(0, lineIdx - 2)...min(lines.count - 1, lineIdx + 6) {
             let line = lines[j]
-
-            // First try: line with a single ratio (not a tick sequence)
             let cleaned = line.replacingOccurrences(of: " ", with: "").replacingOccurrences(of: ":", with: ".")
             let allNums = extractAllNumbers(from: cleaned)
             let ratios = allNums.filter { $0 >= 0.3 && $0 < 0.5 }
 
-            // If line has exactly 1 ratio and it has a non-digit prefix (bullet marker)
-            if ratios.count == 1 {
-                // Check it's not just a bare tick value — look for non-digit before the number
-                if let _ = firstMatch(#"[^\d.]0\.3\d"#, in: cleaned) {
-                    result.ecwTbwRatio = ratios[0]
-                    return
-                }
+            if ratios.count == 1 && allNums.count <= 2 {
+                // Line has exactly 1 ratio and at most 1 other number — not a tick sequence
+                result.ecwTbwRatio = ratios[0]
+                return
             }
-
-            // Also try: any line where the ratio has a clear bullet/arrow prefix
-            if let match = firstMatch(#"[^\d\s.](\s*0[\.:]\s*3\d\d)"#, in: line) {
-                let numStr = match.replacingOccurrences(of: " ", with: "").replacingOccurrences(of: ":", with: ".")
-                let nums = extractAllNumbers(from: numStr)
-                if let val = nums.first, val >= 0.3 && val < 0.5 {
-                    result.ecwTbwRatio = val
-                    return
-                }
-            }
+            // Skip lines with 3+ ratios (tick mark sequences)
         }
     }
 
