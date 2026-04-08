@@ -87,6 +87,11 @@
 		D3355A1D414FF7C657BCF5A7 /* WeighInViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0811FC6CD17EB2AEBCECB45 /* WeighInViewModel.swift */; };
 		D6816A2705ED827E07542033 /* InBodyOCRParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0339AD29E403ED4BBF5E994E /* InBodyOCRParser.swift */; };
 		A1B2C3D4E5F6A7B8C9D0E1F2 /* InBodyParseResult.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2C3D4E5F6A7B8C9D0E1F2A3 /* InBodyParseResult.swift */; };
+		B44E197B8C060FC3133812B5 /* InBody570RegionMap.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2FF8A2C9618F96A9DF24F87 /* InBody570RegionMap.swift */; };
+		C4813DE54BF7289F8A9C59CE /* InBody570RegionParsers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 747C755C3191BEE026A3FCEC /* InBody570RegionParsers.swift */; };
+		1F0F2DB5C73C091A2437E6EE /* InBody570RegionParsersTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6003849545DE7FDDB83EA6B /* InBody570RegionParsersTests.swift */; };
+		C4AA86FC040D1C261E04C7E8 /* DocumentCorrector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9499684E9791F713F551C0DA /* DocumentCorrector.swift */; };
+		9EEFB7199363495F14783DE5 /* DocumentCorrectorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 734996EB1858990CCF4D51DA /* DocumentCorrectorTests.swift */; };
 		D76C812702C9547B6C9F28A7 /* ScanEntrySnapshotTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74D5C40BED7A835BFB495376 /* ScanEntrySnapshotTests.swift */; };
 		E00B17F2D6B800569AEF06E0 /* MeasurementTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EDAFFD2ADF932608CA8B378E /* MeasurementTests.swift */; };
 		E0288A71F6279F2726D154B0 /* APIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF80BCC433C58498F1AA4488 /* APIClient.swift */; };
@@ -135,6 +140,11 @@
 		007A5A45919FF650EAB251AE /* BaselineApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BaselineApp.swift; sourceTree = "<group>"; };
 		0339AD29E403ED4BBF5E994E /* InBodyOCRParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InBodyOCRParser.swift; sourceTree = "<group>"; };
 		B2C3D4E5F6A7B8C9D0E1F2A3 /* InBodyParseResult.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InBodyParseResult.swift; sourceTree = "<group>"; };
+		B2FF8A2C9618F96A9DF24F87 /* InBody570RegionMap.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InBody570RegionMap.swift; sourceTree = "<group>"; };
+		747C755C3191BEE026A3FCEC /* InBody570RegionParsers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InBody570RegionParsers.swift; sourceTree = "<group>"; };
+		B6003849545DE7FDDB83EA6B /* InBody570RegionParsersTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InBody570RegionParsersTests.swift; sourceTree = "<group>"; };
+		9499684E9791F713F551C0DA /* DocumentCorrector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DocumentCorrector.swift; sourceTree = "<group>"; };
+		734996EB1858990CCF4D51DA /* DocumentCorrectorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DocumentCorrectorTests.swift; sourceTree = "<group>"; };
 		08676595D1E00491EDB74DF5 /* ArcIndicatorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArcIndicatorView.swift; sourceTree = "<group>"; };
 		16180890AC21C5FBC902279E /* BodyViewSnapshotTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BodyViewSnapshotTests.swift; sourceTree = "<group>"; };
 		18F90EA3B79CAA8467685396 /* HealthKitManagerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthKitManagerTests.swift; sourceTree = "<group>"; };
@@ -283,6 +293,8 @@
 		2AFD39B0E1AE939B260CC9B1 /* OCR */ = {
 			isa = PBXGroup;
 			children = (
+				734996EB1858990CCF4D51DA /* DocumentCorrectorTests.swift */,
+				B6003849545DE7FDDB83EA6B /* InBody570RegionParsersTests.swift */,
 				7B9117DDA20CB6E238191572 /* InBodyOCRParserTests.swift */,
 			);
 			path = OCR;
@@ -342,6 +354,9 @@
 		4B4A0B36A69BA3729A25D969 /* OCR */ = {
 			isa = PBXGroup;
 			children = (
+				9499684E9791F713F551C0DA /* DocumentCorrector.swift */,
+				B2FF8A2C9618F96A9DF24F87 /* InBody570RegionMap.swift */,
+				747C755C3191BEE026A3FCEC /* InBody570RegionParsers.swift */,
 				0339AD29E403ED4BBF5E994E /* InBodyOCRParser.swift */,
 				B2C3D4E5F6A7B8C9D0E1F2A3 /* InBodyParseResult.swift */,
 			);
@@ -735,6 +750,8 @@
 				710EF7FB0C4189C7E436F250 /* HealthKitManagerTests.swift in Sources */,
 				03957DDC1AF43AC1371AC80C /* HistoryViewModelTests.swift in Sources */,
 				5B654C7068D6D55B1DBB7AC6 /* HistoryViewSnapshotTests.swift in Sources */,
+				9EEFB7199363495F14783DE5 /* DocumentCorrectorTests.swift in Sources */,
+				1F0F2DB5C73C091A2437E6EE /* InBody570RegionParsersTests.swift in Sources */,
 				6BE6BC22231E82C9128288E4 /* InBodyOCRParserTests.swift in Sources */,
 				E00B17F2D6B800569AEF06E0 /* MeasurementTests.swift in Sources */,
 				E3888989405060A77C5CAE6B /* NowViewModelTests.swift in Sources */,
@@ -774,6 +791,9 @@
 				F6398E5CF415C6B9B8CE5BC2 /* HealthKitManager.swift in Sources */,
 				1420080C176B26B2E12FEE83 /* HistoryView.swift in Sources */,
 				50C087ECEBE50B0D8B922A8A /* HistoryViewModel.swift in Sources */,
+				C4AA86FC040D1C261E04C7E8 /* DocumentCorrector.swift in Sources */,
+				B44E197B8C060FC3133812B5 /* InBody570RegionMap.swift in Sources */,
+				C4813DE54BF7289F8A9C59CE /* InBody570RegionParsers.swift in Sources */,
 				D6816A2705ED827E07542033 /* InBodyOCRParser.swift in Sources */,
 				A1B2C3D4E5F6A7B8C9D0E1F2 /* InBodyParseResult.swift in Sources */,
 				27B6A79A90B82EB08F2E1AEF /* LogMeasurementSheet.swift in Sources */,
