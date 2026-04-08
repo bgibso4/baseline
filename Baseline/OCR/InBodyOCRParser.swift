@@ -4,8 +4,9 @@ import UIKit
 
 /// OCR pipeline for InBody 570 result sheets.
 ///
-/// Uses full-page OCR with pattern-based text parsing. Region-based extraction
-/// can be added later once region coordinates are calibrated against real sheets.
+/// Uses full-page OCR with pattern-based text parsing. Key insight: actual values
+/// on the InBody 570 are prefixed with bullet markers (•, -, ·) while bar chart
+/// tick marks are bare numbers.
 enum InBodyOCRParser {
 
     private static let lbsToKg: Double = 0.45359237
@@ -24,22 +25,21 @@ enum InBodyOCRParser {
 
         var result = parseFullPage(text)
         result.detectedUnit = detectUnit(from: text)
-
-        // Apply confidence to all extracted fields
         applyConfidence(to: &result, confidence: confidence)
 
         #if DEBUG
+        let fields: [(String, Any?)] = [
+            ("weightKg", result.weightKg), ("bodyFatPct", result.bodyFatPct),
+            ("bmi", result.bmi), ("smm", result.skeletalMuscleMassKg),
+            ("bmr", result.basalMetabolicRate), ("smi", result.skeletalMuscleIndex),
+            ("ecwTbw", result.ecwTbwRatio), ("visceralFat", result.visceralFatLevel),
+            ("bodyFatMass", result.bodyFatMassKg), ("scanDate", result.scanDate),
+            ("icw", result.intracellularWaterL), ("ecw", result.extracellularWaterL),
+            ("tbw", result.totalBodyWaterL), ("lbm", result.leanBodyMassKg),
+            ("dryLean", result.dryLeanMassKg),
+        ]
         print("=== PARSED FIELDS ===")
-        print("weightKg: \(result.weightKg as Any)")
-        print("bodyFatPct: \(result.bodyFatPct as Any)")
-        print("bmi: \(result.bmi as Any)")
-        print("smm: \(result.skeletalMuscleMassKg as Any)")
-        print("bmr: \(result.basalMetabolicRate as Any)")
-        print("smi: \(result.skeletalMuscleIndex as Any)")
-        print("ecwTbw: \(result.ecwTbwRatio as Any)")
-        print("visceralFat: \(result.visceralFatLevel as Any)")
-        print("bodyFatMass: \(result.bodyFatMassKg as Any)")
-        print("scanDate: \(result.scanDate as Any)")
+        for (name, val) in fields { print("\(name): \(val as Any)") }
         print("=== END PARSED ===")
         #endif
 
@@ -54,11 +54,10 @@ enum InBodyOCRParser {
         let lines = text.components(separatedBy: .newlines)
 
         // === Date ===
-        // Pattern: "MM. DD. YYYY" or "MM. DD.YYYY"
-        let datePattern = #"(\d{2})\.\s*(\d{2})\.\s*(\d{4})\s+\d{2}:\d{2}"#
-        if let dateMatch = firstMatch(datePattern, in: text) {
-            let parts = dateMatch.components(separatedBy: CharacterSet.decimalDigits.inverted).filter { !$0.isEmpty }
-            if parts.count >= 3, let m = Int(parts[0]), let d = Int(parts[1]), let y = Int(parts[2]) {
+        // Pattern: "MM. DD. YYYY HH:MM"
+        if let dateMatch = firstMatch(#"(\d{2})\.\s*(\d{2})\.\s*(\d{4})\s+\d{2}:\d{2}"#, in: text) {
+            let nums = extractAllNumbers(from: dateMatch)
+            if nums.count >= 3, let m = Int(exactly: nums[0]), let d = Int(exactly: nums[1]), let y = Int(exactly: nums[2]) {
                 var comp = DateComponents()
                 comp.month = m; comp.day = d; comp.year = y
                 result.scanDate = Calendar.current.date(from: comp)
@@ -66,7 +65,7 @@ enum InBodyOCRParser {
         }
 
         // === BMR ===
-        // Pattern: number followed by "kcal"
+        // Reliable pattern: "NNNN kcal"
         if let bmrMatch = firstMatch(#"(\d{3,4})\s*kcal"#, in: text) {
             let nums = extractAllNumbers(from: bmrMatch)
             if let val = nums.first, val > 1000 && val < 5000 {
@@ -75,7 +74,7 @@ enum InBodyOCRParser {
         }
 
         // === SMI ===
-        // Pattern: number followed by "kg/m" — OCR may insert spaces in number ("10. 4 kg/m")
+        // Pattern: "NN.N kg/m" (OCR may add spaces: "10. 4 kg/m")
         if let smiMatch = firstMatch(#"(\d+\.?\s*\d+)\s*kg/m"#, in: text) {
             let cleaned = smiMatch.replacingOccurrences(of: " ", with: "")
             let nums = extractAllNumbers(from: cleaned)
@@ -84,28 +83,8 @@ enum InBodyOCRParser {
             }
         }
 
-        // === ECW/TBW ===
-        // Look for a 0.3xx value near ECW/TBW text
-        for (i, line) in lines.enumerated() {
-            let lower = line.lowercased()
-            if lower.contains("ecw/t") || lower.contains("ecw/tbw") {
-                // Search this line and nearby lines for the ratio
-                let searchRange = lines[max(0, i-2)...min(lines.count-1, i+3)]
-                for searchLine in searchRange {
-                    if let ratioMatch = firstMatch(#"0\.\s*3\d\d"#, in: searchLine) {
-                        let cleaned = ratioMatch.replacingOccurrences(of: " ", with: "")
-                        if let val = Double(cleaned), val > 0.3 && val < 0.5 {
-                            result.ecwTbwRatio = val
-                            break
-                        }
-                    }
-                }
-                if result.ecwTbwRatio != nil { break }
-            }
-        }
-
         // === Visceral Fat Level ===
-        // Pattern: "Level N" near "Visceral"
+        // Pattern: "Level N"
         if let levelMatch = firstMatch(#"Level\s+(\d{1,2})"#, in: text) {
             let nums = extractAllNumbers(from: levelMatch)
             if let val = nums.first, val >= 1 && val <= 20 {
@@ -113,244 +92,285 @@ enum InBodyOCRParser {
             }
         }
 
-        // === Weight, SMM, Body Fat Mass (from Muscle-Fat Analysis) ===
-        // The Muscle-Fat section has "Weight ... 197.2", "SMM ... 105.8", "Body Fat Mass ... 14.2"
-        // We look for the pattern: label on one line, value nearby
-        for (i, line) in lines.enumerated() {
-            let lower = line.lowercased().trimmingCharacters(in: .whitespaces)
+        // === Body Composition Values (positional) ===
+        // OCR reads labels first, then values as a block:
+        //   84.7, 49.4, 48.9, 14.2  (ICW, ECW, DryLean, BFM)
+        //   134.0, 183.0             (TBW, LBM — from header columns)
+        parseBodyCompBlock(lines: lines, result: &result)
 
-            // Weight — find the value on the SAME line or the line right after the Muscle-Fat Weight
-            if lower == "weight" || (lower.contains("weight") && !lower.contains("body") && !lower.contains("water") && !lower.contains("current") && !lower.contains("ideal")) {
-                // Look at nearby lines for a 3-digit number (weight in lbs: 100-400)
-                for j in max(0, i-1)...min(lines.count-1, i+3) {
-                    let nums = extractAllNumbers(from: lines[j])
-                    for num in nums {
-                        if num > 100 && num < 400 && result.weightKg == nil {
+        // === Muscle-Fat Analysis (bullet-marked values) ===
+        // Actual values have bullet markers: "• 197.2", "- 105.8", "14. 2"
+        parseMuscleFatSection(lines: lines, result: &result)
+
+        // === Obesity Analysis (bullet-marked values) ===
+        // BMI: "• 26. 0", PBF from history section
+        parseObesitySection(lines: lines, result: &result)
+
+        // === PBF from Body Composition History (most reliable) ===
+        // Pattern: "7.2" near "PBF" / "Percent Body Fat" in history section
+        parsePBFFromHistory(lines: lines, result: &result)
+
+        // === ECW/TBW ===
+        // The actual ratio has a marker, tick marks don't: "ша 0. 369" vs "0.390 0.400 0.410..."
+        parseEcwTbwRatio(lines: lines, result: &result)
+
+        // === Segmental Fat Analysis ===
+        parseSegmentalFat(lines: lines, result: &result)
+
+        // === Segmental Lean Analysis ===
+        parseSegmentalLean(lines: lines, result: &result)
+
+        return result
+    }
+
+    // MARK: - Body Composition Block
+
+    private static func parseBodyCompBlock(lines: [String], result: inout InBodyParseResult) {
+        // Find body comp section
+        guard let startIdx = lines.firstIndex(where: { $0.lowercased().contains("body composition analysis") }) else { return }
+        let endIdx = lines[startIdx...].firstIndex(where: { $0.lowercased().contains("muscle-fat") }) ?? startIdx + 15
+
+        // Collect standalone numbers (one per line, no text mixed in)
+        // These are the actual values, not bar chart labels
+        var values: [Double] = []
+        for j in (startIdx + 1)..<min(lines.count, endIdx) {
+            let trimmed = lines[j].trimmingCharacters(in: .whitespaces)
+            let cleaned = trimmed.replacingOccurrences(of: " ", with: "")
+            // Only take lines that are JUST a number (with possible OCR spacing)
+            if let num = Double(cleaned), num > 5 && num < 250 {
+                values.append(num)
+            }
+        }
+
+        // Expected order from OCR: ICW, ECW, DryLean, BFM
+        if values.count >= 4 {
+            result.intracellularWaterL = values[0] * lbsToKg  // lbs → approximate liters
+            result.extracellularWaterL = values[1] * lbsToKg
+            result.dryLeanMassKg = values[2] * lbsToKg
+            result.bodyFatMassKg = values[3] * lbsToKg
+        }
+
+        // TBW and LBM appear after as "134. 0" and "183.0"
+        // Look for them in the next few lines after the initial block
+        let searchStart = startIdx + 1
+        for j in searchStart..<min(lines.count, endIdx + 5) {
+            let trimmed = lines[j].trimmingCharacters(in: .whitespaces)
+            let cleaned = trimmed.replacingOccurrences(of: " ", with: "")
+            if let num = Double(cleaned) {
+                if num > 100 && num < 170 && result.totalBodyWaterL == nil {
+                    result.totalBodyWaterL = num * lbsToKg  // TBW in lbs
+                } else if num > 170 && num < 250 && result.leanBodyMassKg == nil {
+                    result.leanBodyMassKg = num * lbsToKg  // LBM in lbs
+                }
+            }
+        }
+    }
+
+    // MARK: - Muscle-Fat Section (bullet-marked)
+
+    private static func parseMuscleFatSection(lines: [String], result: inout InBodyParseResult) {
+        guard let startIdx = lines.firstIndex(where: { $0.lowercased().contains("muscle-fat analysis") }) else { return }
+        let endIdx = lines[startIdx...].firstIndex(where: { $0.lowercased().contains("obesity analysis") }) ?? startIdx + 20
+
+        for j in startIdx..<min(lines.count, endIdx) {
+            let line = lines[j]
+
+            // Look for bullet-marked values: "• 197.2", "- 105.8"
+            // Bullets: •, -, ·, *, ▪
+            if let markedValue = extractBulletMarkedNumber(from: line) {
+                if markedValue > 150 && markedValue < 400 && result.weightKg == nil {
+                    result.weightKg = markedValue * lbsToKg
+                } else if markedValue > 60 && markedValue < 180 && result.skeletalMuscleMassKg == nil {
+                    result.skeletalMuscleMassKg = markedValue * lbsToKg
+                }
+            }
+        }
+
+        // Fallback: if weight not found with bullet, use Body Comp History
+        if result.weightKg == nil {
+            for (i, line) in lines.enumerated() {
+                if line.lowercased().contains("body composition history") {
+                    for j in i..<min(lines.count, i + 8) {
+                        let cleaned = lines[j].replacingOccurrences(of: " ", with: "")
+                        if let num = Double(cleaned), num > 150 && num < 400 {
                             result.weightKg = num * lbsToKg
+                            break
                         }
                     }
+                    break
                 }
             }
         }
 
-        // === SMM (Skeletal Muscle Mass) ===
-        // In Body Composition History: "105.8" appears on its own line near "SMM"
-        // In Muscle-Fat section: "SMM" label appears but value is mixed with bar chart
-        // Strategy: search wider window, prefer numbers in 60-180 lbs range
-        for (i, line) in lines.enumerated() {
-            let lower = line.lowercased()
-            if lower.contains("smm") || lower.contains("skeletal muscle mas") {
-                // Search nearby lines (wider window)
-                for j in max(0, i-3)...min(lines.count-1, i+3) {
-                    let cleaned = lines[j].replacingOccurrences(of: " ", with: "")
-                    let nums = extractAllNumbers(from: cleaned)
-                    for num in nums {
-                        if num > 60 && num < 180 && result.skeletalMuscleMassKg == nil {
-                            result.skeletalMuscleMassKg = num * lbsToKg
-                        }
-                    }
-                }
-                if result.skeletalMuscleMassKg != nil { break }
-            }
-        }
-
-        // === Body Fat Mass ===
-        // In the Muscle-Fat section, appears as "Body Fat Mass (Ibs)" then "*14. 2" on nearby line
-        // Also appears as "14.2" at end of the body comp values block
-        // Strategy: look for "body fat mass" with "(lbs)" or "(Ibs)" on same/nearby line (Muscle-Fat section)
-        for (i, line) in lines.enumerated() {
-            let lower = line.lowercased()
-            if lower.contains("body fat mass") && (lower.contains("lbs") || lower.contains("ibs")) && !lower.contains("control") {
-                // Check this line and next few for a number in plausible range (1-80 lbs)
-                for j in i...min(lines.count-1, i+2) {
-                    // Clean OCR artifacts like "*14. 2" → "14.2"
-                    let cleaned = lines[j].replacingOccurrences(of: "*", with: "").replacingOccurrences(of: " ", with: "")
-                    let nums = extractAllNumbers(from: cleaned)
-                    for num in nums {
-                        if num > 1 && num < 80 && result.bodyFatMassKg == nil {
-                            result.bodyFatMassKg = num * lbsToKg
-                        }
-                    }
-                }
-                if result.bodyFatMassKg != nil { break }
-            }
-        }
-        // Fallback: if not found in Muscle-Fat section, look for standalone "14.2" after body comp values
-        if result.bodyFatMassKg == nil {
+        // Fallback for SMM: Body Comp History shows "105.8" clearly
+        if result.skeletalMuscleMassKg == nil {
             for (i, line) in lines.enumerated() {
                 let lower = line.lowercased()
-                if lower.contains("body fat mass") && !lower.contains("control") && !lower.contains("lean") {
-                    // Search forward for a small number (body fat mass in lbs: typically 5-60)
-                    for j in i...min(lines.count-1, i+8) {
-                        let nums = extractAllNumbers(from: lines[j])
-                        for num in nums {
-                            if num > 3 && num < 60 && result.bodyFatMassKg == nil {
-                                result.bodyFatMassKg = num * lbsToKg
+                if lower == "smm" || lower.contains("skeletal muscle mas") {
+                    // Check adjacent lines
+                    for j in max(0, i-2)...min(lines.count-1, i+2) {
+                        let cleaned = lines[j].replacingOccurrences(of: " ", with: "")
+                        if let num = Double(cleaned), num > 60 && num < 180 {
+                            result.skeletalMuscleMassKg = num * lbsToKg
+                            break
+                        }
+                    }
+                    if result.skeletalMuscleMassKg != nil { break }
+                }
+            }
+        }
+    }
+
+    // MARK: - Obesity Section
+
+    private static func parseObesitySection(lines: [String], result: inout InBodyParseResult) {
+        guard let startIdx = lines.firstIndex(where: { $0.lowercased().contains("obesity analysis") }) else { return }
+        let endIdx = lines[startIdx...].firstIndex(where: { $0.lowercased().contains("segmental lean") }) ?? startIdx + 15
+
+        for j in startIdx..<min(lines.count, endIdx) {
+            let line = lines[j]
+
+            // Look for bullet-marked BMI: "• 26. 0"
+            if let markedValue = extractBulletMarkedNumber(from: line) {
+                if markedValue > 15 && markedValue < 45 && result.bmi == nil {
+                    result.bmi = markedValue
+                }
+            }
+        }
+
+        // BMI fallback: look for "26.0" pattern near BMI label with OCR space cleaning
+        if result.bmi == nil {
+            for (i, line) in lines.enumerated() {
+                if line.lowercased().contains("bmi") {
+                    for j in max(0, i-1)...min(lines.count-1, i+5) {
+                        // Clean OCR spaces: "26. 0" → "26.0"
+                        let cleaned = lines[j]
+                            .replacingOccurrences(of: ". ", with: ".")
+                            .replacingOccurrences(of: " .", with: ".")
+                        if let markedVal = extractBulletMarkedNumber(from: cleaned) {
+                            if markedVal > 15 && markedVal < 45 {
+                                result.bmi = markedVal
+                                break
                             }
                         }
                     }
-                    if result.bodyFatMassKg != nil { break }
+                    if result.bmi != nil { break }
                 }
             }
         }
+    }
 
-        // === BMI ===
-        // BMI value often gets lost in bar chart numbers. Try multiple strategies:
-        // 1. Look for a number 15-50 near "BMI" label
-        // 2. Look near "Obesity Analysis" section
-        // 3. Look in Body Composition History values
+    // MARK: - PBF from History Section (most reliable)
+
+    private static func parsePBFFromHistory(lines: [String], result: inout InBodyParseResult) {
+        // In Body Composition History, PBF appears as:
+        //   "PBF"
+        //   "Percent Body Fat"
+        //   "(%) "
+        //   "7.2"
+        // Find PBF in history context and grab the nearby number
         for (i, line) in lines.enumerated() {
             let lower = line.lowercased()
-            if lower.contains("bmi") && !lower.contains("smm") && !lower.contains("analysis") {
-                // Check this line first
-                let sameLineNums = extractAllNumbers(from: line)
-                for num in sameLineNums {
-                    if num > 15 && num < 50 && result.bmi == nil {
-                        result.bmi = num
-                    }
-                }
-                if result.bmi != nil { break }
-                // Check nearby lines
-                for j in max(0, i-2)...min(lines.count-1, i+5) {
-                    let nums = extractAllNumbers(from: lines[j])
-                    for num in nums {
-                        if num > 15 && num < 50 && result.bmi == nil {
-                            result.bmi = num
-                        }
-                    }
-                }
-                if result.bmi != nil { break }
-            }
-        }
-        // Fallback: calculate from weight and height if we have weight
-        // BMI = weight(kg) / height(m)^2 — but we'd need height from the scan
-
-        // === PBF (Percent Body Fat) ===
-        for (i, line) in lines.enumerated() {
-            let lower = line.lowercased()
-            if lower.contains("pbf") || lower.contains("percent body fat") {
-                for j in max(0, i-2)...min(lines.count-1, i+3) {
-                    let nums = extractAllNumbers(from: lines[j])
-                    for num in nums {
-                        if num > 3 && num < 60 && result.bodyFatPct == nil {
-                            result.bodyFatPct = num
-                        }
+            if (lower == "pbf" || lower.contains("percent body fat")) && i > 10 {
+                // Look nearby for a small number (PBF: 3-50%)
+                for j in max(0, i-2)...min(lines.count-1, i+4) {
+                    let cleaned = lines[j].replacingOccurrences(of: " ", with: "")
+                    if let num = Double(cleaned), num > 3 && num < 50 {
+                        result.bodyFatPct = num
+                        break
                     }
                 }
                 if result.bodyFatPct != nil { break }
             }
         }
+    }
 
-        // === Body Composition Values Block ===
-        // The InBody 570 OCR reads labels first, then values as a block:
-        //   Labels: Intracellular Water, Extracellular Water, Dry Lean Mass, Body Fat Mass
-        //   Values: 84.7, 134.0, 49.4, 183.0, 48.9, 14.2
-        //   Where: ICW=84.7, TBW=134.0, ECW=49.4, LBM=183.0, DryLean=48.9, BFM=14.2
-        // Also: "Total Body Water Lean Body Mass" header shows TBW and LBM column values
-        //
-        // Strategy: find the body comp section, collect the value block, assign by position
-        if let bodyCompIdx = lines.firstIndex(where: { $0.lowercased().contains("body composition analysis") }) {
-            // Find "Muscle-Fat Analysis" to mark the end of body comp section
-            let endIdx = lines[bodyCompIdx...].firstIndex(where: { $0.lowercased().contains("muscle-fat") }) ?? bodyCompIdx + 20
+    // MARK: - ECW/TBW Ratio
 
-            // Collect all numbers between body comp and muscle-fat headers
-            var values: [Double] = []
-            for j in bodyCompIdx...min(lines.count-1, endIdx + 5) {
-                let cleaned = lines[j].replacingOccurrences(of: " ", with: "")
-                let nums = extractAllNumbers(from: cleaned)
-                for num in nums {
-                    if num > 5 && num < 250 { // plausible body comp values in lbs
-                        values.append(num)
+    private static func parseEcwTbwRatio(lines: [String], result: inout InBodyParseResult) {
+        // The actual ratio has a marker/arrow before it: "ша 0. 369"
+        // Tick marks appear as sequences: "0.390 0.400 0.410..."
+        // Strategy: find "ECW/TBW" or "ECW/TW" section, look for a standalone 0.3xx value
+        // (not part of a multi-number sequence)
+        for (i, line) in lines.enumerated() {
+            let lower = line.lowercased()
+            if lower.contains("ecw/t") {
+                // Search nearby lines
+                for j in max(0, i-3)...min(lines.count-1, i+5) {
+                    let searchLine = lines[j]
+                    // Check if this line has a SINGLE ratio value (not tick mark sequence)
+                    let allNums = extractAllNumbers(from: searchLine.replacingOccurrences(of: " ", with: ""))
+                    let ratios = allNums.filter { $0 > 0.3 && $0 < 0.5 }
+
+                    if ratios.count == 1 {
+                        // Single ratio on a line — likely the actual value
+                        result.ecwTbwRatio = ratios[0]
+                        break
+                    } else if ratios.count > 1 {
+                        // Multiple ratios = tick mark sequence, skip
+                        continue
+                    }
+
+                    // Also try extracting from bullet-marked pattern
+                    if let marked = extractBulletMarkedNumber(from: searchLine), marked > 0.3 && marked < 0.5 {
+                        result.ecwTbwRatio = marked
+                        break
                     }
                 }
-            }
-
-            // From the OCR output pattern, the values appear as:
-            // [84.7, 134.0, 49.4, 183.0, 48.9, 14.2]
-            // = [ICW, TBW, ECW, LBM, DryLean, BFM]
-            // But order may vary — use heuristics based on value ranges:
-            // ICW: 50-110 lbs (largest water component)
-            // ECW: 30-70 lbs (smaller water component)
-            // TBW: 100-170 lbs (ICW + ECW)
-            // LBM: 130-250 lbs (lean body mass, largest value)
-            // DryLean: 30-80 lbs (LBM - TBW)
-            // BFM: 5-60 lbs (body fat mass, typically smallest)
-
-            // Sort values to identify them by magnitude
-            let sorted = values.sorted()
-            if sorted.count >= 6 {
-                // Assign by expected magnitude ordering
-                let bfm = sorted[0]      // smallest: body fat mass
-                let dryLean = sorted[1]   // next: dry lean mass or ECW
-                let ecw = sorted[2]       // next: ECW
-                let icw = sorted[3]       // next: ICW
-                let tbw = sorted[4]       // next: TBW
-                let lbm = sorted[5]       // largest: lean body mass
-
-                if bfm < 60 { result.bodyFatMassKg = result.bodyFatMassKg ?? (bfm * lbsToKg) }
-                if ecw > 30 && ecw < 70 { result.extracellularWaterL = ecw * lbsToKg }
-                if dryLean > 25 && dryLean < 80 { result.dryLeanMassKg = dryLean * lbsToKg }
-                if icw > 50 && icw < 120 { result.intracellularWaterL = icw * lbsToKg }
-                if tbw > 100 && tbw < 170 { result.totalBodyWaterL = tbw * lbsToKg }
-                if lbm > 130 { result.leanBodyMassKg = lbm * lbsToKg }
+                if result.ecwTbwRatio != nil { break }
             }
         }
 
-        // === Segmental Fat Analysis ===
-        // Pattern: "0. 21bs) / 14. 4%" or "0. 21bs) - 14.4%"
-        // OCR output: "0. 21bs) / 14.4%"  for right arm
-        parseSegmentalFatFromFullText(lines: lines, result: &result)
-
-        // === Segmental Lean Analysis ===
-        parseSegmentalLeanFromFullText(lines: lines, result: &result)
-
-        return result
+        // Fallback: look in Body Composition History
+        if result.ecwTbwRatio == nil {
+            for (i, line) in lines.enumerated() {
+                let lower = line.lowercased()
+                if lower.contains("ecw/t") && i > 10 {
+                    for j in max(0, i-2)...min(lines.count-1, i+2) {
+                        let cleaned = lines[j].replacingOccurrences(of: " ", with: "")
+                        if let num = Double(cleaned), num > 0.3 && num < 0.5 {
+                            result.ecwTbwRatio = num
+                            break
+                        }
+                    }
+                    if result.ecwTbwRatio != nil { break }
+                }
+            }
+        }
     }
 
-    // MARK: - Segmental Fat Parser
+    // MARK: - Segmental Fat
 
-    private static func parseSegmentalFatFromFullText(lines: [String], result: inout InBodyParseResult) {
-        // Find "Segmental Fat Analysis" section
+    private static func parseSegmentalFat(lines: [String], result: inout InBodyParseResult) {
         guard let startIdx = lines.firstIndex(where: { $0.lowercased().contains("segmental fat analysis") }) else { return }
 
-        let segments = ["right arm", "left arm", "trunk", "right leg", "left leg"]
-        var segmentIndex = 0
+        let segments: [(String, WritableKeyPath<InBodyParseResult, Double?>, WritableKeyPath<InBodyParseResult, Double?>)] = [
+            ("right arm", \.rightArmFatKg, \.rightArmFatPct),
+            ("left arm", \.leftArmFatKg, \.leftArmFatPct),
+            ("trunk", \.trunkFatKg, \.trunkFatPct),
+            ("right leg", \.rightLegFatKg, \.rightLegFatPct),
+            ("left leg", \.leftLegFatKg, \.leftLegFatPct),
+        ]
 
         for i in startIdx..<min(lines.count, startIdx + 20) {
             let lower = lines[i].lowercased()
-
-            for (si, seg) in segments.enumerated() {
-                if lower.contains(seg) && si >= segmentIndex {
-                    segmentIndex = si + 1
-
-                    // Extract mass and pct from this line
-                    // Pattern: "0. 21bs) / 14. 4%" or "6. 81bs) -- 65. 7%"
-                    let massPattern = #"(\d+\.?\s*\d*)\s*[Il1]bs?\)"#
-                    let pctPattern = #"(\d+\.?\s*\d*)\s*%"#
-
-                    var massVal: Double?
-                    var pctVal: Double?
-
-                    if let massMatch = firstMatch(massPattern, in: lines[i]) {
-                        let cleaned = massMatch.replacingOccurrences(of: " ", with: "")
-                        let nums = extractAllNumbers(from: cleaned)
-                        massVal = nums.first
+            for (seg, massPath, pctPath) in segments {
+                if lower.contains(seg) {
+                    // Pattern: "X.Xlbs) | YY.Y%" or "X.Xlbs) - YY.Y%"
+                    let cleaned = lines[i].replacingOccurrences(of: " ", with: "")
+                    // Extract mass: number before "lbs)" or "Ibs)"
+                    if let massMatch = firstMatch(#"(\d+\.?\d*)[Il1]bs?\)"#, in: cleaned) {
+                        let nums = extractAllNumbers(from: massMatch)
+                        if let mass = nums.first {
+                            result[keyPath: massPath] = mass * lbsToKg
+                        }
                     }
-                    if let pctMatch = firstMatch(pctPattern, in: lines[i]) {
-                        let cleaned = pctMatch.replacingOccurrences(of: " ", with: "")
-                        let nums = extractAllNumbers(from: cleaned)
-                        pctVal = nums.first
-                    }
-
-                    let massKg = massVal.map { $0 * lbsToKg }
-
-                    switch seg {
-                    case "right arm": result.rightArmFatKg = massKg; result.rightArmFatPct = pctVal
-                    case "left arm": result.leftArmFatKg = massKg; result.leftArmFatPct = pctVal
-                    case "trunk": result.trunkFatKg = massKg; result.trunkFatPct = pctVal
-                    case "right leg": result.rightLegFatKg = massKg; result.rightLegFatPct = pctVal
-                    case "left leg": result.leftLegFatKg = massKg; result.leftLegFatPct = pctVal
-                    default: break
+                    // Extract pct: number before "%"
+                    if let pctMatch = firstMatch(#"(\d+\.?\d*)%"#, in: cleaned) {
+                        let nums = extractAllNumbers(from: pctMatch)
+                        if let pct = nums.first {
+                            result[keyPath: pctPath] = pct
+                        }
                     }
                     break
                 }
@@ -358,42 +378,62 @@ enum InBodyOCRParser {
         }
     }
 
-    // MARK: - Segmental Lean Parser
+    // MARK: - Segmental Lean
 
-    private static func parseSegmentalLeanFromFullText(lines: [String], result: inout InBodyParseResult) {
-        // Find "Segmental Lean Analysis" section
+    private static func parseSegmentalLean(lines: [String], result: inout InBodyParseResult) {
         guard let startIdx = lines.firstIndex(where: { $0.lowercased().contains("segmental lean analysis") }) else { return }
+        let endIdx = lines[startIdx...].firstIndex(where: { $0.lowercased().contains("ecw/tbw") || $0.lowercased().contains("ecw/tw") }) ?? startIdx + 30
 
-        // The segmental lean values appear as numbers in subsequent lines
-        // From the OCR output, they appear mixed with bar chart values
-        // Look for patterns like "Right Arm" followed by numbers and percentages
-        let segments = ["right arm", "left arm", "trunk", "right leg", "left leg"]
-        var segmentIndex = 0
+        // Segmental lean values are harder to extract from full text because they're
+        // mixed with bar chart graphics. Look for bullet-marked values near segment names.
+        let segments: [(String, WritableKeyPath<InBodyParseResult, Double?>, WritableKeyPath<InBodyParseResult, Double?>)] = [
+            ("right arm", \.rightArmLeanKg, \.rightArmLeanPct),
+            ("left arm", \.leftArmLeanKg, \.leftArmLeanPct),
+            ("trunk", \.trunkLeanKg, \.trunkLeanPct),
+            ("right leg", \.rightLegLeanKg, \.rightLegLeanPct),
+            ("left leg", \.leftLegLeanKg, \.leftLegLeanPct),
+        ]
 
-        for i in startIdx..<min(lines.count, startIdx + 30) {
+        for i in startIdx..<min(lines.count, endIdx) {
             let lower = lines[i].lowercased()
-
-            for (si, seg) in segments.enumerated() {
-                if lower.contains(seg) && si >= segmentIndex {
-                    segmentIndex = si + 1
-
-                    // Look at nearby lines for mass and pct values
-                    // Lean mass is typically 3-120 lbs, pct is 80-180%
-                    // This is harder to parse from full text — skip for now if we can't find clear patterns
+            for (seg, massPath, pctPath) in segments {
+                if lower.contains(seg) {
+                    // Look at nearby lines for bullet-marked values
+                    for j in max(startIdx, i-1)...min(lines.count-1, i+3) {
+                        if let marked = extractBulletMarkedNumber(from: lines[j]) {
+                            if marked > 3 && marked < 120 && result[keyPath: massPath] == nil {
+                                result[keyPath: massPath] = marked * lbsToKg
+                            } else if marked > 100 && marked < 200 && result[keyPath: pctPath] == nil {
+                                result[keyPath: pctPath] = marked
+                            }
+                        }
+                    }
                     break
                 }
             }
         }
+    }
+
+    // MARK: - Bullet Marker Extraction
+
+    /// Extract a number that's preceded by a bullet marker (•, -, ·, *, ▪, ша, etc.)
+    /// These markers distinguish actual values from bar chart tick marks on InBody sheets.
+    private static func extractBulletMarkedNumber(from text: String) -> Double? {
+        // Pattern: bullet/marker character(s) followed by optional space then a number
+        // Bullets seen in OCR: "•", "-", "·", "*", Unicode artifacts like "ша"
+        let pattern = #"[•\-·*▪■]\s*(\d+\.?\s*\d*)"#
+        guard let regex = try? NSRegularExpression(pattern: pattern),
+              let match = regex.firstMatch(in: text, range: NSRange(text.startIndex..., in: text)),
+              let range = Range(match.range(at: 1), in: text) else { return nil }
+        let numStr = String(text[range]).replacingOccurrences(of: " ", with: "")
+        return Double(numStr)
     }
 
     // MARK: - Unit Detection
 
     private static func detectUnit(from text: String) -> DetectedUnit {
         let lower = text.lowercased()
-        // Check if values are labeled with "kg" units (vs "lbs"/"Ibs")
-        if lower.contains("(kg)") || (lower.contains("kg") && !lower.contains("kg/m")) {
-            return .kg
-        }
+        if lower.contains("(kg)") { return .kg }
         return .lbs
     }
 
@@ -401,36 +441,24 @@ enum InBodyOCRParser {
 
     private static func applyConfidence(to result: inout InBodyParseResult, confidence: Float) {
         let fields: [(String, Double?)] = [
-            ("weightKg", result.weightKg),
-            ("skeletalMuscleMassKg", result.skeletalMuscleMassKg),
-            ("bodyFatMassKg", result.bodyFatMassKg),
-            ("bodyFatPct", result.bodyFatPct),
-            ("totalBodyWaterL", result.totalBodyWaterL),
-            ("bmi", result.bmi),
+            ("weightKg", result.weightKg), ("skeletalMuscleMassKg", result.skeletalMuscleMassKg),
+            ("bodyFatMassKg", result.bodyFatMassKg), ("bodyFatPct", result.bodyFatPct),
+            ("totalBodyWaterL", result.totalBodyWaterL), ("bmi", result.bmi),
             ("basalMetabolicRate", result.basalMetabolicRate),
             ("intracellularWaterL", result.intracellularWaterL),
             ("extracellularWaterL", result.extracellularWaterL),
-            ("dryLeanMassKg", result.dryLeanMassKg),
-            ("leanBodyMassKg", result.leanBodyMassKg),
-            ("inBodyScore", result.inBodyScore),
-            ("ecwTbwRatio", result.ecwTbwRatio),
-            ("skeletalMuscleIndex", result.skeletalMuscleIndex),
+            ("dryLeanMassKg", result.dryLeanMassKg), ("leanBodyMassKg", result.leanBodyMassKg),
+            ("ecwTbwRatio", result.ecwTbwRatio), ("skeletalMuscleIndex", result.skeletalMuscleIndex),
             ("visceralFatLevel", result.visceralFatLevel),
-            ("rightArmFatKg", result.rightArmFatKg),
-            ("leftArmFatKg", result.leftArmFatKg),
-            ("trunkFatKg", result.trunkFatKg),
-            ("rightLegFatKg", result.rightLegFatKg),
+            ("rightArmFatKg", result.rightArmFatKg), ("leftArmFatKg", result.leftArmFatKg),
+            ("trunkFatKg", result.trunkFatKg), ("rightLegFatKg", result.rightLegFatKg),
             ("leftLegFatKg", result.leftLegFatKg),
-            ("rightArmFatPct", result.rightArmFatPct),
-            ("leftArmFatPct", result.leftArmFatPct),
-            ("trunkFatPct", result.trunkFatPct),
-            ("rightLegFatPct", result.rightLegFatPct),
+            ("rightArmFatPct", result.rightArmFatPct), ("leftArmFatPct", result.leftArmFatPct),
+            ("trunkFatPct", result.trunkFatPct), ("rightLegFatPct", result.rightLegFatPct),
             ("leftLegFatPct", result.leftLegFatPct),
         ]
         for (key, value) in fields {
-            if value != nil {
-                result.confidence[key] = confidence
-            }
+            if value != nil { result.confidence[key] = confidence }
         }
     }
 
@@ -474,23 +502,13 @@ enum InBodyOCRParser {
         return String(text[range])
     }
 
-    private static func extractLastNumber(from text: String) -> Double? {
-        let pattern = #"(\d+\.?\d*)"#
-        guard let regex = try? NSRegularExpression(pattern: pattern) else { return nil }
-        let matches = regex.matches(in: text, range: NSRange(text.startIndex..., in: text))
-        guard let lastMatch = matches.last,
-              let range = Range(lastMatch.range(at: 1), in: text) else { return nil }
-        return Double(text[range])
-    }
-
     private static func extractAllNumbers(from text: String) -> [Double] {
-        let cleaned = text.replacingOccurrences(of: " ", with: "")
         let pattern = #"(\d+\.?\d*)"#
         guard let regex = try? NSRegularExpression(pattern: pattern) else { return [] }
-        let matches = regex.matches(in: cleaned, range: NSRange(cleaned.startIndex..., in: cleaned))
+        let matches = regex.matches(in: text, range: NSRange(text.startIndex..., in: text))
         return matches.compactMap { match in
-            guard let range = Range(match.range(at: 1), in: cleaned) else { return nil }
-            return Double(cleaned[range])
+            guard let range = Range(match.range(at: 1), in: text) else { return nil }
+            return Double(text[range])
         }
     }
 }
