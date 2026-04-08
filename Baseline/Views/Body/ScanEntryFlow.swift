@@ -28,17 +28,20 @@ struct ScanEntryFlow: View {
                 CadreColors.bg.ignoresSafeArea()
 
                 if let vm = resolvedVM {
+                    // AnyView breaks the type metadata chain — without it, the
+                    // combined type of all 5 steps causes a stack overflow in
+                    // Swift's type decoder on ARM devices.
                     switch vm.currentStep {
                     case .selectType:
-                        scanTypeStep(vm: vm)
+                        AnyView(scanTypeStep(vm: vm))
                     case .selectMethod:
-                        inputMethodStep(vm: vm)
+                        AnyView(inputMethodStep(vm: vm))
                     case .camera:
-                        cameraStep(vm: vm)
+                        AnyView(cameraStep(vm: vm))
                     case .review:
-                        reviewFormStep(vm: vm)
+                        AnyView(reviewFormStep(vm: vm))
                     case .manualEntry:
-                        manualFormStep(vm: vm)
+                        AnyView(manualFormStep(vm: vm))
                     }
                 }
             }
