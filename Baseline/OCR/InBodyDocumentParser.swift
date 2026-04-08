@@ -199,64 +199,180 @@ struct InBodyDocumentParser {
         }
     }
 
-    /// Calibrated regions for InBody 570 sheet fields.
-    /// Coordinates from actual scan data (Vision bottom-left origin).
-    ///
-    /// Left column: x < 0.64.  Right column: x >= 0.64.
-    static let fieldRegions: [FieldRegion] = [
-        // --- Body Composition Analysis (tabular, tight X,Y boxes) ---
-        // These values are in a fixed grid at the top of the left column.
-        FieldRegion("intracellularWaterL",  y: 0.790...0.815, x: 0.20...0.30),
-        FieldRegion("extracellularWaterL",  y: 0.760...0.785, x: 0.20...0.30),
-        FieldRegion("totalBodyWaterL",      y: 0.775...0.800, x: 0.30...0.42),
-        FieldRegion("dryLeanMassKg",        y: 0.735...0.760, x: 0.20...0.30),
-        FieldRegion("leanBodyMassKg",       y: 0.755...0.785, x: 0.40...0.52),
-        FieldRegion("weightKg",             y: 0.740...0.770, x: 0.50...0.62),
-        FieldRegion("bodyFatMassKg",        y: 0.710...0.740, x: 0.20...0.30),
+    // MARK: - Anchor-Relative Region Building
 
-        // --- Muscle-Fat Analysis (bar charts — Y band, full left-column width, prefer bullet) ---
-        FieldRegion("weightKg",             y: 0.635...0.670, x: 0.20...0.62, bullet: true),
-        FieldRegion("skeletalMuscleMassKg", y: 0.605...0.640, x: 0.20...0.62, bullet: true),
-        FieldRegion("bodyFatMassKg",        y: 0.575...0.610, x: 0.20...0.62, bullet: true),
-
-        // --- Obesity Analysis (bar charts — prefer bullet) ---
-        FieldRegion("bmi",                  y: 0.510...0.545, x: 0.20...0.62, bullet: true),
-        FieldRegion("bodyFatPct",           y: 0.480...0.515, x: 0.20...0.62, bullet: true),
-
-        // --- Segmental Lean Analysis (bar charts — prefer bullet for lbs values) ---
-        FieldRegion("rightArmLeanKg",       y: 0.415...0.450, x: 0.35...0.55, bullet: true),
-        FieldRegion("leftArmLeanKg",        y: 0.383...0.415, x: 0.35...0.55, bullet: true),
-        FieldRegion("trunkLeanKg",          y: 0.350...0.383, x: 0.35...0.55, bullet: true),
-        FieldRegion("rightLegLeanKg",       y: 0.318...0.350, x: 0.35...0.55, bullet: true),
-        FieldRegion("leftLegLeanKg",        y: 0.285...0.318, x: 0.35...0.55, bullet: true),
-
-        // --- Segmental Lean sufficiency % (to the right of the lean kg values) ---
-        FieldRegion("rightArmLeanPct",      y: 0.415...0.450, x: 0.42...0.62),
-        FieldRegion("leftArmLeanPct",       y: 0.383...0.415, x: 0.42...0.62),
-        FieldRegion("trunkLeanPct",         y: 0.350...0.383, x: 0.42...0.62),
-        FieldRegion("rightLegLeanPct",      y: 0.318...0.350, x: 0.42...0.62),
-        FieldRegion("leftLegLeanPct",       y: 0.285...0.318, x: 0.42...0.62),
-
-        // --- ECW/TBW Analysis (bar chart, prefer bullet) ---
-        FieldRegion("ecwTbwRatio",          y: 0.220...0.260, x: 0.20...0.62, bullet: true),
-
-        // --- Right column fields ---
-        FieldRegion("basalMetabolicRate",   y: 0.595...0.630, x: 0.64...1.0),
-        FieldRegion("skeletalMuscleIndex",  y: 0.520...0.555, x: 0.64...1.0),
-        FieldRegion("visceralFatLevel",     y: 0.555...0.600, x: 0.64...0.78),
-
-        // --- Segmental Fat (right column, pattern: "X.Xlbs) | Y.Y%") ---
-        FieldRegion("rightArmFatKg",        y: 0.700...0.730, x: 0.64...1.0),
-        FieldRegion("leftArmFatKg",         y: 0.685...0.705, x: 0.64...1.0),
-        FieldRegion("trunkFatKg",           y: 0.665...0.690, x: 0.64...1.0),
-        FieldRegion("rightLegFatKg",        y: 0.645...0.670, x: 0.64...1.0),
-        FieldRegion("leftLegFatKg",         y: 0.630...0.655, x: 0.64...1.0),
-        FieldRegion("rightArmFatPct",       y: 0.700...0.730, x: 0.64...1.0),
-        FieldRegion("leftArmFatPct",        y: 0.685...0.705, x: 0.64...1.0),
-        FieldRegion("trunkFatPct",          y: 0.665...0.690, x: 0.64...1.0),
-        FieldRegion("rightLegFatPct",       y: 0.645...0.670, x: 0.64...1.0),
-        FieldRegion("leftLegFatPct",        y: 0.630...0.655, x: 0.64...1.0),
+    /// Known section headers on the InBody 570 sheet, used as Y anchors.
+    /// The sheet layout is fixed — relative spacing between fields never changes,
+    /// only the absolute Y position shifts between scans.
+    private static let sectionAnchors: [String: String] = [
+        "body composition analysis": "bodyComp",
+        "muscle-fat analysis": "muscleFat",
+        "muscle- fat analysis": "muscleFat",
+        "obesity analysis": "obesity",
+        "obesity anaiysis": "obesity",
+        "segmental lean analysis": "segLean",
+        "ecw/tbw analysis": "ecwTbw",
+        "ecw/tbw": "ecwTbw",
+        "segmental fat analysis": "segFat",
+        "basal metabolic rate": "bmr",
+        "visceral fat level": "visceralFat",
     ]
+
+    /// Builds field regions dynamically by finding section headers and using offsets.
+    static func buildRegions(from paragraphs: [DocumentObservation.Container.Text]) -> [FieldRegion] {
+        // Find anchor Y positions from section headers
+        var anchors: [String: Double] = [:]
+        for para in paragraphs {
+            let text = para.transcript.lowercased()
+                .trimmingCharacters(in: .whitespacesAndNewlines)
+                .replacingOccurrences(of: #"[\-:]$"#, with: "", options: .regularExpression)
+                .trimmingCharacters(in: .whitespaces)
+            let box = para.boundingRegion.boundingBox
+            let centerY = box.origin.y + box.height / 2
+
+            // Only consider left-column headers (x < 0.45) for main sections
+            // and right-column (x > 0.60) for right-side sections
+            for (label, anchor) in sectionAnchors {
+                if text.hasPrefix(label) || text == label {
+                    // Prefer the left-column instance for main sections
+                    let isRightCol = box.origin.x > 0.60
+                    let key = isRightCol ? anchor + "_right" : anchor
+                    if anchors[key] == nil {
+                        anchors[key] = centerY
+                    }
+                }
+            }
+        }
+
+        #if DEBUG
+        print("=== ANCHORS FOUND ===")
+        for (key, y) in anchors.sorted(by: { $0.value > $1.value }) {
+            print(String(format: "  %@ = %.3f", key, y))
+        }
+        print("=== END ANCHORS ===")
+        #endif
+
+        var regions: [FieldRegion] = []
+
+        // --- Body Composition Analysis grid ---
+        // Values are in a fixed grid below the header.
+        // Offsets measured from "Body Composition Analysis" header.
+        if let bodyCompY = anchors["bodyComp"] {
+            // The grid is below the header. Values at offsets from header:
+            // ICW: -0.025, ECW: -0.050, DLM: -0.070, BFM: -0.095
+            // TBW: -0.035 (different x), LBM: -0.050 (different x), Weight: -0.065 (different x)
+            let m: Double = 0.012 // margin
+            regions += [
+                FieldRegion("intracellularWaterL",  y: (bodyCompY - 0.040 - m)...(bodyCompY - 0.040 + m), x: 0.18...0.32),
+                FieldRegion("extracellularWaterL",  y: (bodyCompY - 0.058 - m)...(bodyCompY - 0.058 + m), x: 0.18...0.32),
+                FieldRegion("totalBodyWaterL",      y: (bodyCompY - 0.048 - m)...(bodyCompY - 0.048 + m), x: 0.28...0.42),
+                FieldRegion("dryLeanMassKg",        y: (bodyCompY - 0.076 - m)...(bodyCompY - 0.076 + m), x: 0.18...0.32),
+                FieldRegion("leanBodyMassKg",       y: (bodyCompY - 0.058 - m)...(bodyCompY - 0.058 + m), x: 0.38...0.52),
+                FieldRegion("weightKg",             y: (bodyCompY - 0.076 - m)...(bodyCompY - 0.076 + m), x: 0.48...0.62),
+                FieldRegion("bodyFatMassKg",        y: (bodyCompY - 0.100 - m)...(bodyCompY - 0.100 + m), x: 0.18...0.32),
+            ]
+        }
+
+        // --- Muscle-Fat Analysis (bar charts) ---
+        if let mfY = anchors["muscleFat"] {
+            // Weight bar: ~0.040 below header, SMM: ~0.065, BFM: ~0.090
+            let m: Double = 0.015
+            regions += [
+                FieldRegion("weightKg",             y: (mfY - 0.045 - m)...(mfY - 0.045 + m), x: 0.20...0.62, bullet: true),
+                FieldRegion("skeletalMuscleMassKg", y: (mfY - 0.072 - m)...(mfY - 0.072 + m), x: 0.20...0.62, bullet: true),
+                FieldRegion("bodyFatMassKg",        y: (mfY - 0.100 - m)...(mfY - 0.100 + m), x: 0.20...0.62, bullet: true),
+            ]
+        }
+
+        // --- Obesity Analysis (bar charts) ---
+        if let obY = anchors["obesity"] {
+            // BMI: ~0.030 below header, PBF: ~0.055
+            let m: Double = 0.015
+            regions += [
+                FieldRegion("bmi",       y: (obY - 0.030 - m)...(obY - 0.030 + m), x: 0.20...0.62, bullet: true),
+                FieldRegion("bodyFatPct", y: (obY - 0.060 - m)...(obY - 0.060 + m), x: 0.20...0.62, bullet: true),
+            ]
+        }
+
+        // --- Segmental Lean Analysis ---
+        if let slY = anchors["segLean"] {
+            // Right Arm: ~0.040 below, Left Arm: ~0.072, Trunk: ~0.105, Right Leg: ~0.140, Left Leg: ~0.175
+            let m: Double = 0.015
+            let offsets: [(String, Double)] = [
+                ("rightArmLeanKg",  0.040),
+                ("leftArmLeanKg",   0.072),
+                ("trunkLeanKg",     0.105),
+                ("rightLegLeanKg",  0.140),
+                ("leftLegLeanKg",   0.175),
+            ]
+            for (key, offset) in offsets {
+                regions.append(FieldRegion(key, y: (slY - offset - m)...(slY - offset + m), x: 0.35...0.55, bullet: true))
+            }
+            // Sufficiency percentages are in the same rows but further right
+            let pctOffsets: [(String, Double)] = [
+                ("rightArmLeanPct",  0.040),
+                ("leftArmLeanPct",   0.072),
+                ("trunkLeanPct",     0.105),
+                ("rightLegLeanPct",  0.140),
+                ("leftLegLeanPct",   0.175),
+            ]
+            for (key, offset) in pctOffsets {
+                regions.append(FieldRegion(key, y: (slY - offset - m)...(slY - offset + m), x: 0.42...0.62))
+            }
+        }
+
+        // --- ECW/TBW Analysis ---
+        if let ecwY = anchors["ecwTbw"] {
+            let m: Double = 0.020
+            regions.append(FieldRegion("ecwTbwRatio", y: (ecwY - 0.040 - m)...(ecwY - 0.040 + m), x: 0.20...0.62, bullet: true))
+        }
+
+        // --- Right column: BMR ---
+        if let bmrY = anchors["bmr_right"] ?? anchors["bmr"] {
+            let m: Double = 0.015
+            regions.append(FieldRegion("basalMetabolicRate", y: (bmrY - 0.015 - m)...(bmrY - 0.015 + m), x: 0.64...1.0))
+        }
+
+        // --- Right column: SMI ---
+        // SMI label is at a known position in right column
+        for para in paragraphs {
+            let text = para.transcript.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
+            let box = para.boundingRegion.boundingBox
+            if text == "smi" && box.origin.x > 0.60 {
+                let centerY = box.origin.y + box.height / 2
+                let m: Double = 0.015
+                regions.append(FieldRegion("skeletalMuscleIndex", y: (centerY - 0.015 - m)...(centerY - 0.015 + m), x: 0.64...1.0))
+                break
+            }
+        }
+
+        // --- Right column: Visceral Fat Level ---
+        if let vfY = anchors["visceralFat_right"] ?? anchors["visceralFat"] {
+            let m: Double = 0.015
+            // "Level N" appears just below the header, use the header's own line
+            regions.append(FieldRegion("visceralFatLevel", y: (vfY - 0.020 - m)...(vfY - 0.020 + m), x: 0.64...0.80))
+        }
+
+        // --- Right column: Segmental Fat ---
+        if let sfY = anchors["segFat_right"] ?? anchors["segFat"] {
+            // Right Arm: ~0.025 below header, Left Arm: ~0.042, Trunk: ~0.058, Right Leg: ~0.075, Left Leg: ~0.092
+            let m: Double = 0.012
+            let fatOffsets: [(String, String, Double)] = [
+                ("rightArmFatKg", "rightArmFatPct", 0.025),
+                ("leftArmFatKg",  "leftArmFatPct",  0.042),
+                ("trunkFatKg",    "trunkFatPct",    0.058),
+                ("rightLegFatKg", "rightLegFatPct", 0.075),
+                ("leftLegFatKg",  "leftLegFatPct",  0.092),
+            ]
+            for (kgKey, pctKey, offset) in fatOffsets {
+                let yBand = (sfY - offset - m)...(sfY - offset + m)
+                regions.append(FieldRegion(kgKey, y: yBand, x: 0.64...1.0))
+                regions.append(FieldRegion(pctKey, y: yBand, x: 0.64...1.0))
+            }
+        }
+
+        return regions
+    }
 
     /// Primary extraction: use paragraph bounding boxes to locate values by position.
     static func extractByPosition(
@@ -278,7 +394,9 @@ struct InBodyDocumentParser {
         print("=== END POSITIONS ===")
         #endif
 
-        for region in fieldRegions {
+        let regions = buildRegions(from: paragraphs)
+
+        for region in regions {
             // Skip if already populated (first match wins — body comp grid before bar chart)
             guard getField(region.key, from: result) == nil else { continue }
 
@@ -412,19 +530,24 @@ struct InBodyDocumentParser {
     // MARK: - Numeric Parsing
 
     /// Strips units and whitespace from a value string and returns a Double.
-    /// Handles: "89.5 kg", "17.1%", "1842 kcal", "0.380", plain integers.
+    /// Handles: "89.5 kg", "17.1%", "1842 kcal", "0.380", "105. 8" (OCR space in decimal).
     static func parseNumericValue(_ text: String) -> Double? {
         let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return nil }
 
+        // First, collapse OCR-inserted spaces within numbers: "105. 8" → "105.8", "0. 369" → "0.369"
+        let collapsed = trimmed.replacingOccurrences(
+            of: #"(\d+)\.\s+(\d)"#, with: "$1.$2", options: .regularExpression
+        )
+
         // Extract the first number using regex (handles embedded units)
         let pattern = #"-?\d+\.?\d*"#
         guard let regex = try? NSRegularExpression(pattern: pattern),
-              let match = regex.firstMatch(in: trimmed, range: NSRange(trimmed.startIndex..., in: trimmed)),
-              let range = Range(match.range, in: trimmed)
+              let match = regex.firstMatch(in: collapsed, range: NSRange(collapsed.startIndex..., in: collapsed)),
+              let range = Range(match.range, in: collapsed)
         else { return nil }
 
-        return Double(trimmed[range])
+        return Double(collapsed[range])
     }
 
     // MARK: - Field Access by Key
