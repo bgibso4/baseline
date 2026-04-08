@@ -295,29 +295,32 @@ struct InBodyDocumentParser {
         }
 
         // --- Segmental Lean Analysis ---
+        // Each body part has TWO rows: top row = sufficiency %, bottom row = lean mass lbs.
+        // The % row is ~0.010 higher (larger Y) than the lbs row.
+        // We use tight margins and separate offsets to distinguish them.
         if let slY = anchors["segLean"] {
-            // Right Arm: ~0.040 below, Left Arm: ~0.072, Trunk: ~0.105, Right Leg: ~0.140, Left Leg: ~0.175
-            let m: Double = 0.015
-            let offsets: [(String, Double)] = [
-                ("rightArmLeanKg",  0.040),
-                ("leftArmLeanKg",   0.072),
-                ("trunkLeanKg",     0.105),
-                ("rightLegLeanKg",  0.140),
-                ("leftLegLeanKg",   0.175),
+            let m: Double = 0.010
+            // Lean mass (lbs) values — these are on the LOWER row of each pair
+            let kgOffsets: [(String, Double)] = [
+                ("rightArmLeanKg",  0.047),
+                ("leftArmLeanKg",   0.079),
+                ("trunkLeanKg",     0.112),
+                ("rightLegLeanKg",  0.147),
+                ("leftLegLeanKg",   0.182),
             ]
-            for (key, offset) in offsets {
+            for (key, offset) in kgOffsets {
                 regions.append(FieldRegion(key, y: (slY - offset - m)...(slY - offset + m), x: 0.35...0.55, bullet: true))
             }
-            // Sufficiency percentages are in the same rows but further right
+            // Sufficiency percentages — on the UPPER row, slightly right
             let pctOffsets: [(String, Double)] = [
-                ("rightArmLeanPct",  0.040),
-                ("leftArmLeanPct",   0.072),
-                ("trunkLeanPct",     0.105),
-                ("rightLegLeanPct",  0.140),
-                ("leftLegLeanPct",   0.175),
+                ("rightArmLeanPct",  0.037),
+                ("leftArmLeanPct",   0.069),
+                ("trunkLeanPct",     0.102),
+                ("rightLegLeanPct",  0.137),
+                ("leftLegLeanPct",   0.172),
             ]
             for (key, offset) in pctOffsets {
-                regions.append(FieldRegion(key, y: (slY - offset - m)...(slY - offset + m), x: 0.42...0.62))
+                regions.append(FieldRegion(key, y: (slY - offset - m)...(slY - offset + m), x: 0.42...0.62, bullet: true))
             }
         }
 
@@ -401,7 +404,13 @@ struct InBodyDocumentParser {
             guard getField(region.key, from: result) == nil else { continue }
 
             // Find paragraphs whose center falls within this region
-            var candidates: [(text: String, centerX: Double, hasBullet: Bool)] = []
+            struct Candidate {
+                let text: String
+                let centerX: Double
+                let height: Double
+                let hasBullet: Bool
+            }
+            var candidates: [Candidate] = []
 
             for para in paragraphs {
                 let box = para.boundingRegion.boundingBox
@@ -412,29 +421,34 @@ struct InBodyDocumentParser {
                       region.xRange.contains(centerX) else { continue }
 
                 let text = para.transcript
-                // Detect bullet/marker prefix: any non-alphanumeric, non-paren, non-space
-                // chars before digits. Covers •, -, =, m=, --, ш, and any OCR-mangled bullets.
                 let hasBullet = text.range(of: #"^[^\dA-Za-z(\s]"#, options: .regularExpression) != nil
                     || text.range(of: #"^m[=\s]"#, options: .regularExpression) != nil
-                candidates.append((text: text, centerX: centerX, hasBullet: hasBullet))
+                candidates.append(Candidate(text: text, centerX: centerX, height: box.height, hasBullet: hasBullet))
             }
 
             guard !candidates.isEmpty else { continue }
 
-            // For bar chart fields, prefer bullet-prefixed values
-            let toTry: [(text: String, centerX: Double, hasBullet: Bool)]
+            // For bar chart fields: prefer bullet-prefixed, then tallest (actual values are larger than tick marks)
+            let toTry: [Candidate]
             if region.preferBullet {
                 let bulleted = candidates.filter { $0.hasBullet }
-                toTry = bulleted.isEmpty ? candidates : bulleted
+                if !bulleted.isEmpty {
+                    // Sort bulleted by height descending — tallest bullet value wins
+                    toTry = bulleted.sorted { $0.height > $1.height }
+                } else {
+                    // No bullets found: sort all by height descending — actual values are taller than tick marks
+                    // (tick marks: h≈0.008-0.010, actual values: h≈0.012-0.025)
+                    toTry = candidates.sorted { $0.height > $1.height }
+                }
             } else {
                 toTry = candidates
             }
 
             #if DEBUG
             if region.preferBullet {
-                let bulletTexts = candidates.filter { $0.hasBullet }.map { $0.text }
-                let plainTexts = candidates.filter { !$0.hasBullet }.map { $0.text }
-                print("[Position] \(region.key) candidates — bullet: \(bulletTexts), plain: \(plainTexts)")
+                let bulletInfo = candidates.filter { $0.hasBullet }.map { "\($0.text)(h=\(String(format: "%.3f", $0.height)))" }
+                let plainInfo = candidates.filter { !$0.hasBullet }.map { "\($0.text)(h=\(String(format: "%.3f", $0.height)))" }
+                print("[Position] \(region.key) candidates — bullet: \(bulletInfo), plain: \(plainInfo)")
             }
             #endif
 
