@@ -75,9 +75,10 @@ enum InBodyOCRParser {
         }
 
         // === SMI ===
-        // Pattern: number followed by "kg/m"
-        if let smiMatch = firstMatch(#"(\d+\.?\d*)\s*kg/m"#, in: text) {
-            let nums = extractAllNumbers(from: smiMatch)
+        // Pattern: number followed by "kg/m" — OCR may insert spaces in number ("10. 4 kg/m")
+        if let smiMatch = firstMatch(#"(\d+\.?\s*\d+)\s*kg/m"#, in: text) {
+            let cleaned = smiMatch.replacingOccurrences(of: " ", with: "")
+            let nums = extractAllNumbers(from: cleaned)
             if let val = nums.first, val > 3 && val < 20 {
                 result.skeletalMuscleIndex = val
             }
@@ -133,30 +134,40 @@ enum InBodyOCRParser {
         }
 
         // === SMM (Skeletal Muscle Mass) ===
+        // In Body Composition History: "105.8" appears on its own line near "SMM"
+        // In Muscle-Fat section: "SMM" label appears but value is mixed with bar chart
+        // Strategy: search wider window, prefer numbers in 60-180 lbs range
         for (i, line) in lines.enumerated() {
             let lower = line.lowercased()
-            if lower.contains("smm") || lower == "skeletal muscle mass" {
-                for j in max(0, i-1)...min(lines.count-1, i+3) {
-                    let nums = extractAllNumbers(from: lines[j])
+            if lower.contains("smm") || lower.contains("skeletal muscle mas") {
+                // Search nearby lines (wider window)
+                for j in max(0, i-3)...min(lines.count-1, i+3) {
+                    let cleaned = lines[j].replacingOccurrences(of: " ", with: "")
+                    let nums = extractAllNumbers(from: cleaned)
                     for num in nums {
-                        if num > 50 && num < 200 && result.skeletalMuscleMassKg == nil {
+                        if num > 60 && num < 180 && result.skeletalMuscleMassKg == nil {
                             result.skeletalMuscleMassKg = num * lbsToKg
                         }
                     }
                 }
+                if result.skeletalMuscleMassKg != nil { break }
             }
         }
 
         // === Body Fat Mass ===
-        // Appears multiple times — look for it near "Body Fat Mass" label
-        // The value 14.2 appears after "Body Fat Mass"
+        // In the Muscle-Fat section, appears as "Body Fat Mass (Ibs)" then "*14. 2" on nearby line
+        // Also appears as "14.2" at end of the body comp values block
+        // Strategy: look for "body fat mass" with "(lbs)" or "(Ibs)" on same/nearby line (Muscle-Fat section)
         for (i, line) in lines.enumerated() {
             let lower = line.lowercased()
-            if lower.contains("body fat mass") && !lower.contains("control") && !lower.contains("lean") {
-                for j in i...min(lines.count-1, i+3) {
-                    let nums = extractAllNumbers(from: lines[j])
+            if lower.contains("body fat mass") && (lower.contains("lbs") || lower.contains("ibs")) && !lower.contains("control") {
+                // Check this line and next few for a number in plausible range (1-80 lbs)
+                for j in i...min(lines.count-1, i+2) {
+                    // Clean OCR artifacts like "*14. 2" → "14.2"
+                    let cleaned = lines[j].replacingOccurrences(of: "*", with: "").replacingOccurrences(of: " ", with: "")
+                    let nums = extractAllNumbers(from: cleaned)
                     for num in nums {
-                        if num > 1 && num < 100 && result.bodyFatMassKg == nil {
+                        if num > 1 && num < 80 && result.bodyFatMassKg == nil {
                             result.bodyFatMassKg = num * lbsToKg
                         }
                     }
@@ -164,12 +175,43 @@ enum InBodyOCRParser {
                 if result.bodyFatMassKg != nil { break }
             }
         }
+        // Fallback: if not found in Muscle-Fat section, look for standalone "14.2" after body comp values
+        if result.bodyFatMassKg == nil {
+            for (i, line) in lines.enumerated() {
+                let lower = line.lowercased()
+                if lower.contains("body fat mass") && !lower.contains("control") && !lower.contains("lean") {
+                    // Search forward for a small number (body fat mass in lbs: typically 5-60)
+                    for j in i...min(lines.count-1, i+8) {
+                        let nums = extractAllNumbers(from: lines[j])
+                        for num in nums {
+                            if num > 3 && num < 60 && result.bodyFatMassKg == nil {
+                                result.bodyFatMassKg = num * lbsToKg
+                            }
+                        }
+                    }
+                    if result.bodyFatMassKg != nil { break }
+                }
+            }
+        }
 
         // === BMI ===
+        // BMI value often gets lost in bar chart numbers. Try multiple strategies:
+        // 1. Look for a number 15-50 near "BMI" label
+        // 2. Look near "Obesity Analysis" section
+        // 3. Look in Body Composition History values
         for (i, line) in lines.enumerated() {
             let lower = line.lowercased()
-            if lower.contains("bmi") || lower.contains("body mass index") {
-                for j in max(0, i-2)...min(lines.count-1, i+3) {
+            if lower.contains("bmi") && !lower.contains("smm") && !lower.contains("analysis") {
+                // Check this line first
+                let sameLineNums = extractAllNumbers(from: line)
+                for num in sameLineNums {
+                    if num > 15 && num < 50 && result.bmi == nil {
+                        result.bmi = num
+                    }
+                }
+                if result.bmi != nil { break }
+                // Check nearby lines
+                for j in max(0, i-2)...min(lines.count-1, i+5) {
                     let nums = extractAllNumbers(from: lines[j])
                     for num in nums {
                         if num > 15 && num < 50 && result.bmi == nil {
@@ -180,6 +222,8 @@ enum InBodyOCRParser {
                 if result.bmi != nil { break }
             }
         }
+        // Fallback: calculate from weight and height if we have weight
+        // BMI = weight(kg) / height(m)^2 — but we'd need height from the scan
 
         // === PBF (Percent Body Fat) ===
         for (i, line) in lines.enumerated() {
@@ -197,64 +241,58 @@ enum InBodyOCRParser {
             }
         }
 
-        // === Total Body Water, Lean Body Mass ===
-        // Pattern in header area: "Total Body Water Lean Body Mass" then values "134.0 183.0"
-        if let tbwIdx = lines.firstIndex(where: { $0.lowercased().contains("total body water") }) {
-            // Values typically appear within a few lines
-            for j in tbwIdx...min(lines.count-1, tbwIdx + 5) {
-                let nums = extractAllNumbers(from: lines[j])
-                if nums.count >= 2 {
-                    // TBW is typically the larger of the pair if one looks like water volume
-                    for num in nums {
-                        if num > 20 && num < 80 && result.totalBodyWaterL == nil {
-                            result.totalBodyWaterL = num // liters, no conversion
-                        } else if num > 100 && num < 250 && result.leanBodyMassKg == nil {
-                            result.leanBodyMassKg = num * lbsToKg
-                        }
+        // === Body Composition Values Block ===
+        // The InBody 570 OCR reads labels first, then values as a block:
+        //   Labels: Intracellular Water, Extracellular Water, Dry Lean Mass, Body Fat Mass
+        //   Values: 84.7, 134.0, 49.4, 183.0, 48.9, 14.2
+        //   Where: ICW=84.7, TBW=134.0, ECW=49.4, LBM=183.0, DryLean=48.9, BFM=14.2
+        // Also: "Total Body Water Lean Body Mass" header shows TBW and LBM column values
+        //
+        // Strategy: find the body comp section, collect the value block, assign by position
+        if let bodyCompIdx = lines.firstIndex(where: { $0.lowercased().contains("body composition analysis") }) {
+            // Find "Muscle-Fat Analysis" to mark the end of body comp section
+            let endIdx = lines[bodyCompIdx...].firstIndex(where: { $0.lowercased().contains("muscle-fat") }) ?? bodyCompIdx + 20
+
+            // Collect all numbers between body comp and muscle-fat headers
+            var values: [Double] = []
+            for j in bodyCompIdx...min(lines.count-1, endIdx + 5) {
+                let cleaned = lines[j].replacingOccurrences(of: " ", with: "")
+                let nums = extractAllNumbers(from: cleaned)
+                for num in nums {
+                    if num > 5 && num < 250 { // plausible body comp values in lbs
+                        values.append(num)
                     }
                 }
             }
-        }
 
-        // === Intracellular Water ===
-        for (i, line) in lines.enumerated() {
-            let lower = line.lowercased()
-            if lower.contains("intracellular") {
-                for j in i...min(lines.count-1, i+2) {
-                    if let num = extractLastNumber(from: lines[j]), num > 10 && num < 60 {
-                        result.intracellularWaterL = num // liters
-                        break
-                    }
-                }
-                if result.intracellularWaterL != nil { break }
-            }
-        }
+            // From the OCR output pattern, the values appear as:
+            // [84.7, 134.0, 49.4, 183.0, 48.9, 14.2]
+            // = [ICW, TBW, ECW, LBM, DryLean, BFM]
+            // But order may vary — use heuristics based on value ranges:
+            // ICW: 50-110 lbs (largest water component)
+            // ECW: 30-70 lbs (smaller water component)
+            // TBW: 100-170 lbs (ICW + ECW)
+            // LBM: 130-250 lbs (lean body mass, largest value)
+            // DryLean: 30-80 lbs (LBM - TBW)
+            // BFM: 5-60 lbs (body fat mass, typically smallest)
 
-        // === Extracellular Water ===
-        for (i, line) in lines.enumerated() {
-            let lower = line.lowercased()
-            if lower.contains("extracellular") && !lower.contains("ecw/") {
-                for j in i...min(lines.count-1, i+2) {
-                    if let num = extractLastNumber(from: lines[j]), num > 10 && num < 40 {
-                        result.extracellularWaterL = num // liters
-                        break
-                    }
-                }
-                if result.extracellularWaterL != nil { break }
-            }
-        }
+            // Sort values to identify them by magnitude
+            let sorted = values.sorted()
+            if sorted.count >= 6 {
+                // Assign by expected magnitude ordering
+                let bfm = sorted[0]      // smallest: body fat mass
+                let dryLean = sorted[1]   // next: dry lean mass or ECW
+                let ecw = sorted[2]       // next: ECW
+                let icw = sorted[3]       // next: ICW
+                let tbw = sorted[4]       // next: TBW
+                let lbm = sorted[5]       // largest: lean body mass
 
-        // === Dry Lean Mass ===
-        for (i, line) in lines.enumerated() {
-            let lower = line.lowercased()
-            if lower.contains("dry lean") {
-                for j in i...min(lines.count-1, i+2) {
-                    if let num = extractLastNumber(from: lines[j]), num > 20 && num < 120 {
-                        result.dryLeanMassKg = num * lbsToKg
-                        break
-                    }
-                }
-                if result.dryLeanMassKg != nil { break }
+                if bfm < 60 { result.bodyFatMassKg = result.bodyFatMassKg ?? (bfm * lbsToKg) }
+                if ecw > 30 && ecw < 70 { result.extracellularWaterL = ecw * lbsToKg }
+                if dryLean > 25 && dryLean < 80 { result.dryLeanMassKg = dryLean * lbsToKg }
+                if icw > 50 && icw < 120 { result.intracellularWaterL = icw * lbsToKg }
+                if tbw > 100 && tbw < 170 { result.totalBodyWaterL = tbw * lbsToKg }
+                if lbm > 130 { result.leanBodyMassKg = lbm * lbsToKg }
             }
         }
 
