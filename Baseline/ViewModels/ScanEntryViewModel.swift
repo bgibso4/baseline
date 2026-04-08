@@ -122,8 +122,7 @@ class ScanEntryViewModel {
         isProcessing = true
         errorMessage = nil
 
-        let text = await InBodyOCRParser.recognizeText(from: image)
-        let result = InBodyOCRParser.parse(text)
+        let result = await InBodyOCRParser.processImage(image)
         self.parseResult = result
         populateFields(from: result)
 

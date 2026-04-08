@@ -2,122 +2,132 @@ import Foundation
 import Vision
 import UIKit
 
-// MARK: - InBody OCR Parser
-
+/// Region-based OCR pipeline for InBody 570 result sheets.
+///
+/// Pipeline: image → perspective correct → crop regions → OCR each → parse → merge → confidence score
 enum InBodyOCRParser {
 
-    /// Conversion factor: 1 lb = 0.45359237 kg
-    private static let lbsToKg: Double = 0.45359237
+    /// Full pipeline: process a captured image and return parsed results with confidence.
+    static func processImage(_ image: UIImage) async -> InBodyParseResult {
+        // 1. Perspective correction
+        let corrected = await DocumentCorrector.correctPerspective(image)
 
-    // MARK: - Text Parsing
+        // 2. Crop all regions
+        let regionImages = InBody570RegionMap.cropAll(from: corrected)
 
-    static func parse(_ text: String) -> InBodyParseResult {
-        var result = InBodyParseResult()
-        result.rawText = text
-        let lines = text.components(separatedBy: .newlines)
-
-        for (index, line) in lines.enumerated() {
-            let lower = line.lowercased().trimmingCharacters(in: .whitespaces)
-
-            // Weight (lbs → kg)
-            if lower.contains("weight") && !lower.contains("body fat") && !lower.contains("total body water") {
-                if let lbs = extractNumber(from: line) ?? extractNumber(fromNextLine: lines, after: index) {
-                    result.weightKg = lbs * lbsToKg
-                }
-            }
-
-            // Body fat percentage (unitless)
-            if lower.contains("percent body fat") || lower.contains("body fat %") || lower.contains("pbf") {
-                result.bodyFatPct = extractNumber(from: line) ?? extractNumber(fromNextLine: lines, after: index)
-            }
-
-            // Skeletal muscle mass (lbs → kg)
-            if lower.contains("skeletal muscle mass") || (lower.contains("smm") && !lower.contains("segmental")) {
-                if let lbs = extractNumber(from: line) ?? extractNumber(fromNextLine: lines, after: index) {
-                    result.skeletalMuscleMassKg = lbs * lbsToKg
-                }
-            }
-
-            // Body fat mass (lbs → kg)
-            if lower.contains("body fat mass") && !lower.contains("percent") {
-                if let lbs = extractNumber(from: line) ?? extractNumber(fromNextLine: lines, after: index) {
-                    result.bodyFatMassKg = lbs * lbsToKg
-                }
-            }
-
-            // BMI (unitless)
-            if lower.contains("bmi") && !lower.contains("score") {
-                result.bmi = extractNumber(from: line)
-            }
-
-            // Total body water (liters — no conversion)
-            if lower.contains("total body water") || (lower.contains("tbw") && !lower.contains("ecw") && !lower.contains("icw")) {
-                result.totalBodyWaterL = extractNumber(from: line) ?? extractNumber(fromNextLine: lines, after: index)
-            }
-
-            // Intracellular water (liters)
-            if lower.contains("intracellular water") || lower.hasPrefix("icw") {
-                result.intracellularWaterL = extractNumber(from: line) ?? extractNumber(fromNextLine: lines, after: index)
-            }
-
-            // Extracellular water (liters)
-            if lower.contains("extracellular water") || lower.hasPrefix("ecw") {
-                result.extracellularWaterL = extractNumber(from: line) ?? extractNumber(fromNextLine: lines, after: index)
-            }
-
-            // Dry lean mass (lbs → kg)
-            if lower.contains("dry lean mass") {
-                if let lbs = extractNumber(from: line) ?? extractNumber(fromNextLine: lines, after: index) {
-                    result.dryLeanMassKg = lbs * lbsToKg
-                }
-            }
-
-            // Lean body mass (lbs → kg)
-            if lower.contains("lean body mass") || (lower.contains("lbm") && !lower.contains("lean body mass")) {
-                if let lbs = extractNumber(from: line) ?? extractNumber(fromNextLine: lines, after: index) {
-                    result.leanBodyMassKg = lbs * lbsToKg
-                }
-            }
-
-            // BMR (kcal — no conversion)
-            if lower.contains("basal metabolic rate") || lower.contains("bmr") {
-                result.basalMetabolicRate = extractNumber(from: line) ?? extractNumber(fromNextLine: lines, after: index)
-            }
-
-            // InBody Score (unitless)
-            if lower.contains("inbody score") {
-                result.inBodyScore = extractNumber(from: line) ?? extractNumber(fromNextLine: lines, after: index)
-            }
-
-            // Segmental lean (lbs → kg)
-            if lower.contains("segmental lean") {
-                parseSegmentalLean(lines: Array(lines.dropFirst(index + 1)), result: &result)
-            }
-
-            // Segmental fat (lbs → kg)
-            if lower.contains("segmental fat") {
-                parseSegmentalFat(lines: Array(lines.dropFirst(index + 1)), result: &result)
-            }
+        // 3. Detect unit from the muscle-fat region (R3 contains "Weight lbs/kg")
+        var detectedUnit: DetectedUnit = .lbs
+        if let muscleFatImage = regionImages.first(where: { $0.0.id == "R3" }) {
+            let r3Text = await recognizeText(from: muscleFatImage.1)
+            detectedUnit = InBody570RegionParsers.detectUnit(from: r3Text)
         }
 
+        // 4. OCR + parse each region sequentially (memory pressure concern)
+        var merged = InBodyParseResult()
+        merged.detectedUnit = detectedUnit
+
+        for (region, regionImage) in regionImages {
+            let text = await recognizeTextWithConfidence(from: regionImage)
+            let regionResult = parseRegion(region, text: text.text, confidence: text.avgConfidence, unit: detectedUnit)
+            merged.merge(with: regionResult, userEditedFields: [])
+        }
+
+        return merged
+    }
+
+    // MARK: - Per-Region Dispatch
+
+    private static func parseRegion(
+        _ region: InBody570RegionMap.Region,
+        text: String,
+        confidence: Float,
+        unit: DetectedUnit
+    ) -> InBodyParseResult {
+        var result: InBodyParseResult
+
+        switch region.id {
+        case "R1": result = InBody570RegionParsers.parseHeader(text)
+        case "R2": result = InBody570RegionParsers.parseBodyComposition(text, unit: unit)
+        case "R3": result = InBody570RegionParsers.parseMuscleFat(text, unit: unit)
+        case "R4": result = InBody570RegionParsers.parseObesity(text)
+        case "R5": result = InBody570RegionParsers.parseSegmentalLean(text, unit: unit)
+        case "R6": result = InBody570RegionParsers.parseEcwTbw(text)
+        case "R7": result = InBody570RegionParsers.parseSegmentalFat(text, unit: unit)
+        case "R8": result = InBody570RegionParsers.parseBMR(text)
+        case "R9": result = InBody570RegionParsers.parseSMI(text)
+        case "R10": result = InBody570RegionParsers.parseVisceralFat(text)
+        default: result = InBodyParseResult()
+        }
+
+        // Apply region-level confidence to all extracted fields
+        applyConfidence(to: &result, confidence: confidence)
         return result
     }
 
-    // MARK: - Image OCR (Vision framework)
+    /// Set confidence for all non-nil Double fields in the result.
+    private static func applyConfidence(to result: inout InBodyParseResult, confidence: Float) {
+        // List all Double? field key paths and their string keys
+        let fields: [(String, Double?)] = [
+            ("weightKg", result.weightKg),
+            ("skeletalMuscleMassKg", result.skeletalMuscleMassKg),
+            ("bodyFatMassKg", result.bodyFatMassKg),
+            ("bodyFatPct", result.bodyFatPct),
+            ("totalBodyWaterL", result.totalBodyWaterL),
+            ("bmi", result.bmi),
+            ("basalMetabolicRate", result.basalMetabolicRate),
+            ("intracellularWaterL", result.intracellularWaterL),
+            ("extracellularWaterL", result.extracellularWaterL),
+            ("dryLeanMassKg", result.dryLeanMassKg),
+            ("leanBodyMassKg", result.leanBodyMassKg),
+            ("inBodyScore", result.inBodyScore),
+            ("ecwTbwRatio", result.ecwTbwRatio),
+            ("skeletalMuscleIndex", result.skeletalMuscleIndex),
+            ("visceralFatLevel", result.visceralFatLevel),
+            ("rightArmLeanKg", result.rightArmLeanKg),
+            ("leftArmLeanKg", result.leftArmLeanKg),
+            ("trunkLeanKg", result.trunkLeanKg),
+            ("rightLegLeanKg", result.rightLegLeanKg),
+            ("leftLegLeanKg", result.leftLegLeanKg),
+            ("rightArmLeanPct", result.rightArmLeanPct),
+            ("leftArmLeanPct", result.leftArmLeanPct),
+            ("trunkLeanPct", result.trunkLeanPct),
+            ("rightLegLeanPct", result.rightLegLeanPct),
+            ("leftLegLeanPct", result.leftLegLeanPct),
+            ("rightArmFatKg", result.rightArmFatKg),
+            ("leftArmFatKg", result.leftArmFatKg),
+            ("trunkFatKg", result.trunkFatKg),
+            ("rightLegFatKg", result.rightLegFatKg),
+            ("leftLegFatKg", result.leftLegFatKg),
+            ("rightArmFatPct", result.rightArmFatPct),
+            ("leftArmFatPct", result.leftArmFatPct),
+            ("trunkFatPct", result.trunkFatPct),
+            ("rightLegFatPct", result.rightLegFatPct),
+            ("leftLegFatPct", result.leftLegFatPct),
+        ]
+        for (key, value) in fields {
+            if value != nil {
+                result.confidence[key] = confidence
+            }
+        }
+    }
 
-    static func recognizeText(from image: UIImage) async -> String {
-        guard let cgImage = image.cgImage else { return "" }
+    // MARK: - Vision OCR
+
+    private static func recognizeTextWithConfidence(from image: UIImage) async -> (text: String, avgConfidence: Float) {
+        guard let cgImage = image.cgImage else { return ("", 0) }
 
         return await withCheckedContinuation { continuation in
             let request = VNRecognizeTextRequest { request, error in
                 guard let observations = request.results as? [VNRecognizedTextObservation] else {
-                    continuation.resume(returning: "")
+                    continuation.resume(returning: ("", 0))
                     return
                 }
                 let text = observations
                     .compactMap { $0.topCandidates(1).first?.string }
                     .joined(separator: "\n")
-                continuation.resume(returning: text)
+                let avgConf = observations.isEmpty ? 0 :
+                    observations.map { $0.topCandidates(1).first?.confidence ?? 0 }.reduce(0, +) / Float(observations.count)
+                continuation.resume(returning: (text, avgConf))
             }
             request.recognitionLevel = .accurate
             request.usesLanguageCorrection = true
@@ -127,40 +137,8 @@ enum InBodyOCRParser {
         }
     }
 
-    // MARK: - Helpers
-
-    private static func extractNumber(from text: String) -> Double? {
-        let pattern = #"(\d+\.?\d*)"#
-        guard let regex = try? NSRegularExpression(pattern: pattern),
-              let match = regex.firstMatch(in: text, range: NSRange(text.startIndex..., in: text)),
-              let range = Range(match.range(at: 1), in: text) else { return nil }
-        return Double(text[range])
-    }
-
-    private static func extractNumber(fromNextLine lines: [String], after index: Int) -> Double? {
-        guard index + 1 < lines.count else { return nil }
-        return extractNumber(from: lines[index + 1])
-    }
-
-    private static func parseSegmentalLean(lines: [String], result: inout InBodyParseResult) {
-        for line in lines.prefix(5) {
-            let lower = line.lowercased()
-            if lower.contains("right arm") { result.rightArmLeanKg = (extractNumber(from: line) ?? 0) * lbsToKg }
-            else if lower.contains("left arm") { result.leftArmLeanKg = (extractNumber(from: line) ?? 0) * lbsToKg }
-            else if lower.contains("trunk") { result.trunkLeanKg = (extractNumber(from: line) ?? 0) * lbsToKg }
-            else if lower.contains("right leg") { result.rightLegLeanKg = (extractNumber(from: line) ?? 0) * lbsToKg }
-            else if lower.contains("left leg") { result.leftLegLeanKg = (extractNumber(from: line) ?? 0) * lbsToKg }
-        }
-    }
-
-    private static func parseSegmentalFat(lines: [String], result: inout InBodyParseResult) {
-        for line in lines.prefix(5) {
-            let lower = line.lowercased()
-            if lower.contains("right arm") { result.rightArmFatKg = (extractNumber(from: line) ?? 0) * lbsToKg }
-            else if lower.contains("left arm") { result.leftArmFatKg = (extractNumber(from: line) ?? 0) * lbsToKg }
-            else if lower.contains("trunk") { result.trunkFatKg = (extractNumber(from: line) ?? 0) * lbsToKg }
-            else if lower.contains("right leg") { result.rightLegFatKg = (extractNumber(from: line) ?? 0) * lbsToKg }
-            else if lower.contains("left leg") { result.leftLegFatKg = (extractNumber(from: line) ?? 0) * lbsToKg }
-        }
+    private static func recognizeText(from image: UIImage) async -> String {
+        let result = await recognizeTextWithConfidence(from: image)
+        return result.text
     }
 }
