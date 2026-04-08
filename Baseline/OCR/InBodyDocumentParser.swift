@@ -94,8 +94,13 @@ struct InBodyDocumentParser {
             print("[InBodyDocumentParser] Paragraphs found: \(doc.paragraphs.count)")
             #endif
 
+            // Primary: position-based extraction using paragraph bounding boxes
+            extractByPosition(doc.paragraphs, into: &result)
+
+            // Fallback: table-based extraction for anything position missed
             extractFromTables(doc.tables, into: &result, confidence: confidence)
-            extractFromParagraphs(doc.paragraphs, into: &result, confidence: confidence)
+
+            // Date extraction
             extractDate(from: doc, into: &result)
 
             #if DEBUG
@@ -175,17 +180,89 @@ struct InBodyDocumentParser {
         }
     }
 
-    /// Extracts fields from paragraphs using three strategies:
-    /// 1. Same-paragraph: "Label: Value" or "Label Value" within one paragraph
-    /// 2. Cross-paragraph: label in paragraph N, numeric value in paragraph N+1 or N+2
-    /// 3. Bullet/dash prefixed values: "= 197.2" or "- 105.8" after a known label
-    static func extractFromParagraphs(
-        _ paragraphs: [DocumentObservation.Container.Text],
-        into result: inout InBodyParseResult,
-        confidence: Float
-    ) {
-        let texts = paragraphs.map { $0.transcript }
+    // MARK: - Position-Based Extraction
 
+    /// A region on the InBody 570 sheet where a specific field's value appears.
+    /// Uses Vision's normalized coordinates (bottom-left origin: y=0 bottom, y=1 top).
+    struct FieldRegion {
+        let key: String
+        let yRange: ClosedRange<Double>
+        let xRange: ClosedRange<Double>
+        /// If true, prefer values with bullet prefixes (•, -, =, m=) — used for bar chart fields.
+        let preferBullet: Bool
+
+        init(_ key: String, y: ClosedRange<Double>, x: ClosedRange<Double> = 0.0...1.0, bullet: Bool = false) {
+            self.key = key
+            self.yRange = y
+            self.xRange = x
+            self.preferBullet = bullet
+        }
+    }
+
+    /// Calibrated regions for InBody 570 sheet fields.
+    /// Coordinates from actual scan data (Vision bottom-left origin).
+    ///
+    /// Left column: x < 0.64.  Right column: x >= 0.64.
+    static let fieldRegions: [FieldRegion] = [
+        // --- Body Composition Analysis (tabular, tight X,Y boxes) ---
+        // These values are in a fixed grid at the top of the left column.
+        FieldRegion("intracellularWaterL",  y: 0.790...0.815, x: 0.20...0.30),
+        FieldRegion("extracellularWaterL",  y: 0.760...0.785, x: 0.20...0.30),
+        FieldRegion("totalBodyWaterL",      y: 0.775...0.800, x: 0.30...0.42),
+        FieldRegion("dryLeanMassKg",        y: 0.735...0.760, x: 0.20...0.30),
+        FieldRegion("leanBodyMassKg",       y: 0.755...0.785, x: 0.40...0.52),
+        FieldRegion("weightKg",             y: 0.740...0.770, x: 0.50...0.62),
+        FieldRegion("bodyFatMassKg",        y: 0.710...0.740, x: 0.20...0.30),
+
+        // --- Muscle-Fat Analysis (bar charts — Y band, full left-column width, prefer bullet) ---
+        FieldRegion("weightKg",             y: 0.635...0.670, x: 0.20...0.62, bullet: true),
+        FieldRegion("skeletalMuscleMassKg", y: 0.605...0.640, x: 0.20...0.62, bullet: true),
+        FieldRegion("bodyFatMassKg",        y: 0.575...0.610, x: 0.20...0.62, bullet: true),
+
+        // --- Obesity Analysis (bar charts — prefer bullet) ---
+        FieldRegion("bmi",                  y: 0.510...0.545, x: 0.20...0.62, bullet: true),
+        FieldRegion("bodyFatPct",           y: 0.480...0.515, x: 0.20...0.62, bullet: true),
+
+        // --- Segmental Lean Analysis (bar charts — prefer bullet for lbs values) ---
+        FieldRegion("rightArmLeanKg",       y: 0.415...0.450, x: 0.35...0.55, bullet: true),
+        FieldRegion("leftArmLeanKg",        y: 0.383...0.415, x: 0.35...0.55, bullet: true),
+        FieldRegion("trunkLeanKg",          y: 0.350...0.383, x: 0.35...0.55, bullet: true),
+        FieldRegion("rightLegLeanKg",       y: 0.318...0.350, x: 0.35...0.55, bullet: true),
+        FieldRegion("leftLegLeanKg",        y: 0.285...0.318, x: 0.35...0.55, bullet: true),
+
+        // --- Segmental Lean sufficiency % (to the right of the lean kg values) ---
+        FieldRegion("rightArmLeanPct",      y: 0.415...0.450, x: 0.42...0.62),
+        FieldRegion("leftArmLeanPct",       y: 0.383...0.415, x: 0.42...0.62),
+        FieldRegion("trunkLeanPct",         y: 0.350...0.383, x: 0.42...0.62),
+        FieldRegion("rightLegLeanPct",      y: 0.318...0.350, x: 0.42...0.62),
+        FieldRegion("leftLegLeanPct",       y: 0.285...0.318, x: 0.42...0.62),
+
+        // --- ECW/TBW Analysis (bar chart, prefer bullet) ---
+        FieldRegion("ecwTbwRatio",          y: 0.220...0.260, x: 0.20...0.62, bullet: true),
+
+        // --- Right column fields ---
+        FieldRegion("basalMetabolicRate",   y: 0.595...0.630, x: 0.64...1.0),
+        FieldRegion("skeletalMuscleIndex",  y: 0.520...0.555, x: 0.64...1.0),
+        FieldRegion("visceralFatLevel",     y: 0.555...0.600, x: 0.64...0.78),
+
+        // --- Segmental Fat (right column, pattern: "X.Xlbs) | Y.Y%") ---
+        FieldRegion("rightArmFatKg",        y: 0.700...0.730, x: 0.64...1.0),
+        FieldRegion("leftArmFatKg",         y: 0.685...0.705, x: 0.64...1.0),
+        FieldRegion("trunkFatKg",           y: 0.665...0.690, x: 0.64...1.0),
+        FieldRegion("rightLegFatKg",        y: 0.645...0.670, x: 0.64...1.0),
+        FieldRegion("leftLegFatKg",         y: 0.630...0.655, x: 0.64...1.0),
+        FieldRegion("rightArmFatPct",       y: 0.700...0.730, x: 0.64...1.0),
+        FieldRegion("leftArmFatPct",        y: 0.685...0.705, x: 0.64...1.0),
+        FieldRegion("trunkFatPct",          y: 0.665...0.690, x: 0.64...1.0),
+        FieldRegion("rightLegFatPct",       y: 0.645...0.670, x: 0.64...1.0),
+        FieldRegion("leftLegFatPct",        y: 0.630...0.655, x: 0.64...1.0),
+    ]
+
+    /// Primary extraction: use paragraph bounding boxes to locate values by position.
+    static func extractByPosition(
+        _ paragraphs: [DocumentObservation.Container.Text],
+        into result: inout InBodyParseResult
+    ) {
         #if DEBUG
         print("=== PARAGRAPH POSITIONS (Y ascending) ===")
         let sorted = paragraphs.enumerated().sorted {
@@ -195,86 +272,88 @@ struct InBodyDocumentParser {
         for (idx, para) in sorted {
             let box = para.boundingRegion.boundingBox
             let text = para.transcript.prefix(60)
-            // Vision uses bottom-left origin; y=0 is bottom of image
             print(String(format: "  [%3d] y=%.3f x=%.3f w=%.3f h=%.3f | %@",
                          idx, box.origin.y, box.origin.x, box.width, box.height, String(text)))
         }
         print("=== END POSITIONS ===")
         #endif
 
-        // Track which paragraph indices we've consumed as values
-        // so we don't re-use them as labels
-        var consumedAsValue: Set<Int> = []
+        for region in fieldRegions {
+            // Skip if already populated (first match wins — body comp grid before bar chart)
+            guard getField(region.key, from: result) == nil else { continue }
 
-        for (i, text) in texts.enumerated() {
-            guard !consumedAsValue.contains(i) else { continue }
+            // Find paragraphs whose center falls within this region
+            var candidates: [(text: String, centerX: Double, hasBullet: Bool)] = []
 
-            // Strategy 1: Same-paragraph "Label: Value"
-            if let colonRange = text.range(of: ":") {
-                let labelPart = String(text[text.startIndex..<colonRange.lowerBound])
-                let valuePart = String(text[colonRange.upperBound...])
-                if let key = fieldKey(for: labelPart),
-                   getField(key, from: result) == nil,
-                   let value = parseNumericValue(valuePart) {
-                    setField(key, value: value, on: &result)
-                    if confidence > 0 { result.confidence[key] = confidence }
-                    #if DEBUG
-                    print("[InBodyDocumentParser] Matched (colon): \(key) = \(value)")
-                    #endif
-                    continue
-                }
+            for para in paragraphs {
+                let box = para.boundingRegion.boundingBox
+                let centerY = box.origin.y + box.height / 2
+                let centerX = box.origin.x + box.width / 2
+
+                guard region.yRange.contains(centerY),
+                      region.xRange.contains(centerX) else { continue }
+
+                let text = para.transcript
+                let hasBullet = text.range(of: #"^[=•\-·mш]*\s*\d"#, options: .regularExpression) != nil
+                candidates.append((text: text, centerX: centerX, hasBullet: hasBullet))
             }
 
-            // Strategy 2: Same-paragraph "Label Value" (space split)
-            if let (key, value) = matchLabelValue(in: text, result: result) {
-                setField(key, value: value, on: &result)
-                if confidence > 0 { result.confidence[key] = confidence }
-                #if DEBUG
-                print("[InBodyDocumentParser] Matched (space): \(key) = \(value)")
-                #endif
-                continue
+            guard !candidates.isEmpty else { continue }
+
+            // For bar chart fields, prefer bullet-prefixed values
+            let toTry: [(text: String, centerX: Double, hasBullet: Bool)]
+            if region.preferBullet {
+                let bulleted = candidates.filter { $0.hasBullet }
+                toTry = bulleted.isEmpty ? candidates : bulleted
+            } else {
+                toTry = candidates
             }
 
-            // Strategy 3: Cross-paragraph — this paragraph is a label, next paragraph(s) have the value
-            if let key = fieldKey(for: text), getField(key, from: result) == nil {
-                // Look ahead up to 3 paragraphs for a numeric value
-                for offset in 1...min(3, texts.count - i - 1) {
-                    let nextText = texts[i + offset]
-                    // Skip if next paragraph is also a known label
-                    if fieldKey(for: nextText) != nil { break }
-                    // Try to parse a number, stripping common OCR prefixes (=, -, •, m=)
-                    let cleaned = nextText.replacingOccurrences(
-                        of: #"^[=\-•·m\s]*"#, with: "", options: .regularExpression
-                    )
-                    if let value = parseNumericValue(cleaned) {
-                        setField(key, value: value, on: &result)
-                        if confidence > 0 { result.confidence[key] = confidence }
-                        consumedAsValue.insert(i + offset)
+            // Extract the first valid numeric value
+            for candidate in toTry {
+                let cleaned = candidate.text.replacingOccurrences(
+                    of: #"^[=•\-·mш\s]*"#, with: "", options: .regularExpression
+                )
+                if let value = parseNumericValue(cleaned) {
+                    // For segmental fat, parse "X.Xlbs) | Y.Y%" pattern
+                    if region.key.hasSuffix("FatPct"), let pct = parseSegmentalFatPct(candidate.text) {
+                        setField(region.key, value: pct, on: &result)
                         #if DEBUG
-                        print("[InBodyDocumentParser] Matched (cross-para): \(key) = \(value) [para \(i) + \(offset)]")
+                        print("[Position] \(region.key) = \(pct) (fat%)")
                         #endif
-                        break
+                    } else if region.key.hasSuffix("FatKg"), let kg = parseSegmentalFatKg(candidate.text) {
+                        setField(region.key, value: kg, on: &result)
+                        #if DEBUG
+                        print("[Position] \(region.key) = \(kg) (fatKg)")
+                        #endif
+                    } else {
+                        setField(region.key, value: value, on: &result)
+                        #if DEBUG
+                        print("[Position] \(region.key) = \(value)")
+                        #endif
                     }
+                    break
                 }
             }
         }
     }
 
-    /// Tries to match "Label Value" within a single string using progressively shorter label candidates.
-    private static func matchLabelValue(in text: String, result: InBodyParseResult) -> (String, Double)? {
-        let parts = text.components(separatedBy: .whitespaces).filter { !$0.isEmpty }
-        guard parts.count >= 2 else { return nil }
+    /// Parses "X.Xlbs) | Y.Y%" or "X.Xlbs) - Y.Y%" to extract the percentage.
+    private static func parseSegmentalFatPct(_ text: String) -> Double? {
+        let pattern = #"[\|\-]\s*(\d+\.?\d*)\s*%"#
+        guard let regex = try? NSRegularExpression(pattern: pattern),
+              let match = regex.firstMatch(in: text, range: NSRange(text.startIndex..., in: text)),
+              let range = Range(match.range(at: 1), in: text) else { return nil }
+        return Double(text[range])
+    }
 
-        for splitIndex in stride(from: parts.count - 1, through: 1, by: -1) {
-            let labelCandidate = parts[0..<splitIndex].joined(separator: " ")
-            let valueCandidate = parts[splitIndex...].joined(separator: " ")
-            if let key = fieldKey(for: labelCandidate),
-               getField(key, from: result) == nil,
-               let value = parseNumericValue(valueCandidate) {
-                return (key, value)
-            }
-        }
-        return nil
+    /// Parses "X.Xlbs)" to extract the kg/lbs value.
+    private static func parseSegmentalFatKg(_ text: String) -> Double? {
+        let pattern = #"(\d+\.?\d*)\s*[Il|]?bs\)"#
+        guard let regex = try? NSRegularExpression(pattern: pattern),
+              let match = regex.firstMatch(in: text, range: NSRange(text.startIndex..., in: text)),
+              let range = Range(match.range(at: 1), in: text) else { return nil }
+        return Double(text[range])
     }
 
     /// Attempts to extract the scan date from the document container's detectedData,
