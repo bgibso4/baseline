@@ -3,7 +3,7 @@ import VisionKit
 
 /// Wraps Apple's VNDocumentCameraViewController for SwiftUI.
 struct DocumentScannerView: UIViewControllerRepresentable {
-    var onScan: (UIImage) -> Void
+    var onScan: ([UIImage]) -> Void
     var onCancel: () -> Void
 
     func makeCoordinator() -> Coordinator {
@@ -19,10 +19,10 @@ struct DocumentScannerView: UIViewControllerRepresentable {
     func updateUIViewController(_ uiViewController: VNDocumentCameraViewController, context: Context) {}
 
     final class Coordinator: NSObject, VNDocumentCameraViewControllerDelegate {
-        let onScan: (UIImage) -> Void
+        let onScan: ([UIImage]) -> Void
         let onCancel: () -> Void
 
-        init(onScan: @escaping (UIImage) -> Void, onCancel: @escaping () -> Void) {
+        init(onScan: @escaping ([UIImage]) -> Void, onCancel: @escaping () -> Void) {
             self.onScan = onScan
             self.onCancel = onCancel
         }
@@ -35,8 +35,11 @@ struct DocumentScannerView: UIViewControllerRepresentable {
                 onCancel()
                 return
             }
-            let image = scan.imageOfPage(at: 0)
-            onScan(image)
+            #if DEBUG
+            print("[DocumentScannerView] Captured \(scan.pageCount) page(s)")
+            #endif
+            let images = (0..<scan.pageCount).map { scan.imageOfPage(at: $0) }
+            onScan(images)
         }
 
         func documentCameraViewControllerDidCancel(_ controller: VNDocumentCameraViewController) {

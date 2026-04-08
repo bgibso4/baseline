@@ -141,17 +141,29 @@ class ScanEntryViewModel {
 
     // MARK: - OCR Processing
 
-    func processImage(_ image: UIImage) async {
+    func processImages(_ images: [UIImage]) async {
         isProcessing = true
         errorMessage = nil
 
-        let result = await InBodyDocumentParser.parse(image: image)
+        #if DEBUG
+        print("[ScanEntryViewModel] Processing \(images.count) image(s)")
+        #endif
+
+        // Parse each page and merge results
+        var combined = InBodyParseResult()
+        for (i, image) in images.enumerated() {
+            #if DEBUG
+            print("[ScanEntryViewModel] Parsing page \(i + 1)/\(images.count)")
+            #endif
+            let pageResult = await InBodyDocumentParser.parse(image: image)
+            combined.merge(with: pageResult)
+        }
 
         if retryCount > 0 {
-            mergeRetryResult(result)
+            mergeRetryResult(combined)
         } else {
-            self.parseResult = result
-            populateFields(from: result)
+            self.parseResult = combined
+            populateFields(from: combined)
         }
 
         isProcessing = false
