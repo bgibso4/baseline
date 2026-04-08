@@ -97,6 +97,9 @@ struct InBodyDocumentParser {
             // Primary: position-based extraction using paragraph bounding boxes
             extractByPosition(doc.paragraphs, into: &result)
 
+            // Segmental lean: needs special handling (lbs vs % in same Y-band)
+            extractSegmentalLean(doc.paragraphs, into: &result)
+
             // Fallback: table-based extraction for anything position missed
             extractFromTables(doc.tables, into: &result, confidence: confidence)
 
@@ -295,34 +298,12 @@ struct InBodyDocumentParser {
         }
 
         // --- Segmental Lean Analysis ---
-        // Each body part has TWO rows: top row = sufficiency %, bottom row = lean mass lbs.
-        // The % row is ~0.010 higher (larger Y) than the lbs row.
-        // We use tight margins and separate offsets to distinguish them.
-        if let slY = anchors["segLean"] {
-            let m: Double = 0.010
-            // Lean mass (lbs) values — these are on the LOWER row of each pair
-            let kgOffsets: [(String, Double)] = [
-                ("rightArmLeanKg",  0.047),
-                ("leftArmLeanKg",   0.079),
-                ("trunkLeanKg",     0.112),
-                ("rightLegLeanKg",  0.147),
-                ("leftLegLeanKg",   0.182),
-            ]
-            for (key, offset) in kgOffsets {
-                regions.append(FieldRegion(key, y: (slY - offset - m)...(slY - offset + m), x: 0.35...0.55, bullet: true))
-            }
-            // Sufficiency percentages — on the UPPER row, slightly right
-            let pctOffsets: [(String, Double)] = [
-                ("rightArmLeanPct",  0.037),
-                ("leftArmLeanPct",   0.069),
-                ("trunkLeanPct",     0.102),
-                ("rightLegLeanPct",  0.137),
-                ("leftLegLeanPct",   0.172),
-            ]
-            for (key, offset) in pctOffsets {
-                regions.append(FieldRegion(key, y: (slY - offset - m)...(slY - offset + m), x: 0.42...0.62, bullet: true))
-            }
-        }
+        // Each body part has two values very close in Y (~0.006 apart):
+        //   - Lean mass in lbs (smaller number: 5-80 for arms/legs, 40-120 for trunk)
+        //   - Sufficiency % (larger number: typically 80-200%)
+        // Strategy: one wide Y-band per body part, extract both values at once
+        // by filtering tick marks (round integers) and splitting by value range.
+        // Handled separately in extractSegmentalLean() — no regions needed here.
 
         // --- ECW/TBW Analysis ---
         if let ecwY = anchors["ecwTbw"] {
@@ -453,27 +434,38 @@ struct InBodyDocumentParser {
             #endif
 
             // Extract the first valid numeric value
+            let wasBullet = toTry.first?.hasBullet ?? false
+            let wasOnlyCandidate = candidates.count == 1
             for candidate in toTry {
                 // Strip any non-alphanumeric prefix characters
                 let cleaned = candidate.text.replacingOccurrences(
                     of: #"^[^\dA-Za-z(]*"#, with: "", options: .regularExpression
                 )
                 if let value = parseNumericValue(cleaned) {
+                    // Confidence: bullet > height-sorted > ambiguous
+                    let conf: Float = candidate.hasBullet ? 0.9
+                        : wasOnlyCandidate ? 0.85
+                        : (candidate.height > 0.012) ? 0.7
+                        : 0.5
+
                     // For segmental fat, parse "X.Xlbs) | Y.Y%" pattern
                     if region.key.hasSuffix("FatPct"), let pct = parseSegmentalFatPct(candidate.text) {
                         setField(region.key, value: pct, on: &result)
+                        result.confidence[region.key] = conf
                         #if DEBUG
-                        print("[Position] \(region.key) = \(pct) (fat%)")
+                        print("[Position] \(region.key) = \(pct) (fat%) conf=\(conf)")
                         #endif
                     } else if region.key.hasSuffix("FatKg"), let kg = parseSegmentalFatKg(candidate.text) {
                         setField(region.key, value: kg, on: &result)
+                        result.confidence[region.key] = conf
                         #if DEBUG
-                        print("[Position] \(region.key) = \(kg) (fatKg)")
+                        print("[Position] \(region.key) = \(kg) (fatKg) conf=\(conf)")
                         #endif
                     } else {
                         setField(region.key, value: value, on: &result)
+                        result.confidence[region.key] = conf
                         #if DEBUG
-                        print("[Position] \(region.key) = \(value)")
+                        print("[Position] \(region.key) = \(value) conf=\(conf)")
                         #endif
                     }
                     break
@@ -492,12 +484,127 @@ struct InBodyDocumentParser {
     }
 
     /// Parses "X.Xlbs)" to extract the kg/lbs value.
+    /// Handles OCR artifacts like "0. 21bs)" → 0.2 and "6.81bs)" → 6.8
     private static func parseSegmentalFatKg(_ text: String) -> Double? {
-        let pattern = #"(\d+\.?\d*)\s*[Il|]?bs\)"#
+        // First collapse spaces in decimals: "0. 21bs)" → "0.21bs)"
+        let collapsed = text.replacingOccurrences(
+            of: #"(\d+)\.\s+(\d)"#, with: "$1.$2", options: .regularExpression
+        )
+        // Match number before "lbs)" or "Ibs)" or "bs)" — OCR renders l/I/1 inconsistently
+        let pattern = #"(\d+\.?\d*)\s*[Il1|]?[Il1|]?bs\)"#
         guard let regex = try? NSRegularExpression(pattern: pattern),
-              let match = regex.firstMatch(in: text, range: NSRange(text.startIndex..., in: text)),
-              let range = Range(match.range(at: 1), in: text) else { return nil }
-        return Double(text[range])
+              let match = regex.firstMatch(in: collapsed, range: NSRange(collapsed.startIndex..., in: collapsed)),
+              let range = Range(match.range(at: 1), in: collapsed) else { return nil }
+        return Double(collapsed[range])
+    }
+
+    // MARK: - Segmental Lean Extraction
+
+    /// Extracts segmental lean mass (lbs) and sufficiency (%) for all 5 body parts.
+    ///
+    /// Strategy: For each body part, find ALL non-tick-mark decimal values in its Y-band.
+    /// The two actual values have decimal parts (11.49, 138.0) while tick marks are
+    /// round integers (100, 110, 130, 150). Among the decimals, the one at HIGHER Y
+    /// (higher on page, Vision bottom-left origin) is lbs, the one at LOWER Y is %.
+    static func extractSegmentalLean(
+        _ paragraphs: [DocumentObservation.Container.Text],
+        into result: inout InBodyParseResult
+    ) {
+        // Find the segmental lean anchor
+        var segLeanY: Double?
+        for para in paragraphs {
+            let text = para.transcript.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
+            let box = para.boundingRegion.boundingBox
+            if text.hasPrefix("segmental lean analysis") && box.origin.x < 0.45 {
+                segLeanY = box.origin.y + box.height / 2
+                break
+            }
+        }
+        guard let anchorY = segLeanY else { return }
+
+        // Body parts with their Y offsets from the anchor and field keys
+        let segments: [(kgKey: String, pctKey: String, offset: Double)] = [
+            ("rightArmLeanKg",  "rightArmLeanPct",  0.042),
+            ("leftArmLeanKg",   "leftArmLeanPct",   0.074),
+            ("trunkLeanKg",     "trunkLeanPct",     0.107),
+            ("rightLegLeanKg",  "rightLegLeanPct",  0.142),
+            ("leftLegLeanKg",   "leftLegLeanPct",   0.177),
+        ]
+
+        for seg in segments {
+            guard getField(seg.kgKey, from: result) == nil else { continue }
+
+            let centerTarget = anchorY - seg.offset
+            let yRange = (centerTarget - 0.018)...(centerTarget + 0.018)
+
+            // Collect candidates with their Y positions, filtering to the value area (x > 0.35)
+            struct LeanCandidate {
+                let value: Double
+                let centerY: Double
+                let text: String
+            }
+            var candidates: [LeanCandidate] = []
+
+            for para in paragraphs {
+                let box = para.boundingRegion.boundingBox
+                let centerY = box.origin.y + box.height / 2
+                let centerX = box.origin.x + box.width / 2
+
+                guard yRange.contains(centerY), centerX > 0.35, centerX < 0.62 else { continue }
+
+                let text = para.transcript
+                // Strip bullet prefixes
+                let cleaned = text.replacingOccurrences(
+                    of: #"^[^\dA-Za-z(]*"#, with: "", options: .regularExpression
+                )
+                // Collapse OCR spaces in decimals
+                let collapsed = cleaned.replacingOccurrences(
+                    of: #"(\d+)\.\s+(\d)"#, with: "$1.$2", options: .regularExpression
+                )
+                guard let value = parseNumericValue(collapsed) else { continue }
+
+                // Filter tick marks: they're round multiples of 5 with no meaningful decimal
+                let isTickMark = value.truncatingRemainder(dividingBy: 5.0) == 0
+                    && value == value.rounded()
+                    && value >= 50  // Tick marks are >= 80 typically
+                if isTickMark { continue }
+
+                candidates.append(LeanCandidate(value: value, centerY: centerY, text: text))
+            }
+
+            // Sort by Y descending (higher Y = higher on page = lbs row, which is on top)
+            let sorted = candidates.sorted { $0.centerY > $1.centerY }
+
+            #if DEBUG
+            let info = sorted.map { String(format: "%.1f@y=%.3f", $0.value, $0.centerY) }
+            print("[SegLean] \(seg.kgKey.replacingOccurrences(of: "LeanKg", with: "")): candidates=\(info)")
+            #endif
+
+            if sorted.count >= 2 {
+                // Higher Y = lbs (top row), lower Y = % (bottom row)
+                setField(seg.kgKey, value: sorted[0].value, on: &result)
+                setField(seg.pctKey, value: sorted[1].value, on: &result)
+                result.confidence[seg.kgKey] = 0.8
+                result.confidence[seg.pctKey] = 0.8
+                #if DEBUG
+                print("[SegLean] \(seg.kgKey) = \(sorted[0].value) (lbs), \(seg.pctKey) = \(sorted[1].value) (%)")
+                #endif
+            } else if sorted.count == 1 {
+                // Only one value found — can't tell if lbs or %
+                // Use value range: sufficiency % is typically > 60
+                let v = sorted[0].value
+                if v > 60 {
+                    setField(seg.pctKey, value: v, on: &result)
+                    result.confidence[seg.pctKey] = 0.5
+                } else {
+                    setField(seg.kgKey, value: v, on: &result)
+                    result.confidence[seg.kgKey] = 0.5
+                }
+                #if DEBUG
+                print("[SegLean] \(seg.kgKey.replacingOccurrences(of: "LeanKg", with: "")): only 1 value = \(v)")
+                #endif
+            }
+        }
     }
 
     /// Attempts to extract the scan date from the document container's detectedData,
