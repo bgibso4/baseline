@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Logo Reference Captures</title>
+<style>
+  body { background: #000; margin: 0; padding: 40px; }
+  canvas { display: block; margin: 0 0 40px 0; }
+</style>
+</head>
+<body>
+
+<!-- Apex Peak - static, ghost layers, wide gaps -->
+<canvas id="apex-peak" width="800" height="250"></canvas>
+
+<!-- EKG Pulse - static, ghost layers -->
+<canvas id="ekg-pulse" width="800" height="250"></canvas>
+
+<!-- Apex Peak - tighter for icon use -->
+<canvas id="apex-icon" width="400" height="400"></canvas>
+
+<!-- EKG Pulse - tighter for icon use -->
+<canvas id="ekg-icon" width="400" height="400"></canvas>
+
+<script>
+function initCanvas(id) {
+  const c = document.getElementById(id);
+  const ctx = c.getContext('2d');
+  const dpr = window.devicePixelRatio || 1;
+  const w = c.width, h = c.height;
+  c.style.width = w + 'px';
+  c.style.height = h + 'px';
+  c.width = w * dpr;
+  c.height = h * dpr;
+  ctx.scale(dpr, dpr);
+  return { ctx, w, h };
+}
+
+function drawLine(ctx, pts, style) {
+  ctx.save();
+  ctx.globalAlpha = style.alpha || 1;
+  ctx.strokeStyle = style.color || '#fff';
+  ctx.lineWidth = style.width || 3;
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+  ctx.beginPath();
+  ctx.moveTo(pts[0].x, pts[0].y);
+  for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i].x, pts[i].y);
+  ctx.stroke();
+  ctx.restore();
+}
+
+// Apex Peak path
+function apexPath(w, h, baseY, peakH, peakW) {
+  const cx = w / 2;
+  return [
+    { x: w * 0.05, y: baseY },
+    { x: cx - peakW, y: baseY },
+    { x: cx, y: baseY - peakH },
+    { x: cx + peakW, y: baseY },
+    { x: w * 0.95, y: baseY },
+  ];
+}
+
+// EKG path
+function ekgPath(w, h, baseY) {
+  const sx = w * 0.05, ex = w * 0.95, range = ex - sx;
+  return [
+    { x: sx, y: baseY },
+    { x: sx + range * 0.30, y: baseY },
+    { x: sx + range * 0.37, y: baseY },
+    { x: sx + range * 0.42, y: baseY - h * 0.35 },
+    { x: sx + range * 0.48, y: baseY + h * 0.25 },
+    { x: sx + range * 0.53, y: baseY - h * 0.18 },
+    { x: sx + range * 0.58, y: baseY },
+    { x: sx + range * 0.65, y: baseY },
+    { x: ex, y: baseY },
+  ];
+}
+
+// ---- Apex Peak (wide) ----
+{
+  const { ctx, w, h } = initCanvas('apex-peak');
+  const layers = 3, gap = 18, lw = 6;
+  const baseY = h * 0.5;
+  const alphas = [1, 0.5, 0.25];
+  for (let i = 0; i < layers; i++) {
+    const pts = apexPath(w, h, baseY + i * gap, h * 0.35, w * 0.06);
+    drawLine(ctx, pts, { width: lw, alpha: alphas[i] });
+  }
+}
+
+// ---- EKG Pulse (wide) ----
+{
+  const { ctx, w, h } = initCanvas('ekg-pulse');
+  const layers = 3, gap = 12, lw = 4.5;
+  const baseY = h * 0.55;
+  const alphas = [1, 0.5, 0.25];
+  for (let i = 0; i < layers; i++) {
+    const pts = ekgPath(w, h, baseY + i * gap);
+    drawLine(ctx, pts, { width: lw, alpha: alphas[i] });
+  }
+}
+
+// ---- Apex Icon ----
+{
+  const { ctx, w, h } = initCanvas('apex-icon');
+  const layers = 3, gap = 16, lw = 5;
+  const baseY = h * 0.55;
+  const alphas = [1, 0.5, 0.25];
+  for (let i = 0; i < layers; i++) {
+    const pts = apexPath(w, h, baseY + i * gap, h * 0.3, w * 0.08);
+    drawLine(ctx, pts, { width: lw, alpha: alphas[i] });
+  }
+}
+
+// ---- EKG Icon ----
+{
+  const { ctx, w, h } = initCanvas('ekg-icon');
+  const layers = 3, gap = 12, lw = 4;
+  const baseY = h * 0.55;
+  const alphas = [1, 0.5, 0.25];
+  for (let i = 0; i < layers; i++) {
+    const pts = ekgPath(w, h, baseY + i * gap);
+    drawLine(ctx, pts, { width: lw, alpha: alphas[i] });
+  }
+}
+</script>
+</body>
+</html>

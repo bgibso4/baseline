@@ -1,0 +1,1196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Baseline — Logo Exploration Log</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #0a0a0a;
+    color: #fff;
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
+    min-height: 100vh;
+    padding: 40px 20px;
+  }
+  h1 {
+    text-align: center;
+    font-size: 16px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: #666;
+    margin-bottom: 10px;
+  }
+  .page-subtitle {
+    text-align: center;
+    font-size: 12px;
+    color: #444;
+    margin-bottom: 60px;
+  }
+
+  /* Round sections */
+  .round {
+    max-width: 1200px;
+    margin: 0 auto 80px;
+  }
+  .round-header {
+    display: flex;
+    align-items: baseline;
+    gap: 16px;
+    margin-bottom: 8px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #1a1a1a;
+  }
+  .round-header h2 {
+    font-size: 13px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: #e0e0e0;
+  }
+  .round-header .round-date {
+    font-size: 11px;
+    color: #444;
+  }
+  .round-desc {
+    font-size: 12px;
+    color: #555;
+    margin-bottom: 24px;
+    line-height: 1.6;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+    gap: 24px;
+  }
+  .concept {
+    background: #141414;
+    border-radius: 16px;
+    padding: 30px;
+    text-align: center;
+    cursor: pointer;
+    transition: transform 0.2s;
+    border: 1px solid #222;
+  }
+  .concept:hover { transform: scale(1.02); border-color: #333; }
+  .concept.wide { grid-column: 1 / -1; }
+  .concept h3 {
+    font-size: 12px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: #888;
+    margin-bottom: 6px;
+  }
+  .concept p {
+    font-size: 11px;
+    color: #555;
+    margin-bottom: 20px;
+  }
+  .hint {
+    font-size: 10px;
+    color: #333;
+    margin-top: 14px;
+  }
+
+  /* Icon row */
+  .icon-row {
+    display: flex;
+    gap: 24px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-top: 10px;
+  }
+  .icon-frame {
+    width: 100px;
+    height: 100px;
+    background: #111;
+    border-radius: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 6px;
+    border: 1px solid #333;
+  }
+  .icon-label { font-size: 10px; color: #555; }
+
+  svg { overflow: visible; }
+  canvas { display: block; margin: 0 auto; }
+
+  /* ===== Round 1: SVG CSS animations ===== */
+  .pulse-line {
+    fill: none;
+    stroke-width: 3;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke: #ffffff;
+    stroke-dasharray: 400;
+    stroke-dashoffset: 400;
+  }
+  .pulse-2 { opacity: 0.5; }
+  .pulse-3 { opacity: 0.25; }
+  .angular-line {
+    fill: none;
+    stroke-linecap: round;
+    stroke-linejoin: miter;
+    stroke: #ffffff;
+    stroke-width: 3.5;
+    stroke-dasharray: 500;
+    stroke-dashoffset: 500;
+  }
+  .a-line-2 { opacity: 0.45; }
+  .a-line-3 { opacity: 0.2; }
+  .threshold-base {
+    stroke: #fff; stroke-width: 3; stroke-linecap: round; fill: none;
+    stroke-dasharray: 200; stroke-dashoffset: 200;
+  }
+  .threshold-peak {
+    fill: none; stroke: #fff; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round;
+    stroke-dasharray: 120; stroke-dashoffset: 120;
+  }
+  .threshold-peak-2 {
+    fill: none; stroke: #fff; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round;
+    opacity: 0.4; stroke-dasharray: 100; stroke-dashoffset: 100;
+  }
+  .horizon-line {
+    stroke: #fff; stroke-width: 3.5; stroke-linecap: round; fill: none;
+    stroke-dasharray: 160; stroke-dashoffset: 160;
+  }
+  .b-stroke {
+    fill: none; stroke: #fff; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round;
+    stroke-dasharray: 300; stroke-dashoffset: 300;
+  }
+  .b-baseline-mark {
+    stroke: #fff; stroke-width: 3; stroke-linecap: round; fill: none;
+    stroke-dasharray: 100; stroke-dashoffset: 100;
+  }
+
+  /* SVG animation classes */
+  .anim .pulse-line:nth-child(1) { animation: svgdraw 1.2s ease-out 0.1s forwards; }
+  .anim .pulse-line:nth-child(2) { animation: svgdraw 1.2s ease-out 0.25s forwards; }
+  .anim .pulse-line:nth-child(3) { animation: svgdraw 1.2s ease-out 0.4s forwards; }
+  .anim .angular-line:nth-child(1) { animation: svgdraw 1s ease-out 0.1s forwards; }
+  .anim .angular-line:nth-child(2) { animation: svgdraw 1s ease-out 0.25s forwards; }
+  .anim .angular-line:nth-child(3) { animation: svgdraw 1s ease-out 0.4s forwards; }
+  .anim .threshold-base { animation: svgdraw 0.8s ease-out 0.1s forwards; }
+  .anim .threshold-peak { animation: svgdraw 0.6s ease-out 0.7s forwards; }
+  .anim .threshold-peak-2 { animation: svgdraw 0.6s ease-out 0.8s forwards; }
+  .anim .horizon-line:nth-child(1) { animation: svgdraw 0.7s ease-out 0.1s forwards; }
+  .anim .horizon-line:nth-child(2) { animation: svgdraw 0.7s ease-out 0.25s forwards; }
+  .anim .horizon-line:nth-child(3) { animation: svgdraw 0.7s ease-out 0.4s forwards; }
+  .anim .horizon-line:nth-child(4) { animation: svgdraw 0.7s ease-out 0.55s forwards; }
+  .anim .horizon-line:nth-child(5) { animation: svgdraw 0.7s ease-out 0.7s forwards; }
+  .anim .b-stroke { animation: svgdraw 1.2s ease-out 0.1s forwards; }
+  .anim .b-baseline-mark { animation: svgdraw 0.6s ease-out 0.9s forwards; }
+
+  /* Looping version */
+  .anim-loop .pulse-line:nth-child(1) { animation: svgdraw 1.2s ease-out 0.1s forwards, svgbeat 2.4s ease-in-out 2s infinite; }
+  .anim-loop .pulse-line:nth-child(2) { animation: svgdraw 1.2s ease-out 0.25s forwards, svgbeat 2.4s ease-in-out 2.15s infinite; }
+  .anim-loop .pulse-line:nth-child(3) { animation: svgdraw 1.2s ease-out 0.4s forwards, svgbeat 2.4s ease-in-out 2.3s infinite; }
+
+  @keyframes svgdraw { to { stroke-dashoffset: 0; } }
+  @keyframes svgbeat { 0%, 100% { stroke-dashoffset: 0; } 50% { stroke-dashoffset: 400; } }
+</style>
+</head>
+<body>
+
+<h1>Baseline — Logo Exploration Log</h1>
+<div class="page-subtitle">All concepts explored, chronological. Click any card to replay its animation.</div>
+
+<!-- ============================================================ -->
+<!-- ROUND 1: Initial Explorations (SVG/CSS)                      -->
+<!-- ============================================================ -->
+<div class="round">
+  <div class="round-header">
+    <h2>Round 1 — Initial Explorations</h2>
+    <span class="round-date">Apr 6 2026</span>
+  </div>
+  <div class="round-desc">
+    First pass: five different directions — EKG pulse, angular pulse, threshold, horizons, B-hybrid.
+    Layered strokes inspired by Apex. SVG with CSS draw-on animations.
+  </div>
+  <div class="grid">
+
+    <!-- Parallel Pulse (smooth EKG) -->
+    <div class="concept" onclick="replaySvg(this)">
+      <h3>Parallel Pulse</h3>
+      <p>Smooth heartbeat, layered Apex-style strokes</p>
+      <svg class="anim" width="280" height="120" viewBox="0 0 280 120">
+        <path class="pulse-line" d="M10,60 L80,60 L100,60 L115,20 L130,95 L145,35 L155,60 L170,60 L270,60"/>
+        <path class="pulse-line pulse-2" d="M10,67 L80,67 L100,67 L115,27 L130,102 L145,42 L155,67 L170,67 L270,67"/>
+        <path class="pulse-line pulse-3" d="M10,74 L80,74 L100,74 L115,34 L130,109 L145,49 L155,74 L170,74 L270,74"/>
+      </svg>
+      <div class="hint">Click to replay</div>
+    </div>
+
+    <!-- Angular Pulse -->
+    <div class="concept" onclick="replaySvg(this)">
+      <h3>Angular Pulse</h3>
+      <p>Sharp geometric peaks, closest to Apex style</p>
+      <svg class="anim" width="280" height="120" viewBox="0 0 280 120">
+        <path class="angular-line" d="M10,60 L90,60 L110,60 L130,10 L150,110 L170,40 L180,60 L270,60"/>
+        <path class="angular-line a-line-2" d="M10,67 L90,67 L110,67 L130,17 L150,117 L170,47 L180,67 L270,67"/>
+        <path class="angular-line a-line-3" d="M10,74 L90,74 L110,74 L130,24 L150,124 L170,54 L180,74 L270,74"/>
+      </svg>
+      <div class="hint">Click to replay</div>
+    </div>
+
+    <!-- Threshold -->
+    <div class="concept" onclick="replaySvg(this)">
+      <h3>Threshold Line</h3>
+      <p>Baseline draws, peak rises above it</p>
+      <svg class="anim" width="280" height="120" viewBox="0 0 280 120">
+        <line class="threshold-base" x1="20" y1="80" x2="260" y2="80"/>
+        <path class="threshold-peak" d="M110,80 L140,20 L170,80"/>
+        <path class="threshold-peak-2" d="M120,80 L140,35 L160,80"/>
+      </svg>
+      <div class="hint">Click to replay</div>
+    </div>
+
+    <!-- Layered Horizon -->
+    <div class="concept" onclick="replaySvg(this)">
+      <h3>Layered Horizon</h3>
+      <p>Stacked lines suggesting body composition layers</p>
+      <svg class="anim" width="280" height="120" viewBox="0 0 280 120">
+        <line class="horizon-line" x1="60" y1="20" x2="220" y2="20"/>
+        <line class="horizon-line" x1="45" y1="40" x2="235" y2="40"/>
+        <line class="horizon-line" x1="40" y1="60" x2="240" y2="60"/>
+        <line class="horizon-line" x1="45" y1="80" x2="235" y2="80"/>
+        <line class="horizon-line" x1="60" y1="100" x2="220" y2="100"/>
+      </svg>
+      <div class="hint">Click to replay</div>
+    </div>
+
+    <!-- B-Pulse Hybrid -->
+    <div class="concept" onclick="replaySvg(this)">
+      <h3>B-Pulse Hybrid</h3>
+      <p>Letterform B with integrated baseline pulse</p>
+      <svg class="anim" width="280" height="140" viewBox="0 0 280 140">
+        <path class="b-stroke" d="M90,15 L90,125 M90,15 Q190,15 190,42 Q190,70 90,70 Q200,70 200,97 Q200,125 90,125"/>
+        <path class="b-baseline-mark" d="M30,70 L80,70 L90,50 L100,85 L108,70 L250,70"/>
+      </svg>
+      <div class="hint">Click to replay</div>
+    </div>
+
+    <!-- Looping Pulse -->
+    <div class="concept" onclick="replaySvg(this, true)">
+      <h3>Looping Pulse</h3>
+      <p>Continuous heartbeat animation (loading state)</p>
+      <svg class="anim-loop" width="280" height="120" viewBox="0 0 280 120">
+        <path class="pulse-line" d="M10,60 L80,60 L100,60 L115,20 L130,95 L145,35 L155,60 L170,60 L270,60"/>
+        <path class="pulse-line pulse-2" d="M10,67 L80,67 L100,67 L115,27 L130,102 L145,42 L155,67 L170,67 L270,67"/>
+        <path class="pulse-line pulse-3" d="M10,74 L80,74 L100,74 L115,34 L130,109 L145,49 L155,74 L170,74 L270,74"/>
+      </svg>
+      <div class="hint">Click to replay</div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- ROUND 2: Apex Peak Direction (canvas, ghost layers)          -->
+<!-- ============================================================ -->
+<div class="round">
+  <div class="round-header">
+    <h2>Round 2 — Apex Peak (Ghost Layers)</h2>
+    <span class="round-date">Apr 6 2026</span>
+  </div>
+  <div class="round-desc">
+    Pivoted to single-peak chevron: flat baseline draws L-to-R, rises into Apex peak, returns to flat.
+    Three layered strokes with fading opacity (ghost layers). Canvas draw-on animation.
+  </div>
+  <div class="grid">
+
+    <div class="concept wide" onclick="replayCanvas(this)">
+      <h3>Apex Peak — Primary (ghost layers)</h3>
+      <p>Faded outer layers, original version before matching Apex stroke style</p>
+      <canvas data-cfg="r2-main" width="700" height="180"></canvas>
+      <div class="hint">Click to replay</div>
+    </div>
+
+    <div class="concept" onclick="replayCanvas(this)">
+      <h3>Sharp Peak</h3>
+      <p>Narrow tall chevron, ghost layers</p>
+      <canvas data-cfg="r2-sharp" width="400" height="160"></canvas>
+      <div class="hint">Click to replay</div>
+    </div>
+
+    <div class="concept" onclick="replayCanvas(this)">
+      <h3>Wide Peak</h3>
+      <p>Broader chevron, ghost layers</p>
+      <canvas data-cfg="r2-wide" width="400" height="160"></canvas>
+      <div class="hint">Click to replay</div>
+    </div>
+
+    <div class="concept" onclick="replayCanvas(this)">
+      <h3>Single Stroke</h3>
+      <p>One bold line, no layering</p>
+      <canvas data-cfg="r2-single" width="400" height="160"></canvas>
+      <div class="hint">Click to replay</div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- ROUND 3: Apex-Matched Strokes (full opacity, wide gaps)      -->
+<!-- ============================================================ -->
+<div class="round">
+  <div class="round-header">
+    <h2>Round 3 — Apex-Matched Strokes</h2>
+    <span class="round-date">Apr 6 2026</span>
+  </div>
+  <div class="round-desc">
+    Updated to match Apex logo style: all layers fully opaque white, wider gaps between strokes
+    so dark background shows through, thicker line weight. Same animation, Apex-accurate rendering.
+  </div>
+  <div class="grid">
+
+    <div class="concept wide" onclick="replayCanvas(this)">
+      <h3>Apex Pulse — Primary</h3>
+      <p>Three bold strokes, wide gaps, full opacity — matches Apex visual language</p>
+      <canvas data-cfg="r3-main" width="700" height="200"></canvas>
+      <div class="hint">Click to replay</div>
+    </div>
+
+    <div class="concept" onclick="replayCanvas(this)">
+      <h3>Sharp Peak</h3>
+      <p>Narrow tall, Apex strokes</p>
+      <canvas data-cfg="r3-sharp" width="400" height="170"></canvas>
+      <div class="hint">Click to replay</div>
+    </div>
+
+    <div class="concept" onclick="replayCanvas(this)">
+      <h3>Wide Peak</h3>
+      <p>Broad chevron, Apex strokes</p>
+      <canvas data-cfg="r3-wide" width="400" height="170"></canvas>
+      <div class="hint">Click to replay</div>
+    </div>
+
+    <div class="concept" onclick="replayCanvas(this)">
+      <h3>Continuous Loop</h3>
+      <p>Fast cycle for loading states</p>
+      <canvas data-cfg="r3-loop" width="400" height="170"></canvas>
+      <div class="hint">Click to replay</div>
+    </div>
+
+    <!-- Icon previews -->
+    <div class="concept wide" onclick="replayCanvas(this)">
+      <h3>App Icon Previews</h3>
+      <p>How the mark sits at icon size</p>
+      <div class="icon-row">
+        <div>
+          <div class="icon-frame">
+            <canvas data-cfg="r3-icon-dark" width="80" height="80"></canvas>
+          </div>
+          <div class="icon-label">Dark</div>
+        </div>
+        <div>
+          <div class="icon-frame" style="background: #f5f5f5; border-color: #ddd;">
+            <canvas data-cfg="r3-icon-light" width="80" height="80"></canvas>
+          </div>
+          <div class="icon-label">Light</div>
+        </div>
+        <div>
+          <div class="icon-frame">
+            <canvas data-cfg="r3-icon-grad" width="80" height="80"></canvas>
+          </div>
+          <div class="icon-label">Gradient</div>
+        </div>
+        <div>
+          <div class="icon-frame" style="background: #1a1a1e; border-color: #444;">
+            <canvas data-cfg="apex-ref" width="80" height="80"></canvas>
+          </div>
+          <div class="icon-label">Apex (ref)</div>
+        </div>
+      </div>
+      <div class="hint">Click to replay</div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- ROUND 3b: Apex Peak + Ghost Layers                           -->
+<!-- ============================================================ -->
+<div class="round">
+  <div class="round-header">
+    <h2>Round 3b — Apex Peak + Ghost Layers</h2>
+    <span class="round-date">Apr 7 2026</span>
+  </div>
+  <div class="round-desc">
+    Combining Round 3's wide gaps and thick strokes with Round 2's fading opacity ghost layers.
+    The Apex chevron peak direction with the subtle colour fade that gives it its own identity.
+  </div>
+  <div class="grid">
+
+    <div class="concept wide" onclick="replayCanvas(this)">
+      <h3>Apex Peak — Ghost + Wide Gaps</h3>
+      <p>Thick strokes, wide dark gaps, fading outer layers</p>
+      <canvas data-cfg="r3b-main" width="700" height="200"></canvas>
+      <div class="hint">Click to replay</div>
+    </div>
+
+    <div class="concept" onclick="replayCanvas(this)">
+      <h3>Sharp Peak — Ghost</h3>
+      <p>Narrow tall chevron with ghost layers</p>
+      <canvas data-cfg="r3b-sharp" width="400" height="170"></canvas>
+      <div class="hint">Click to replay</div>
+    </div>
+
+    <div class="concept" onclick="replayCanvas(this)">
+      <h3>Wide Peak — Ghost</h3>
+      <p>Broad chevron with ghost layers</p>
+      <canvas data-cfg="r3b-wide" width="400" height="170"></canvas>
+      <div class="hint">Click to replay</div>
+    </div>
+
+    <div class="concept" onclick="replayCanvas(this)">
+      <h3>Continuous Loop — Ghost</h3>
+      <p>Fast cycle, ghost layers</p>
+      <canvas data-cfg="r3b-loop" width="400" height="170"></canvas>
+      <div class="hint">Click to replay</div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- ROUND 4: Refined EKG Favorites                               -->
+<!-- ============================================================ -->
+<div class="round">
+  <div class="round-header">
+    <h2>Round 4 — Refined EKG Favorites</h2>
+    <span class="round-date">Apr 7 2026</span>
+  </div>
+  <div class="round-desc">
+    Focusing on the Parallel Pulse (EKG heartbeat) direction from Round 1, now in canvas with
+    ghost layers and refined stroke weights. New "Heartbeat Monitor" variant: flat line stays
+    visible, only the peak section pulses rhythmically.
+  </div>
+  <div class="grid">
+
+    <div class="concept wide" onclick="replayCanvas(this)">
+      <h3>Parallel Pulse — Static Mark</h3>
+      <p>The EKG shape as a static logo, three ghost layers — candidate for Recraft</p>
+      <canvas data-cfg="r4-static" width="700" height="180"></canvas>
+      <div class="hint">Click to replay (draws once)</div>
+    </div>
+
+    <div class="concept" onclick="replayCanvas(this)">
+      <h3>Parallel Pulse — Thicker</h3>
+      <p>Heavier strokes, wider gaps</p>
+      <canvas data-cfg="r4-static-thick" width="400" height="160"></canvas>
+      <div class="hint">Click to replay</div>
+    </div>
+
+    <div class="concept" onclick="replayCanvas(this)">
+      <h3>Parallel Pulse — Tighter</h3>
+      <p>Closer layers, thinner strokes</p>
+      <canvas data-cfg="r4-static-tight" width="400" height="160"></canvas>
+      <div class="hint">Click to replay</div>
+    </div>
+
+    <div class="concept wide" onclick="replayCanvas(this)">
+      <h3>Heartbeat Monitor</h3>
+      <p>Flat line persists, only the peak section beats — like a real monitor</p>
+      <canvas data-cfg="r4-monitor" width="700" height="180"></canvas>
+      <div class="hint">Click to replay</div>
+    </div>
+
+    <div class="concept" onclick="replayCanvas(this)">
+      <h3>Heartbeat Monitor — Faster</h3>
+      <p>Quicker pulse, loading state</p>
+      <canvas data-cfg="r4-monitor-fast" width="400" height="160"></canvas>
+      <div class="hint">Click to replay</div>
+    </div>
+
+    <div class="concept" onclick="replayCanvas(this)">
+      <h3>Looping Draw (Ghost)</h3>
+      <p>Full line draw/fade loop with ghost layers — R1 looping pulse refined</p>
+      <canvas data-cfg="r4-loop-ghost" width="400" height="160"></canvas>
+      <div class="hint">Click to replay</div>
+    </div>
+
+    <!-- Icon previews -->
+    <div class="concept wide" onclick="replayCanvas(this)">
+      <h3>App Icon Previews — EKG</h3>
+      <p>EKG mark at icon size</p>
+      <div class="icon-row">
+        <div>
+          <div class="icon-frame">
+            <canvas data-cfg="r4-icon-dark" width="80" height="80"></canvas>
+          </div>
+          <div class="icon-label">Dark (ghost)</div>
+        </div>
+        <div>
+          <div class="icon-frame" style="background: #f5f5f5; border-color: #ddd;">
+            <canvas data-cfg="r4-icon-light" width="80" height="80"></canvas>
+          </div>
+          <div class="icon-label">Light</div>
+        </div>
+        <div>
+          <div class="icon-frame">
+            <canvas data-cfg="r4-icon-grad" width="80" height="80"></canvas>
+          </div>
+          <div class="icon-label">Gradient</div>
+        </div>
+        <div>
+          <div class="icon-frame">
+            <canvas data-cfg="r4-icon-monitor" width="80" height="80"></canvas>
+          </div>
+          <div class="icon-label">Monitor beat</div>
+        </div>
+        <div>
+          <div class="icon-frame" style="background: #1a1a1e; border-color: #444;">
+            <canvas data-cfg="apex-ref-2" width="80" height="80"></canvas>
+          </div>
+          <div class="icon-label">Apex (ref)</div>
+        </div>
+      </div>
+      <div class="hint">Click to replay</div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- ROUND 5: Draw/Undraw Wipe                                    -->
+<!-- ============================================================ -->
+<div class="round">
+  <div class="round-header">
+    <h2>Round 5 — Draw / Undraw Wipe</h2>
+    <span class="round-date">Apr 7 2026</span>
+  </div>
+  <div class="round-desc">
+    Lines draw left-to-right, then undraw left-to-right (tail erases while head stays at the end).
+    Once fully undrawn, redraws from the left. Applied to both the Apex Peak chevron and the
+    EKG Looping Pulse directions.
+  </div>
+  <div class="grid">
+
+    <div class="concept wide" onclick="replayCanvas(this)">
+      <h3>Apex Peak — Wipe (Ghost)</h3>
+      <p>Chevron peak, ghost layers, draw/undraw cycle</p>
+      <canvas data-cfg="r5-apex-wipe" width="700" height="200"></canvas>
+      <div class="hint">Click to replay</div>
+    </div>
+
+    <div class="concept" onclick="replayCanvas(this)">
+      <h3>Apex Peak — Wipe (Solid)</h3>
+      <p>Full opacity strokes</p>
+      <canvas data-cfg="r5-apex-wipe-solid" width="400" height="170"></canvas>
+      <div class="hint">Click to replay</div>
+    </div>
+
+    <div class="concept" onclick="replayCanvas(this)">
+      <h3>Apex Peak — Wipe Fast</h3>
+      <p>Faster cycle for loading</p>
+      <canvas data-cfg="r5-apex-wipe-fast" width="400" height="170"></canvas>
+      <div class="hint">Click to replay</div>
+    </div>
+
+    <div class="concept wide" onclick="replayCanvas(this)">
+      <h3>EKG Pulse — Wipe (Ghost)</h3>
+      <p>Heartbeat shape, ghost layers, draw/undraw cycle</p>
+      <canvas data-cfg="r5-ekg-wipe" width="700" height="180"></canvas>
+      <div class="hint">Click to replay</div>
+    </div>
+
+    <div class="concept" onclick="replayCanvas(this)">
+      <h3>EKG Pulse — Wipe (Solid)</h3>
+      <p>Full opacity strokes</p>
+      <canvas data-cfg="r5-ekg-wipe-solid" width="400" height="160"></canvas>
+      <div class="hint">Click to replay</div>
+    </div>
+
+    <div class="concept" onclick="replayCanvas(this)">
+      <h3>EKG Pulse — Wipe Fast</h3>
+      <p>Faster cycle for loading</p>
+      <canvas data-cfg="r5-ekg-wipe-fast" width="400" height="160"></canvas>
+      <div class="hint">Click to replay</div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// ============================================================
+// SVG replay (Round 1)
+// ============================================================
+function replaySvg(el, isLoop) {
+  const svgs = el.querySelectorAll('svg');
+  svgs.forEach(svg => {
+    const cls = isLoop ? 'anim-loop' : 'anim';
+    const clone = svg.cloneNode(true);
+    clone.classList.remove('anim', 'anim-loop');
+    svg.parentNode.replaceChild(clone, svg);
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        clone.classList.add(cls);
+      });
+    });
+  });
+}
+
+// ============================================================
+// Canvas animation engine (Rounds 2 & 3)
+// ============================================================
+const canvasAnims = {};
+
+function initCanvasDpr(canvas) {
+  const ctx = canvas.getContext('2d');
+  const dpr = window.devicePixelRatio || 1;
+  const w = canvas.width, h = canvas.height;
+  canvas.style.width = w + 'px';
+  canvas.style.height = h + 'px';
+  canvas.width = w * dpr;
+  canvas.height = h * dpr;
+  ctx.scale(dpr, dpr);
+  return { ctx, w, h, dpr };
+}
+
+// Single chevron peak path
+function getPathPoints(w, h, cfg) {
+  const { peakHeight = 0.55, peakWidth = 0.12, peakPos = 0.42, padX = 0.08 } = cfg;
+  const baseY = h * 0.6;
+  const topY = h * (0.6 - peakHeight);
+  const px = w * peakPos;
+  const pw = w * peakWidth;
+  return [
+    { x: w * padX, y: baseY },
+    { x: px - pw, y: baseY },
+    { x: px, y: topY },
+    { x: px + pw, y: baseY },
+    { x: w * (1 - padX), y: baseY },
+  ];
+}
+
+// EKG heartbeat path (matches Round 1 Parallel Pulse shape)
+function getEkgPoints(w, h, cfg) {
+  const { padX = 0.04 } = cfg;
+  const baseY = h * 0.55;
+  const sx = w * padX;
+  const ex = w * (1 - padX);
+  const range = ex - sx;
+  // Normalized EKG shape: flat, small dip, sharp up, sharp down, small up, flat
+  return [
+    { x: sx,                y: baseY },                    // start flat
+    { x: sx + range * 0.30, y: baseY },                    // still flat
+    { x: sx + range * 0.37, y: baseY },                    // approach
+    { x: sx + range * 0.42, y: baseY - h * 0.42 },        // sharp peak up
+    { x: sx + range * 0.48, y: baseY + h * 0.32 },        // sharp dip down
+    { x: sx + range * 0.53, y: baseY - h * 0.22 },        // recovery bump
+    { x: sx + range * 0.58, y: baseY },                    // back to baseline
+    { x: sx + range * 0.65, y: baseY },                    // flat
+    { x: ex,                y: baseY },                    // end flat
+  ];
+}
+
+// EKG path with "beat" interpolation — lerps peak points toward baseline
+function getEkgBeatPoints(w, h, cfg, beatAmount) {
+  const pts = getEkgPoints(w, h, cfg);
+  const baseY = pts[0].y; // flat Y
+  // Indices 3,4,5 are the peak/dip/recovery — lerp them toward baseY
+  for (const idx of [3, 4, 5]) {
+    pts[idx].y = baseY + (pts[idx].y - baseY) * beatAmount;
+  }
+  return pts;
+}
+
+function pathLength(pts) {
+  let len = 0;
+  for (let i = 1; i < pts.length; i++) {
+    const dx = pts[i].x - pts[i-1].x, dy = pts[i].y - pts[i-1].y;
+    len += Math.sqrt(dx*dx + dy*dy);
+  }
+  return len;
+}
+
+function pointAtProgress(pts, progress) {
+  const total = pathLength(pts);
+  let target = total * Math.max(0, Math.min(1, progress)), acc = 0;
+  for (let i = 1; i < pts.length; i++) {
+    const dx = pts[i].x - pts[i-1].x, dy = pts[i].y - pts[i-1].y;
+    const seg = Math.sqrt(dx*dx + dy*dy);
+    if (acc + seg >= target) {
+      const t = (target - acc) / seg;
+      return { x: pts[i-1].x + dx*t, y: pts[i-1].y + dy*t, si: i };
+    }
+    acc += seg;
+  }
+  return { ...pts[pts.length-1], si: pts.length-1 };
+}
+
+function drawPath(ctx, pts, progress, style) {
+  const { color='#fff', width=3, alpha=1, gradient=false } = style;
+  if (progress <= 0) return;
+  const end = pointAtProgress(pts, progress);
+  ctx.save();
+  ctx.globalAlpha = alpha;
+  ctx.lineWidth = width;
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+  if (gradient) {
+    const g = ctx.createLinearGradient(pts[0].x, 0, pts[pts.length-1].x, 0);
+    g.addColorStop(0, '#4facfe'); g.addColorStop(1, '#00f2fe');
+    ctx.strokeStyle = g;
+  } else { ctx.strokeStyle = color; }
+  ctx.beginPath();
+  ctx.moveTo(pts[0].x, pts[0].y);
+  for (let i = 1; i < pts.length; i++) {
+    if (i < end.si) ctx.lineTo(pts[i].x, pts[i].y);
+    else if (i === end.si) { ctx.lineTo(end.x, end.y); break; }
+  }
+  ctx.stroke();
+  ctx.restore();
+}
+
+// Draw only the portion of the path between startProgress and endProgress
+function drawPathRange(ctx, pts, startProg, endProg, style) {
+  const { color='#fff', width=3, alpha=1, gradient=false } = style;
+  if (endProg <= startProg + 0.001) return;
+  const startPt = pointAtProgress(pts, startProg);
+  const endPt = pointAtProgress(pts, endProg);
+  ctx.save();
+  ctx.globalAlpha = alpha;
+  ctx.lineWidth = width;
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+  if (gradient) {
+    const g = ctx.createLinearGradient(pts[0].x, 0, pts[pts.length-1].x, 0);
+    g.addColorStop(0, '#4facfe'); g.addColorStop(1, '#00f2fe');
+    ctx.strokeStyle = g;
+  } else { ctx.strokeStyle = color; }
+  ctx.beginPath();
+  ctx.moveTo(startPt.x, startPt.y);
+  // startPt is on the segment approaching pts[startPt.si]
+  // Walk from there through each vertex to endPt
+  for (let i = startPt.si; i < pts.length; i++) {
+    if (i === endPt.si) {
+      ctx.lineTo(endPt.x, endPt.y);
+      break;
+    }
+    ctx.lineTo(pts[i].x, pts[i].y);
+  }
+  ctx.stroke();
+  ctx.restore();
+}
+
+function animateCanvas(canvas, cfg) {
+  const id = canvas.dataset.cfg;
+  const ctx = canvas.getContext('2d');
+  const dpr = window.devicePixelRatio || 1;
+  const w = parseInt(canvas.style.width), h = parseInt(canvas.style.height);
+
+  const {
+    layers=3, layerGap=6, layerStagger=0.07, lineWidth=3.5,
+    color='#ffffff', gradient=false, ghostLayers=false,
+    drawDuration=1200, holdDuration=400, fadeDuration=600, pauseDuration=800,
+    loop=true, peakHeight, peakWidth, peakPos, padX, lightColor=false,
+    pathType='chevron', // 'chevron' or 'ekg'
+    animMode='draw',    // 'draw', 'monitor', or 'wipe'
+    beatDuration=400, beatPause=1200, // for monitor mode
+    wipeDuration=1400, wipeHold=400, wipeGap=100, // for wipe mode
+    drawOnce=false, // draw once then hold (no fade, no loop)
+  } = cfg;
+
+  const pathCfg = {};
+  if (peakHeight !== undefined) pathCfg.peakHeight = peakHeight;
+  if (peakWidth !== undefined) pathCfg.peakWidth = peakWidth;
+  if (peakPos !== undefined) pathCfg.peakPos = peakPos;
+  if (padX !== undefined) pathCfg.padX = padX;
+
+  const getPoints = pathType === 'ekg'
+    ? (offset) => getEkgPoints(w, h, pathCfg).map(p => ({ x: p.x, y: p.y + offset }))
+    : (offset) => getPathPoints(w, h, pathCfg).map(p => ({ x: p.x, y: p.y + offset }));
+
+  const getBeatPoints = (offset, beatAmt) =>
+    getEkgBeatPoints(w, h, pathCfg, beatAmt).map(p => ({ x: p.x, y: p.y + offset }));
+
+  const baseColor = lightColor ? '#111111' : color;
+
+  // ---- MONITOR MODE: line persists, peak beats ----
+  if (animMode === 'monitor') {
+    const totalBeatCycle = beatDuration + beatPause;
+    let startTime = null;
+
+    function monitorFrame(ts) {
+      if (!startTime) startTime = ts;
+      const elapsed = ts - startTime;
+      const cyclePos = elapsed % totalBeatCycle;
+
+      // Beat envelope: quick spike up then ease back
+      let beatAmount;
+      if (cyclePos < beatDuration) {
+        const t = cyclePos / beatDuration;
+        // Sharp up in first 30%, hold briefly, ease down
+        if (t < 0.15) beatAmount = t / 0.15;
+        else if (t < 0.3) beatAmount = 1;
+        else beatAmount = 1 - Math.pow((t - 0.3) / 0.7, 1.5);
+      } else {
+        beatAmount = 0;
+      }
+
+      ctx.clearRect(0, 0, w, h);
+
+      for (let i = layers - 1; i >= 0; i--) {
+        const offset = i * layerGap;
+        const layerBeat = Math.max(0, beatAmount - i * 0.08); // slight stagger
+        const pts = getBeatPoints(offset, layerBeat);
+        const alpha = ghostLayers ? (i === 0 ? 1 : (layers-i)/(layers*1.8)) : 1;
+        drawPath(ctx, pts, 1, { color: baseColor, width: lineWidth, alpha, gradient });
+      }
+
+      canvasAnims[id] = requestAnimationFrame(monitorFrame);
+    }
+
+    if (canvasAnims[id]) cancelAnimationFrame(canvasAnims[id]);
+    startTime = null;
+    canvasAnims[id] = requestAnimationFrame(monitorFrame);
+    return;
+  }
+
+  // ---- WIPE MODE: draw L-to-R, then undraw L-to-R, repeat ----
+  if (animMode === 'wipe') {
+    const layerPaths = [];
+    for (let i = 0; i < layers; i++) {
+      layerPaths.push(getPoints(i * layerGap));
+    }
+    // Phase 1: draw (head advances 0→1, tail stays 0)
+    // Phase 2: undraw (head stays 1, tail advances 0→1)
+    // Then pause and repeat
+    // wipeHold: pause after fully drawn (visible). wipeGap: pause after fully undrawn (empty).
+    const totalWipeCycle = wipeDuration * 2 + wipeHold + wipeGap;
+    let startTime = null;
+
+    function wipeFrame(ts) {
+      if (!startTime) startTime = ts;
+      const elapsed = ts - startTime;
+      const cyclePos = elapsed % totalWipeCycle;
+
+      ctx.clearRect(0, 0, w, h);
+
+      for (let i = layers - 1; i >= 0; i--) {
+        const delay = i * layerStagger * wipeDuration;
+        const le = Math.max(0, cyclePos - delay);
+
+        let head, tail;
+        if (le < wipeDuration) {
+          // Drawing phase: head advances, tail at 0
+          const t = le / wipeDuration;
+          head = 1 - Math.pow(1 - t, 2.5);
+          tail = 0;
+        } else if (le < wipeDuration + wipeHold) {
+          // Hold fully drawn
+          head = 1;
+          tail = 0;
+        } else if (le < wipeDuration * 2 + wipeHold) {
+          // Undraw phase: tail advances, head stays at 1
+          const t = (le - wipeDuration - wipeHold) / wipeDuration;
+          head = 1;
+          tail = 1 - Math.pow(1 - t, 2.5);
+        } else {
+          // Brief gap before redraw
+          head = 0;
+          tail = 0;
+        }
+
+        const baseAlpha = ghostLayers ? (i === 0 ? 1 : (layers-i)/(layers*1.8)) : 1;
+
+        if (head > tail + 0.001) {
+          drawPathRange(ctx, layerPaths[i], tail, head, {
+            color: baseColor, width: lineWidth, alpha: baseAlpha, gradient
+          });
+        }
+      }
+
+      canvasAnims[id] = requestAnimationFrame(wipeFrame);
+    }
+
+    if (canvasAnims[id]) cancelAnimationFrame(canvasAnims[id]);
+    startTime = null;
+    canvasAnims[id] = requestAnimationFrame(wipeFrame);
+    return;
+  }
+
+  // ---- DRAW MODE: draw-on with optional fade ----
+  const layerPaths = [];
+  for (let i = 0; i < layers; i++) {
+    layerPaths.push(getPoints(i * layerGap));
+  }
+
+  const totalCycle = drawOnce
+    ? drawDuration + 999999
+    : drawDuration + holdDuration + fadeDuration + pauseDuration;
+  let startTime = null;
+
+  function frame(ts) {
+    if (!startTime) startTime = ts;
+    const elapsed = ts - startTime;
+    const cycleElapsed = (loop && !drawOnce) ? (elapsed % totalCycle) : Math.min(elapsed, totalCycle);
+
+    ctx.clearRect(0, 0, w, h);
+
+    for (let i = layers - 1; i >= 0; i--) {
+      const delay = i * layerStagger * drawDuration;
+      const le = Math.max(0, cycleElapsed - delay);
+      let progress, fadeAlpha;
+
+      if (le < drawDuration) {
+        progress = 1 - Math.pow(1 - le/drawDuration, 2.5);
+        fadeAlpha = 1;
+      } else if (drawOnce) {
+        progress = 1; fadeAlpha = 1;
+      } else if (le < drawDuration + holdDuration) {
+        progress = 1; fadeAlpha = 1;
+      } else if (le < drawDuration + holdDuration + fadeDuration) {
+        progress = 1;
+        const ft = (le - drawDuration - holdDuration) / fadeDuration;
+        fadeAlpha = 1 - ft*ft;
+      } else {
+        progress = 0; fadeAlpha = 0;
+      }
+
+      const baseAlpha = ghostLayers ? (i === 0 ? 1 : (layers-i)/(layers*1.8)) : 1;
+      const alpha = baseAlpha * fadeAlpha;
+
+      if (alpha > 0.01 && progress > 0.001) {
+        drawPath(ctx, layerPaths[i], progress, { color: baseColor, width: lineWidth, alpha, gradient });
+      }
+    }
+
+    if (loop || drawOnce || elapsed < totalCycle) {
+      canvasAnims[id] = requestAnimationFrame(frame);
+    }
+  }
+
+  if (canvasAnims[id]) cancelAnimationFrame(canvasAnims[id]);
+  startTime = null;
+  canvasAnims[id] = requestAnimationFrame(frame);
+}
+
+function replayCanvas(el) {
+  el.querySelectorAll('canvas').forEach(c => {
+    const cfgName = c.dataset.cfg;
+    if (cfgName === 'apex-ref' || cfgName === 'apex-ref-2') { drawApexRef(c); return; }
+    const cfg = configs[cfgName];
+    if (!cfg) return;
+    const ctx = c.getContext('2d');
+    const dpr = window.devicePixelRatio || 1;
+    const w = parseInt(c.style.width), h = parseInt(c.style.height);
+    ctx.setTransform(1,0,0,1,0,0);
+    c.width = w * dpr; c.height = h * dpr;
+    ctx.scale(dpr, dpr);
+    animateCanvas(c, cfg);
+  });
+}
+
+function drawApexRef(canvas) {
+  const ctx = canvas.getContext('2d');
+  const dpr = window.devicePixelRatio || 1;
+  canvas.style.width = '80px'; canvas.style.height = '80px';
+  ctx.setTransform(1,0,0,1,0,0);
+  canvas.width = 80*dpr; canvas.height = 80*dpr;
+  ctx.scale(dpr, dpr);
+  const cx=40, peakY=14, baseY=60;
+  [[20,1],[15,1],[10,1]].forEach(([spread, alpha]) => {
+    const off = (20-spread)*0.55;
+    ctx.globalAlpha = alpha;
+    ctx.strokeStyle = '#fff';
+    ctx.lineWidth = 2.5;
+    ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    ctx.beginPath();
+    ctx.moveTo(cx-spread, baseY);
+    ctx.lineTo(cx, peakY+off);
+    ctx.lineTo(cx+spread, baseY);
+    ctx.stroke();
+  });
+  ctx.globalAlpha = 1;
+}
+
+// ============================================================
+// Configs
+// ============================================================
+const configs = {
+  // Round 2: ghost layers (faded opacity on outer strokes)
+  'r2-main': {
+    layers: 3, layerGap: 7, layerStagger: 0.08, lineWidth: 3.5, ghostLayers: true,
+    drawDuration: 1400, holdDuration: 500, fadeDuration: 700, pauseDuration: 1000, loop: true,
+  },
+  'r2-sharp': {
+    layers: 3, layerGap: 6, layerStagger: 0.07, lineWidth: 3, ghostLayers: true,
+    peakHeight: 0.65, peakWidth: 0.07,
+    drawDuration: 1200, holdDuration: 400, fadeDuration: 600, pauseDuration: 800, loop: true,
+  },
+  'r2-wide': {
+    layers: 3, layerGap: 6, layerStagger: 0.07, lineWidth: 3, ghostLayers: true,
+    peakHeight: 0.4, peakWidth: 0.18,
+    drawDuration: 1400, holdDuration: 500, fadeDuration: 700, pauseDuration: 900, loop: true,
+  },
+  'r2-single': {
+    layers: 1, lineWidth: 4, ghostLayers: false,
+    drawDuration: 1200, holdDuration: 400, fadeDuration: 600, pauseDuration: 800, loop: true,
+  },
+
+  // Round 3: Apex-matched (full opacity, wide gaps, thick strokes)
+  'r3-main': {
+    layers: 3, layerGap: 14, layerStagger: 0.08, lineWidth: 5, ghostLayers: false,
+    drawDuration: 1400, holdDuration: 500, fadeDuration: 700, pauseDuration: 1000, loop: true,
+  },
+  'r3-sharp': {
+    layers: 3, layerGap: 12, layerStagger: 0.07, lineWidth: 4.5, ghostLayers: false,
+    peakHeight: 0.65, peakWidth: 0.07,
+    drawDuration: 1200, holdDuration: 400, fadeDuration: 600, pauseDuration: 800, loop: true,
+  },
+  'r3-wide': {
+    layers: 3, layerGap: 12, layerStagger: 0.07, lineWidth: 4.5, ghostLayers: false,
+    peakHeight: 0.4, peakWidth: 0.18,
+    drawDuration: 1400, holdDuration: 500, fadeDuration: 700, pauseDuration: 900, loop: true,
+  },
+  'r3-loop': {
+    layers: 3, layerGap: 12, layerStagger: 0.06, lineWidth: 4.5, ghostLayers: false,
+    drawDuration: 1000, holdDuration: 200, fadeDuration: 400, pauseDuration: 400, loop: true,
+  },
+  'r3-icon-dark': {
+    layers: 3, layerGap: 7, layerStagger: 0.07, lineWidth: 3, ghostLayers: false,
+    peakHeight: 0.45, peakWidth: 0.13, padX: 0.1,
+    drawDuration: 1200, holdDuration: 400, fadeDuration: 600, pauseDuration: 1000, loop: true,
+  },
+  'r3-icon-light': {
+    layers: 3, layerGap: 7, layerStagger: 0.07, lineWidth: 3, ghostLayers: false,
+    peakHeight: 0.45, peakWidth: 0.13, padX: 0.1, lightColor: true,
+    drawDuration: 1200, holdDuration: 400, fadeDuration: 600, pauseDuration: 1000, loop: true,
+  },
+  'r3-icon-grad': {
+    layers: 3, layerGap: 7, layerStagger: 0.07, lineWidth: 3, ghostLayers: false,
+    peakHeight: 0.45, peakWidth: 0.13, padX: 0.1, gradient: true,
+    drawDuration: 1200, holdDuration: 400, fadeDuration: 600, pauseDuration: 1000, loop: true,
+  },
+
+  // Round 3b: Apex peak + ghost layers (wide gaps, fading opacity)
+  'r3b-main': {
+    layers: 3, layerGap: 14, layerStagger: 0.08, lineWidth: 5, ghostLayers: true,
+    drawDuration: 1400, holdDuration: 500, fadeDuration: 700, pauseDuration: 1000, loop: true,
+  },
+  'r3b-sharp': {
+    layers: 3, layerGap: 12, layerStagger: 0.07, lineWidth: 4.5, ghostLayers: true,
+    peakHeight: 0.65, peakWidth: 0.07,
+    drawDuration: 1200, holdDuration: 400, fadeDuration: 600, pauseDuration: 800, loop: true,
+  },
+  'r3b-wide': {
+    layers: 3, layerGap: 12, layerStagger: 0.07, lineWidth: 4.5, ghostLayers: true,
+    peakHeight: 0.4, peakWidth: 0.18,
+    drawDuration: 1400, holdDuration: 500, fadeDuration: 700, pauseDuration: 900, loop: true,
+  },
+  'r3b-loop': {
+    layers: 3, layerGap: 12, layerStagger: 0.06, lineWidth: 4.5, ghostLayers: true,
+    drawDuration: 1000, holdDuration: 200, fadeDuration: 400, pauseDuration: 400, loop: true,
+  },
+
+  // Round 4: Refined EKG favorites
+  'r4-static': {
+    layers: 3, layerGap: 8, layerStagger: 0.06, lineWidth: 3.5, ghostLayers: true,
+    pathType: 'ekg', drawOnce: true,
+    drawDuration: 1400, loop: false,
+  },
+  'r4-static-thick': {
+    layers: 3, layerGap: 12, layerStagger: 0.06, lineWidth: 5, ghostLayers: true,
+    pathType: 'ekg', drawOnce: true,
+    drawDuration: 1400, loop: false,
+  },
+  'r4-static-tight': {
+    layers: 3, layerGap: 5, layerStagger: 0.04, lineWidth: 2.5, ghostLayers: true,
+    pathType: 'ekg', drawOnce: true,
+    drawDuration: 1200, loop: false,
+  },
+  'r4-monitor': {
+    layers: 3, layerGap: 8, layerStagger: 0.06, lineWidth: 3.5, ghostLayers: true,
+    pathType: 'ekg', animMode: 'monitor',
+    beatDuration: 450, beatPause: 1400,
+  },
+  'r4-monitor-fast': {
+    layers: 3, layerGap: 7, layerStagger: 0.04, lineWidth: 3, ghostLayers: true,
+    pathType: 'ekg', animMode: 'monitor',
+    beatDuration: 300, beatPause: 700,
+  },
+  'r4-loop-ghost': {
+    layers: 3, layerGap: 8, layerStagger: 0.06, lineWidth: 3.5, ghostLayers: true,
+    pathType: 'ekg',
+    drawDuration: 1200, holdDuration: 400, fadeDuration: 600, pauseDuration: 600, loop: true,
+  },
+  'r4-icon-dark': {
+    layers: 3, layerGap: 5, layerStagger: 0.05, lineWidth: 2.5, ghostLayers: true,
+    pathType: 'ekg', animMode: 'monitor',
+    beatDuration: 400, beatPause: 1200,
+  },
+  'r4-icon-light': {
+    layers: 3, layerGap: 5, layerStagger: 0.05, lineWidth: 2.5, ghostLayers: true,
+    pathType: 'ekg', animMode: 'monitor', lightColor: true,
+    beatDuration: 400, beatPause: 1200,
+  },
+  'r4-icon-grad': {
+    layers: 3, layerGap: 5, layerStagger: 0.05, lineWidth: 2.5, ghostLayers: true,
+    pathType: 'ekg', animMode: 'monitor', gradient: true,
+    beatDuration: 400, beatPause: 1200,
+  },
+  'r4-icon-monitor': {
+    layers: 3, layerGap: 5, layerStagger: 0.05, lineWidth: 2.5, ghostLayers: true,
+    pathType: 'ekg', animMode: 'monitor',
+    beatDuration: 400, beatPause: 1200,
+  },
+
+  // Round 5: Draw/undraw wipe
+  'r5-apex-wipe': {
+    layers: 3, layerGap: 14, layerStagger: 0.06, lineWidth: 5, ghostLayers: true,
+    pathType: 'chevron', animMode: 'wipe', peakPos: 0.5,
+    wipeDuration: 1400, wipeHold: 500, wipeGap: 120,
+  },
+  'r5-apex-wipe-solid': {
+    layers: 3, layerGap: 14, layerStagger: 0.06, lineWidth: 5, ghostLayers: false,
+    pathType: 'chevron', animMode: 'wipe', peakPos: 0.5,
+    wipeDuration: 1400, wipeHold: 500, wipeGap: 120,
+  },
+  'r5-apex-wipe-fast': {
+    layers: 3, layerGap: 12, layerStagger: 0.04, lineWidth: 4.5, ghostLayers: true,
+    pathType: 'chevron', animMode: 'wipe', peakPos: 0.5,
+    wipeDuration: 800, wipeHold: 250, wipeGap: 80,
+  },
+  'r5-ekg-wipe': {
+    layers: 3, layerGap: 8, layerStagger: 0.06, lineWidth: 3.5, ghostLayers: true,
+    pathType: 'ekg', animMode: 'wipe',
+    wipeDuration: 1400, wipeHold: 500, wipeGap: 120,
+  },
+  'r5-ekg-wipe-solid': {
+    layers: 3, layerGap: 8, layerStagger: 0.06, lineWidth: 3.5, ghostLayers: false,
+    pathType: 'ekg', animMode: 'wipe',
+    wipeDuration: 1400, wipeHold: 500, wipeGap: 120,
+  },
+  'r5-ekg-wipe-fast': {
+    layers: 3, layerGap: 7, layerStagger: 0.04, lineWidth: 3, ghostLayers: true,
+    pathType: 'ekg', animMode: 'wipe',
+    wipeDuration: 800, wipeHold: 250, wipeGap: 80,
+  },
+};
+
+// ============================================================
+// Init all
+// ============================================================
+window.addEventListener('DOMContentLoaded', () => {
+  // Init all canvas elements
+  document.querySelectorAll('canvas[data-cfg]').forEach(c => {
+    const cfgName = c.dataset.cfg;
+    if (cfgName === 'apex-ref' || cfgName === 'apex-ref-2') {
+      initCanvasDpr(c);
+      drawApexRef(c);
+      return;
+    }
+    const cfg = configs[cfgName];
+    if (!cfg) return;
+    initCanvasDpr(c);
+    animateCanvas(c, cfg);
+  });
+});
+</script>
+
+</body>
+</html>
