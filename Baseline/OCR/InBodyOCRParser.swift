@@ -54,13 +54,36 @@ enum InBodyOCRParser {
         let lines = text.components(separatedBy: .newlines)
 
         // === Date ===
-        // Pattern: "MM. DD. YYYY HH:MM"
-        if let dateMatch = firstMatch(#"(\d{2})\.\s*(\d{2})\.\s*(\d{4})\s+\d{2}:\d{2}"#, in: text) {
-            let nums = extractAllNumbers(from: dateMatch)
-            if nums.count >= 3, let m = Int(exactly: nums[0]), let d = Int(exactly: nums[1]), let y = Int(exactly: nums[2]) {
-                var comp = DateComponents()
-                comp.month = m; comp.day = d; comp.year = y
-                result.scanDate = Calendar.current.date(from: comp)
+        // Pattern: "MM. DD. YYYY HH:MM" or "MM. DD.YYYY HH:MM" (OCR varies spacing)
+        // Also handle colon-as-dot: "03. 19.2026 07:37"
+        let datePatterns = [
+            #"(\d{2})\.\s*(\d{2})\.\s*(\d{4})\s+\d{2}:\d{2}"#,  // "03. 19. 2026 07:37"
+            #"(\d{2})\.\s*(\d{2})\.(\d{4})\s+\d{2}:\d{2}"#,      // "03. 19.2026 07:37"
+            #"(\d{2})\.\s*(\d{2})\.\s*(\d{4})"#,                  // "03. 19. 2026" (no time)
+        ]
+        for pattern in datePatterns {
+            if result.scanDate != nil { break }
+            if let dateMatch = firstMatch(pattern, in: text) {
+                let nums = extractAllNumbers(from: dateMatch)
+                if nums.count >= 3 {
+                    let m = Int(exactly: nums[0]) ?? 0
+                    let d = Int(exactly: nums[1]) ?? 0
+                    let y: Int
+                    // Handle case where day.year run together: nums might be [3, 19.2026]
+                    // or correctly split as [3, 19, 2026]
+                    if nums[2] > 2000 {
+                        y = Int(exactly: nums[2]) ?? 0
+                    } else if nums.count >= 4 && nums[3] > 2000 {
+                        y = Int(exactly: nums[3]) ?? 0
+                    } else {
+                        continue
+                    }
+                    if m > 0 && m <= 12 && d > 0 && d <= 31 && y > 2020 {
+                        var comp = DateComponents()
+                        comp.month = m; comp.day = d; comp.year = y
+                        result.scanDate = Calendar.current.date(from: comp)
+                    }
+                }
             }
         }
 
@@ -128,41 +151,39 @@ enum InBodyOCRParser {
     private static func parseBodyCompBlock(lines: [String], result: inout InBodyParseResult) {
         // Find body comp section
         guard let startIdx = lines.firstIndex(where: { $0.lowercased().contains("body composition analysis") }) else { return }
-        let endIdx = lines[startIdx...].firstIndex(where: { $0.lowercased().contains("muscle-fat") }) ?? startIdx + 15
+        let endIdx = lines[startIdx...].firstIndex(where: { $0.lowercased().contains("muscle-fat") }) ?? startIdx + 20
 
-        // Collect standalone numbers (one per line, no text mixed in)
-        // These are the actual values, not bar chart labels
+        // Collect standalone numbers (lines that are JUST a number)
         var values: [Double] = []
-        for j in (startIdx + 1)..<min(lines.count, endIdx) {
+        for j in (startIdx + 1)..<min(lines.count, endIdx + 5) {
             let trimmed = lines[j].trimmingCharacters(in: .whitespaces)
             let cleaned = trimmed.replacingOccurrences(of: " ", with: "")
-            // Only take lines that are JUST a number (with possible OCR spacing)
             if let num = Double(cleaned), num > 5 && num < 250 {
                 values.append(num)
             }
         }
 
-        // Expected order from OCR: ICW, ECW, DryLean, BFM
-        if values.count >= 4 {
-            result.intracellularWaterL = values[0] * lbsToKg  // lbs → approximate liters
-            result.extracellularWaterL = values[1] * lbsToKg
-            result.dryLeanMassKg = values[2] * lbsToKg
-            result.bodyFatMassKg = values[3] * lbsToKg
-        }
+        // OCR reads values as: [84.7, 134.0, 49.4, 48.9, 14.2, 183.0, 197.2]
+        // Split into: small values (<100) = field measurements, large values (>=100) = column totals
+        // Small values appear in order: ICW, ECW, DryLean, BFM
+        // Large values: TBW (~130), LBM (~180), Weight (~190+)
+        let small = values.filter { $0 < 100 }  // field values
+        let large = values.filter { $0 >= 100 }  // column totals
 
-        // TBW and LBM appear after as "134. 0" and "183.0"
-        // Look for them in the next few lines after the initial block
-        let searchStart = startIdx + 1
-        for j in searchStart..<min(lines.count, endIdx + 5) {
-            let trimmed = lines[j].trimmingCharacters(in: .whitespaces)
-            let cleaned = trimmed.replacingOccurrences(of: " ", with: "")
-            if let num = Double(cleaned) {
-                if num > 100 && num < 170 && result.totalBodyWaterL == nil {
-                    result.totalBodyWaterL = num * lbsToKg  // TBW in lbs
-                } else if num > 170 && num < 250 && result.leanBodyMassKg == nil {
-                    result.leanBodyMassKg = num * lbsToKg  // LBM in lbs
-                }
+        // Assign small values positionally: ICW, ECW, DryLean, BFM
+        if small.count >= 1 { result.intracellularWaterL = small[0] * lbsToKg }
+        if small.count >= 2 { result.extracellularWaterL = small[1] * lbsToKg }
+        if small.count >= 3 { result.dryLeanMassKg = small[2] * lbsToKg }
+        if small.count >= 4 { result.bodyFatMassKg = small[3] * lbsToKg }
+
+        // Assign large values by magnitude
+        for val in large {
+            if val > 100 && val < 170 && result.totalBodyWaterL == nil {
+                result.totalBodyWaterL = val * lbsToKg
+            } else if val >= 170 && val < 210 && result.leanBodyMassKg == nil {
+                result.leanBodyMassKg = val * lbsToKg
             }
+            // Weight (>190) is already captured from Muscle-Fat section
         }
     }
 
@@ -264,17 +285,16 @@ enum InBodyOCRParser {
 
     private static func parsePBFFromHistory(lines: [String], result: inout InBodyParseResult) {
         // In Body Composition History, PBF appears as:
-        //   "PBF"
-        //   "Percent Body Fat"
-        //   "(%) "
-        //   "7.2"
-        // Find PBF in history context and grab the nearby number
+        //   "PBF" / "Percent Body Fat"
+        //   "7.2" or "7:2" (OCR sometimes reads dot as colon)
         for (i, line) in lines.enumerated() {
             let lower = line.lowercased()
             if (lower == "pbf" || lower.contains("percent body fat")) && i > 10 {
-                // Look nearby for a small number (PBF: 3-50%)
                 for j in max(0, i-2)...min(lines.count-1, i+4) {
-                    let cleaned = lines[j].replacingOccurrences(of: " ", with: "")
+                    // OCR may read decimal as colon: "7:2" → "7.2"
+                    let cleaned = lines[j]
+                        .replacingOccurrences(of: " ", with: "")
+                        .replacingOccurrences(of: ":", with: ".")
                     if let num = Double(cleaned), num > 3 && num < 50 {
                         result.bodyFatPct = num
                         break
@@ -288,32 +308,20 @@ enum InBodyOCRParser {
     // MARK: - ECW/TBW Ratio
 
     private static func parseEcwTbwRatio(lines: [String], result: inout InBodyParseResult) {
-        // The actual ratio has a marker/arrow before it: "ша 0. 369"
-        // Tick marks appear as sequences: "0.390 0.400 0.410..."
-        // Strategy: find "ECW/TBW" or "ECW/TW" section, look for a standalone 0.3xx value
-        // (not part of a multi-number sequence)
-        for (i, line) in lines.enumerated() {
-            let lower = line.lowercased()
+        // Primary: Body Composition History has "0.369" clearly near "ECW/TBW"
+        // The chart section has tick marks "0.340 0.360 0.390..." that confuse parsing
+        // Strategy: find ECW/TBW in the HISTORY section (appears after midpoint of document)
+        let midpoint = lines.count / 2
+        for i in stride(from: lines.count - 1, through: midpoint, by: -1) {
+            let lower = lines[i].lowercased()
             if lower.contains("ecw/t") {
-                // Search nearby lines
-                for j in max(0, i-3)...min(lines.count-1, i+5) {
-                    let searchLine = lines[j]
-                    // Check if this line has a SINGLE ratio value (not tick mark sequence)
-                    let allNums = extractAllNumbers(from: searchLine.replacingOccurrences(of: " ", with: ""))
-                    let ratios = allNums.filter { $0 > 0.3 && $0 < 0.5 }
-
-                    if ratios.count == 1 {
-                        // Single ratio on a line — likely the actual value
-                        result.ecwTbwRatio = ratios[0]
-                        break
-                    } else if ratios.count > 1 {
-                        // Multiple ratios = tick mark sequence, skip
-                        continue
-                    }
-
-                    // Also try extracting from bullet-marked pattern
-                    if let marked = extractBulletMarkedNumber(from: searchLine), marked > 0.3 && marked < 0.5 {
-                        result.ecwTbwRatio = marked
+                // Search nearby for a standalone ratio
+                for j in max(0, i-3)...min(lines.count-1, i+3) {
+                    let cleaned = lines[j]
+                        .replacingOccurrences(of: " ", with: "")
+                        .replacingOccurrences(of: ":", with: ".")
+                    if let num = Double(cleaned), num > 0.3 && num < 0.5 {
+                        result.ecwTbwRatio = num
                         break
                     }
                 }
@@ -321,16 +329,20 @@ enum InBodyOCRParser {
             }
         }
 
-        // Fallback: look in Body Composition History
+        // Fallback: look for bullet-marked value in chart section ("в 0. 369")
         if result.ecwTbwRatio == nil {
             for (i, line) in lines.enumerated() {
                 let lower = line.lowercased()
-                if lower.contains("ecw/t") && i > 10 {
-                    for j in max(0, i-2)...min(lines.count-1, i+2) {
+                if lower.contains("ecw/t") {
+                    for j in max(0, i-3)...min(lines.count-1, i+5) {
+                        // Look for any non-digit prefix followed by 0.3xx
                         let cleaned = lines[j].replacingOccurrences(of: " ", with: "")
-                        if let num = Double(cleaned), num > 0.3 && num < 0.5 {
-                            result.ecwTbwRatio = num
-                            break
+                        if let match = firstMatch(#"[^\d]0\.3\d\d"#, in: cleaned) {
+                            let nums = extractAllNumbers(from: match)
+                            if let val = nums.first, val > 0.3 && val < 0.5 {
+                                result.ecwTbwRatio = val
+                                break
+                            }
                         }
                     }
                     if result.ecwTbwRatio != nil { break }
