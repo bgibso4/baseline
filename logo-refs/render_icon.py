@@ -121,11 +121,11 @@ def render_apex_icon(output_path, size=1024, bg=(0, 0, 0), color=(255, 255, 255)
         pixels[i*4+2] = bg[2]
         pixels[i*4+3] = 255
 
-    gap = size * 0.035
-    lw = size * 0.016
-    peak_h = h * 0.28
-    peak_w = w * 0.12
-    base_y = h * 0.54
+    gap = size * 0.045
+    lw = size * 0.022
+    peak_h = h * 0.34
+    peak_w = w * 0.16
+    base_y = h * 0.56
     alphas = [1.0, 0.5, 0.25]
 
     for i in range(3):
@@ -144,5 +144,5 @@ def render_apex_icon(output_path, size=1024, bg=(0, 0, 0), color=(255, 255, 255)
 
 if __name__ == '__main__':
     out_dir = sys.argv[1] if len(sys.argv) > 1 else '/Users/ben/projects/baseline/Baseline/Assets.xcassets/AppIcon.appiconset'
-    render_apex_icon(f'{out_dir}/AppIcon.png', size=1024)
+    render_apex_icon(f'{out_dir}/AppIcon.png', size=1024, bg=(0x1A, 0x1A, 0x1E))
     print("Done!")
