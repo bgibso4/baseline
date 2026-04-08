@@ -409,17 +409,23 @@ struct InBodyDocumentParser {
 
             guard !candidates.isEmpty else { continue }
 
-            // For bar chart fields: prefer bullet-prefixed, then tallest (actual values are larger than tick marks)
+            // For bar chart fields: prefer bullet-prefixed, then tallest, then non-tick-mark
             let toTry: [Candidate]
             if region.preferBullet {
                 let bulleted = candidates.filter { $0.hasBullet }
                 if !bulleted.isEmpty {
-                    // Sort bulleted by height descending — tallest bullet value wins
                     toTry = bulleted.sorted { $0.height > $1.height }
                 } else {
-                    // No bullets found: sort all by height descending — actual values are taller than tick marks
-                    // (tick marks: h≈0.008-0.010, actual values: h≈0.012-0.025)
-                    toTry = candidates.sorted { $0.height > $1.height }
+                    // No bullets: sort by height desc, then break ties by tick-mark likelihood.
+                    // Tick marks are multiples of 5 (for BMI/PBF) or round at 0.01 (for ECW/TBW).
+                    // Actual values like 7.2, 26.0, 105.8, 0.369 don't fall on those grids.
+                    toTry = candidates.sorted { a, b in
+                        if abs(a.height - b.height) > 0.002 {
+                            return a.height > b.height  // taller wins
+                        }
+                        // Same height: prefer non-tick-mark values
+                        return Self.tickMarkScore(a.text) < Self.tickMarkScore(b.text)
+                    }
                 }
             } else {
                 toTry = candidates
@@ -537,7 +543,49 @@ struct InBodyDocumentParser {
             let centerTarget = anchorY - seg.offset
             let yRange = (centerTarget - 0.018)...(centerTarget + 0.018)
 
-            // Collect candidates with their Y positions, filtering to the value area (x > 0.35)
+            // Collect raw paragraphs in the region
+            struct RawPara {
+                let text: String
+                let centerY: Double
+                let centerX: Double
+            }
+            var rawParas: [RawPara] = []
+            for para in paragraphs {
+                let box = para.boundingRegion.boundingBox
+                let centerY = box.origin.y + box.height / 2
+                let centerX = box.origin.x + box.width / 2
+                guard yRange.contains(centerY), centerX > 0.35, centerX < 0.62 else { continue }
+                rawParas.append(RawPara(text: para.transcript, centerY: centerY, centerX: centerX))
+            }
+
+            // Merge split decimals: "11." + "38" at similar Y → "11.38"
+            // OCR sometimes splits a number with a decimal into two paragraphs
+            var merged: [RawPara] = []
+            var skip: Set<Int> = []
+            for (i, p) in rawParas.enumerated() {
+                if skip.contains(i) { continue }
+                let stripped = p.text.replacingOccurrences(of: #"^[^\d]*"#, with: "", options: .regularExpression)
+                if stripped.hasSuffix(".") || stripped.hasSuffix(". ") {
+                    // Look for a digit-starting paragraph at very close Y
+                    for j in (i+1)..<rawParas.count {
+                        if skip.contains(j) { continue }
+                        let q = rawParas[j]
+                        if abs(p.centerY - q.centerY) < 0.005,
+                           q.text.first?.isNumber == true {
+                            let combined = stripped.trimmingCharacters(in: .whitespaces) + q.text
+                            merged.append(RawPara(text: combined, centerY: p.centerY, centerX: p.centerX))
+                            skip.insert(j)
+                            skip.insert(i)
+                            break
+                        }
+                    }
+                    if !skip.contains(i) { merged.append(p) }
+                } else {
+                    merged.append(p)
+                }
+            }
+
+            // Parse values from merged paragraphs
             struct LeanCandidate {
                 let value: Double
                 let centerY: Double
@@ -545,31 +593,22 @@ struct InBodyDocumentParser {
             }
             var candidates: [LeanCandidate] = []
 
-            for para in paragraphs {
-                let box = para.boundingRegion.boundingBox
-                let centerY = box.origin.y + box.height / 2
-                let centerX = box.origin.x + box.width / 2
-
-                guard yRange.contains(centerY), centerX > 0.35, centerX < 0.62 else { continue }
-
-                let text = para.transcript
-                // Strip bullet prefixes
-                let cleaned = text.replacingOccurrences(
+            for p in merged {
+                let cleaned = p.text.replacingOccurrences(
                     of: #"^[^\dA-Za-z(]*"#, with: "", options: .regularExpression
                 )
-                // Collapse OCR spaces in decimals
                 let collapsed = cleaned.replacingOccurrences(
                     of: #"(\d+)\.\s+(\d)"#, with: "$1.$2", options: .regularExpression
                 )
                 guard let value = parseNumericValue(collapsed) else { continue }
 
-                // Filter tick marks: they're round multiples of 5 with no meaningful decimal
+                // Filter tick marks: round multiples of 5 at ≥50
                 let isTickMark = value.truncatingRemainder(dividingBy: 5.0) == 0
                     && value == value.rounded()
-                    && value >= 50  // Tick marks are >= 80 typically
+                    && value >= 50
                 if isTickMark { continue }
 
-                candidates.append(LeanCandidate(value: value, centerY: centerY, text: text))
+                candidates.append(LeanCandidate(value: value, centerY: p.centerY, text: p.text))
             }
 
             // Sort by Y descending (higher Y = higher on page = lbs row, which is on top)
@@ -770,6 +809,29 @@ struct InBodyDocumentParser {
     }
 
     // MARK: - Private Helpers
+
+    /// Scores how likely a text value is a tick mark (higher = more likely a tick mark).
+    /// Tick marks on InBody bar charts are round numbers: multiples of 5 for BMI/PBF,
+    /// multiples of 10 for muscle/fat bars. Actual values (7.2, 26.0, 105.8, 0.369)
+    /// don't fall on these grids.
+    private static func tickMarkScore(_ text: String) -> Int {
+        let cleaned = text.replacingOccurrences(
+            of: #"^[^\dA-Za-z(]*"#, with: "", options: .regularExpression
+        ).replacingOccurrences(
+            of: #"(\d+)\.\s+(\d)"#, with: "$1.$2", options: .regularExpression
+        )
+        guard let value = parseNumericValue(cleaned) else { return 0 }
+
+        // Exact multiples of 5 with no meaningful fractional part → almost certainly a tick mark
+        if value >= 5 && value.truncatingRemainder(dividingBy: 5.0) == 0 {
+            return 2
+        }
+        // Exact integers that are multiples of common tick spacings
+        if value == value.rounded() && value >= 10 {
+            return 1
+        }
+        return 0
+    }
 
     /// Lowercases, strips parenthesized unit suffixes (e.g. "(kg)"), and trims whitespace.
     private static func normalizeLabel(_ label: String) -> String {
