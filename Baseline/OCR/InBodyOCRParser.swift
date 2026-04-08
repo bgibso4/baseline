@@ -129,9 +129,9 @@ enum InBodyOCRParser {
         // BMI: "• 26. 0", PBF from history section
         parseObesitySection(lines: lines, result: &result)
 
-        // === PBF from Body Composition History (most reliable) ===
-        // Pattern: "7.2" near "PBF" / "Percent Body Fat" in history section
-        parsePBFFromHistory(lines: lines, result: &result)
+        // === PBF (Percent Body Fat) ===
+        // Look for bullet-marked value in Obesity section, or near PBF label
+        parsePBF(lines: lines, result: &result)
 
         // === ECW/TBW ===
         // The actual ratio has a marker, tick marks don't: "ша 0. 369" vs "0.390 0.400 0.410..."
@@ -283,24 +283,43 @@ enum InBodyOCRParser {
 
     // MARK: - PBF from History Section (most reliable)
 
-    private static func parsePBFFromHistory(lines: [String], result: inout InBodyParseResult) {
-        // In Body Composition History, PBF appears as:
-        //   "PBF" / "Percent Body Fat"
-        //   "7.2" or "7:2" (OCR sometimes reads dot as colon)
-        for (i, line) in lines.enumerated() {
-            let lower = line.lowercased()
-            if (lower == "pbf" || lower.contains("percent body fat")) && i > 10 {
-                for j in max(0, i-2)...min(lines.count-1, i+4) {
-                    // OCR may read decimal as colon: "7:2" → "7.2"
-                    let cleaned = lines[j]
-                        .replacingOccurrences(of: " ", with: "")
-                        .replacingOccurrences(of: ":", with: ".")
-                    if let num = Double(cleaned), num > 3 && num < 50 {
-                        result.bodyFatPct = num
+    private static func parsePBF(lines: [String], result: inout InBodyParseResult) {
+        // Strategy 1: look for bullet-marked PBF in Obesity Analysis section
+        // (same approach as BMI — bullet marks the actual value)
+        if let obesityIdx = lines.firstIndex(where: { $0.lowercased().contains("obesity analysis") }) {
+            let endIdx = lines[obesityIdx...].firstIndex(where: { $0.lowercased().contains("segmental") }) ?? obesityIdx + 15
+            for j in obesityIdx..<min(lines.count, endIdx) {
+                if let marked = extractBulletMarkedNumber(from: lines[j]) {
+                    // PBF is typically 3-50%, BMI is 15-45 — PBF is usually the smaller one
+                    // Only take it if we haven't already assigned BMI to this value
+                    if marked > 3 && marked < 50 && marked != result.bmi {
+                        result.bodyFatPct = marked
                         break
                     }
                 }
-                if result.bodyFatPct != nil { break }
+            }
+        }
+
+        // Strategy 2: look near "PBF" or "Percent Body Fat" label (not in history)
+        if result.bodyFatPct == nil {
+            for (i, line) in lines.enumerated() {
+                let lower = line.lowercased()
+                if lower == "pbf" || lower.contains("percent body fat") {
+                    // Skip if this is in the history section or results interpretation
+                    let nearbyText = lines[max(0, i-3)...min(lines.count-1, i+1)].joined(separator: " ").lowercased()
+                    if nearbyText.contains("history") || nearbyText.contains("interpretation") { continue }
+
+                    for j in max(0, i-2)...min(lines.count-1, i+4) {
+                        let cleaned = lines[j]
+                            .replacingOccurrences(of: " ", with: "")
+                            .replacingOccurrences(of: ":", with: ".")
+                        if let num = Double(cleaned), num > 3 && num < 50 {
+                            result.bodyFatPct = num
+                            break
+                        }
+                    }
+                    if result.bodyFatPct != nil { break }
+                }
             }
         }
     }
@@ -308,44 +327,54 @@ enum InBodyOCRParser {
     // MARK: - ECW/TBW Ratio
 
     private static func parseEcwTbwRatio(lines: [String], result: inout InBodyParseResult) {
-        // Primary: Body Composition History has "0.369" clearly near "ECW/TBW"
-        // The chart section has tick marks "0.340 0.360 0.390..." that confuse parsing
-        // Strategy: find ECW/TBW in the HISTORY section (appears after midpoint of document)
-        let midpoint = lines.count / 2
-        for i in stride(from: lines.count - 1, through: midpoint, by: -1) {
-            let lower = lines[i].lowercased()
-            if lower.contains("ecw/t") {
-                // Search nearby for a standalone ratio
-                for j in max(0, i-3)...min(lines.count-1, i+3) {
-                    let cleaned = lines[j]
-                        .replacingOccurrences(of: " ", with: "")
-                        .replacingOccurrences(of: ":", with: ".")
-                    if let num = Double(cleaned), num > 0.3 && num < 0.5 {
-                        result.ecwTbwRatio = num
-                        break
-                    }
-                }
-                if result.ecwTbwRatio != nil { break }
-            }
-        }
-
-        // Fallback: look for bullet-marked value in chart section ("в 0. 369")
-        if result.ecwTbwRatio == nil {
+        // Find "ECW/TBW Analysis" section (the chart, not history)
+        guard let startIdx = lines.firstIndex(where: {
+            let l = $0.lowercased()
+            return l.contains("ecw/tbw analysis") || l.contains("ecw/tw analysis")
+        }) else {
+            // Fallback: find first "ECW/TBW" or "ECW/TW" that's NOT in history/interpretation
             for (i, line) in lines.enumerated() {
                 let lower = line.lowercased()
-                if lower.contains("ecw/t") {
-                    for j in max(0, i-3)...min(lines.count-1, i+5) {
-                        // Look for any non-digit prefix followed by 0.3xx
-                        let cleaned = lines[j].replacingOccurrences(of: " ", with: "")
-                        if let match = firstMatch(#"[^\d]0\.3\d\d"#, in: cleaned) {
-                            let nums = extractAllNumbers(from: match)
-                            if let val = nums.first, val > 0.3 && val < 0.5 {
-                                result.ecwTbwRatio = val
-                                break
-                            }
-                        }
-                    }
-                    if result.ecwTbwRatio != nil { break }
+                if (lower.contains("ecw/tbw") || lower.contains("ecw/tw")) &&
+                   !lower.contains("history") && !lower.contains("ratio of") {
+                    parseEcwTbwNearLine(i, lines: lines, result: &result)
+                    if result.ecwTbwRatio != nil { return }
+                }
+            }
+            return
+        }
+
+        parseEcwTbwNearLine(startIdx, lines: lines, result: &result)
+    }
+
+    private static func parseEcwTbwNearLine(_ lineIdx: Int, lines: [String], result: inout InBodyParseResult) {
+        // Look for a bullet-marked ratio value near this line
+        // Pattern: "в 0. 369" or "ша 0.369" — any non-digit char before "0.3xx"
+        // Skip tick mark sequences like "0.390 0.400 0.410..."
+        for j in max(0, lineIdx - 2)...min(lines.count - 1, lineIdx + 6) {
+            let line = lines[j]
+
+            // First try: line with a single ratio (not a tick sequence)
+            let cleaned = line.replacingOccurrences(of: " ", with: "").replacingOccurrences(of: ":", with: ".")
+            let allNums = extractAllNumbers(from: cleaned)
+            let ratios = allNums.filter { $0 >= 0.3 && $0 < 0.5 }
+
+            // If line has exactly 1 ratio and it has a non-digit prefix (bullet marker)
+            if ratios.count == 1 {
+                // Check it's not just a bare tick value — look for non-digit before the number
+                if let _ = firstMatch(#"[^\d.]0\.3\d"#, in: cleaned) {
+                    result.ecwTbwRatio = ratios[0]
+                    return
+                }
+            }
+
+            // Also try: any line where the ratio has a clear bullet/arrow prefix
+            if let match = firstMatch(#"[^\d\s.](\s*0[\.:]\s*3\d\d)"#, in: line) {
+                let numStr = match.replacingOccurrences(of: " ", with: "").replacingOccurrences(of: ":", with: ".")
+                let nums = extractAllNumbers(from: numStr)
+                if let val = nums.first, val >= 0.3 && val < 0.5 {
+                    result.ecwTbwRatio = val
+                    return
                 }
             }
         }
