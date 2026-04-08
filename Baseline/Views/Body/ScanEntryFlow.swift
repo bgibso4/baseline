@@ -239,9 +239,9 @@ struct ScanEntryFlow: View {
     private func cameraStep(vm: ScanEntryViewModel) -> some View {
         ZStack {
             DocumentScannerView(
-                onScan: { images in
+                onScan: { scan in
                     Task {
-                        await vm.processImages(images)
+                        await vm.processScan(scan)
                     }
                 },
                 onCancel: {

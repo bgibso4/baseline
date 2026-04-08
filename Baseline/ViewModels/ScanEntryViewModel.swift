@@ -1,6 +1,7 @@
 import Foundation
 import SwiftData
 import UIKit
+import VisionKit
 
 /// Drives the 5-screen scan entry flow state machine.
 ///
@@ -141,21 +142,25 @@ class ScanEntryViewModel {
 
     // MARK: - OCR Processing
 
-    func processImages(_ images: [UIImage]) async {
+    func processScan(_ scan: VNDocumentCameraScan) async {
         isProcessing = true
         errorMessage = nil
 
+        let pageCount = scan.pageCount
         #if DEBUG
-        print("[ScanEntryViewModel] Processing \(images.count) image(s)")
+        print("[ScanEntryViewModel] Processing \(pageCount) page(s)")
         #endif
 
-        // Parse each page and merge results
+        // Process pages one at a time to limit memory.
+        // Downscale each page before parsing — the document camera captures
+        // at full sensor resolution (~4000px) which is way more than OCR needs.
         var combined = InBodyParseResult()
-        for (i, image) in images.enumerated() {
+        for i in 0..<pageCount {
             #if DEBUG
-            print("[ScanEntryViewModel] Parsing page \(i + 1)/\(images.count)")
+            print("[ScanEntryViewModel] Parsing page \(i + 1)/\(pageCount)")
             #endif
-            let pageResult = await InBodyDocumentParser.parse(image: image)
+            let scaled = Self.downscale(scan.imageOfPage(at: i), maxDimension: 2048)
+            let pageResult = await InBodyDocumentParser.parse(image: scaled)
             combined.merge(with: pageResult)
         }
 
@@ -168,6 +173,19 @@ class ScanEntryViewModel {
 
         isProcessing = false
         currentStep = .review
+    }
+
+    /// Downscales an image so its longest side is at most maxDimension.
+    private static func downscale(_ image: UIImage, maxDimension: CGFloat) -> UIImage {
+        let size = image.size
+        let longest = max(size.width, size.height)
+        guard longest > maxDimension else { return image }
+        let scale = maxDimension / longest
+        let newSize = CGSize(width: size.width * scale, height: size.height * scale)
+        let renderer = UIGraphicsImageRenderer(size: newSize)
+        return renderer.image { _ in
+            image.draw(in: CGRect(origin: .zero, size: newSize))
+        }
     }
 
     func markFieldEdited(_ fieldKey: String) {
