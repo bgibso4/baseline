@@ -187,9 +187,19 @@ struct InBodyDocumentParser {
         let texts = paragraphs.map { $0.transcript }
 
         #if DEBUG
-        for text in texts {
-            print("[InBodyDocumentParser] Paragraph: \(text.prefix(80))")
+        print("=== PARAGRAPH POSITIONS (Y ascending) ===")
+        let sorted = paragraphs.enumerated().sorted {
+            $0.element.boundingRegion.boundingBox.origin.y <
+            $1.element.boundingRegion.boundingBox.origin.y
         }
+        for (idx, para) in sorted {
+            let box = para.boundingRegion.boundingBox
+            let text = para.transcript.prefix(60)
+            // Vision uses bottom-left origin; y=0 is bottom of image
+            print(String(format: "  [%3d] y=%.3f x=%.3f w=%.3f h=%.3f | %@",
+                         idx, box.origin.y, box.origin.x, box.width, box.height, String(text)))
+        }
+        print("=== END POSITIONS ===")
         #endif
 
         // Track which paragraph indices we've consumed as values
