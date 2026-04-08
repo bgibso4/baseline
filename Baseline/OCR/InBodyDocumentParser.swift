@@ -175,19 +175,31 @@ struct InBodyDocumentParser {
         }
     }
 
-    /// Fallback: scans paragraphs for "Label: Value" or "Label Value" patterns.
+    /// Extracts fields from paragraphs using three strategies:
+    /// 1. Same-paragraph: "Label: Value" or "Label Value" within one paragraph
+    /// 2. Cross-paragraph: label in paragraph N, numeric value in paragraph N+1 or N+2
+    /// 3. Bullet/dash prefixed values: "= 197.2" or "- 105.8" after a known label
     static func extractFromParagraphs(
         _ paragraphs: [DocumentObservation.Container.Text],
         into result: inout InBodyParseResult,
         confidence: Float
     ) {
-        for paragraph in paragraphs {
-            let text = paragraph.transcript
-            #if DEBUG
-            print("[InBodyDocumentParser] Paragraph: \(text.prefix(80))")
-            #endif
+        let texts = paragraphs.map { $0.transcript }
 
-            // Pattern 1: "Label: Value" (colon separator)
+        #if DEBUG
+        for text in texts {
+            print("[InBodyDocumentParser] Paragraph: \(text.prefix(80))")
+        }
+        #endif
+
+        // Track which paragraph indices we've consumed as values
+        // so we don't re-use them as labels
+        var consumedAsValue: Set<Int> = []
+
+        for (i, text) in texts.enumerated() {
+            guard !consumedAsValue.contains(i) else { continue }
+
+            // Strategy 1: Same-paragraph "Label: Value"
             if let colonRange = text.range(of: ":") {
                 let labelPart = String(text[text.startIndex..<colonRange.lowerBound])
                 let valuePart = String(text[colonRange.upperBound...])
@@ -195,38 +207,64 @@ struct InBodyDocumentParser {
                    getField(key, from: result) == nil,
                    let value = parseNumericValue(valuePart) {
                     setField(key, value: value, on: &result)
-                    if confidence > 0 {
-                        result.confidence[key] = confidence
-                    }
+                    if confidence > 0 { result.confidence[key] = confidence }
                     #if DEBUG
-                    print("[InBodyDocumentParser] Paragraph (colon) field: \(key) = \(value)")
+                    print("[InBodyDocumentParser] Matched (colon): \(key) = \(value)")
                     #endif
                     continue
                 }
             }
 
-            // Pattern 2: "Label Value" (whitespace separator — last token is value)
-            let parts = text.components(separatedBy: .whitespaces).filter { !$0.isEmpty }
-            guard parts.count >= 2 else { continue }
+            // Strategy 2: Same-paragraph "Label Value" (space split)
+            if let (key, value) = matchLabelValue(in: text, result: result) {
+                setField(key, value: value, on: &result)
+                if confidence > 0 { result.confidence[key] = confidence }
+                #if DEBUG
+                print("[InBodyDocumentParser] Matched (space): \(key) = \(value)")
+                #endif
+                continue
+            }
 
-            // Try progressively shorter label candidates from the left, leaving at least one token for value
-            for splitIndex in stride(from: parts.count - 1, through: 1, by: -1) {
-                let labelCandidate = parts[0..<splitIndex].joined(separator: " ")
-                let valueCandidate = parts[splitIndex...].joined(separator: " ")
-                if let key = fieldKey(for: labelCandidate),
-                   getField(key, from: result) == nil,
-                   let value = parseNumericValue(valueCandidate) {
-                    setField(key, value: value, on: &result)
-                    if confidence > 0 {
-                        result.confidence[key] = confidence
+            // Strategy 3: Cross-paragraph — this paragraph is a label, next paragraph(s) have the value
+            if let key = fieldKey(for: text), getField(key, from: result) == nil {
+                // Look ahead up to 3 paragraphs for a numeric value
+                for offset in 1...min(3, texts.count - i - 1) {
+                    let nextText = texts[i + offset]
+                    // Skip if next paragraph is also a known label
+                    if fieldKey(for: nextText) != nil { break }
+                    // Try to parse a number, stripping common OCR prefixes (=, -, •, m=)
+                    let cleaned = nextText.replacingOccurrences(
+                        of: #"^[=\-•·m\s]*"#, with: "", options: .regularExpression
+                    )
+                    if let value = parseNumericValue(cleaned) {
+                        setField(key, value: value, on: &result)
+                        if confidence > 0 { result.confidence[key] = confidence }
+                        consumedAsValue.insert(i + offset)
+                        #if DEBUG
+                        print("[InBodyDocumentParser] Matched (cross-para): \(key) = \(value) [para \(i) + \(offset)]")
+                        #endif
+                        break
                     }
-                    #if DEBUG
-                    print("[InBodyDocumentParser] Paragraph (space) field: \(key) = \(value)")
-                    #endif
-                    break
                 }
             }
         }
+    }
+
+    /// Tries to match "Label Value" within a single string using progressively shorter label candidates.
+    private static func matchLabelValue(in text: String, result: InBodyParseResult) -> (String, Double)? {
+        let parts = text.components(separatedBy: .whitespaces).filter { !$0.isEmpty }
+        guard parts.count >= 2 else { return nil }
+
+        for splitIndex in stride(from: parts.count - 1, through: 1, by: -1) {
+            let labelCandidate = parts[0..<splitIndex].joined(separator: " ")
+            let valueCandidate = parts[splitIndex...].joined(separator: " ")
+            if let key = fieldKey(for: labelCandidate),
+               getField(key, from: result) == nil,
+               let value = parseNumericValue(valueCandidate) {
+                return (key, value)
+            }
+        }
+        return nil
     }
 
     /// Attempts to extract the scan date from the document container's detectedData,
