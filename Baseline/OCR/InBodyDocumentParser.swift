@@ -691,11 +691,11 @@ struct InBodyDocumentParser {
         //   SMM:    ~0.060 below
         //   PBF:    ~0.092 below
         //   ECW/TBW: ~0.135 below
-        let historyFields: [(key: String, labelPattern: String, offset: Double)] = [
-            ("weightKg",             "weight",  0.030),
-            ("skeletalMuscleMassKg", "smm",     0.060),
-            ("bodyFatPct",           "pbf",     0.092),
-            ("ecwTbwRatio",          "ecw",     0.135),
+        let historyFields: [(key: String, labelPattern: String, offset: Double, saneRange: ClosedRange<Double>)] = [
+            ("weightKg",             "weight",  0.030, 50...600),
+            ("skeletalMuscleMassKg", "smm",     0.060, 30...300),
+            ("bodyFatPct",           "pbf",     0.092, 1...70),
+            ("ecwTbwRatio",          "ecw",     0.135, 0.300...0.500),
         ]
 
         for field in historyFields {
@@ -732,8 +732,18 @@ struct InBodyDocumentParser {
 
             guard let historyValue = bestValue else { continue }
 
+            // Validate: history value must be in sane range (OCR can garble numbers)
+            let historyIsValid = field.saneRange.contains(historyValue)
+
+            #if DEBUG
+            if !historyIsValid {
+                print("[History] \(field.key): history=\(historyValue) OUTSIDE sane range \(field.saneRange), ignoring")
+            }
+            #endif
+
             let currentValue = getField(field.key, from: result)
             let currentConf = result.confidence[field.key] ?? 0
+            let currentIsValid = currentValue.map { field.saneRange.contains($0) } ?? false
 
             if let current = currentValue {
                 // Compare: if history agrees (within 1%), boost confidence
@@ -743,23 +753,32 @@ struct InBodyDocumentParser {
                     #if DEBUG
                     print("[History] \(field.key): confirmed \(current) (history=\(historyValue)) conf→0.95")
                     #endif
-                } else {
-                    // They disagree — always trust history over bar chart extraction.
-                    // The history section is a simple table with no bar charts, tick marks,
-                    // or bullet prefixes to confuse the OCR. Bar chart extraction is
-                    // inherently less reliable for these 4 fields.
+                } else if historyIsValid && !currentIsValid {
+                    // Primary is out of range, history is valid → use history
                     setField(field.key, value: historyValue, on: &result)
                     result.confidence[field.key] = 0.85
                     #if DEBUG
-                    print("[History] \(field.key): overriding \(current) → \(historyValue) (history always wins)")
+                    print("[History] \(field.key): primary \(current) out of range, using history \(historyValue)")
+                    #endif
+                } else if historyIsValid {
+                    // Both in range but disagree → trust history (simpler source)
+                    setField(field.key, value: historyValue, on: &result)
+                    result.confidence[field.key] = 0.85
+                    #if DEBUG
+                    print("[History] \(field.key): overriding \(current) → \(historyValue) (history wins)")
+                    #endif
+                } else {
+                    // History is invalid, keep primary
+                    #if DEBUG
+                    print("[History] \(field.key): keeping primary \(current), history \(historyValue) invalid")
                     #endif
                 }
-            } else {
-                // Primary missed it — use history value
+            } else if historyIsValid {
+                // Primary missed it, history is valid → use it
                 setField(field.key, value: historyValue, on: &result)
                 result.confidence[field.key] = 0.8
                 #if DEBUG
-                print("[History] \(field.key): filled from history = \(historyValue) conf=0.8")
+                print("[History] \(field.key): filled from history = \(historyValue)")
                 #endif
             }
         }
