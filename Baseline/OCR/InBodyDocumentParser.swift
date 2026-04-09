@@ -89,11 +89,6 @@ struct InBodyDocumentParser {
             // Use the top-level text container's transcript as raw text
             result.rawText = doc.text.transcript
 
-            #if DEBUG
-            print("[InBodyDocumentParser] Tables found: \(doc.tables.count)")
-            print("[InBodyDocumentParser] Paragraphs found: \(doc.paragraphs.count)")
-            #endif
-
             // Primary: position-based extraction using paragraph bounding boxes
             extractByPosition(doc.paragraphs, into: &result)
 
@@ -164,10 +159,7 @@ struct InBodyDocumentParser {
         into result: inout InBodyParseResult,
         confidence: Float
     ) {
-        for (tableIndex, table) in tables.enumerated() {
-            #if DEBUG
-            print("[InBodyDocumentParser] Table \(tableIndex): \(table.rows.count) rows")
-            #endif
+        for table in tables {
             for row in table.rows {
                 guard row.count >= 2 else { continue }
                 let labelText = row[0].content.text.transcript.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -181,9 +173,6 @@ struct InBodyDocumentParser {
                     if confidence > 0 {
                         result.confidence[key] = confidence
                     }
-                    #if DEBUG
-                    print("[InBodyDocumentParser] Table field: \(key) = \(value) (confidence: \(confidence))")
-                    #endif
                 }
             }
         }
@@ -368,21 +357,6 @@ struct InBodyDocumentParser {
         _ paragraphs: [DocumentObservation.Container.Text],
         into result: inout InBodyParseResult
     ) {
-        #if DEBUG
-        print("=== PARAGRAPH POSITIONS (Y ascending) ===")
-        let sorted = paragraphs.enumerated().sorted {
-            $0.element.boundingRegion.boundingBox.origin.y <
-            $1.element.boundingRegion.boundingBox.origin.y
-        }
-        for (idx, para) in sorted {
-            let box = para.boundingRegion.boundingBox
-            let text = para.transcript.prefix(60)
-            print(String(format: "  [%3d] y=%.3f x=%.3f w=%.3f h=%.3f | %@",
-                         idx, box.origin.y, box.origin.x, box.width, box.height, String(text)))
-        }
-        print("=== END POSITIONS ===")
-        #endif
-
         let regions = buildRegions(from: paragraphs)
 
         for region in regions {
@@ -436,14 +410,6 @@ struct InBodyDocumentParser {
                 toTry = candidates
             }
 
-            #if DEBUG
-            if region.preferBullet {
-                let bulletInfo = candidates.filter { $0.hasBullet }.map { "\($0.text)(h=\(String(format: "%.3f", $0.height)))" }
-                let plainInfo = candidates.filter { !$0.hasBullet }.map { "\($0.text)(h=\(String(format: "%.3f", $0.height)))" }
-                print("[Position] \(region.key) candidates — bullet: \(bulletInfo), plain: \(plainInfo)")
-            }
-            #endif
-
             // Extract the first valid numeric value
             let wasBullet = toTry.first?.hasBullet ?? false
             let wasOnlyCandidate = candidates.count == 1
@@ -465,21 +431,12 @@ struct InBodyDocumentParser {
                     if region.key.hasSuffix("FatPct"), let pct = parseSegmentalFatPct(candidate.text) {
                         setField(region.key, value: pct, on: &result)
                         result.confidence[region.key] = conf
-                        #if DEBUG
-                        print("[Position] \(region.key) = \(pct) (fat%) conf=\(conf)")
-                        #endif
                     } else if region.key.hasSuffix("FatKg"), let kg = parseSegmentalFatKg(candidate.text) {
                         setField(region.key, value: kg, on: &result)
                         result.confidence[region.key] = conf
-                        #if DEBUG
-                        print("[Position] \(region.key) = \(kg) (fatKg) conf=\(conf)")
-                        #endif
                     } else {
                         setField(region.key, value: value, on: &result)
                         result.confidence[region.key] = conf
-                        #if DEBUG
-                        print("[Position] \(region.key) = \(value) conf=\(conf)")
-                        #endif
                     }
                     break
                 }
@@ -622,20 +579,12 @@ struct InBodyDocumentParser {
             // Sort by Y descending (higher Y = higher on page = lbs row, which is on top)
             let sorted = candidates.sorted { $0.centerY > $1.centerY }
 
-            #if DEBUG
-            let info = sorted.map { String(format: "%.1f@y=%.3f", $0.value, $0.centerY) }
-            print("[SegLean] \(seg.kgKey.replacingOccurrences(of: "LeanKg", with: "")): candidates=\(info)")
-            #endif
-
             if sorted.count >= 2 {
                 // Higher Y = lbs (top row), lower Y = % (bottom row)
                 setField(seg.kgKey, value: sorted[0].value, on: &result)
                 setField(seg.pctKey, value: sorted[1].value, on: &result)
                 result.confidence[seg.kgKey] = 0.8
                 result.confidence[seg.pctKey] = 0.8
-                #if DEBUG
-                print("[SegLean] \(seg.kgKey) = \(sorted[0].value) (lbs), \(seg.pctKey) = \(sorted[1].value) (%)")
-                #endif
             } else if sorted.count == 1 {
                 // Only one value found — can't tell if lbs or %
                 // Use value range: sufficiency % is typically > 60
@@ -647,9 +596,6 @@ struct InBodyDocumentParser {
                     setField(seg.kgKey, value: v, on: &result)
                     result.confidence[seg.kgKey] = 0.5
                 }
-                #if DEBUG
-                print("[SegLean] \(seg.kgKey.replacingOccurrences(of: "LeanKg", with: "")): only 1 value = \(v)")
-                #endif
             }
         }
     }
