@@ -13,6 +13,7 @@ struct ScanEntryFlow: View {
 
     private let injectedVM: ScanEntryViewModel?
     @State private var vm: ScanEntryViewModel?
+    @FocusState private var isFieldFocused: Bool
 
     init(viewModel: ScanEntryViewModel? = nil) {
         self.injectedVM = viewModel
@@ -295,6 +296,17 @@ struct ScanEntryFlow: View {
                         }
 
                         reviewFields(vm: vm)
+                    }
+                }
+                .scrollDismissesKeyboard(.interactively)
+                .toolbar {
+                    ToolbarItemGroup(placement: .keyboard) {
+                        Spacer()
+                        Button("Done") {
+                            isFieldFocused = false
+                        }
+                        .font(.system(size: 15, weight: .semibold))
+                        .foregroundStyle(CadreColors.accent)
                     }
                 }
 
@@ -597,6 +609,7 @@ struct ScanEntryFlow: View {
                     .keyboardType(.decimalPad)
                     .multilineTextAlignment(.trailing)
                     .frame(minWidth: 50)
+                    .focused($isFieldFocused)
                     .onChange(of: value.wrappedValue) { _, _ in
                         vm.markFieldEdited(key)
                     }
@@ -608,6 +621,7 @@ struct ScanEntryFlow: View {
                     .keyboardType(.decimalPad)
                     .multilineTextAlignment(.trailing)
                     .frame(minWidth: 50)
+                    .focused($isFieldFocused)
                     .onChange(of: value.wrappedValue) { _, _ in
                         vm.markFieldEdited(key)
                     }
@@ -715,6 +729,7 @@ struct ScanEntryFlow: View {
                 )
                 .keyboardType(.decimalPad)
                 .multilineTextAlignment(.trailing)
+                .focused($isFieldFocused)
                 .onChange(of: value.wrappedValue) { _, _ in
                     vm.markFieldEdited(key)
                 }

@@ -101,8 +101,8 @@ class ScanEntryViewModel {
     /// Field keys where OCR confidence was below threshold.
     var lowConfidenceFields: Set<String> = []
 
-    /// Confidence threshold below which fields are flagged.
-    private static let confidenceThreshold: Float = 0.7
+    /// Confidence threshold — fields below this are flagged for review.
+    private static let confidenceThreshold: Float = 0.8
 
     init(modelContext: ModelContext) {
         self.modelContext = modelContext
@@ -273,10 +273,25 @@ class ScanEntryViewModel {
 
         scanDate = result.scanDate
 
-        // Flag low-confidence fields
+        // Flag low-confidence fields: anything below threshold OR with no confidence data.
+        // Fields with high confidence (≥0.8) from bullet detection or grid extraction are trusted.
+        // Fields with no confidence entry at all are uncertain = flag them.
         lowConfidenceFields = []
-        for (key, confidence) in result.confidence {
-            if confidence < Self.confidenceThreshold {
+        let allFieldKeys = [
+            "weightKg", "skeletalMuscleMassKg", "bodyFatMassKg", "bodyFatPct",
+            "totalBodyWaterL", "bmi", "basalMetabolicRate",
+            "intracellularWaterL", "extracellularWaterL", "dryLeanMassKg", "leanBodyMassKg",
+            "inBodyScore", "ecwTbwRatio", "skeletalMuscleIndex", "visceralFatLevel",
+            "rightArmLeanKg", "leftArmLeanKg", "trunkLeanKg", "rightLegLeanKg", "leftLegLeanKg",
+            "rightArmLeanPct", "leftArmLeanPct", "trunkLeanPct", "rightLegLeanPct", "leftLegLeanPct",
+            "rightArmFatKg", "leftArmFatKg", "trunkFatKg", "rightLegFatKg", "leftLegFatKg",
+            "rightArmFatPct", "leftArmFatPct", "trunkFatPct", "rightLegFatPct", "leftLegFatPct",
+        ]
+        for key in allFieldKeys {
+            let hasValue = !(fields[key, default: ""].isEmpty)
+            guard hasValue else { continue }
+            let conf = result.confidence[key] ?? 0
+            if conf < Self.confidenceThreshold {
                 lowConfidenceFields.insert(key)
             }
         }
