@@ -276,6 +276,8 @@ struct ScanEditView: View {
     let scan: Scan
     let payload: InBodyPayload
 
+    @FocusState private var isFieldFocused: Bool
+
     // Editable string fields (mirrors ScanEntryViewModel fields)
     @State private var weightKg: String
     @State private var skeletalMuscleMassKg: String
@@ -432,6 +434,11 @@ struct ScanEditView: View {
                         .font(.system(size: 14, weight: .semibold))
                         .foregroundStyle(CadreColors.textSecondary)
                 }
+                ToolbarItemGroup(placement: .keyboard) {
+                    Spacer()
+                    Button("Done") { isFieldFocused = false }
+                        .font(.system(size: 15, weight: .semibold))
+                }
             }
             .toolbarBackground(CadreColors.bg, for: .navigationBar)
             .toolbarColorScheme(.dark, for: .navigationBar)
@@ -514,6 +521,7 @@ struct ScanEditView: View {
                 .foregroundStyle(CadreColors.textPrimary)
                 .keyboardType(.decimalPad)
                 .multilineTextAlignment(.trailing)
+                .focused($isFieldFocused)
 
             if !unit.isEmpty {
                 Text(unit)

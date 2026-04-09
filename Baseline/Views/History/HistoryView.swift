@@ -233,6 +233,8 @@ private struct EditEntrySheet: View {
         self._notes = State(initialValue: entry.notes ?? "")
     }
 
+    @FocusState private var isFieldFocused: Bool
+
     var body: some View {
         NavigationStack {
             Form {
@@ -245,6 +247,7 @@ private struct EditEntrySheet: View {
                             .keyboardType(.decimalPad)
                             .multilineTextAlignment(.trailing)
                             .foregroundStyle(CadreColors.textPrimary)
+                            .focused($isFieldFocused)
                         Text(displayUnit)
                             .foregroundStyle(CadreColors.textTertiary)
                     }
@@ -262,6 +265,7 @@ private struct EditEntrySheet: View {
                     TextField("Notes", text: $notes, axis: .vertical)
                         .lineLimit(2...4)
                         .foregroundStyle(CadreColors.textPrimary)
+                        .focused($isFieldFocused)
                 }
                 .listRowBackground(CadreColors.card)
 
@@ -302,6 +306,11 @@ private struct EditEntrySheet: View {
                         dismiss()
                     }
                     .foregroundStyle(CadreColors.accent)
+                }
+                ToolbarItemGroup(placement: .keyboard) {
+                    Spacer()
+                    Button("Done") { isFieldFocused = false }
+                        .font(.system(size: 15, weight: .semibold))
                 }
             }
         }

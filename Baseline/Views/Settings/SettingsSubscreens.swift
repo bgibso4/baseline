@@ -8,6 +8,7 @@ struct NameEditView: View {
     @Environment(\.dismiss) private var dismiss
     let viewModel: SettingsViewModel
     @State private var draft: String = ""
+    @FocusState private var isFocused: Bool
 
     var body: some View {
         ZStack {
@@ -21,6 +22,7 @@ struct NameEditView: View {
                         .foregroundStyle(CadreColors.textPrimary)
                         .tint(CadreColors.accent)
                         .autocorrectionDisabled()
+                        .focused($isFocused)
 
                     if !draft.isEmpty {
                         Button {
@@ -74,6 +76,11 @@ struct NameEditView: View {
                 }
                 .font(.system(size: 14, weight: .semibold))
                 .foregroundStyle(CadreColors.accent)
+            }
+            ToolbarItemGroup(placement: .keyboard) {
+                Spacer()
+                Button("Done") { isFocused = false }
+                    .font(.system(size: 15, weight: .semibold))
             }
         }
         .toolbarBackground(CadreColors.bg, for: .navigationBar)

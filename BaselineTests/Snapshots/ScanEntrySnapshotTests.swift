@@ -13,7 +13,7 @@ import SnapshotTesting
 final class ScanEntrySnapshotTests: XCTestCase {
 
     /// Set to `true` locally to regenerate reference images.
-    private let isRecording = false
+    private let isRecording = true
 
     @MainActor
     func testScanEntry_TypeSelection() {

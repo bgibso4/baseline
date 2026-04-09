@@ -342,7 +342,20 @@ class ScanEntryViewModel {
         !basalMetabolicRate.isEmpty
     }
 
+    /// Check if a scan already exists for the selected date.
+    func existingScanForSelectedDate() -> Scan? {
+        let targetDate = Calendar.current.startOfDay(for: scanDate ?? Date())
+        let descriptor = FetchDescriptor<Scan>(
+            predicate: #Predicate { $0.date == targetDate }
+        )
+        return try? modelContext.fetch(descriptor).first
+    }
+
     func save() throws {
+        // If a scan exists for this date, delete it first (caller confirms overwrite)
+        if let existing = existingScanForSelectedDate() {
+            modelContext.delete(existing)
+        }
         let payload = try buildPayload()
         let data = try JSONEncoder().encode(payload)
         let scan = Scan(date: scanDate ?? Date(), type: selectedType, source: selectedSource, payload: data)

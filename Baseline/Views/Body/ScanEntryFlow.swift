@@ -46,14 +46,12 @@ struct ScanEntryFlow: View {
                     }
                 }
             }
-        }
-        .toolbar {
-            ToolbarItemGroup(placement: .keyboard) {
-                Spacer()
-                Button("Done") {
-                    isFieldFocused = false
+            .toolbar {
+                ToolbarItemGroup(placement: .keyboard) {
+                    Spacer()
+                    Button("Done") { isFieldFocused = false }
+                        .font(.system(size: 15, weight: .semibold))
                 }
-                .font(.system(size: 15, weight: .semibold))
             }
         }
         .onAppear {
@@ -183,7 +181,8 @@ struct ScanEntryFlow: View {
                     methodCard(
                         icon: "camera",
                         title: "Scan printout",
-                        description: "Point camera at InBody printout. Values read automatically, you review before saving."
+                        description: "Auto-reads values from your InBody printout.",
+                        hint: "Multiple photos improve accuracy"
                     ) {
                         vm.selectMethod(camera: true)
                     }
@@ -204,9 +203,9 @@ struct ScanEntryFlow: View {
         }
     }
 
-    private func methodCard(icon: String, title: String, description: String, action: @escaping () -> Void) -> some View {
+    private func methodCard(icon: String, title: String, description: String, hint: String? = nil, action: @escaping () -> Void) -> some View {
         Button(action: action) {
-            HStack(alignment: .top, spacing: 14) {
+            HStack(spacing: 14) {
                 Image(systemName: icon)
                     .font(.system(size: 22, weight: .regular))
                     .foregroundStyle(CadreColors.accent)
@@ -223,6 +222,16 @@ struct ScanEntryFlow: View {
                         .font(.system(size: 12, weight: .medium))
                         .foregroundStyle(CadreColors.textTertiary)
                         .lineSpacing(2)
+                    if let hint {
+                        HStack(spacing: 4) {
+                            Image(systemName: "lightbulb.min")
+                                .font(.system(size: 10, weight: .medium))
+                            Text(hint)
+                                .font(.system(size: 11, weight: .medium))
+                        }
+                        .foregroundStyle(CadreColors.accent.opacity(0.7))
+                        .padding(.top, 2)
+                    }
                 }
 
                 Spacer(minLength: 0)
@@ -230,7 +239,6 @@ struct ScanEntryFlow: View {
                 Image(systemName: "chevron.right")
                     .font(.system(size: 12, weight: .semibold))
                     .foregroundStyle(CadreColors.textTertiary)
-                    .frame(height: 44)
             }
             .padding(.horizontal, 18)
             .padding(.vertical, 20)
@@ -278,6 +286,7 @@ struct ScanEntryFlow: View {
     // MARK: - Step 4: Review Form (post-OCR)
 
     @State private var showDatePicker: Bool = false
+    @State private var showOverwriteAlert: Bool = false
 
     private func reviewFormStep(vm: ScanEntryViewModel) -> some View {
         @Bindable var bvm = vm
@@ -600,31 +609,20 @@ struct ScanEntryFlow: View {
         vm: ScanEntryViewModel
     ) -> some View {
         HStack(alignment: .firstTextBaseline, spacing: 3) {
-            if isMissing {
-                TextField("--", text: value)
-                    .font(.system(size: 15, weight: .bold, design: .default))
-                    .tracking(-0.2)
-                    .foregroundStyle(CadreColors.textTertiary)
-                    .keyboardType(.decimalPad)
-                    .multilineTextAlignment(.trailing)
-                    .frame(minWidth: 50)
-                    .focused($isFieldFocused)
-                    .onChange(of: value.wrappedValue) { _, _ in
-                        vm.markFieldEdited(key)
-                    }
-            } else {
-                TextField("", text: value)
-                    .font(.system(size: 15, weight: .bold, design: .default))
-                    .tracking(-0.2)
-                    .foregroundStyle(isLowConfidence ? amberColor : CadreColors.textPrimary)
-                    .keyboardType(.decimalPad)
-                    .multilineTextAlignment(.trailing)
-                    .frame(minWidth: 50)
-                    .focused($isFieldFocused)
-                    .onChange(of: value.wrappedValue) { _, _ in
-                        vm.markFieldEdited(key)
-                    }
-            }
+            TextField(isMissing ? "--" : "", text: value)
+                .font(.system(size: 15, weight: .bold, design: .default))
+                .tracking(-0.2)
+                .foregroundStyle(
+                    isMissing ? CadreColors.textTertiary :
+                    isLowConfidence ? amberColor : CadreColors.textPrimary
+                )
+                .keyboardType(.decimalPad)
+                .multilineTextAlignment(.trailing)
+                .frame(minWidth: 50)
+                .focused($isFieldFocused)
+                .onChange(of: value.wrappedValue) { _, _ in
+                    vm.markFieldEdited(key)
+                }
 
             if !unit.isEmpty {
                 Text(unit)
@@ -756,46 +754,58 @@ struct ScanEntryFlow: View {
     // MARK: - Review Save Button
 
     private func reviewSaveButton(vm: ScanEntryViewModel) -> some View {
-        Button {
-            do {
-                try vm.save()
-                Haptics.success()
-                dismiss()
-            } catch {
-                vm.errorMessage = error.localizedDescription
-            }
-        } label: {
-            Text("Save")
-                .font(CadreTypography.buttonLabel)
-                .tracking(0.3)
-                .foregroundStyle(.white)
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 15)
-                .background(vm.canSave ? CadreColors.accent : CadreColors.cardElevated)
-                .clipShape(RoundedRectangle(cornerRadius: 14))
-        }
-        .disabled(!vm.canSave)
-        .padding(.horizontal, CadreSpacing.sheetHorizontal)
-        .padding(.top, 12)
-        .padding(.bottom, 16)
+        saveButton(vm: vm)
     }
 
     // MARK: - Step 5: Manual Entry Form
 
     private func manualFormStep(vm: ScanEntryViewModel) -> some View {
-        VStack(spacing: 0) {
-            formHeader(title: "New Scan", vm: vm)
+        @Bindable var bvm = vm
+        return ZStack {
+            VStack(spacing: 0) {
+                formHeader(title: "New Scan", vm: vm)
 
-            ScrollView {
-                VStack(spacing: 0) {
-                    dateChip
-                        .padding(.top, 4)
-                    scanFormFields(vm: vm)
+                ScrollView {
+                    VStack(spacing: 0) {
+                        reviewDateChip(vm: vm)
+                            .padding(.top, 12)
+                        reviewFields(vm: vm)
+                    }
                 }
+                .scrollDismissesKeyboard(.interactively)
+
+                saveButton(vm: vm)
             }
 
-            // Save button outside scrollable area
-            saveButton(vm: vm)
+            // Date picker overlay
+            if showDatePicker {
+                Color.black.opacity(0.5)
+                    .ignoresSafeArea()
+                    .onTapGesture {
+                        withAnimation { showDatePicker = false }
+                    }
+
+                VStack {
+                    DatePicker(
+                        "",
+                        selection: Binding(
+                            get: { vm.scanDate ?? Date() },
+                            set: { vm.scanDate = $0 }
+                        ),
+                        in: ...Date(),
+                        displayedComponents: .date
+                    )
+                    .datePickerStyle(.graphical)
+                    .tint(CadreColors.accent)
+                    .labelsHidden()
+                    .padding()
+                    .background(
+                        RoundedRectangle(cornerRadius: 16)
+                            .fill(CadreColors.card)
+                    )
+                    .padding(.horizontal, 16)
+                }
+            }
         }
     }
 
@@ -827,143 +837,13 @@ struct ScanEntryFlow: View {
         .padding(.vertical, 6)
     }
 
-    private var dateChip: some View {
-        HStack(spacing: 6) {
-            Text("Today")
-                .font(CadreTypography.dateChip)
-                .foregroundStyle(CadreColors.textPrimary)
-            Image(systemName: "chevron.down")
-                .font(.system(size: 9, weight: .bold))
-                .foregroundStyle(CadreColors.textTertiary)
-        }
-        .padding(.horizontal, 14)
-        .padding(.vertical, 8)
-        .background(CadreColors.card)
-        .overlay(
-            RoundedRectangle(cornerRadius: CadreRadius.full)
-                .stroke(CadreColors.divider, lineWidth: 1)
-        )
-        .clipShape(RoundedRectangle(cornerRadius: CadreRadius.full))
-        .padding(.top, 16)
-    }
-
-    private func confidenceHint(count: Int) -> some View {
-        HStack(spacing: 6) {
-            Image(systemName: "exclamationmark.circle")
-                .font(.system(size: 13, weight: .medium))
-            Text("\(count) low-confidence read\(count == 1 ? "" : "s") \u{2014} please verify")
-                .font(.system(size: 11, weight: .medium))
-        }
-        .foregroundStyle(Color(hex: "B89968")) // amber / secondary accent
-        .padding(.horizontal, CadreSpacing.sheetHorizontal)
-        .padding(.top, 12)
-    }
-
-    private func scanFormFields(vm: ScanEntryViewModel) -> some View {
-        VStack(spacing: 0) {
-            // Core
-            formSectionLabel("Core")
-            formRow("Weight", value: fieldBinding("weightKg", vm: vm), unit: "kg", key: "weightKg", vm: vm)
-            formRow("Body Fat", value: fieldBinding("bodyFatPct", vm: vm), unit: "%", key: "bodyFatPct", vm: vm)
-            formRow("Skeletal Muscle", value: fieldBinding("skeletalMuscleMassKg", vm: vm), unit: "kg", key: "skeletalMuscleMassKg", vm: vm)
-            formRow("Body Fat Mass", value: fieldBinding("bodyFatMassKg", vm: vm), unit: "kg", key: "bodyFatMassKg", vm: vm)
-            formRow("BMI", value: fieldBinding("bmi", vm: vm), unit: "", key: "bmi", vm: vm)
-            formRow("BMR", value: fieldBinding("basalMetabolicRate", vm: vm), unit: "kcal", key: "basalMetabolicRate", vm: vm)
-            formRow("Total Body Water", value: fieldBinding("totalBodyWaterL", vm: vm), unit: "L", key: "totalBodyWaterL", vm: vm)
-
-            // Body Composition
-            formSectionLabel("Body Composition")
-            formRow("Intracellular Water", value: fieldBinding("intracellularWaterL", vm: vm), unit: "L", key: "intracellularWaterL", vm: vm)
-            formRow("Extracellular Water", value: fieldBinding("extracellularWaterL", vm: vm), unit: "L", key: "extracellularWaterL", vm: vm)
-            formRow("Dry Lean Mass", value: fieldBinding("dryLeanMassKg", vm: vm), unit: "kg", key: "dryLeanMassKg", vm: vm)
-            formRow("Lean Body Mass", value: fieldBinding("leanBodyMassKg", vm: vm), unit: "kg", key: "leanBodyMassKg", vm: vm)
-            formRow("InBody Score", value: fieldBinding("inBodyScore", vm: vm), unit: "", key: "inBodyScore", vm: vm)
-
-            // Segmental Lean
-            formSectionLabel("Segmental Lean")
-            formRow("Right Arm", value: fieldBinding("rightArmLeanKg", vm: vm), unit: "kg", key: "rightArmLeanKg", vm: vm)
-            formRow("Left Arm", value: fieldBinding("leftArmLeanKg", vm: vm), unit: "kg", key: "leftArmLeanKg", vm: vm)
-            formRow("Trunk", value: fieldBinding("trunkLeanKg", vm: vm), unit: "kg", key: "trunkLeanKg", vm: vm)
-            formRow("Right Leg", value: fieldBinding("rightLegLeanKg", vm: vm), unit: "kg", key: "rightLegLeanKg", vm: vm)
-            formRow("Left Leg", value: fieldBinding("leftLegLeanKg", vm: vm), unit: "kg", key: "leftLegLeanKg", vm: vm)
-
-            // Segmental Fat
-            formSectionLabel("Segmental Fat")
-            formRow("Right Arm", value: fieldBinding("rightArmFatKg", vm: vm), unit: "kg", key: "rightArmFatKg", vm: vm)
-            formRow("Left Arm", value: fieldBinding("leftArmFatKg", vm: vm), unit: "kg", key: "leftArmFatKg", vm: vm)
-            formRow("Trunk", value: fieldBinding("trunkFatKg", vm: vm), unit: "kg", key: "trunkFatKg", vm: vm)
-            formRow("Right Leg", value: fieldBinding("rightLegFatKg", vm: vm), unit: "kg", key: "rightLegFatKg", vm: vm)
-            formRow("Left Leg", value: fieldBinding("leftLegFatKg", vm: vm), unit: "kg", key: "leftLegFatKg", vm: vm)
-        }
-        .padding(.bottom, 16)
-    }
-
-    private func formSectionLabel(_ title: String) -> some View {
-        Text(title.uppercased())
-            .font(.system(size: 10, weight: .semibold))
-            .tracking(0.5)
-            .foregroundStyle(CadreColors.textTertiary)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(.horizontal, CadreSpacing.sheetHorizontal)
-            .padding(.top, 18)
-            .padding(.bottom, 8)
-    }
-
-    private func formRow(
-        _ label: String,
-        value: Binding<String>,
-        unit: String,
-        key: String,
-        vm: ScanEntryViewModel
-    ) -> some View {
-        let isLowConfidence = vm.lowConfidenceFields.contains(key)
-        return HStack {
-            Text(label)
-                .font(.system(size: 13, weight: .medium))
-                .foregroundStyle(CadreColors.textPrimary)
-
-            Spacer(minLength: 8)
-
-            HStack(alignment: .firstTextBaseline, spacing: 3) {
-                TextField("", text: value)
-                    .font(.system(size: 15, weight: .bold, design: .default))
-                    .tracking(-0.2)
-                    .foregroundStyle(CadreColors.textPrimary)
-                    .keyboardType(.decimalPad)
-                    .multilineTextAlignment(.trailing)
-                    .frame(minWidth: 50)
-
-                if !unit.isEmpty {
-                    Text(unit)
-                        .font(.system(size: 10, weight: .medium))
-                        .foregroundStyle(CadreColors.textSecondary)
-                }
-            }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 8)
-            .background(isLowConfidence ? Color(hex: "B89968").opacity(0.08) : CadreColors.card)
-            .overlay(
-                RoundedRectangle(cornerRadius: 9)
-                    .stroke(
-                        isLowConfidence ? Color(hex: "B89968") : CadreColors.divider,
-                        lineWidth: 1
-                    )
-            )
-            .clipShape(RoundedRectangle(cornerRadius: 9))
-            .frame(minWidth: 92)
-        }
-        .padding(.horizontal, CadreSpacing.sheetHorizontal)
-        .padding(.vertical, 4)
-    }
 
     private func saveButton(vm: ScanEntryViewModel) -> some View {
         Button {
-            do {
-                try vm.save()
-                Haptics.success()
-                dismiss()
-            } catch {
-                vm.errorMessage = error.localizedDescription
+            if vm.existingScanForSelectedDate() != nil {
+                showOverwriteAlert = true
+            } else {
+                performSave(vm: vm)
             }
         } label: {
             Text("Save")
@@ -979,6 +859,24 @@ struct ScanEntryFlow: View {
         .padding(.horizontal, CadreSpacing.sheetHorizontal)
         .padding(.top, 12)
         .padding(.bottom, 16)
+        .alert("Replace Existing Scan?", isPresented: $showOverwriteAlert) {
+            Button("Cancel", role: .cancel) {}
+            Button("Replace", role: .destructive) {
+                performSave(vm: vm)
+            }
+        } message: {
+            Text("You already have a scan for this date. Saving will replace it.")
+        }
+    }
+
+    private func performSave(vm: ScanEntryViewModel) {
+        do {
+            try vm.save()
+            Haptics.success()
+            dismiss()
+        } catch {
+            vm.errorMessage = error.localizedDescription
+        }
     }
 
     // MARK: - Push Header

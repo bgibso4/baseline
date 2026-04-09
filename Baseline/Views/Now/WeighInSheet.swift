@@ -26,6 +26,7 @@ struct WeighInSheet: View {
     @State private var selectedPhoto: PhotosPickerItem?
     @State private var photoData: Data?
     @State private var showOverwriteAlert = false
+    @FocusState private var isFieldFocused: Bool
 
     init(
         lastWeight: Double?,
@@ -41,6 +42,7 @@ struct WeighInSheet: View {
     }
 
     var body: some View {
+        NavigationStack {
         ZStack {
             CadreColors.bg.ignoresSafeArea()
 
@@ -81,6 +83,15 @@ struct WeighInSheet: View {
                 }
             }
         }
+        .toolbar {
+            ToolbarItemGroup(placement: .keyboard) {
+                Spacer()
+                Button("Done") { isFieldFocused = false }
+                    .font(.system(size: 15, weight: .semibold))
+            }
+        }
+        .navigationBarHidden(true)
+        } // NavigationStack
         .presentationDetents(sheetDetents)
         .onAppear {
             guard injectedVM == nil, vm == nil else { return }
@@ -302,6 +313,7 @@ struct WeighInSheet: View {
         )
         .font(CadreTypography.noteField)
         .foregroundStyle(CadreColors.textPrimary)
+        .focused($isFieldFocused)
         .lineLimit(2...4)
         .padding(.horizontal, 14)
         .padding(.vertical, 12)
