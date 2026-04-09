@@ -102,8 +102,8 @@ final class ScanEntryViewModelTests: XCTestCase {
         XCTAssertEqual(vm.totalBodyWaterL, "54")
         XCTAssertEqual(vm.bmi, "24.1")
         XCTAssertEqual(vm.basalMetabolicRate, "1842")
-        XCTAssertEqual(vm.intracellularWaterL, "33.5")
-        XCTAssertEqual(vm.rightArmLeanKg, "3.8")
+        XCTAssertEqual(vm.fieldValue("intracellularWaterL"), "33.5")
+        XCTAssertEqual(vm.fieldValue("rightArmLeanKg"), "3.8")
 
         // Low confidence flagging
         XCTAssertTrue(vm.lowConfidenceFields.contains("bmi"), "BMI should be flagged as low confidence")
@@ -145,8 +145,8 @@ final class ScanEntryViewModelTests: XCTestCase {
         vm.basalMetabolicRate = "1842"
 
         // Populate some optional fields
-        vm.intracellularWaterL = "33.5"
-        vm.rightArmLeanKg = "3.8"
+        vm.setField("intracellularWaterL", value: "33.5")
+        vm.setField("rightArmLeanKg", value: "3.8")
 
         try vm.save()
 
@@ -189,5 +189,57 @@ final class ScanEntryViewModelTests: XCTestCase {
             XCTAssertTrue(fields.contains("Skeletal Muscle Mass"))
             XCTAssertTrue(fields.contains("BMI"))
         }
+    }
+
+    // MARK: - New Fields, Retry, and Scan Date
+
+    func testPopulateFields_SetsNewFields() {
+        let vm = ScanEntryViewModel(modelContext: context)
+        var result = InBodyParseResult()
+        result.ecwTbwRatio = 0.380
+        result.skeletalMuscleIndex = 10.4
+        result.visceralFatLevel = 3
+        result.rightArmLeanPct = 112.4
+        result.trunkFatPct = 94.5
+        result.scanDate = Calendar.current.date(from: DateComponents(year: 2026, month: 1, day: 15))
+
+        vm.populateFields(from: result)
+
+        XCTAssertEqual(vm.fieldValue("ecwTbwRatio"), "0.380")
+        XCTAssertEqual(vm.fieldValue("skeletalMuscleIndex"), "10.4")
+        XCTAssertEqual(vm.fieldValue("visceralFatLevel"), "3")
+        XCTAssertEqual(vm.fieldValue("rightArmLeanPct"), "112.4")
+        XCTAssertEqual(vm.fieldValue("trunkFatPct"), "94.5")
+        XCTAssertNotNil(vm.scanDate)
+    }
+
+    func testRetryMerge_PreservesUserEdits() {
+        let vm = ScanEntryViewModel(modelContext: context)
+
+        var result1 = InBodyParseResult()
+        result1.weightKg = 60.0
+        result1.confidence["weightKg"] = 0.5
+        vm.populateFields(from: result1)
+
+        vm.weightKg = "61.5"
+        vm.markFieldEdited("weightKg")
+
+        var result2 = InBodyParseResult()
+        result2.weightKg = 62.0
+        result2.confidence["weightKg"] = 0.9
+        result2.bmi = 25.0
+        result2.confidence["bmi"] = 0.8
+
+        vm.mergeRetryResult(result2)
+
+        XCTAssertEqual(vm.weightKg, "61.5")
+        XCTAssertEqual(vm.bmi, "25")
+    }
+
+    func testRetryCount_TracksAttempts() {
+        let vm = ScanEntryViewModel(modelContext: context)
+        XCTAssertEqual(vm.retryCount, 0)
+        vm.retryCount += 1
+        XCTAssertEqual(vm.retryCount, 1)
     }
 }

@@ -124,22 +124,28 @@ struct ScanDetailView: View {
             optionalMassRow("Dry Lean Mass", value: p.dryLeanMassKg)
             optionalMassRow("Lean Body Mass", value: p.leanBodyMassKg)
             optionalRow("InBody Score", value: p.inBodyScore, unit: "")
+            optionalRow("ECW/TBW Ratio", value: p.ecwTbwRatio, unit: "")
+        }
+
+        detailSection("Additional Metrics") {
+            optionalRow("Skeletal Muscle Index", value: p.skeletalMuscleIndex, unit: "kg/m²")
+            optionalRow("Visceral Fat Level", value: p.visceralFatLevel, unit: "")
         }
 
         detailSection("Segmental Lean") {
-            optionalMassRow("Right Arm", value: p.rightArmLeanKg)
-            optionalMassRow("Left Arm", value: p.leftArmLeanKg)
-            optionalMassRow("Trunk", value: p.trunkLeanKg)
-            optionalMassRow("Right Leg", value: p.rightLegLeanKg)
-            optionalMassRow("Left Leg", value: p.leftLegLeanKg)
+            optionalMassWithPctRow("Right Arm", mass: p.rightArmLeanKg, pct: p.rightArmLeanPct)
+            optionalMassWithPctRow("Left Arm", mass: p.leftArmLeanKg, pct: p.leftArmLeanPct)
+            optionalMassWithPctRow("Trunk", mass: p.trunkLeanKg, pct: p.trunkLeanPct)
+            optionalMassWithPctRow("Right Leg", mass: p.rightLegLeanKg, pct: p.rightLegLeanPct)
+            optionalMassWithPctRow("Left Leg", mass: p.leftLegLeanKg, pct: p.leftLegLeanPct)
         }
 
         detailSection("Segmental Fat") {
-            optionalMassRow("Right Arm", value: p.rightArmFatKg)
-            optionalMassRow("Left Arm", value: p.leftArmFatKg)
-            optionalMassRow("Trunk", value: p.trunkFatKg)
-            optionalMassRow("Right Leg", value: p.rightLegFatKg)
-            optionalMassRow("Left Leg", value: p.leftLegFatKg)
+            optionalMassWithPctRow("Right Arm", mass: p.rightArmFatKg, pct: p.rightArmFatPct)
+            optionalMassWithPctRow("Left Arm", mass: p.leftArmFatKg, pct: p.leftArmFatPct)
+            optionalMassWithPctRow("Trunk", mass: p.trunkFatKg, pct: p.trunkFatPct)
+            optionalMassWithPctRow("Right Leg", mass: p.rightLegFatKg, pct: p.rightLegFatPct)
+            optionalMassWithPctRow("Left Leg", mass: p.leftLegFatKg, pct: p.leftLegFatPct)
         }
     }
 
@@ -216,6 +222,44 @@ struct ScanDetailView: View {
         }
     }
 
+    /// Optional mass row that appends a sufficiency percentage as a secondary value when available.
+    /// Shows: "Right Arm    7.94 lb · 112.4%"
+    @ViewBuilder
+    private func optionalMassWithPctRow(_ label: String, mass: Double?, pct: Double?) -> some View {
+        if let mass {
+            VStack(spacing: 0) {
+                Rectangle()
+                    .fill(CadreColors.divider)
+                    .frame(height: 0.5)
+                HStack {
+                    Text(label)
+                        .font(.system(size: 14, weight: .medium))
+                        .foregroundStyle(CadreColors.textSecondary)
+                    Spacer()
+                    HStack(alignment: .firstTextBaseline, spacing: 3) {
+                        let display = UnitConversion.formattedMass(mass)
+                        Text(display.text)
+                            .font(.system(size: 15, weight: .bold))
+                            .foregroundStyle(CadreColors.textPrimary)
+                        Text(display.unit)
+                            .font(.system(size: 11, weight: .medium))
+                            .foregroundStyle(CadreColors.textTertiary)
+                        if let pct {
+                            Text("·")
+                                .font(.system(size: 11, weight: .medium))
+                                .foregroundStyle(CadreColors.textTertiary)
+                            Text(String(format: "%.1f%%", pct))
+                                .font(.system(size: 13, weight: .semibold))
+                                .foregroundStyle(CadreColors.textSecondary)
+                        }
+                    }
+                }
+                .padding(.horizontal, 16)
+                .padding(.vertical, 11)
+            }
+        }
+    }
+
     private func fmt(_ value: Double) -> String {
         String(format: "%.1f", value)
     }
@@ -255,6 +299,21 @@ struct ScanEditView: View {
     @State private var trunkFatKg: String
     @State private var rightLegFatKg: String
     @State private var leftLegFatKg: String
+
+    // New fields (Task 1 expansion)
+    @State private var ecwTbwRatio: String
+    @State private var skeletalMuscleIndex: String
+    @State private var visceralFatLevel: String
+    @State private var rightArmLeanPct: String
+    @State private var leftArmLeanPct: String
+    @State private var trunkLeanPct: String
+    @State private var rightLegLeanPct: String
+    @State private var leftLegLeanPct: String
+    @State private var rightArmFatPct: String
+    @State private var leftArmFatPct: String
+    @State private var trunkFatPct: String
+    @State private var rightLegFatPct: String
+    @State private var leftLegFatPct: String
 
     @State private var errorMessage: String?
 
@@ -302,6 +361,20 @@ struct ScanEditView: View {
         _trunkFatKg = State(initialValue: om(payload.trunkFatKg))
         _rightLegFatKg = State(initialValue: om(payload.rightLegFatKg))
         _leftLegFatKg = State(initialValue: om(payload.leftLegFatKg))
+
+        _ecwTbwRatio = State(initialValue: Self.optFmt(payload.ecwTbwRatio))
+        _skeletalMuscleIndex = State(initialValue: Self.optFmt(payload.skeletalMuscleIndex))
+        _visceralFatLevel = State(initialValue: Self.optFmt(payload.visceralFatLevel))
+        _rightArmLeanPct = State(initialValue: Self.optFmt(payload.rightArmLeanPct))
+        _leftArmLeanPct = State(initialValue: Self.optFmt(payload.leftArmLeanPct))
+        _trunkLeanPct = State(initialValue: Self.optFmt(payload.trunkLeanPct))
+        _rightLegLeanPct = State(initialValue: Self.optFmt(payload.rightLegLeanPct))
+        _leftLegLeanPct = State(initialValue: Self.optFmt(payload.leftLegLeanPct))
+        _rightArmFatPct = State(initialValue: Self.optFmt(payload.rightArmFatPct))
+        _leftArmFatPct = State(initialValue: Self.optFmt(payload.leftArmFatPct))
+        _trunkFatPct = State(initialValue: Self.optFmt(payload.trunkFatPct))
+        _rightLegFatPct = State(initialValue: Self.optFmt(payload.rightLegFatPct))
+        _leftLegFatPct = State(initialValue: Self.optFmt(payload.leftLegFatPct))
     }
 
     private var canSave: Bool {
@@ -384,20 +457,35 @@ struct ScanEditView: View {
             formRow("Dry Lean Mass", value: $dryLeanMassKg, unit: massUnit)
             formRow("Lean Body Mass", value: $leanBodyMassKg, unit: massUnit)
             formRow("InBody Score", value: $inBodyScore, unit: "")
+            formRow("ECW/TBW Ratio", value: $ecwTbwRatio, unit: "")
+
+            formSectionLabel("Additional Metrics")
+            formRow("Skeletal Muscle Index", value: $skeletalMuscleIndex, unit: "kg/m²")
+            formRow("Visceral Fat Level", value: $visceralFatLevel, unit: "")
 
             formSectionLabel("Segmental Lean")
             formRow("Right Arm", value: $rightArmLeanKg, unit: massUnit)
+            formRow("Right Arm %", value: $rightArmLeanPct, unit: "%")
             formRow("Left Arm", value: $leftArmLeanKg, unit: massUnit)
+            formRow("Left Arm %", value: $leftArmLeanPct, unit: "%")
             formRow("Trunk", value: $trunkLeanKg, unit: massUnit)
+            formRow("Trunk %", value: $trunkLeanPct, unit: "%")
             formRow("Right Leg", value: $rightLegLeanKg, unit: massUnit)
+            formRow("Right Leg %", value: $rightLegLeanPct, unit: "%")
             formRow("Left Leg", value: $leftLegLeanKg, unit: massUnit)
+            formRow("Left Leg %", value: $leftLegLeanPct, unit: "%")
 
             formSectionLabel("Segmental Fat")
             formRow("Right Arm", value: $rightArmFatKg, unit: massUnit)
+            formRow("Right Arm %", value: $rightArmFatPct, unit: "%")
             formRow("Left Arm", value: $leftArmFatKg, unit: massUnit)
+            formRow("Left Arm %", value: $leftArmFatPct, unit: "%")
             formRow("Trunk", value: $trunkFatKg, unit: massUnit)
+            formRow("Trunk %", value: $trunkFatPct, unit: "%")
             formRow("Right Leg", value: $rightLegFatKg, unit: massUnit)
+            formRow("Right Leg %", value: $rightLegFatPct, unit: "%")
             formRow("Left Leg", value: $leftLegFatKg, unit: massUnit)
+            formRow("Left Leg %", value: $leftLegFatPct, unit: "%")
         }
         .padding(.bottom, 16)
     }
@@ -495,7 +583,20 @@ struct ScanEditView: View {
             leftArmFatKg: optToKg(leftArmFatKg),
             trunkFatKg: optToKg(trunkFatKg),
             rightLegFatKg: optToKg(rightLegFatKg),
-            leftLegFatKg: optToKg(leftLegFatKg)
+            leftLegFatKg: optToKg(leftLegFatKg),
+            ecwTbwRatio: Double(ecwTbwRatio),
+            skeletalMuscleIndex: Double(skeletalMuscleIndex),
+            visceralFatLevel: Double(visceralFatLevel),
+            rightArmLeanPct: Double(rightArmLeanPct),
+            leftArmLeanPct: Double(leftArmLeanPct),
+            trunkLeanPct: Double(trunkLeanPct),
+            rightLegLeanPct: Double(rightLegLeanPct),
+            leftLegLeanPct: Double(leftLegLeanPct),
+            rightArmFatPct: Double(rightArmFatPct),
+            leftArmFatPct: Double(leftArmFatPct),
+            trunkFatPct: Double(trunkFatPct),
+            rightLegFatPct: Double(rightLegFatPct),
+            leftLegFatPct: Double(leftLegFatPct)
         )
 
         guard let data = try? JSONEncoder().encode(updated) else { return }

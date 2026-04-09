@@ -36,4 +36,25 @@ struct InBodyPayload: Codable, Equatable {
     var trunkFatKg: Double?
     var rightLegFatKg: Double?
     var leftLegFatKg: Double?
+
+    // ECW/TBW
+    var ecwTbwRatio: Double?
+
+    // SMI & Visceral Fat
+    var skeletalMuscleIndex: Double?
+    var visceralFatLevel: Double?
+
+    // Segmental sufficiency percentages (lean)
+    var rightArmLeanPct: Double?
+    var leftArmLeanPct: Double?
+    var trunkLeanPct: Double?
+    var rightLegLeanPct: Double?
+    var leftLegLeanPct: Double?
+
+    // Segmental sufficiency percentages (fat)
+    var rightArmFatPct: Double?
+    var leftArmFatPct: Double?
+    var trunkFatPct: Double?
+    var rightLegFatPct: Double?
+    var leftLegFatPct: Double?
 }

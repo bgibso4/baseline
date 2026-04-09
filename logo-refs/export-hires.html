@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Baseline — Hi-Res Logo Export</title>
+<style>
+  body { background: #111; color: #fff; font-family: -apple-system, sans-serif; padding: 40px; }
+  h1 { font-size: 14px; letter-spacing: 3px; text-transform: uppercase; color: #666; margin-bottom: 8px; }
+  p.sub { font-size: 12px; color: #444; margin-bottom: 40px; }
+  .section { margin-bottom: 60px; }
+  .section h2 { font-size: 12px; letter-spacing: 2px; text-transform: uppercase; color: #888; margin-bottom: 16px; }
+  .row { display: flex; gap: 24px; flex-wrap: wrap; align-items: flex-start; }
+  .card { text-align: center; margin-bottom: 24px; }
+  .card p { font-size: 11px; color: #555; margin: 6px 0; }
+  .card .dims { font-size: 10px; color: #333; }
+  canvas { border: 1px solid #222; border-radius: 4px; max-width: 300px; height: auto; }
+  button {
+    background: #2a6; color: #fff; border: none; padding: 10px 24px;
+    border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 600;
+    margin-top: 8px;
+  }
+  button:hover { background: #3b7; }
+  .all-btn {
+    background: #48f; font-size: 14px; padding: 12px 32px; margin-bottom: 40px;
+  }
+  .all-btn:hover { background: #59f; }
+</style>
+</head>
+<body>
+
+<h1>Baseline — Production Logo Export</h1>
+<p class="sub">4K renders. Click individual buttons or download all at once.</p>
+
+<button class="all-btn" onclick="downloadAll()">Download All PNGs</button>
+
+<div class="section">
+  <h2>Apex Peak — Chevron</h2>
+  <div class="row">
+    <div class="card">
+      <canvas id="apex-4k" width="4096" height="4096"></canvas>
+      <p>App Icon Master</p>
+      <div class="dims">4096 x 4096</div>
+      <button onclick="dl('apex-4k','baseline-apex-peak-4k.png')">Download</button>
+    </div>
+    <div class="card">
+      <canvas id="apex-1024" width="1024" height="1024"></canvas>
+      <p>App Icon @1x</p>
+      <div class="dims">1024 x 1024</div>
+      <button onclick="dl('apex-1024','baseline-apex-peak-1024.png')">Download</button>
+    </div>
+    <div class="card">
+      <canvas id="apex-wide" width="4096" height="1400"></canvas>
+      <p>Wide / Banner</p>
+      <div class="dims">4096 x 1400</div>
+      <button onclick="dl('apex-wide','baseline-apex-peak-wide.png')">Download</button>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h2>EKG Pulse — Heartbeat</h2>
+  <div class="row">
+    <div class="card">
+      <canvas id="ekg-4k" width="4096" height="4096"></canvas>
+      <p>App Icon Master</p>
+      <div class="dims">4096 x 4096</div>
+      <button onclick="dl('ekg-4k','baseline-ekg-pulse-4k.png')">Download</button>
+    </div>
+    <div class="card">
+      <canvas id="ekg-1024" width="1024" height="1024"></canvas>
+      <p>App Icon @1x</p>
+      <div class="dims">1024 x 1024</div>
+      <button onclick="dl('ekg-1024','baseline-ekg-pulse-1024.png')">Download</button>
+    </div>
+    <div class="card">
+      <canvas id="ekg-wide" width="4096" height="1400"></canvas>
+      <p>Wide / Banner</p>
+      <div class="dims">4096 x 1400</div>
+      <button onclick="dl('ekg-wide','baseline-ekg-pulse-wide.png')">Download</button>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h2>Variants</h2>
+  <div class="row">
+    <div class="card">
+      <canvas id="apex-blue-4k" width="4096" height="4096"></canvas>
+      <p>Apex Peak — All Blue</p>
+      <div class="dims">4096 x 4096 (#6B7B94 on dark)</div>
+      <button onclick="dl('apex-blue-4k','baseline-apex-peak-blue-4k.png')">Download</button>
+    </div>
+    <div class="card">
+      <canvas id="apex-blue-1024" width="1024" height="1024"></canvas>
+      <p>Apex Peak — All Blue</p>
+      <div class="dims">1024 x 1024</div>
+      <button onclick="dl('apex-blue-1024','baseline-apex-peak-blue-1024.png')">Download</button>
+    </div>
+    <div class="card">
+      <canvas id="apex-accent-top" width="1024" height="1024"></canvas>
+      <p>Blue Top Line</p>
+      <div class="dims">1024 x 1024</div>
+      <button onclick="dl('apex-accent-top','baseline-apex-blue-top.png')">Download</button>
+    </div>
+    <div class="card">
+      <canvas id="apex-accent-mid" width="1024" height="1024"></canvas>
+      <p>Blue Middle Line</p>
+      <div class="dims">1024 x 1024</div>
+      <button onclick="dl('apex-accent-mid','baseline-apex-blue-mid.png')">Download</button>
+    </div>
+    <div class="card">
+      <canvas id="apex-accent-bot" width="1024" height="1024"></canvas>
+      <p>Blue Bottom Line</p>
+      <div class="dims">1024 x 1024</div>
+      <button onclick="dl('apex-accent-bot','baseline-apex-blue-bot.png')">Download</button>
+    </div>
+    <div class="card">
+      <canvas id="apex-light" width="1024" height="1024"></canvas>
+      <p>Apex Peak — Light</p>
+      <div class="dims">1024 x 1024 (black on white)</div>
+      <button onclick="dl('apex-light','baseline-apex-peak-light.png')">Download</button>
+    </div>
+    <div class="card">
+      <canvas id="ekg-light" width="1024" height="1024"></canvas>
+      <p>EKG Pulse — Light</p>
+      <div class="dims">1024 x 1024 (black on white)</div>
+      <button onclick="dl('ekg-light','baseline-ekg-pulse-light.png')">Download</button>
+    </div>
+    <div class="card">
+      <canvas id="apex-transparent" width="1024" height="1024"></canvas>
+      <p>Apex Peak — Transparent</p>
+      <div class="dims">1024 x 1024 (no background)</div>
+      <button onclick="dl('apex-transparent','baseline-apex-peak-transparent.png')">Download</button>
+    </div>
+    <div class="card">
+      <canvas id="ekg-transparent" width="1024" height="1024"></canvas>
+      <p>EKG Pulse — Transparent</p>
+      <div class="dims">1024 x 1024 (no background)</div>
+      <button onclick="dl('ekg-transparent','baseline-ekg-pulse-transparent.png')">Download</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// Drawing primitives — no DPR scaling, direct pixel rendering
+// ============================================================
+function drawStroke(ctx, pts, lw, alpha, color) {
+  ctx.save();
+  ctx.globalAlpha = alpha;
+  ctx.strokeStyle = color;
+  ctx.lineWidth = lw;
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+  ctx.beginPath();
+  ctx.moveTo(pts[0].x, pts[0].y);
+  for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i].x, pts[i].y);
+  ctx.stroke();
+  ctx.restore();
+}
+
+function apexPath(w, h, baseY, peakH, peakW) {
+  const cx = w / 2;
+  return [
+    { x: w * 0.06, y: baseY },
+    { x: cx - peakW, y: baseY },
+    { x: cx, y: baseY - peakH },
+    { x: cx + peakW, y: baseY },
+    { x: w * 0.94, y: baseY },
+  ];
+}
+
+function ekgPath(w, h, baseY) {
+  const sx = w * 0.06, ex = w * 0.94, r = ex - sx;
+  return [
+    { x: sx, y: baseY },
+    { x: sx + r * 0.18, y: baseY },
+    { x: sx + r * 0.24, y: baseY },
+    { x: sx + r * 0.34, y: baseY - h * 0.28 },
+    { x: sx + r * 0.48, y: baseY + h * 0.25 },
+    { x: sx + r * 0.60, y: baseY - h * 0.14 },
+    { x: sx + r * 0.70, y: baseY },
+    { x: sx + r * 0.76, y: baseY },
+    { x: ex, y: baseY },
+  ];
+}
+
+const ghostAlphas = [1, 0.5, 0.25];
+
+function renderApex(canvasId, opts = {}) {
+  const c = document.getElementById(canvasId);
+  const ctx = c.getContext('2d');
+  const w = c.width, h = c.height;
+  const {
+    bg = '#000000',
+    color = '#ffffff',
+    layers = 3,
+    gap = null,
+    lw = null,
+    peakH = null,
+    peakW = null,
+    baseYRatio = 0.54,
+  } = opts;
+
+  // Bold strokes with clear gaps — match animation prototypes
+  const scale = Math.min(w, h);
+  const _gap = gap || scale * 0.035;
+  const _lw = lw || scale * 0.016;
+  const _peakH = peakH || (h * 0.28);
+  const _peakW = peakW || (w * 0.12);
+  const baseY = h * baseYRatio;
+
+  if (bg) { ctx.fillStyle = bg; ctx.fillRect(0, 0, w, h); }
+
+  for (let i = 0; i < layers; i++) {
+    const pts = apexPath(w, h, baseY + i * _gap, _peakH, _peakW);
+    drawStroke(ctx, pts, _lw, ghostAlphas[i], color);
+  }
+}
+
+function renderEkg(canvasId, opts = {}) {
+  const c = document.getElementById(canvasId);
+  const ctx = c.getContext('2d');
+  const w = c.width, h = c.height;
+  const {
+    bg = '#000000',
+    color = '#ffffff',
+    layers = 3,
+    gap = null,
+    lw = null,
+    baseYRatio = 0.52,
+  } = opts;
+
+  const scale = Math.min(w, h);
+  const _gap = gap || scale * 0.030;
+  const _lw = lw || scale * 0.014;
+  const baseY = h * baseYRatio;
+
+  if (bg) { ctx.fillStyle = bg; ctx.fillRect(0, 0, w, h); }
+
+  for (let i = 0; i < layers; i++) {
+    const pts = ekgPath(w, h, baseY + i * _gap);
+    drawStroke(ctx, pts, _lw, ghostAlphas[i], color);
+  }
+}
+
+function renderApexAccent(canvasId, blueLineIndex, opts = {}) {
+  const c = document.getElementById(canvasId);
+  const ctx = c.getContext('2d');
+  const w = c.width, h = c.height;
+  const { bg = '#000000', baseYRatio = 0.54 } = opts;
+  const scale = Math.min(w, h);
+  const _gap = scale * 0.035;
+  const _lw = scale * 0.016;
+  const _peakH = h * 0.28;
+  const _peakW = w * 0.12;
+  const baseY = h * baseYRatio;
+
+  if (bg) { ctx.fillStyle = bg; ctx.fillRect(0, 0, w, h); }
+
+  for (let i = 0; i < 3; i++) {
+    const pts = apexPath(w, h, baseY + i * _gap, _peakH, _peakW);
+    const color = (i === blueLineIndex) ? '#6B7B94' : '#ffffff';
+    drawStroke(ctx, pts, _lw, ghostAlphas[i], color);
+  }
+}
+
+// ============================================================
+// Render all
+// ============================================================
+
+// Apex
+renderApex('apex-4k');
+renderApex('apex-1024');
+renderApex('apex-wide', { baseYRatio: 0.50 });
+renderApex('apex-blue-4k', { bg: '#0B0B0E', color: '#6B7B94' });
+renderApex('apex-blue-1024', { bg: '#0B0B0E', color: '#6B7B94' });
+renderApexAccent('apex-accent-top', 0);
+renderApexAccent('apex-accent-mid', 1);
+renderApexAccent('apex-accent-bot', 2);
+renderApex('apex-light', { bg: '#ffffff', color: '#000000' });
+renderApex('apex-transparent', { bg: null });
+
+// EKG
+renderEkg('ekg-4k');
+renderEkg('ekg-1024');
+renderEkg('ekg-wide', { baseYRatio: 0.50 });
+renderEkg('ekg-light', { bg: '#ffffff', color: '#000000' });
+renderEkg('ekg-transparent', { bg: null });
+
+// ============================================================
+// Download helpers
+// ============================================================
+function dl(canvasId, filename) {
+  const c = document.getElementById(canvasId);
+  const link = document.createElement('a');
+  link.download = filename;
+  link.href = c.toDataURL('image/png');
+  link.click();
+}
+
+function downloadAll() {
+  const exports = [
+    ['apex-4k', 'baseline-apex-peak-4k.png'],
+    ['apex-1024', 'baseline-apex-peak-1024.png'],
+    ['apex-wide', 'baseline-apex-peak-wide.png'],
+    ['ekg-4k', 'baseline-ekg-pulse-4k.png'],
+    ['ekg-1024', 'baseline-ekg-pulse-1024.png'],
+    ['ekg-wide', 'baseline-ekg-pulse-wide.png'],
+    ['apex-blue-4k', 'baseline-apex-peak-blue-4k.png'],
+    ['apex-blue-1024', 'baseline-apex-peak-blue-1024.png'],
+    ['apex-accent-top', 'baseline-apex-blue-top.png'],
+    ['apex-accent-mid', 'baseline-apex-blue-mid.png'],
+    ['apex-accent-bot', 'baseline-apex-blue-bot.png'],
+    ['apex-light', 'baseline-apex-peak-light.png'],
+    ['ekg-light', 'baseline-ekg-pulse-light.png'],
+    ['apex-transparent', 'baseline-apex-peak-transparent.png'],
+    ['ekg-transparent', 'baseline-ekg-pulse-transparent.png'],
+  ];
+  // Stagger downloads so browser doesn't block them
+  exports.forEach(([id, name], i) => {
+    setTimeout(() => dl(id, name), i * 300);
+  });
+}
+</script>
+</body>
+</html>

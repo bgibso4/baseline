@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Export Logo References</title>
+<style>
+  body { background: #111; color: #fff; font-family: -apple-system, sans-serif; padding: 40px; }
+  .export-row { display: flex; gap: 24px; align-items: flex-start; margin-bottom: 40px; }
+  canvas { border: 1px solid #333; border-radius: 8px; }
+  button {
+    background: #333; color: #fff; border: none; padding: 10px 20px;
+    border-radius: 8px; cursor: pointer; font-size: 13px; margin-top: 8px;
+  }
+  button:hover { background: #555; }
+  h2 { font-size: 13px; letter-spacing: 2px; text-transform: uppercase; color: #888; margin-bottom: 8px; }
+  p { font-size: 11px; color: #555; margin-bottom: 8px; }
+  .card { text-align: center; }
+</style>
+</head>
+<body>
+
+<h2>Click each button to download as PNG</h2>
+<p>Then use these as image seeds in Recraft</p>
+
+<div class="export-row">
+  <div class="card">
+    <p>Apex Peak — Wide</p>
+    <canvas id="apex-wide" width="1200" height="400"></canvas>
+    <br><button onclick="download('apex-wide', 'baseline-apex-peak-wide.png')">Download PNG</button>
+  </div>
+</div>
+
+<div class="export-row">
+  <div class="card">
+    <p>EKG Pulse — Wide</p>
+    <canvas id="ekg-wide" width="1200" height="400"></canvas>
+    <br><button onclick="download('ekg-wide', 'baseline-ekg-pulse-wide.png')">Download PNG</button>
+  </div>
+</div>
+
+<div class="export-row">
+  <div class="card">
+    <p>Apex Peak — Square (icon)</p>
+    <canvas id="apex-sq" width="600" height="600"></canvas>
+    <br><button onclick="download('apex-sq', 'baseline-apex-peak-square.png')">Download PNG</button>
+  </div>
+  <div class="card">
+    <p>EKG Pulse — Square (icon)</p>
+    <canvas id="ekg-sq" width="600" height="600"></canvas>
+    <br><button onclick="download('ekg-sq', 'baseline-ekg-pulse-square.png')">Download PNG</button>
+  </div>
+</div>
+
+<script>
+function initCanvas(id) {
+  const c = document.getElementById(id);
+  const ctx = c.getContext('2d');
+  // No DPR scaling — we want exact pixel output for export
+  return { ctx, c, w: c.width, h: c.height };
+}
+
+function drawLine(ctx, pts, style) {
+  ctx.save();
+  ctx.globalAlpha = style.alpha || 1;
+  ctx.strokeStyle = style.color || '#fff';
+  ctx.lineWidth = style.width || 3;
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+  ctx.beginPath();
+  ctx.moveTo(pts[0].x, pts[0].y);
+  for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i].x, pts[i].y);
+  ctx.stroke();
+  ctx.restore();
+}
+
+function apexPath(w, h, baseY, peakH, peakW) {
+  const cx = w / 2;
+  return [
+    { x: w * 0.05, y: baseY },
+    { x: cx - peakW, y: baseY },
+    { x: cx, y: baseY - peakH },
+    { x: cx + peakW, y: baseY },
+    { x: w * 0.95, y: baseY },
+  ];
+}
+
+function ekgPath(w, h, baseY) {
+  const sx = w * 0.05, ex = w * 0.95, range = ex - sx;
+  return [
+    { x: sx, y: baseY },
+    { x: sx + range * 0.30, y: baseY },
+    { x: sx + range * 0.37, y: baseY },
+    { x: sx + range * 0.42, y: baseY - h * 0.35 },
+    { x: sx + range * 0.48, y: baseY + h * 0.25 },
+    { x: sx + range * 0.53, y: baseY - h * 0.18 },
+    { x: sx + range * 0.58, y: baseY },
+    { x: sx + range * 0.65, y: baseY },
+    { x: ex, y: baseY },
+  ];
+}
+
+const alphas = [1, 0.5, 0.25];
+
+// Apex Wide
+{
+  const { ctx, w, h } = initCanvas('apex-wide');
+  ctx.fillStyle = '#000'; ctx.fillRect(0, 0, w, h);
+  const gap = 24, lw = 8, baseY = h * 0.48;
+  for (let i = 0; i < 3; i++) {
+    const pts = apexPath(w, h, baseY + i * gap, h * 0.35, w * 0.05);
+    drawLine(ctx, pts, { width: lw, alpha: alphas[i] });
+  }
+}
+
+// EKG Wide
+{
+  const { ctx, w, h } = initCanvas('ekg-wide');
+  ctx.fillStyle = '#000'; ctx.fillRect(0, 0, w, h);
+  const gap = 18, lw = 6, baseY = h * 0.52;
+  for (let i = 0; i < 3; i++) {
+    const pts = ekgPath(w, h, baseY + i * gap);
+    drawLine(ctx, pts, { width: lw, alpha: alphas[i] });
+  }
+}
+
+// Apex Square
+{
+  const { ctx, w, h } = initCanvas('apex-sq');
+  ctx.fillStyle = '#000'; ctx.fillRect(0, 0, w, h);
+  const gap = 20, lw = 7, baseY = h * 0.55;
+  for (let i = 0; i < 3; i++) {
+    const pts = apexPath(w, h, baseY + i * gap, h * 0.28, w * 0.07);
+    drawLine(ctx, pts, { width: lw, alpha: alphas[i] });
+  }
+}
+
+// EKG Square
+{
+  const { ctx, w, h } = initCanvas('ekg-sq');
+  ctx.fillStyle = '#000'; ctx.fillRect(0, 0, w, h);
+  const gap = 16, lw = 6, baseY = h * 0.52;
+  for (let i = 0; i < 3; i++) {
+    const pts = ekgPath(w, h, baseY + i * gap);
+    drawLine(ctx, pts, { width: lw, alpha: alphas[i] });
+  }
+}
+
+function download(canvasId, filename) {
+  const c = document.getElementById(canvasId);
+  const link = document.createElement('a');
+  link.download = filename;
+  link.href = c.toDataURL('image/png');
+  link.click();
+}
+</script>
+</body>
+</html>
