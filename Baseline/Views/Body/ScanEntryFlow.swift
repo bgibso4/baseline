@@ -47,6 +47,15 @@ struct ScanEntryFlow: View {
                 }
             }
         }
+        .toolbar {
+            ToolbarItemGroup(placement: .keyboard) {
+                Spacer()
+                Button("Done") {
+                    isFieldFocused = false
+                }
+                .font(.system(size: 15, weight: .semibold))
+            }
+        }
         .onAppear {
             if injectedVM == nil, vm == nil {
                 vm = ScanEntryViewModel(modelContext: modelContext)
@@ -299,16 +308,6 @@ struct ScanEntryFlow: View {
                     }
                 }
                 .scrollDismissesKeyboard(.interactively)
-                .toolbar {
-                    ToolbarItemGroup(placement: .keyboard) {
-                        Spacer()
-                        Button("Done") {
-                            isFieldFocused = false
-                        }
-                        .font(.system(size: 15, weight: .semibold))
-                        .foregroundStyle(CadreColors.accent)
-                    }
-                }
 
                 // Save button
                 reviewSaveButton(vm: vm)

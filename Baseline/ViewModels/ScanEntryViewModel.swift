@@ -290,12 +290,41 @@ class ScanEntryViewModel {
             "rightArmFatKg", "leftArmFatKg", "trunkFatKg", "rightLegFatKg", "leftLegFatKg",
             "rightArmFatPct", "leftArmFatPct", "trunkFatPct", "rightLegFatPct", "leftLegFatPct",
         ]
+        // Sane value ranges — any value outside these is almost certainly wrong
+        let saneRanges: [String: ClosedRange<Double>] = [
+            "weightKg": 50...600, "skeletalMuscleMassKg": 30...300,
+            "bodyFatMassKg": 1...200, "bodyFatPct": 1...70,
+            "totalBodyWaterL": 20...300, "bmi": 10...60,
+            "basalMetabolicRate": 800...4000,
+            "intracellularWaterL": 10...200, "extracellularWaterL": 10...200,
+            "dryLeanMassKg": 10...150, "leanBodyMassKg": 30...400,
+            "ecwTbwRatio": 0.30...0.50, "skeletalMuscleIndex": 3...20,
+            "visceralFatLevel": 1...30,
+            "rightArmLeanKg": 2...30, "leftArmLeanKg": 2...30,
+            "trunkLeanKg": 20...150, "rightLegLeanKg": 5...60, "leftLegLeanKg": 5...60,
+            "rightArmLeanPct": 50...250, "leftArmLeanPct": 50...250,
+            "trunkLeanPct": 50...250, "rightLegLeanPct": 50...250, "leftLegLeanPct": 50...250,
+            "rightArmFatKg": 0.1...20, "leftArmFatKg": 0.1...20,
+            "trunkFatKg": 1...50, "rightLegFatKg": 0.5...30, "leftLegFatKg": 0.5...30,
+            "rightArmFatPct": 5...500, "leftArmFatPct": 5...500,
+            "trunkFatPct": 20...500, "rightLegFatPct": 20...500, "leftLegFatPct": 20...500,
+        ]
+
         for key in allFieldKeys {
-            let hasValue = !(fields[key, default: ""].isEmpty)
-            guard hasValue else { continue }
+            let valueStr = fields[key, default: ""]
+            guard !valueStr.isEmpty else { continue }
             let conf = result.confidence[key] ?? 0
+
+            // Flag if low confidence
             if conf < Self.confidenceThreshold {
                 lowConfidenceFields.insert(key)
+            }
+
+            // Flag if value is outside sane range (regardless of confidence)
+            if let value = Double(valueStr), let range = saneRanges[key] {
+                if !range.contains(value) {
+                    lowConfidenceFields.insert(key)
+                }
             }
         }
     }

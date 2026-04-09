@@ -221,7 +221,6 @@ struct InBodyDocumentParser {
         "obesity anaiysis": "obesity",
         "segmental lean analysis": "segLean",
         "ecw/tbw analysis": "ecwTbw",
-        "ecw/tbw": "ecwTbw",
         "segmental fat analysis": "segFat",
         "basal metabolic rate": "bmr",
         "visceral fat level": "visceralFat",
