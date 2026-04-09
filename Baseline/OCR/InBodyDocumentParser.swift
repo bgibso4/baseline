@@ -172,6 +172,8 @@ struct InBodyDocumentParser {
                 guard row.count >= 2 else { continue }
                 let labelText = row[0].content.text.transcript.trimmingCharacters(in: .whitespacesAndNewlines)
                 guard let key = fieldKey(for: labelText) else { continue }
+                // Only fill fields not already set by position extraction
+                guard getField(key, from: result) == nil else { continue }
                 // Concatenate remaining cells as the value text
                 let valueText = row[1...].map { $0.content.text.transcript }.joined(separator: " ")
                 if let value = parseNumericValue(valueText) {

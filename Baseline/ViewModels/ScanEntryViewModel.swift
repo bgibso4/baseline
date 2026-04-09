@@ -102,7 +102,10 @@ class ScanEntryViewModel {
     var lowConfidenceFields: Set<String> = []
 
     /// Confidence threshold — fields below this are flagged for review.
-    private static let confidenceThreshold: Float = 0.8
+    /// 0.75 balances catching uncertain fields without over-flagging correct ones.
+    /// Body comp grid (0.85), bullet-detected (0.9), segmental pairs (0.8) pass.
+    /// Height-sorted ambiguous (0.7), no-confidence (0.0), garbled (0.5) get flagged.
+    private static let confidenceThreshold: Float = 0.75
 
     init(modelContext: ModelContext) {
         self.modelContext = modelContext
