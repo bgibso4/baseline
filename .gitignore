@@ -1,16 +1,31 @@
 # Brainstorm sessions (local only)
 .superpowers/
 
+# macOS
+.DS_Store
+
 # Xcode
 build/
 DerivedData/
 *.xcuserstate
 *.xcworkspacedata
 xcuserdata/
+*.pbxuser
+*.mode1v3
+*.mode2v3
+*.perspectivev3
+*.ipa
 
 # Swift Package Manager
 .build/
 Packages/
+*.swiftpm/
+
+# Secrets / environment
+.env
+.env.*
+secrets.json
+credentials*.json
 
 # Local settings
 .claude/settings.local.json
