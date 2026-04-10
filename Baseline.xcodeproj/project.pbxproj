@@ -59,6 +59,7 @@
 		7EB390BE808DC37B957DBC1D /* testTrendsView_DarkMode_DefaultMonth.1.png in Resources */ = {isa = PBXBuildFile; fileRef = 7A06A06DCC1BB86FD44CC36B /* testTrendsView_DarkMode_DefaultMonth.1.png */; };
 		7F2647C6A3C1B0DE829C5847 /* WeightEntryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F133F7888A7F42479BC2329D /* WeightEntryTests.swift */; };
 		7F56CCBB22A690D800512F96 /* DateFormatting.swift in Sources */ = {isa = PBXBuildFile; fileRef = 90026F3A1D7167909BB75A33 /* DateFormatting.swift */; };
+		99ADDFDBC58E430C9482C166 /* DecimalPadDoneBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5581E283BD1748E9A00F2ABA /* DecimalPadDoneBar.swift */; };
 		88A025A156A0A8F2BEA8FF49 /* UnitConversion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A9525A1638C18453603A9F6 /* UnitConversion.swift */; };
 		8A6C14E968F3488B503E757A /* SettingsViewSnapshotTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A302A68AB0914998FB21EF79 /* SettingsViewSnapshotTests.swift */; };
 		905B4B275BC4613C047A33A6 /* SparklineView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1F7BB657D83894D1E5B4400 /* SparklineView.swift */; };
@@ -185,6 +186,7 @@
 		8B2778585A57DC61D42C98DD /* testScanEntry_ManualForm.1.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = testScanEntry_ManualForm.1.png; sourceTree = "<group>"; };
 		8F76CA414AF7805F2B73F420 /* BaselineTips.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BaselineTips.swift; sourceTree = "<group>"; };
 		90026F3A1D7167909BB75A33 /* DateFormatting.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DateFormatting.swift; sourceTree = "<group>"; };
+		5581E283BD1748E9A00F2ABA /* DecimalPadDoneBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DecimalPadDoneBar.swift; sourceTree = "<group>"; };
 		91169E132AC487FA9F6C19B0 /* InBodyParseResult.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InBodyParseResult.swift; sourceTree = "<group>"; };
 		917EC6C734FA7FDEF274FFAD /* Baseline.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Baseline.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		9B617A136820EEC4C39AAFEA /* OutboundMirror.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OutboundMirror.swift; sourceTree = "<group>"; };
@@ -298,6 +300,7 @@
 				8F76CA414AF7805F2B73F420 /* BaselineTips.swift */,
 				3A9983801F2F087AB7948B5C /* CSVExporter.swift */,
 				90026F3A1D7167909BB75A33 /* DateFormatting.swift */,
+				5581E283BD1748E9A00F2ABA /* DecimalPadDoneBar.swift */,
 				48CD5547B419BCE4B9D76860 /* DoubleExtensions.swift */,
 				E22A1EED058DA9647318A9C3 /* Haptics.swift */,
 				2019690E1B79A00585C461C5 /* TestDataSeeder.swift */,
@@ -782,6 +785,7 @@
 				AE4F08FFC7E7366D526B7FE5 /* CadreTokens.swift in Sources */,
 				3F839DAE75B52120DDEB6224 /* CloudflareOutboundMirror.swift in Sources */,
 				7F56CCBB22A690D800512F96 /* DateFormatting.swift in Sources */,
+				99ADDFDBC58E430C9482C166 /* DecimalPadDoneBar.swift in Sources */,
 				58CD5BFE69D3B06C2642ABCB /* DocumentScannerView.swift in Sources */,
 				35C66FEFD87214B6320248ED /* DoubleExtensions.swift in Sources */,
 				65A61217D0DEF001C4BC19A2 /* Haptics.swift in Sources */,

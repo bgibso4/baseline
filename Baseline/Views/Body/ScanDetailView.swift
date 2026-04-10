@@ -434,11 +434,6 @@ struct ScanEditView: View {
                         .font(.system(size: 14, weight: .semibold))
                         .foregroundStyle(CadreColors.textSecondary)
                 }
-                ToolbarItemGroup(placement: .keyboard) {
-                    Spacer()
-                    Button("Done") { isFieldFocused = false }
-                        .font(.system(size: 15, weight: .semibold))
-                }
             }
             .toolbarBackground(CadreColors.bg, for: .navigationBar)
             .toolbarColorScheme(.dark, for: .navigationBar)

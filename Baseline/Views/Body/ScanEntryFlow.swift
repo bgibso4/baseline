@@ -46,13 +46,6 @@ struct ScanEntryFlow: View {
                     }
                 }
             }
-            .toolbar {
-                ToolbarItemGroup(placement: .keyboard) {
-                    Spacer()
-                    Button("Done") { isFieldFocused = false }
-                        .font(.system(size: 15, weight: .semibold))
-                }
-            }
         }
         .onAppear {
             if injectedVM == nil, vm == nil {
