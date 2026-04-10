@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		A3688DF85958460396B0022D /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 598DECCC084B47239B6A252E /* PrivacyInfo.xcprivacy */; };
 		01D024BCF03FB689945792CA /* BodyViewSnapshotTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 16180890AC21C5FBC902279E /* BodyViewSnapshotTests.swift */; };
 		03957DDC1AF43AC1371AC80C /* HistoryViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B794C4FCDC3253893C365AB /* HistoryViewModelTests.swift */; };
 		03B854855B71B24B7DBCC6C6 /* Measurement.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BB58E9F38A99C7C4D86D8DF /* Measurement.swift */; };
@@ -167,6 +168,7 @@
 		62E0D24F3CB2F0A200FAAD19 /* testSettingsView_DarkMode.1.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = testSettingsView_DarkMode.1.png; sourceTree = "<group>"; };
 		68553E59F2B6033D1954BE5D /* TrendsViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrendsViewModelTests.swift; sourceTree = "<group>"; };
 		6C0783D23B036F0A996BD1E7 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		598DECCC084B47239B6A252E /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		6DF459A44A46B33902867DBF /* ScanPayloads.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScanPayloads.swift; sourceTree = "<group>"; };
 		6E0B169BE6D18A1AF3E2C9B2 /* NowViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NowViewModel.swift; sourceTree = "<group>"; };
 		7029020DDDDCBA996EC07235 /* testScanEntry_TypeSelection.1.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = testScanEntry_TypeSelection.1.png; sourceTree = "<group>"; };
@@ -426,6 +428,7 @@
 				88AF6FD6DF3173BDBDB33E58 /* Baseline.entitlements */,
 				007A5A45919FF650EAB251AE /* BaselineApp.swift */,
 				6C0783D23B036F0A996BD1E7 /* Info.plist */,
+				598DECCC084B47239B6A252E /* PrivacyInfo.xcprivacy */,
 			);
 			path = Baseline;
 			sourceTree = "<group>";
@@ -715,6 +718,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A3688DF85958460396B0022D /* PrivacyInfo.xcprivacy in Resources */,
 				72194399B75B95F06A0BA393 /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

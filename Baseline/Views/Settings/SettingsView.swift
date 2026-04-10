@@ -28,7 +28,6 @@ struct SettingsView: View {
                     profileSection
                     unitsSection
                     appearanceSection
-                    integrationsSection
                     dataSection
                     aboutSection
                     resetSection
@@ -201,24 +200,6 @@ struct SettingsView: View {
         }
     }
 
-    // MARK: - Integrations Section
-
-    private var integrationsSection: some View {
-        SettingsSectionView(title: "INTEGRATIONS") {
-            NavigationLink {
-                CadreSyncView(viewModel: vm)
-            } label: {
-                SettingsRow(
-                    icon: "checkmark.circle",
-                    label: "Cadre Sync",
-                    value: nil,
-                    style: .action,
-                    iconTint: .accent
-                )
-            }
-        }
-    }
-
     // MARK: - Data Section
 
     private var dataSection: some View {
@@ -254,18 +235,7 @@ struct SettingsView: View {
                 style: .info
             )
             SettingsDivider()
-            NavigationLink {
-                AboutCadreView()
-            } label: {
-                SettingsRow(
-                    icon: "person.2",
-                    label: "About Cadre",
-                    value: nil,
-                    style: .push
-                )
-            }
-            SettingsDivider()
-            Link(destination: URL(string: "https://cadre.dev/privacy")!) {
+            Link(destination: URL(string: "https://baseline.app/privacy")!) {
                 SettingsRow(
                     icon: "shield",
                     label: "Privacy Policy",
@@ -274,7 +244,7 @@ struct SettingsView: View {
                 )
             }
             SettingsDivider()
-            Link(destination: URL(string: "https://cadre.dev/terms")!) {
+            Link(destination: URL(string: "https://baseline.app/terms")!) {
                 SettingsRow(
                     icon: "doc.text",
                     label: "Terms of Service",
