@@ -6,55 +6,56 @@ Running backlog of improvements, features, and fixes for Baseline.
 
 ## v1.0 — Must-Have for Launch
 
-### Scan / OCR
-- [ ] **Test with clean sheet** — Verify accuracy on a sheet without pen marks
-- [ ] **Confidence flagging accuracy** — Not all incorrect fields get flagged; users may trust unflagged wrong values
+### Phase 1 — Lock the Foundation
+*Branding decisions gate everything visual. Infrastructure items are quick and should be early.*
 
-### Features
-- [ ] **Apple Health sync — expand metrics** — Sync as many metrics as possible
-- [ ] **Data export to Cloudflare/dashboard** — Export data for web dashboard and Cloudflare D1
-- [ ] **Goal tracking overlay on trends** — Dotted goal line on chart when user has an active bulk/cut/maintain goal
+- [ ] 1. **Color palette finalization** — Narrowed to 3-4 options, never locked final choice. Design tokens are swappable
+- [ ] 2. **Font decision** — Exo 2 locked, architecture built for easy swap. Decide now
+- [ ] 3. **App logo** — No final logo designed yet
+- [ ] 4. **App icon variants** — Standard, dark mode, tinted variants for iOS
+- [ ] 5. **Crash reporting** — Integrate crash reporting (Sentry, Firebase Crashlytics, etc.)
+- [ ] 6. **CloudKit push notifications** — Requires `remote-notification` background mode in Info.plist
+- [ ] 7. **Scrub Cadre references** — Remove/rename any Cadre mentions in non-Cadre build so users aren't confused
+- [ ] 8. **Apple requirements spike** — Research and verify all Apple requirements (entitlements, capabilities, export compliance, age rating, etc.)
 
-### Branding / Design Decisions
-- [ ] **App logo** — No final logo designed yet
-- [ ] **Splash screen design** — Needs logo + animation treatment
-- [ ] **Color palette finalization** — Narrowed to 3-4 options, never locked final choice. Design tokens are swappable
-- [ ] **Font swappability** — Exo 2 locked, architecture built for easy swap. May revisit
-- [ ] **App icon variants** — Standard, dark mode, tinted variants for iOS
+### Phase 2 — Build Missing Features
+*Independent of each other, can be parallelized.*
 
-### Custom Animations
-- [ ] **Now tab arc fill** — Weight arc needs a polished animated fill on appear
-- [ ] **Loading / processing animation** — Scan processing, data loading states
-- [ ] **Launch screen / splash animation** — Logo or design theme animates in on app launch
-- [ ] **Metric picker animation** — Trend metric bottom sheet open/close. See `docs/ANIMATIONS.md`
-- [ ] **Tab transitions** — Polish transitions between Now / Trends / Body tabs
-- [ ] **Chart draw-on animations** — Trend lines, bar charts animate in
+- [ ] 9. **Apple Health sync — expand metrics** — Sync as many metrics as possible
+- [ ] 10. **Data export to Cloudflare/dashboard** — Export data for web dashboard and Cloudflare D1
+- [ ] 11. **Goal tracking overlay on trends** — Dotted goal line on chart when user has an active bulk/cut/maintain goal
+- [ ] 12. **Body measurements tracking** — Waist, arm, neck size. `BodyMeasurement` long table spec'd but may not be fully built
+- [ ] 13. **Confidence flagging accuracy** — Not all incorrect fields get flagged; users may trust unflagged wrong values
+- [ ] 14. **Test with clean sheet** — Verify accuracy on a sheet without pen marks
+- [ ] 15. **Test data safeguards** — Prevent accidentally syncing test data to real Apple Health
+- [ ] 16. **Settings screen** — Units preference (kg/lbs), Apple Health toggle, about/version info
+- [ ] 17. **Byzantine multi-scan voting** — Scan 3x, derive correct values from consensus
+- [ ] 18. **History column handling** — GitHub issue #1, repeat scans with history data
 
-### Infrastructure / Tech Debt
-- [ ] **Snapshot tests refresh** — May be stale after recent UI changes
-- [ ] **CloudKit push notifications** — Requires `remote-notification` background mode in Info.plist
-- [ ] **Test data safeguards** — Prevent accidentally syncing test data to real Apple Health
-- [ ] **Body measurements tracking** — Waist, arm, neck size. `BodyMeasurement` long table spec'd but may not be fully built
+### Phase 3 — Polish & Animate
+*Branding is locked, features are built, now make it feel good.*
 
-### App Store Launch Prep
-- [ ] **App Store listing** — Screenshots, description, keywords, category
-- [ ] **Privacy policy** — Required for App Store submission
-- [ ] **Terms of service** — May be required depending on features
-- [ ] **App Store review guidelines audit** — Ensure compliance (health data handling, etc.)
-- [ ] **Apple requirements spike** — Research and verify all Apple requirements for App Store submission (entitlements, capabilities, export compliance, age rating, etc.)
-- [ ] **TestFlight beta** — External beta testing before public launch
-- [ ] **Onboarding flow** — First-launch experience explaining the app, permissions requests
-- [ ] **Settings screen** — Units preference (kg/lbs), Apple Health toggle, about/version info
-- [ ] **Error states and empty states** — Polish all zero-data and error screens
-- [ ] **Accessibility audit** — VoiceOver labels, contrast ratios, Dynamic Type
-- [ ] **Performance profiling** — Memory, launch time, scroll performance on older devices
-- [ ] **Crash reporting** — Integrate crash reporting (Sentry, Firebase Crashlytics, etc.)
-- [ ] **Analytics** — Decide on analytics approach (or explicitly decide not to track)
-- [ ] **Scrub Cadre references** — Remove/rename any Cadre mentions in non-Cadre build so users aren't confused
+- [ ] 19. **Splash screen design** — Needs logo + animation treatment
+- [ ] 20. **Launch screen / splash animation** — Logo or design theme animates in on app launch
+- [ ] 21. **Now tab arc fill** — Weight arc needs a polished animated fill on appear
+- [ ] 22. **Loading / processing animation** — Scan processing, data loading states
+- [ ] 23. **Metric picker animation** — Trend metric bottom sheet open/close. See `docs/ANIMATIONS.md`
+- [ ] 24. **Tab transitions** — Polish transitions between Now / Trends / Body tabs
+- [ ] 25. **Chart draw-on animations** — Trend lines, bar charts animate in
+- [ ] 26. **Error states and empty states** — Polish all zero-data and error screens
+- [ ] 27. **Accessibility audit** — VoiceOver labels, contrast ratios, Dynamic Type
+- [ ] 28. **Performance profiling** — Memory, launch time, scroll performance on older devices
 
-### Scan / OCR — Should-Have
-- [ ] **Byzantine multi-scan voting** — Scan 3x, derive correct values from consensus
-- [ ] **History column handling** — GitHub issue #1, repeat scans with history data
+### Phase 4 — Ship
+*Everything is built and polished. Final prep.*
+
+- [ ] 29. **Snapshot tests refresh** — After all UI is final
+- [ ] 30. **Onboarding flow** — First-launch experience explaining the app, permissions requests
+- [ ] 31. **Privacy policy + Terms of service** — Required for App Store submission
+- [ ] 32. **Analytics** — Decide on analytics approach (or explicitly decide not to track)
+- [ ] 33. **App Store review guidelines audit** — Ensure compliance (health data handling, etc.)
+- [ ] 34. **App Store listing** — Screenshots, description, keywords, category
+- [ ] 35. **TestFlight beta** — External beta testing before public launch
 
 ---
 
