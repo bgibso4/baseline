@@ -1,6 +1,9 @@
 # Brainstorm sessions (local only)
 .superpowers/
 
+# Git worktrees
+.worktrees/
+
 # macOS
 .DS_Store
 
