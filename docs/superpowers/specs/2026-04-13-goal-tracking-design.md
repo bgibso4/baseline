@@ -93,7 +93,7 @@ Also accessible manually via ··· menu → "Mark Complete".
 - "Crosses" means: if cutting (target < start), new value ≤ target. If bulking (target > start), new value ≥ target
 - Direction is inferred from start vs target values — no explicit bulk/cut selection
 - All goals persist in SwiftData for future history UI
-- Setting a new goal while one is active: prompt to abandon current goal first
+- Cannot create a new goal while one is active — user must complete or abandon first via ··· menu
 
 ## Mockups
 
