@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Baseline — Goal Tracking Design</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0B0B0E; --card: #17171B; --card-elevated: #1F1F24;
+    --text-primary: #F2F3F5; --text-secondary: #797B83; --text-tertiary: #494B52;
+    --divider: #2A2A30; --accent: #6B7B94; --secondary: #B89968;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: "Exo 2", -apple-system, sans-serif; background: #E8E8EA; padding: 40px 24px; -webkit-font-smoothing: antialiased; }
+  .page-header { max-width: 1400px; margin: 0 auto 32px; font-family: -apple-system, sans-serif; }
+  .page-header h1 { font-size: 28px; font-weight: 700; letter-spacing: -0.4px; margin-bottom: 4px; }
+  .page-header p { font-size: 13px; color: #5A5A60; max-width: 800px; line-height: 1.5; }
+  .section-header { max-width: 1400px; margin: 36px auto 14px; font-family: -apple-system, sans-serif; font-size: 16px; font-weight: 700; color: #1A1A1C; letter-spacing: -0.2px; text-transform: uppercase; }
+  .grid { max-width: 1400px; margin: 0 auto 8px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+  .grid.two { grid-template-columns: repeat(2, 1fr); max-width: 900px; }
+  .variant-wrap { display: flex; flex-direction: column; gap: 8px; }
+  .variant-label { font-family: -apple-system, sans-serif; font-size: 13px; font-weight: 600; color: #1A1A1C; }
+  .variant-sub { font-family: -apple-system, sans-serif; font-size: 11px; color: #6B6B72; line-height: 1.4; }
+
+  .phone { width: 100%; aspect-ratio: 393 / 852; background: var(--bg); border-radius: 42px; overflow: hidden; position: relative; box-shadow: 0 12px 36px rgba(0,0,0,0.18); color: var(--text-primary); font-family: "Exo 2", sans-serif; display: flex; flex-direction: column; }
+
+  .status-bar { flex-shrink: 0; padding: 16px 28px 8px; display: flex; justify-content: space-between; font-size: 14px; font-weight: 600; }
+
+  /* Tab bar */
+  .tab-bar { flex-shrink: 0; height: 76px; background: rgba(11,11,14,0.9); backdrop-filter: blur(20px); border-top: 0.5px solid var(--divider); display: flex; padding: 10px 0 22px; margin-top: auto; }
+  .tab { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; color: var(--text-tertiary); }
+  .tab.active { color: var(--accent); }
+  .tab .icon { width: 24px; height: 24px; }
+  .tab .icon svg { width: 100%; height: 100%; stroke: currentColor; stroke-width: 1.8; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+  .tab.active .icon svg { stroke-width: 2.4; }
+  .tab .tlabel { font-family: -apple-system, sans-serif; font-size: 9px; font-weight: 500; }
+  .tab.active .tlabel { font-weight: 700; }
+
+  /* Metric chip */
+  .metric-chip { flex-shrink: 0; margin: 14px 22px 0; background: var(--card); border: 1px solid var(--divider); border-radius: 12px; padding: 12px 14px; display: flex; align-items: center; gap: 10px; font-family: -apple-system, sans-serif; }
+  .metric-chip .icon-dot { width: 28px; height: 28px; border-radius: 8px; background: var(--card-elevated); display: flex; align-items: center; justify-content: center; color: var(--accent); flex-shrink: 0; }
+  .metric-chip .icon-dot svg { width: 16px; height: 16px; stroke: currentColor; stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+  .metric-chip .metric-name { flex: 1; font-size: 14px; font-weight: 600; color: var(--text-primary); letter-spacing: -0.1px; }
+  .metric-chip .chev { color: var(--text-tertiary); font-size: 12px; }
+
+  /* Range tabs */
+  .range-tabs { flex-shrink: 0; margin: 10px 22px 0; background: var(--card); border-radius: 10px; padding: 3px; display: flex; }
+  .range-tabs .opt { flex: 1; font-family: -apple-system, sans-serif; font-size: 12px; padding: 8px 0; border-radius: 7px; text-align: center; color: var(--text-secondary); font-weight: 500; }
+  .range-tabs .opt.active { background: var(--card-elevated); color: var(--text-primary); }
+
+  /* Hero */
+  .hero-delta { flex-shrink: 0; padding: 20px 22px 0; }
+  .main-num { font-size: 44px; font-weight: 700; letter-spacing: -1.2px; line-height: 1; display: flex; align-items: baseline; gap: 6px; }
+  .main-num .sign { color: var(--accent); font-weight: 700; }
+  .main-num .unit { font-size: 15px; color: var(--text-secondary); font-weight: 500; letter-spacing: 0; }
+  .hero-sub { font-family: -apple-system, sans-serif; font-size: 11px; color: var(--text-tertiary); margin-top: 8px; font-weight: 500; }
+
+  /* Chart */
+  .chart-wrap { flex-shrink: 0; margin: 14px 0 0; padding: 0 22px; position: relative; height: 180px; }
+  .chart-wrap svg { width: 100%; height: 100%; display: block; overflow: visible; }
+
+  /* Stats row */
+  .stats { flex-shrink: 0; margin: 12px 22px 0; display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--divider); border-radius: 14px; overflow: hidden; }
+  .stat { background: var(--card); padding: 11px 6px; text-align: center; }
+  .stat .label { font-family: -apple-system, sans-serif; font-size: 9px; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; font-weight: 600; }
+  .stat .label.accent { color: var(--accent); }
+  .stat .value { font-size: 15px; font-weight: 700; }
+  .stat .value.accent { color: var(--accent); }
+  .stat .value .unit { font-size: 9px; color: var(--text-tertiary); font-weight: 400; margin-left: 2px; }
+
+  /* Now screen */
+  .toolbar { flex-shrink: 0; padding: 20px 22px 0; display: flex; justify-content: space-between; align-items: center; height: 52px; }
+  .icon-btn { width: 28px; height: 28px; color: var(--text-secondary); display: flex; align-items: center; justify-content: center; }
+  .icon-btn svg { width: 22px; height: 22px; stroke: currentColor; stroke-width: 1.8; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+  .open-area { flex: 1; display: flex; align-items: center; justify-content: center; }
+  .hero-group { display: flex; flex-direction: column; align-items: center; }
+  .weight-num { font-size: 84px; font-weight: 700; letter-spacing: -2.5px; line-height: 0.95; white-space: nowrap; }
+  .weight-num .wunit { font-size: 24px; font-weight: 500; color: var(--text-secondary); margin-left: 4px; letter-spacing: 0; }
+  .today-label { font-family: -apple-system, sans-serif; font-size: 13px; font-weight: 500; color: var(--text-secondary); margin-top: 10px; }
+
+  /* Sheet */
+  .sheet-overlay { position: absolute; bottom: 0; left: 0; right: 0; background: var(--card); border-radius: 24px 24px 0 0; padding: 12px 22px 36px; }
+  .sheet-handle { width: 36px; height: 4px; background: var(--text-tertiary); border-radius: 2px; margin: 0 auto 20px; }
+  .sheet-title { font-size: 20px; font-weight: 700; text-align: center; margin-bottom: 24px; }
+  .field-group { margin-bottom: 16px; }
+  .field-label { font-family: -apple-system, sans-serif; font-size: 10px; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; margin-bottom: 6px; }
+  .field-label .optional { opacity: 0.5; text-transform: none; letter-spacing: 0; }
+  .field-input { background: var(--card-elevated); padding: 12px 14px; border-radius: 10px; display: flex; justify-content: space-between; align-items: center; }
+  .field-input .val { font-size: 14px; font-weight: 600; }
+  .field-input .big { font-size: 20px; font-weight: 700; }
+  .field-input .funit { font-size: 12px; color: var(--text-secondary); }
+  .field-input .chev { color: var(--text-tertiary); font-size: 12px; }
+  .sheet-btn { background: var(--accent); padding: 15px; border-radius: 14px; text-align: center; margin-top: 28px; }
+  .sheet-btn span { color: white; font-size: 15px; font-weight: 600; letter-spacing: 0.3px; }
+
+  /* Goal target button */
+  .goal-btn { position: absolute; top: 0; right: 48px; width: 24px; height: 24px; border-radius: 6px; background: rgba(42,42,48,0.7); display: flex; align-items: center; justify-content: center; color: var(--text-secondary); z-index: 2; }
+  .goal-btn svg { width: 13px; height: 13px; stroke: currentColor; stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+</style>
+</head>
+<body>
+
+<div class="page-header">
+  <h1>Baseline · Goal Tracking</h1>
+  <p>Design mockups for goal overlay on Trends chart, repurposed Now screen stats card, Set Goal sheet, and goal completion prompt. One active goal at a time, any trackable metric, optional target date.</p>
+</div>
+
+<!-- ===== ROW 1: TRENDS CHART WITH GOAL CARD ===== -->
+<div class="section-header">01 · Trends chart — goal card below chart</div>
+<div class="grid">
+
+  <!-- No goal — Add Goal card -->
+  <div class="variant-wrap">
+    <div class="variant-label">No Goal · Add Goal card</div>
+    <div class="variant-sub">Minimal card below stats invites user to set a goal. Tapping opens the Set Goal sheet.</div>
+    <div class="phone">
+      <div class="status-bar"><span>9:41</span><span>⚡ 100%</span></div>
+      <div class="metric-chip">
+        <div class="icon-dot"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 4v3M12 17v3M4 12h3M17 12h3"/></svg></div>
+        <div class="metric-name">Weight</div>
+        <div class="chev">▾</div>
+      </div>
+      <div class="range-tabs">
+        <div class="opt active">M</div><div class="opt">6M</div><div class="opt">Y</div><div class="opt">All</div>
+      </div>
+      <div class="hero-delta">
+        <div class="main-num"><span class="sign">−</span>2.8<span class="unit">lb</span></div>
+        <div class="hero-sub">Mar 1 – Mar 29 · 14 entries</div>
+      </div>
+      <div class="chart-wrap" style="height:150px;">
+        <svg viewBox="0 0 349 130" preserveAspectRatio="none">
+          <line x1="0" y1="0" x2="349" y2="0" stroke="#2A2A30" stroke-width="0.5"/>
+          <line x1="0" y1="43" x2="349" y2="43" stroke="#2A2A30" stroke-width="0.5"/>
+          <line x1="0" y1="86" x2="349" y2="86" stroke="#2A2A30" stroke-width="0.5"/>
+          <line x1="0" y1="130" x2="349" y2="130" stroke="#2A2A30" stroke-width="0.5"/>
+          <polyline points="10,10 35,18 60,6 90,25 120,37 148,31 175,48 200,43 228,58 255,53 280,66 305,61 330,73 349,78" fill="none" stroke="#6B7B94" stroke-width="1.3" stroke-linejoin="round"/>
+          <polyline points="10,12 60,15 120,29 175,38 228,48 280,56 349,68" fill="none" stroke="#B89968" stroke-width="2.2" stroke-dasharray="4,3" stroke-linejoin="round"/>
+          <circle cx="10" cy="10" r="3" fill="#6B7B94"/><circle cx="60" cy="6" r="3" fill="#6B7B94"/><circle cx="120" cy="37" r="3" fill="#6B7B94"/>
+          <circle cx="175" cy="48" r="3" fill="#6B7B94"/><circle cx="228" cy="58" r="3" fill="#6B7B94"/><circle cx="280" cy="66" r="3" fill="#6B7B94"/><circle cx="349" cy="78" r="3" fill="#6B7B94"/>
+        </svg>
+      </div>
+      <div class="stats">
+        <div class="stat"><div class="label">Lowest</div><div class="value">192.4<span class="unit">lb</span></div></div>
+        <div class="stat"><div class="label">Average</div><div class="value">196.1<span class="unit">lb</span></div></div>
+        <div class="stat"><div class="label">Highest</div><div class="value">200.8<span class="unit">lb</span></div></div>
+      </div>
+      <!-- Add Goal card -->
+      <div style="margin:10px 22px 0;border:1px dashed var(--divider);border-radius:14px;padding:14px 16px;display:flex;align-items:center;gap:12px;">
+        <div style="width:28px;height:28px;border-radius:8px;background:var(--card-elevated);display:flex;align-items:center;justify-content:center;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        </div>
+        <span style="font-family:-apple-system,sans-serif;font-size:13px;font-weight:600;color:var(--text-secondary);">Set a goal</span>
+      </div>
+      <div class="tab-bar">
+        <div class="tab active"><div class="icon"><svg viewBox="0 0 24 24"><polyline points="22,12 18,12 15,21 9,3 6,12 2,12"/></svg></div><div class="tlabel">Trends</div></div>
+        <div class="tab"><div class="icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 4v3M12 17v3M4 12h3M17 12h3"/></svg></div><div class="tlabel">Now</div></div>
+        <div class="tab"><div class="icon"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div><div class="tlabel">Body</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Goal active — no date -->
+  <div class="variant-wrap">
+    <div class="variant-label">Goal Active · No target date</div>
+    <div class="variant-sub">Goal card shows metric, progress bar, and current vs target. Dotted goal line on chart. Tap card to manage goal.</div>
+    <div class="phone">
+      <div class="status-bar"><span>9:41</span><span>⚡ 100%</span></div>
+      <div class="metric-chip">
+        <div class="icon-dot"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 4v3M12 17v3M4 12h3M17 12h3"/></svg></div>
+        <div class="metric-name">Weight</div>
+        <div class="chev">▾</div>
+      </div>
+      <div class="range-tabs">
+        <div class="opt active">M</div><div class="opt">6M</div><div class="opt">Y</div><div class="opt">All</div>
+      </div>
+      <div class="hero-delta">
+        <div class="main-num"><span class="sign">−</span>2.8<span class="unit">lb</span></div>
+        <div class="hero-sub">Mar 1 – Mar 29 · 14 entries</div>
+      </div>
+      <div class="chart-wrap" style="height:150px;">
+        <svg viewBox="0 0 349 130" preserveAspectRatio="none">
+          <line x1="0" y1="0" x2="349" y2="0" stroke="#2A2A30" stroke-width="0.5"/>
+          <line x1="0" y1="43" x2="349" y2="43" stroke="#2A2A30" stroke-width="0.5"/>
+          <line x1="0" y1="86" x2="349" y2="86" stroke="#2A2A30" stroke-width="0.5"/>
+          <line x1="0" y1="130" x2="349" y2="130" stroke="#2A2A30" stroke-width="0.5"/>
+          <!-- Goal line -->
+          <line x1="0" y1="112" x2="349" y2="112" stroke="var(--accent)" stroke-width="1.5" stroke-dasharray="6,4" opacity="0.5"/>
+          <text x="345" y="108" fill="#6B7B94" font-family="-apple-system, sans-serif" font-size="7.5" font-weight="700" text-anchor="end" letter-spacing="0.3">185 lb</text>
+          <!-- Data -->
+          <polyline points="10,10 35,18 60,6 90,25 120,37 148,31 175,48 200,43 228,58 255,53 280,66 305,61 330,73 349,78" fill="none" stroke="#6B7B94" stroke-width="1.3" stroke-linejoin="round"/>
+          <polyline points="10,12 60,15 120,29 175,38 228,48 280,56 349,68" fill="none" stroke="#B89968" stroke-width="2.2" stroke-dasharray="4,3" stroke-linejoin="round"/>
+          <circle cx="10" cy="10" r="3" fill="#6B7B94"/><circle cx="60" cy="6" r="3" fill="#6B7B94"/><circle cx="120" cy="37" r="3" fill="#6B7B94"/>
+          <circle cx="175" cy="48" r="3" fill="#6B7B94"/><circle cx="228" cy="58" r="3" fill="#6B7B94"/><circle cx="280" cy="66" r="3" fill="#6B7B94"/><circle cx="349" cy="78" r="3" fill="#6B7B94"/>
+        </svg>
+      </div>
+      <div class="stats">
+        <div class="stat"><div class="label">Lowest</div><div class="value">192.4<span class="unit">lb</span></div></div>
+        <div class="stat"><div class="label">Average</div><div class="value">196.1<span class="unit">lb</span></div></div>
+        <div class="stat"><div class="label">Highest</div><div class="value">200.8<span class="unit">lb</span></div></div>
+      </div>
+      <!-- Goal card (active, no date) -->
+      <div style="margin:10px 22px 0;background:var(--card);border:1px solid var(--divider);border-radius:14px;padding:14px 16px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+          <div style="display:flex;align-items:center;gap:8px;">
+            <div style="font-family:-apple-system,sans-serif;font-size:11px;font-weight:600;color:var(--accent);text-transform:uppercase;letter-spacing:0.5px;">Goal</div>
+          </div>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text-tertiary)" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px;">
+          <div>
+            <span style="font-size:22px;font-weight:700;letter-spacing:-0.5px;">197.2</span>
+            <span style="font-size:11px;color:var(--text-secondary);margin-left:2px;">lb</span>
+          </div>
+          <div style="font-family:-apple-system,sans-serif;font-size:11px;color:var(--text-tertiary);">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="var(--text-tertiary)" stroke-width="2.5" stroke-linecap="round" style="vertical-align:-1px;margin-right:3px;"><path d="M5 12h14"/><path d="M12 5l7 7-7 7"/></svg>
+            <span style="font-weight:700;color:var(--accent);">185.0</span><span style="margin-left:2px;">lb</span>
+          </div>
+        </div>
+        <!-- Progress bar -->
+        <div style="height:4px;background:var(--card-elevated);border-radius:2px;overflow:hidden;">
+          <div style="width:20%;height:100%;background:var(--accent);border-radius:2px;"></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;margin-top:6px;font-family:-apple-system,sans-serif;font-size:10px;color:var(--text-tertiary);">
+          <span>12.2 lb to go</span>
+          <span>20%</span>
+        </div>
+      </div>
+      <div class="tab-bar">
+        <div class="tab active"><div class="icon"><svg viewBox="0 0 24 24"><polyline points="22,12 18,12 15,21 9,3 6,12 2,12"/></svg></div><div class="tlabel">Trends</div></div>
+        <div class="tab"><div class="icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 4v3M12 17v3M4 12h3M17 12h3"/></svg></div><div class="tlabel">Now</div></div>
+        <div class="tab"><div class="icon"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div><div class="tlabel">Body</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Goal active — with date -->
+  <div class="variant-wrap">
+    <div class="variant-label">Goal Active · With target date</div>
+    <div class="variant-sub">Same card adds timeline context. "47 days left" and pace info. ··· menu opens Edit / Complete / Abandon actions.</div>
+    <div class="phone">
+      <div class="status-bar"><span>9:41</span><span>⚡ 100%</span></div>
+      <div class="metric-chip">
+        <div class="icon-dot"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 4v3M12 17v3M4 12h3M17 12h3"/></svg></div>
+        <div class="metric-name">Weight</div>
+        <div class="chev">▾</div>
+      </div>
+      <div class="range-tabs">
+        <div class="opt active">M</div><div class="opt">6M</div><div class="opt">Y</div><div class="opt">All</div>
+      </div>
+      <div class="hero-delta">
+        <div class="main-num"><span class="sign">−</span>2.8<span class="unit">lb</span></div>
+        <div class="hero-sub">Mar 1 – Mar 29 · 14 entries</div>
+      </div>
+      <div class="chart-wrap" style="height:150px;">
+        <svg viewBox="0 0 349 130" preserveAspectRatio="none">
+          <line x1="0" y1="0" x2="349" y2="0" stroke="#2A2A30" stroke-width="0.5"/>
+          <line x1="0" y1="43" x2="349" y2="43" stroke="#2A2A30" stroke-width="0.5"/>
+          <line x1="0" y1="86" x2="349" y2="86" stroke="#2A2A30" stroke-width="0.5"/>
+          <line x1="0" y1="130" x2="349" y2="130" stroke="#2A2A30" stroke-width="0.5"/>
+          <line x1="0" y1="112" x2="349" y2="112" stroke="var(--accent)" stroke-width="1.5" stroke-dasharray="6,4" opacity="0.5"/>
+          <text x="345" y="108" fill="#6B7B94" font-family="-apple-system, sans-serif" font-size="7.5" font-weight="700" text-anchor="end" letter-spacing="0.3">185 lb</text>
+          <polyline points="10,10 35,18 60,6 90,25 120,37 148,31 175,48 200,43 228,58 255,53 280,66 305,61 330,73 349,78" fill="none" stroke="#6B7B94" stroke-width="1.3" stroke-linejoin="round"/>
+          <polyline points="10,12 60,15 120,29 175,38 228,48 280,56 349,68" fill="none" stroke="#B89968" stroke-width="2.2" stroke-dasharray="4,3" stroke-linejoin="round"/>
+          <circle cx="10" cy="10" r="3" fill="#6B7B94"/><circle cx="60" cy="6" r="3" fill="#6B7B94"/><circle cx="120" cy="37" r="3" fill="#6B7B94"/>
+          <circle cx="175" cy="48" r="3" fill="#6B7B94"/><circle cx="228" cy="58" r="3" fill="#6B7B94"/><circle cx="280" cy="66" r="3" fill="#6B7B94"/><circle cx="349" cy="78" r="3" fill="#6B7B94"/>
+        </svg>
+      </div>
+      <div class="stats">
+        <div class="stat"><div class="label">Lowest</div><div class="value">192.4<span class="unit">lb</span></div></div>
+        <div class="stat"><div class="label">Average</div><div class="value">196.1<span class="unit">lb</span></div></div>
+        <div class="stat"><div class="label">Highest</div><div class="value">200.8<span class="unit">lb</span></div></div>
+      </div>
+      <!-- Goal card (active, with date) -->
+      <div style="margin:10px 22px 0;background:var(--card);border:1px solid var(--divider);border-radius:14px;padding:14px 16px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+          <div style="display:flex;align-items:center;gap:8px;">
+            <div style="font-family:-apple-system,sans-serif;font-size:11px;font-weight:600;color:var(--accent);text-transform:uppercase;letter-spacing:0.5px;">Goal</div>
+            <div style="font-family:-apple-system,sans-serif;font-size:10px;color:var(--text-tertiary);">· by Jul 1</div>
+          </div>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text-tertiary)" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px;">
+          <div>
+            <span style="font-size:22px;font-weight:700;letter-spacing:-0.5px;">197.2</span>
+            <span style="font-size:11px;color:var(--text-secondary);margin-left:2px;">lb</span>
+          </div>
+          <div style="font-family:-apple-system,sans-serif;font-size:11px;color:var(--text-tertiary);">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="var(--text-tertiary)" stroke-width="2.5" stroke-linecap="round" style="vertical-align:-1px;margin-right:3px;"><path d="M5 12h14"/><path d="M12 5l7 7-7 7"/></svg>
+            <span style="font-weight:700;color:var(--accent);">185.0</span><span style="margin-left:2px;">lb</span>
+          </div>
+        </div>
+        <!-- Progress bar -->
+        <div style="height:4px;background:var(--card-elevated);border-radius:2px;overflow:hidden;">
+          <div style="width:20%;height:100%;background:var(--accent);border-radius:2px;"></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;margin-top:6px;font-family:-apple-system,sans-serif;font-size:10px;color:var(--text-tertiary);">
+          <span>12.2 lb to go</span>
+          <span>47 days left</span>
+        </div>
+      </div>
+      <div class="tab-bar">
+        <div class="tab active"><div class="icon"><svg viewBox="0 0 24 24"><polyline points="22,12 18,12 15,21 9,3 6,12 2,12"/></svg></div><div class="tlabel">Trends</div></div>
+        <div class="tab"><div class="icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 4v3M12 17v3M4 12h3M17 12h3"/></svg></div><div class="tlabel">Now</div></div>
+        <div class="tab"><div class="icon"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div><div class="tlabel">Body</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== ROW 2: NOW SCREEN STATS CARD ===== -->
+<div class="section-header">02 · Now screen — stats card swap</div>
+<div class="grid">
+
+  <!-- Now — no goal -->
+  <div class="variant-wrap">
+    <div class="variant-label">No Goal · Historical stats</div>
+    <div class="variant-sub">Current behavior. Lowest / Average / Highest for selected range.</div>
+    <div class="phone">
+      <div class="status-bar"><span>9:41</span><span>⚡ 100%</span></div>
+      <div class="toolbar">
+        <div class="icon-btn"><svg viewBox="0 0 24 24"><path d="M12 8v4l3 3"/><circle cx="12" cy="12" r="10"/></svg></div>
+        <div class="icon-btn"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg></div>
+      </div>
+      <div class="open-area">
+        <div class="hero-group">
+          <div class="weight-num">197.2<span class="wunit">lb</span></div>
+          <div class="today-label">Today</div>
+        </div>
+      </div>
+      <div class="stats" style="margin-bottom:12px;">
+        <div class="stat"><div class="label">Lowest</div><div class="value">192.4<span class="unit">lb</span></div></div>
+        <div class="stat"><div class="label">Average</div><div class="value">196.1<span class="unit">lb</span></div></div>
+        <div class="stat"><div class="label">Highest</div><div class="value">200.8<span class="unit">lb</span></div></div>
+      </div>
+      <div class="tab-bar">
+        <div class="tab"><div class="icon"><svg viewBox="0 0 24 24"><polyline points="22,12 18,12 15,21 9,3 6,12 2,12"/></svg></div><div class="tlabel">Trends</div></div>
+        <div class="tab active"><div class="icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 4v3M12 17v3M4 12h3M17 12h3"/></svg></div><div class="tlabel">Now</div></div>
+        <div class="tab"><div class="icon"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div><div class="tlabel">Body</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Now — goal active, no date -->
+  <div class="variant-wrap">
+    <div class="variant-label">Goal Active · No target date</div>
+    <div class="variant-sub">Stats card shows Current / Target / To Go. No timeline info since no date was set.</div>
+    <div class="phone">
+      <div class="status-bar"><span>9:41</span><span>⚡ 100%</span></div>
+      <div class="toolbar">
+        <div class="icon-btn"><svg viewBox="0 0 24 24"><path d="M12 8v4l3 3"/><circle cx="12" cy="12" r="10"/></svg></div>
+        <div class="icon-btn"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg></div>
+      </div>
+      <div class="open-area">
+        <div class="hero-group">
+          <div class="weight-num">197.2<span class="wunit">lb</span></div>
+          <div class="today-label">Today</div>
+        </div>
+      </div>
+      <div class="stats" style="margin-bottom:12px;">
+        <div class="stat"><div class="label">Current</div><div class="value">197.2<span class="unit">lb</span></div></div>
+        <div class="stat"><div class="label accent">Target</div><div class="value accent">185.0<span class="unit">lb</span></div></div>
+        <div class="stat"><div class="label">To Go</div><div class="value">12.2<span class="unit">lb</span></div></div>
+      </div>
+      <div class="tab-bar">
+        <div class="tab"><div class="icon"><svg viewBox="0 0 24 24"><polyline points="22,12 18,12 15,21 9,3 6,12 2,12"/></svg></div><div class="tlabel">Trends</div></div>
+        <div class="tab active"><div class="icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 4v3M12 17v3M4 12h3M17 12h3"/></svg></div><div class="tlabel">Now</div></div>
+        <div class="tab"><div class="icon"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div><div class="tlabel">Body</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Now — goal active, with date -->
+  <div class="variant-wrap">
+    <div class="variant-label">Goal Active · With target date</div>
+    <div class="variant-sub">Third slot shows remaining weight + days left. Gives a pace context — "am I on track?"</div>
+    <div class="phone">
+      <div class="status-bar"><span>9:41</span><span>⚡ 100%</span></div>
+      <div class="toolbar">
+        <div class="icon-btn"><svg viewBox="0 0 24 24"><path d="M12 8v4l3 3"/><circle cx="12" cy="12" r="10"/></svg></div>
+        <div class="icon-btn"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg></div>
+      </div>
+      <div class="open-area">
+        <div class="hero-group">
+          <div class="weight-num">197.2<span class="wunit">lb</span></div>
+          <div class="today-label">Today</div>
+        </div>
+      </div>
+      <div class="stats" style="margin-bottom:12px;">
+        <div class="stat"><div class="label">Current</div><div class="value">197.2<span class="unit">lb</span></div></div>
+        <div class="stat"><div class="label accent">Target</div><div class="value accent">185.0<span class="unit">lb</span></div></div>
+        <div class="stat"><div class="label">To Go</div><div class="value">12.2<span class="unit">lb</span></div><div style="font-family:-apple-system,sans-serif;font-size:9px;color:var(--text-tertiary);margin-top:2px;">47 days left</div></div>
+      </div>
+      <div class="tab-bar">
+        <div class="tab"><div class="icon"><svg viewBox="0 0 24 24"><polyline points="22,12 18,12 15,21 9,3 6,12 2,12"/></svg></div><div class="tlabel">Trends</div></div>
+        <div class="tab active"><div class="icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 4v3M12 17v3M4 12h3M17 12h3"/></svg></div><div class="tlabel">Now</div></div>
+        <div class="tab"><div class="icon"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div><div class="tlabel">Body</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== ROW 2B: GOAL CARD TAP → ACTION SHEET ===== -->
+<div class="section-header">02b · Trends — goal card ··· menu</div>
+<div class="grid two">
+
+  <!-- Goal active — tap ··· shows action menu -->
+  <div class="variant-wrap">
+    <div class="variant-label">Tap ··· on goal card</div>
+    <div class="variant-sub">Action sheet with Edit, Mark Complete, and Abandon options. Triggered from the ··· icon on the goal card.</div>
+    <div class="phone">
+      <div class="status-bar"><span>9:41</span><span>⚡ 100%</span></div>
+      <div class="metric-chip">
+        <div class="icon-dot"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 4v3M12 17v3M4 12h3M17 12h3"/></svg></div>
+        <div class="metric-name">Weight</div>
+        <div class="chev">▾</div>
+      </div>
+      <div style="flex:1;opacity:0.3;">
+        <div class="range-tabs">
+          <div class="opt active">M</div><div class="opt">6M</div><div class="opt">Y</div><div class="opt">All</div>
+        </div>
+      </div>
+      <!-- Action sheet — matches app card styling -->
+      <div class="sheet-overlay">
+        <div class="sheet-handle"></div>
+        <div style="text-align:center;margin-bottom:8px;">
+          <div style="font-family:-apple-system,sans-serif;font-size:11px;font-weight:600;color:var(--accent);text-transform:uppercase;letter-spacing:0.5px;">Weight Goal</div>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:16px;">
+          <div>
+            <span style="font-size:22px;font-weight:700;letter-spacing:-0.5px;">197.2</span>
+            <span style="font-size:11px;color:var(--text-secondary);margin-left:2px;">lb</span>
+          </div>
+          <div style="font-family:-apple-system,sans-serif;font-size:11px;color:var(--text-tertiary);">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="var(--text-tertiary)" stroke-width="2.5" stroke-linecap="round" style="vertical-align:-1px;margin-right:3px;"><path d="M5 12h14"/><path d="M12 5l7 7-7 7"/></svg>
+            <span style="font-weight:700;color:var(--accent);">185.0</span><span style="margin-left:2px;">lb</span>
+          </div>
+        </div>
+        <!-- Progress bar -->
+        <div style="height:4px;background:var(--card-elevated);border-radius:2px;overflow:hidden;margin-bottom:6px;">
+          <div style="width:20%;height:100%;background:var(--accent);border-radius:2px;"></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-family:-apple-system,sans-serif;font-size:10px;color:var(--text-tertiary);margin-bottom:24px;">
+          <span>12.2 lb to go</span>
+          <span>Started Mar 1</span>
+        </div>
+        <!-- Actions -->
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          <div style="background:var(--accent);padding:14px;border-radius:12px;text-align:center;">
+            <span style="font-family:-apple-system,sans-serif;font-size:14px;font-weight:600;color:white;">Edit Goal</span>
+          </div>
+          <div style="background:var(--card-elevated);padding:14px;border-radius:12px;text-align:center;border:1px solid var(--divider);">
+            <span style="font-family:-apple-system,sans-serif;font-size:14px;font-weight:600;color:#34C759;">Mark Complete</span>
+          </div>
+          <div style="padding:10px;text-align:center;">
+            <span style="font-family:-apple-system,sans-serif;font-size:13px;font-weight:500;color:#FF3B30;">Abandon Goal</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== ROW 3: SET GOAL SHEET ===== -->
+<div class="section-header">03 · Set Goal sheet</div>
+<div class="grid two">
+
+  <!-- Set goal sheet -->
+  <div class="variant-wrap">
+    <div class="variant-label">Set Goal · From "Set a goal" card</div>
+    <div class="variant-sub">Sheet slides up from Trends screen. Metric defaults to currently selected chart metric. Target date is optional, must be today or later.</div>
+    <div class="phone">
+      <div class="status-bar"><span>9:41</span><span>⚡ 100%</span></div>
+      <!-- Dimmed background -->
+      <div style="flex:1;opacity:0.3;">
+        <div class="metric-chip">
+          <div class="icon-dot"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/></svg></div>
+          <div class="metric-name">Weight</div>
+        </div>
+        <div class="range-tabs" style="margin-top:10px;">
+          <div class="opt active">M</div><div class="opt">6M</div><div class="opt">Y</div><div class="opt">All</div>
+        </div>
+      </div>
+      <!-- Sheet -->
+      <div class="sheet-overlay">
+        <div class="sheet-handle"></div>
+        <div class="sheet-title">Set Goal</div>
+        <div class="field-group">
+          <div class="field-label">Metric</div>
+          <div class="field-input">
+            <span class="val">Weight</span>
+            <span class="chev">▾</span>
+          </div>
+        </div>
+        <div class="field-group">
+          <div class="field-label">Target</div>
+          <div class="field-input">
+            <span class="big">185.0</span>
+            <span class="funit">lb</span>
+          </div>
+        </div>
+        <div class="field-group">
+          <div class="field-label">Target Date <span class="optional">(optional)</span></div>
+          <div class="field-input">
+            <span class="val" style="color:var(--accent);">July 1, 2026</span>
+            <span class="chev">▾</span>
+          </div>
+        </div>
+        <div class="sheet-btn"><span>Set Goal</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Goal completion -->
+  <div class="variant-wrap">
+    <div class="variant-label">Goal Reached · Celebration prompt</div>
+    <div class="variant-sub">Triggers immediately after saving a weigh-in or scan where the value crosses the target (e.g. log 184.8 when goal is 185). Only fires once — subsequent entries below target don't re-trigger. Also accessible manually via target icon → "Mark Complete".</div>
+    <div class="phone">
+      <div class="status-bar"><span>9:41</span><span>⚡ 100%</span></div>
+      <div style="flex:1;opacity:0.3;">
+        <div class="metric-chip">
+          <div class="icon-dot"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/></svg></div>
+          <div class="metric-name">Weight</div>
+        </div>
+      </div>
+      <!-- Completion overlay -->
+      <div style="position:absolute;top:0;left:0;right:0;bottom:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.6);">
+        <div style="background:var(--card);border-radius:20px;padding:32px 28px;margin:0 28px;text-align:center;border:1px solid var(--divider);">
+          <div style="font-size:48px;margin-bottom:16px;">🎯</div>
+          <div style="font-size:22px;font-weight:700;margin-bottom:6px;">Goal Reached!</div>
+          <div style="font-family:-apple-system,sans-serif;font-size:13px;color:var(--text-secondary);margin-bottom:24px;line-height:1.5;">You hit your target of <span style="color:var(--accent);font-weight:600;">185.0 lb</span><br>Started at 200.2 lb on Mar 1</div>
+          <div style="background:var(--accent);padding:14px;border-radius:12px;margin-bottom:10px;"><span style="color:white;font-size:15px;font-weight:600;">Set New Goal</span></div>
+          <div style="padding:10px;"><span style="color:var(--text-secondary);font-size:14px;font-weight:500;">Dismiss</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== DATA MODEL ===== -->
+<div class="section-header">04 · Data model</div>
+<div style="max-width:900px;margin:0 auto;">
+  <div style="background:var(--bg);border-radius:16px;padding:24px 28px;font-family:'SF Mono',Menlo,monospace;font-size:13px;line-height:2;color:var(--text-primary);border:1px solid #2A2A30;">
+    <span style="color:var(--accent);">@Model</span><br>
+    <span style="color:var(--text-secondary);">final class</span> Goal {<br>
+    &nbsp;&nbsp;var id: <span style="color:var(--text-secondary);">UUID</span><br>
+    &nbsp;&nbsp;var metric: <span style="color:var(--text-secondary);">String</span> <span style="color:var(--text-tertiary);">// TrendMetric rawValue (e.g. "weight", "bodyFatPct")</span><br>
+    &nbsp;&nbsp;var targetValue: <span style="color:var(--text-secondary);">Double</span><br>
+    &nbsp;&nbsp;var targetDate: <span style="color:var(--text-secondary);">Date?</span><br>
+    &nbsp;&nbsp;var startValue: <span style="color:var(--text-secondary);">Double</span><br>
+    &nbsp;&nbsp;var startDate: <span style="color:var(--text-secondary);">Date</span><br>
+    &nbsp;&nbsp;var status: <span style="color:var(--text-secondary);">String</span> <span style="color:var(--text-tertiary);">// active | completed | abandoned</span><br>
+    &nbsp;&nbsp;var completedDate: <span style="color:var(--text-secondary);">Date?</span><br>
+    &nbsp;&nbsp;var createdAt: <span style="color:var(--text-secondary);">Date</span><br>
+    }
+  </div>
+  <p style="font-family:-apple-system,sans-serif;font-size:12px;color:#6B6B72;margin-top:10px;line-height:1.5;">One active goal at a time. Completed/abandoned goals persist as history. <code>startValue</code> captures where you were when the goal was set. Goal line only renders on the chart when viewing the goal's metric.</p>
+</div>
+
+</body>
+</html>

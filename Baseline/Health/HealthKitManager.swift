@@ -13,6 +13,7 @@ enum HealthKitManager {
             HKQuantityType(.bodyFatPercentage),
             HKQuantityType(.leanBodyMass),
             HKQuantityType(.bodyMassIndex),
+            HKQuantityType(.basalEnergyBurned),
         ]
         if #available(iOS 18.0, *) {
             // waistCircumference available iOS 18+
@@ -103,6 +104,24 @@ enum HealthKitManager {
         )
     }
 
+    // MARK: - Basal Metabolic Rate
+
+    static func saveBMR(kcal: Double, date: Date) async {
+        guard HKHealthStore.isHealthDataAvailable() else { return }
+        let sample = buildBMRSample(kcal: kcal, date: date)
+        try? await store.save(sample)
+    }
+
+    static func buildBMRSample(kcal: Double, date: Date) -> HKQuantitySample {
+        let quantity = HKQuantity(unit: .kilocalorie(), doubleValue: kcal)
+        return HKQuantitySample(
+            type: HKQuantityType(.basalEnergyBurned),
+            quantity: quantity,
+            start: date,
+            end: date
+        )
+    }
+
     // MARK: - Waist Circumference
 
     static func saveWaistCircumference(valueCm: Double, date: Date) async {
@@ -130,6 +149,7 @@ enum HealthKitManager {
         case .inBody(let payload):
             await saveBodyFat(percentage: payload.bodyFatPct, date: scan.date)
             await saveBMI(payload.bmi, date: scan.date)
+            await saveBMR(kcal: payload.basalMetabolicRate, date: scan.date)
             if let leanMass = payload.leanBodyMassKg {
                 await saveLeanBodyMass(kg: leanMass, date: scan.date)
             }
