@@ -71,7 +71,9 @@
 		92B02A5AE4EBA1597947A801 /* UnitConversion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A9525A1638C18453603A9F6 /* UnitConversion.swift */; };
 		9525FADCC968F0DEB4768D53 /* ScanDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F9E0701D264BBEE3B1833E0D /* ScanDetailView.swift */; };
 		9DDDD276C649F100FFF941FE /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F33E3CB74C4DCE41C764260D /* SettingsView.swift */; };
-		A03E1D29BD1EFF2BB8B7CD74 /* WeightEntry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 312ECD390BFC532EC10D9819 /* WeightEntry.swift */; };
+		B2C3D4E5F6A1B2C3D4E5F6A1 /* Goal.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F6A1B2C3D4E5F6 /* Goal.swift */; };
+		D4E5F6A1B2C3D4E5F6A1B2C3 /* GoalTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3D4E5F6A1B2C3D4E5F6A1B2 /* GoalTests.swift */; };
+				A03E1D29BD1EFF2BB8B7CD74 /* WeightEntry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 312ECD390BFC532EC10D9819 /* WeightEntry.swift */; };
 		A16B5583BE60ABD8BF6FA519 /* DoubleExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48CD5547B419BCE4B9D76860 /* DoubleExtensions.swift */; };
 		A57EEB8655AA931F183DCC5A /* ScanHistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 44F25E2DF4D4198F90CBFA5F /* ScanHistoryView.swift */; };
 		AE4F08FFC7E7366D526B7FE5 /* CadreTokens.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D4F5BD3681AD8577A6A3B0C /* CadreTokens.swift */; };
@@ -149,7 +151,9 @@
 		2B794C4FCDC3253893C365AB /* HistoryViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryViewModelTests.swift; sourceTree = "<group>"; };
 		2BB58E9F38A99C7C4D86D8DF /* Measurement.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Measurement.swift; sourceTree = "<group>"; };
 		2DD62082CE52C25DD0DC3AA5 /* NowViewSnapshotTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NowViewSnapshotTests.swift; sourceTree = "<group>"; };
-		312ECD390BFC532EC10D9819 /* WeightEntry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeightEntry.swift; sourceTree = "<group>"; };
+		A1B2C3D4E5F6A1B2C3D4E5F6 /* Goal.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Goal.swift; sourceTree = "<group>"; };
+		C3D4E5F6A1B2C3D4E5F6A1B2 /* GoalTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GoalTests.swift; sourceTree = "<group>"; };
+				312ECD390BFC532EC10D9819 /* WeightEntry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeightEntry.swift; sourceTree = "<group>"; };
 		32B28DC15F13A362B58FD326 /* HealthKitManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthKitManager.swift; sourceTree = "<group>"; };
 		33EA9A555C61700BA6F94BE2 /* testScanEntry_ReviewForm_WithLowConfidence.1.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = testScanEntry_ReviewForm_WithLowConfidence.1.png; sourceTree = "<group>"; };
 		3A9983801F2F087AB7948B5C /* CSVExporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CSVExporter.swift; sourceTree = "<group>"; };
@@ -258,6 +262,7 @@
 			children = (
 				EDAFFD2ADF932608CA8B378E /* MeasurementTests.swift */,
 				D2121B6D4BDACF68F0B99C30 /* ScanTests.swift */,
+				C3D4E5F6A1B2C3D4E5F6A1B2 /* GoalTests.swift */,
 				F133F7888A7F42479BC2329D /* WeightEntryTests.swift */,
 			);
 			path = Models;
@@ -614,6 +619,7 @@
 				F4B62AE88FB82E485614E3D0 /* Scan.swift */,
 				6DF459A44A46B33902867DBF /* ScanPayloads.swift */,
 				F0FDF5DB2E481DF3A8881BD1 /* SyncState.swift */,
+				A1B2C3D4E5F6A1B2C3D4E5F6 /* Goal.swift */,
 				312ECD390BFC532EC10D9819 /* WeightEntry.swift */,
 			);
 			path = Models;
@@ -770,6 +776,7 @@
 				179A4D608746808CFCE3A729 /* UnitConversionTests.swift in Sources */,
 				E33DE75325B986802BA1D6C0 /* WeighInSheetSnapshotTests.swift in Sources */,
 				4F5996756FAB95C53E59DEFE /* WeighInViewModelTests.swift in Sources */,
+				D4E5F6A1B2C3D4E5F6A1B2C3 /* GoalTests.swift in Sources */,
 				7F2647C6A3C1B0DE829C5847 /* WeightEntryTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -827,6 +834,7 @@
 				92B02A5AE4EBA1597947A801 /* UnitConversion.swift in Sources */,
 				E9AE862F20C7238325BF97E0 /* WeighInSheet.swift in Sources */,
 				D3355A1D414FF7C657BCF5A7 /* WeighInViewModel.swift in Sources */,
+				B2C3D4E5F6A1B2C3D4E5F6A1 /* Goal.swift in Sources */,
 				D0394A7C2A7BFFD92369B3B1 /* WeightEntry.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
