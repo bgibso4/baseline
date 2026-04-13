@@ -34,7 +34,7 @@ final class GoalTests: XCTestCase {
         XCTAssertEqual(fetched.metric, "weight")
         XCTAssertEqual(fetched.targetValue, 180.0)
         XCTAssertEqual(fetched.startValue, 200.0)
-        XCTAssertEqual(fetched.goalStatus, .active)
+        XCTAssertEqual(fetched.status, .active)
         XCTAssertNil(fetched.targetDate)
         XCTAssertNil(fetched.completedDate)
     }
@@ -58,26 +58,26 @@ final class GoalTests: XCTestCase {
 
     func testGoalStatusTransitions() {
         let goal = Goal(metric: "weight", targetValue: 180.0, startValue: 200.0)
-        XCTAssertEqual(goal.goalStatus, .active)
+        XCTAssertEqual(goal.status, .active)
 
-        goal.status = GoalStatus.completed.rawValue
-        XCTAssertEqual(goal.goalStatus, .completed)
+        goal.status = .completed
+        XCTAssertEqual(goal.status, .completed)
 
-        goal.status = GoalStatus.abandoned.rawValue
-        XCTAssertEqual(goal.goalStatus, .abandoned)
+        goal.status = .abandoned
+        XCTAssertEqual(goal.status, .abandoned)
 
-        goal.status = GoalStatus.active.rawValue
-        XCTAssertEqual(goal.goalStatus, .active)
+        goal.status = .active
+        XCTAssertEqual(goal.status, .active)
     }
 
     // MARK: - testDirectionInference
 
     func testDirectionInference() {
         let cuttingGoal = Goal(metric: "weight", targetValue: 170.0, startValue: 200.0)
-        XCTAssertTrue(cuttingGoal.isCutting)
+        XCTAssertTrue(cuttingGoal.isDecreasing)
 
         let bulkingGoal = Goal(metric: "weight", targetValue: 210.0, startValue: 190.0)
-        XCTAssertFalse(bulkingGoal.isCutting)
+        XCTAssertFalse(bulkingGoal.isDecreasing)
     }
 
     // MARK: - testProgressCalculation (cutting)

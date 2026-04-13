@@ -15,7 +15,7 @@ final class Goal {
     var targetDate: Date?
     var startValue: Double = 0.0
     var startDate: Date = Date()
-    var status: String = GoalStatus.active.rawValue
+    var status: GoalStatus = GoalStatus.active
     var completedDate: Date?
     var createdAt: Date = Date()
 
@@ -31,22 +31,18 @@ final class Goal {
         self.startValue = startValue
         self.startDate = Date()
         self.targetDate = targetDate.map { Calendar.current.startOfDay(for: $0) }
-        self.status = GoalStatus.active.rawValue
+        self.status = .active
         self.createdAt = Date()
     }
 
-    var goalStatus: GoalStatus {
-        GoalStatus(rawValue: status) ?? .active
-    }
-
-    var isCutting: Bool {
+    var isDecreasing: Bool {
         targetValue < startValue
     }
 
     func progress(currentValue: Double) -> Double {
         let totalDistance = abs(targetValue - startValue)
         guard totalDistance > 0 else { return 1.0 }
-        let moved = isCutting
+        let moved = isDecreasing
             ? startValue - currentValue
             : currentValue - startValue
         return min(max(moved / totalDistance, 0.0), 1.0)
@@ -58,7 +54,7 @@ final class Goal {
     }
 
     func isReached(currentValue: Double) -> Bool {
-        if isCutting {
+        if isDecreasing {
             return currentValue <= targetValue
         } else {
             return currentValue >= targetValue
