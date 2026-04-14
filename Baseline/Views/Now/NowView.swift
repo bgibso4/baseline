@@ -81,7 +81,7 @@ struct NowView: View {
                     onSave: {
                         vm?.refresh()
                         // Check goal completion after refresh
-                        if let goalVM, let goal = goalVM.activeGoal {
+                        if let goalVM, let goal = goalVM.activeWeightGoal {
                             let currentWeight = vm?.todayEntry?.weight ?? 0
                             let displayWeight = UnitConversion.displayWeight(currentWeight, storedUnit: vm?.todayEntry?.unit ?? "lb")
                             // Capture goal info before completion marks it done
@@ -249,7 +249,7 @@ struct NowView: View {
 
     private var bottomBlock: some View {
         VStack(spacing: 18) {
-            if let goal = goalVM?.activeGoal, goal.metric == TrendMetric.weight.rawValue, showGoalStats {
+            if goalVM?.activeWeightGoal != nil, showGoalStats {
                 goalStatsCard
                     .onTapGesture {
                         withAnimation(.snappy(duration: 0.25)) {
@@ -260,7 +260,7 @@ struct NowView: View {
             } else {
                 statsCard
                     .onTapGesture {
-                        if let goal = goalVM?.activeGoal, goal.metric == TrendMetric.weight.rawValue {
+                        if goalVM?.activeWeightGoal != nil {
                             withAnimation(.snappy(duration: 0.25)) {
                                 showGoalStats.toggle()
                             }
@@ -287,7 +287,7 @@ struct NowView: View {
         let unit = vm?.unit ?? "lb"
         let currentEntry = vm?.todayEntry ?? vm?.recentWeights.first
         let currentDisplay: Double? = currentEntry.map { displayWeight(for: $0) }
-        let goal = goalVM?.activeGoal
+        let goal = goalVM?.activeWeightGoal
         let targetDisplay: Double? = goal.map { UnitConversion.displayWeight($0.targetValue, storedUnit: "lb") }
         let remaining: Double? = {
             guard let goal, currentDisplay != nil else { return nil }

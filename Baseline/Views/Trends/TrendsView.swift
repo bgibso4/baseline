@@ -129,14 +129,14 @@ struct TrendsView: View {
                 }
             }
             .sheet(isPresented: $showManageGoal) {
-                if let goalVM, let goal = goalVM.activeGoal {
+                if let goalVM, let goal = goalVM.activeGoal(for: vm?.selectedMetric.rawValue ?? "") {
                     GoalManageSheet(
                         goal: goal,
                         currentValue: vm?.dataPoints.last?.value ?? 0,
                         unit: vm?.selectedMetric.unit ?? "",
                         onEdit: { showEditGoal = true },
-                        onComplete: { goalVM.completeGoal() },
-                        onAbandon: { goalVM.abandonGoal() }
+                        onComplete: { goalVM.completeGoal(metric: goal.metric) },
+                        onAbandon: { goalVM.abandonGoal(metric: goal.metric) }
                     )
                     .presentationDetents([.fraction(0.35)])
                     .presentationDragIndicator(.hidden)
@@ -144,7 +144,7 @@ struct TrendsView: View {
                 }
             }
             .sheet(isPresented: $showEditGoal) {
-                if let goalVM, let goal = goalVM.activeGoal {
+                if let goalVM, let goal = goalVM.activeGoal(for: vm?.selectedMetric.rawValue ?? "") {
                     SetGoalSheet(
                         goalVM: goalVM,
                         defaultMetric: vm?.selectedMetric ?? .weight,
@@ -384,7 +384,7 @@ struct TrendsView: View {
             }
 
             GoalCard(
-                goal: goalVM?.activeGoal?.metric == vm?.selectedMetric.rawValue ? goalVM?.activeGoal : nil,
+                goal: goalVM?.activeGoal(for: vm?.selectedMetric.rawValue ?? ""),
                 currentValue: points.last?.value,
                 unit: unit,
                 onSetGoal: { showSetGoal = true },
@@ -536,11 +536,7 @@ struct TrendsView: View {
         let sMax = vm?.secondaryMaxValue ?? 0
 
         // Include goal target value in the primary range so the goal line is always visible
-        let goalTarget: Double? = {
-            guard let goal = goalVM?.activeGoal,
-                  goal.metric == vm?.selectedMetric.rawValue else { return nil }
-            return goal.targetValue
-        }()
+        let goalTarget: Double? = goalVM?.activeGoal(for: vm?.selectedMetric.rawValue ?? "")?.targetValue
         let rangeMin = goalTarget.map { Swift.min(pMin, $0) } ?? pMin
         let rangeMax = goalTarget.map { Swift.max(pMax, $0) } ?? pMax
 
@@ -611,8 +607,7 @@ struct TrendsView: View {
 
             // Goal line — dotted horizontal at target value (primary chart only)
             if !dualAxis,
-               let goal = goalVM?.activeGoal,
-               goal.metric == vm?.selectedMetric.rawValue {
+               let goal = goalVM?.activeGoal(for: vm?.selectedMetric.rawValue ?? "") {
                 RuleMark(y: .value("Goal", goal.targetValue))
                     .foregroundStyle(CadreColors.accent.opacity(0.5))
                     .lineStyle(StrokeStyle(lineWidth: 1.5, dash: [6, 4]))
@@ -802,7 +797,7 @@ struct TrendsView: View {
                 .padding(.top, 14)
 
             GoalCard(
-                goal: goalVM?.activeGoal?.metric == vm?.selectedMetric.rawValue ? goalVM?.activeGoal : nil,
+                goal: goalVM?.activeGoal(for: vm?.selectedMetric.rawValue ?? ""),
                 currentValue: points.last?.value,
                 unit: unit,
                 onSetGoal: { showSetGoal = true },

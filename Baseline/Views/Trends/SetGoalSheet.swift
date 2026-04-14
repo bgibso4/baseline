@@ -280,8 +280,8 @@ struct SetGoalSheet: View {
         guard let targetValue = Double(targetText), targetValue > 0 else { return }
         let date = hasDate ? targetDate : nil
 
-        if isEditing {
-            goalVM.updateGoal(targetValue: targetValue, targetDate: date)
+        if isEditing, let editingGoal {
+            goalVM.updateGoal(metric: editingGoal.metric, targetValue: targetValue, targetDate: date)
         } else {
             goalVM.setGoal(
                 metric: selectedMetric.rawValue,
