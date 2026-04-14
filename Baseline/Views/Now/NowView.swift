@@ -301,7 +301,7 @@ struct NowView: View {
         return HStack(spacing: 1) {
             goalStatCell(label: "CURRENT", value: currentDisplay, unit: unit, accent: false, daysLeft: nil)
             goalStatCell(label: "TARGET", value: targetDisplay, unit: unit, accent: true, daysLeft: nil)
-            goalStatCell(label: "TO GO", value: remainingDisplay, unit: unit, accent: false, daysLeft: daysLeft)
+            goalStatCell(label: daysLeft.map { "TO GO (\($0)d)" } ?? "TO GO", value: remainingDisplay, unit: unit, accent: false, daysLeft: nil)
         }
         .background(CadreColors.divider)
         .clipShape(RoundedRectangle(cornerRadius: 14))
@@ -310,7 +310,7 @@ struct NowView: View {
     private func goalStatCell(label: String, value: Double?, unit: String, accent: Bool, daysLeft: Int?) -> some View {
         let labelColor: Color = accent ? CadreColors.accent : CadreColors.textTertiary
         let valueColor: Color = accent ? CadreColors.accent : CadreColors.textPrimary
-        return VStack(spacing: 4) {
+        return VStack(spacing: 6) {
             Text(label)
                 .font(CadreTypography.statLabel)
                 .tracking(0.5)
@@ -326,10 +326,6 @@ struct NowView: View {
                         .foregroundStyle(CadreColors.textTertiary)
                 }
             }
-            // Always reserve space for subtitle to keep cells equal height
-            Text(daysLeft.map { "\($0) days left" } ?? " ")
-                .font(.system(size: 9, weight: .medium))
-                .foregroundStyle(daysLeft != nil ? CadreColors.textTertiary : .clear)
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, 14)
