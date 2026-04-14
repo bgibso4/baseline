@@ -167,3 +167,154 @@ final class GoalTests: XCTestCase {
         XCTAssertEqual(pastGoal.daysRemaining, 0)
     }
 }
+
+// MARK: - GoalViewModelTests
+
+final class GoalViewModelTests: XCTestCase {
+    var container: ModelContainer!
+    var context: ModelContext!
+    var viewModel: GoalViewModel!
+
+    override func setUp() {
+        super.setUp()
+        let schema = Schema([WeightEntry.self, Scan.self, Baseline.Measurement.self, SyncState.self, Goal.self])
+        let config = ModelConfiguration(isStoredInMemoryOnly: true)
+        container = try! ModelContainer(for: schema, configurations: [config])
+        context = ModelContext(container)
+        viewModel = GoalViewModel(modelContext: context)
+    }
+
+    override func tearDown() {
+        viewModel = nil
+        container = nil
+        context = nil
+        super.tearDown()
+    }
+
+    // MARK: - testActiveGoalNilByDefault
+
+    func testActiveGoalNilByDefault() {
+        XCTAssertNil(viewModel.activeGoal)
+    }
+
+    // MARK: - testSetGoalCreatesActiveGoal
+
+    func testSetGoalCreatesActiveGoal() {
+        viewModel.setGoal(metric: "weight", targetValue: 180.0, startValue: 200.0)
+        XCTAssertNotNil(viewModel.activeGoal)
+        XCTAssertEqual(viewModel.activeGoal?.metric, "weight")
+        XCTAssertEqual(viewModel.activeGoal?.targetValue, 180.0)
+        XCTAssertEqual(viewModel.activeGoal?.startValue, 200.0)
+        XCTAssertEqual(viewModel.activeGoal?.status, .active)
+    }
+
+    // MARK: - testSetGoalWithDate
+
+    func testSetGoalWithDate() {
+        let futureDate = Calendar.current.date(byAdding: .day, value: 60, to: Date())!
+        viewModel.setGoal(metric: "bodyFat", targetValue: 15.0, startValue: 20.0, targetDate: futureDate)
+        XCTAssertNotNil(viewModel.activeGoal)
+        XCTAssertNotNil(viewModel.activeGoal?.targetDate)
+        // Should be normalized to start of day
+        let components = Calendar.current.dateComponents([.hour, .minute, .second], from: viewModel.activeGoal!.targetDate!)
+        XCTAssertEqual(components.hour, 0)
+        XCTAssertEqual(components.minute, 0)
+    }
+
+    // MARK: - testCannotSetGoalWhileOneIsActive
+
+    func testCannotSetGoalWhileOneIsActive() {
+        viewModel.setGoal(metric: "weight", targetValue: 180.0, startValue: 200.0)
+        let firstGoal = viewModel.activeGoal
+
+        viewModel.setGoal(metric: "bodyFat", targetValue: 15.0, startValue: 20.0)
+
+        // Second call should be ignored — first goal stays
+        XCTAssertEqual(viewModel.activeGoal?.metric, "weight")
+        XCTAssertEqual(viewModel.activeGoal?.id, firstGoal?.id)
+
+        let descriptor = FetchDescriptor<Goal>()
+        let goals = try! context.fetch(descriptor)
+        XCTAssertEqual(goals.count, 1)
+    }
+
+    // MARK: - testCompleteGoal
+
+    func testCompleteGoal() {
+        viewModel.setGoal(metric: "weight", targetValue: 180.0, startValue: 200.0)
+        XCTAssertNotNil(viewModel.activeGoal)
+
+        viewModel.completeGoal()
+        XCTAssertNil(viewModel.activeGoal)
+
+        // Goal should persist in DB with completed status
+        let descriptor = FetchDescriptor<Goal>()
+        let goals = try! context.fetch(descriptor)
+        XCTAssertEqual(goals.count, 1)
+        XCTAssertEqual(goals.first?.status, .completed)
+        XCTAssertNotNil(goals.first?.completedDate)
+    }
+
+    // MARK: - testAbandonGoal
+
+    func testAbandonGoal() {
+        viewModel.setGoal(metric: "weight", targetValue: 180.0, startValue: 200.0)
+        XCTAssertNotNil(viewModel.activeGoal)
+
+        viewModel.abandonGoal()
+        XCTAssertNil(viewModel.activeGoal)
+
+        let descriptor = FetchDescriptor<Goal>()
+        let goals = try! context.fetch(descriptor)
+        XCTAssertEqual(goals.count, 1)
+        XCTAssertEqual(goals.first?.status, .abandoned)
+        XCTAssertNotNil(goals.first?.completedDate)
+    }
+
+    // MARK: - testCheckCompletionReturnsTrueWhenReached
+
+    func testCheckCompletionReturnsTrueWhenReached() {
+        // Cutting goal: target 180, start 200
+        viewModel.setGoal(metric: "weight", targetValue: 180.0, startValue: 200.0)
+        XCTAssertNotNil(viewModel.activeGoal)
+
+        // currentValue reaches target
+        let result = viewModel.checkCompletion(metricKey: "weight", currentValue: 179.5)
+        XCTAssertTrue(result)
+        XCTAssertNil(viewModel.activeGoal)
+
+        let descriptor = FetchDescriptor<Goal>()
+        let goals = try! context.fetch(descriptor)
+        XCTAssertEqual(goals.first?.status, .completed)
+    }
+
+    // MARK: - testCheckCompletionIgnoresWrongMetric
+
+    func testCheckCompletionIgnoresWrongMetric() {
+        viewModel.setGoal(metric: "weight", targetValue: 180.0, startValue: 200.0)
+        XCTAssertNotNil(viewModel.activeGoal)
+
+        // Wrong metric key — goal should remain active even if value would be reached
+        let result = viewModel.checkCompletion(metricKey: "bodyFat", currentValue: 170.0)
+        XCTAssertFalse(result)
+        XCTAssertNotNil(viewModel.activeGoal)
+        XCTAssertEqual(viewModel.activeGoal?.status, .active)
+    }
+
+    // MARK: - testUpdateGoal
+
+    func testUpdateGoal() {
+        viewModel.setGoal(metric: "weight", targetValue: 180.0, startValue: 200.0)
+        XCTAssertNotNil(viewModel.activeGoal)
+
+        let newDate = Calendar.current.date(byAdding: .day, value: 90, to: Date())!
+        viewModel.updateGoal(targetValue: 175.0, targetDate: newDate)
+
+        XCTAssertEqual(viewModel.activeGoal?.targetValue, 175.0)
+        XCTAssertNotNil(viewModel.activeGoal?.targetDate)
+
+        // Verify persisted
+        viewModel.refresh()
+        XCTAssertEqual(viewModel.activeGoal?.targetValue, 175.0)
+    }
+}

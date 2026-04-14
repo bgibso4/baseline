@@ -54,10 +54,11 @@ final class Goal {
     }
 
     func isReached(currentValue: Double) -> Bool {
+        let tolerance = 0.01
         if isDecreasing {
-            return currentValue <= targetValue
+            return currentValue <= targetValue + tolerance
         } else {
-            return currentValue >= targetValue
+            return currentValue >= targetValue - tolerance
         }
     }
 

@@ -138,7 +138,7 @@ struct TrendsView: View {
                         onComplete: { goalVM.completeGoal() },
                         onAbandon: { goalVM.abandonGoal() }
                     )
-                    .presentationDetents([.fraction(0.45)])
+                    .presentationDetents([.fraction(0.35)])
                     .presentationDragIndicator(.hidden)
                     .presentationBackground(CadreColors.card)
                 }
