@@ -116,6 +116,7 @@ struct NowView: View {
                 if goalVM == nil {
                     goalVM = GoalViewModel(modelContext: modelContext)
                 }
+                goalVM?.refresh()
             }
             .overlay {
                 if showGoalReached {
