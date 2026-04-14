@@ -15,6 +15,7 @@ struct SetGoalSheet: View {
     @State private var targetText: String = ""
     @State private var hasDate: Bool = false
     @State private var targetDate: Date
+    @State private var showDatePicker = false
 
     init(
         goalVM: GoalViewModel,
@@ -73,7 +74,7 @@ struct SetGoalSheet: View {
                             dateToggleRow
                             if hasDate {
                                 divider
-                                datePickerRow
+                                dateTappableRow
                             }
                         }
 
@@ -85,10 +86,42 @@ struct SetGoalSheet: View {
                     .padding(.top, 16)
                     .padding(.bottom, 40)
                 }
+
+                // Date picker overlay — floats on top without affecting layout
+                if showDatePicker {
+                    Color.black.opacity(0.5)
+                        .ignoresSafeArea()
+                        .onTapGesture {
+                            withAnimation { showDatePicker = false }
+                        }
+
+                    VStack {
+                        DatePicker("", selection: $targetDate, in: Date()..., displayedComponents: .date)
+                            .datePickerStyle(.graphical)
+                            .tint(CadreColors.accent)
+                            .labelsHidden()
+                            .padding()
+                            .background(
+                                RoundedRectangle(cornerRadius: 16)
+                                    .fill(CadreColors.card)
+                            )
+                            .padding(.horizontal, 16)
+                    }
+                }
             }
             .navigationTitle(titleText)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
+                ToolbarItemGroup(placement: .keyboard) {
+                    Spacer()
+                    Button("Done") {
+                        UIApplication.shared.sendAction(
+                            #selector(UIResponder.resignFirstResponder),
+                            to: nil, from: nil, for: nil
+                        )
+                    }
+                    .font(.system(size: 15, weight: .semibold))
+                }
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") {
                         dismiss()
@@ -190,17 +223,25 @@ struct SetGoalSheet: View {
         .padding(.vertical, 14)
     }
 
-    private var datePickerRow: some View {
-        DatePicker(
-            "",
-            selection: $targetDate,
-            in: Date()...,
-            displayedComponents: .date
-        )
-        .datePickerStyle(.graphical)
-        .tint(CadreColors.accent)
-        .padding(.horizontal, 8)
-        .padding(.bottom, 8)
+    private var dateTappableRow: some View {
+        Button {
+            withAnimation(.easeInOut(duration: 0.25)) {
+                showDatePicker.toggle()
+            }
+        } label: {
+            HStack {
+                Text(targetDate, style: .date)
+                    .font(.system(size: 15))
+                    .foregroundStyle(CadreColors.textPrimary)
+                Spacer()
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 12, weight: .medium))
+                    .foregroundStyle(CadreColors.textTertiary)
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 14)
+        }
+        .buttonStyle(.plain)
     }
 
     // MARK: - Save button

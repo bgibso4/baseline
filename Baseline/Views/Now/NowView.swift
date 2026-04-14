@@ -88,7 +88,7 @@ struct NowView: View {
                             let target = goal.targetValue
                             let start = goal.startValue
                             let startDate = goal.startDate
-                            if goalVM.checkCompletion(metricKey: "weight", currentValue: displayWeight) {
+                            if goalVM.checkCompletion(metricKey: TrendMetric.weight.rawValue, currentValue: displayWeight) {
                                 reachedGoalTarget = target
                                 reachedGoalStart = start
                                 reachedGoalStartDate = startDate
