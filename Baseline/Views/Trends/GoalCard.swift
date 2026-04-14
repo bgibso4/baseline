@@ -35,6 +35,7 @@ struct GoalCard: View {
             }
             .padding(.horizontal, 14)
             .padding(.vertical, 14)
+            .contentShape(Rectangle())
             .background(
                 RoundedRectangle(cornerRadius: CadreRadius.md)
                     .stroke(

@@ -106,6 +106,9 @@ struct SetGoalSheet: View {
                                     .fill(CadreColors.card)
                             )
                             .padding(.horizontal, 16)
+                            .onChange(of: targetDate) { _, _ in
+                                withAnimation { showDatePicker = false }
+                            }
                     }
                 }
             }
