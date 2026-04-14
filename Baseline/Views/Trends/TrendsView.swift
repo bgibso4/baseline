@@ -54,6 +54,7 @@ struct TrendsView: View {
     @State private var goalVM: GoalViewModel?
     @State private var showSetGoal = false
     @State private var showManageGoal = false
+    @State private var showEditGoal = false
     @State private var showMetricSheet = false
     @State private var compareEnabled = false
     @State private var secondaryMetric: TrendMetric?
@@ -122,6 +123,33 @@ struct TrendsView: View {
                         goalVM: goalVM,
                         defaultMetric: vm?.selectedMetric ?? .weight,
                         currentValue: vm?.dataPoints.last?.value
+                    )
+                    .presentationDetents([.medium])
+                    .presentationDragIndicator(.hidden)
+                }
+            }
+            .sheet(isPresented: $showManageGoal) {
+                if let goalVM, let goal = goalVM.activeGoal {
+                    GoalManageSheet(
+                        goal: goal,
+                        currentValue: vm?.dataPoints.last?.value ?? 0,
+                        unit: vm?.selectedMetric.unit ?? "",
+                        onEdit: { showEditGoal = true },
+                        onComplete: { goalVM.completeGoal() },
+                        onAbandon: { goalVM.abandonGoal() }
+                    )
+                    .presentationDetents([.medium])
+                    .presentationDragIndicator(.hidden)
+                    .presentationBackground(CadreColors.card)
+                }
+            }
+            .sheet(isPresented: $showEditGoal) {
+                if let goalVM, let goal = goalVM.activeGoal {
+                    SetGoalSheet(
+                        goalVM: goalVM,
+                        defaultMetric: vm?.selectedMetric ?? .weight,
+                        currentValue: vm?.dataPoints.last?.value,
+                        editingGoal: goal
                     )
                     .presentationDetents([.medium])
                     .presentationDragIndicator(.hidden)
