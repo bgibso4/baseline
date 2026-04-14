@@ -11,9 +11,9 @@ enum GoalStatus: String, Codable {
 final class Goal {
     var id: UUID = UUID()
     var metric: String = ""
-    var targetValue: Double = 0.0
+    @Attribute(.allowsCloudEncryption) var targetValue: Double = 0.0
     var targetDate: Date?
-    var startValue: Double = 0.0
+    @Attribute(.allowsCloudEncryption) var startValue: Double = 0.0
     var startDate: Date = Date()
     var status: GoalStatus = GoalStatus.active
     var completedDate: Date?

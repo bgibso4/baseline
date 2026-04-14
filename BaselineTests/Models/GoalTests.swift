@@ -146,6 +146,30 @@ final class GoalTests: XCTestCase {
         XCTAssertEqual(cuttingGoal.remaining(currentValue: 175.0), 0.0, accuracy: 0.001)
     }
 
+    // MARK: - CloudKit Encryption
+
+    func testHealthFieldsAllowCloudEncryption() throws {
+        let schema = Schema([Goal.self])
+        let entity = try XCTUnwrap(schema.entities.first(where: { $0.name == "Goal" }))
+
+        let targetAttr = try XCTUnwrap(entity.attributes.first(where: { $0.name == "targetValue" }))
+        XCTAssertTrue(targetAttr.options.contains(.allowsCloudEncryption), "targetValue must allow cloud encryption")
+
+        let startAttr = try XCTUnwrap(entity.attributes.first(where: { $0.name == "startValue" }))
+        XCTAssertTrue(startAttr.options.contains(.allowsCloudEncryption), "startValue must allow cloud encryption")
+    }
+
+    func testStructuralFieldsNotEncrypted() throws {
+        let schema = Schema([Goal.self])
+        let entity = try XCTUnwrap(schema.entities.first(where: { $0.name == "Goal" }))
+
+        let metricAttr = try XCTUnwrap(entity.attributes.first(where: { $0.name == "metric" }))
+        XCTAssertFalse(metricAttr.options.contains(.allowsCloudEncryption), "metric must not be encrypted (needed for queries)")
+
+        let statusAttr = try XCTUnwrap(entity.attributes.first(where: { $0.name == "status" }))
+        XCTAssertFalse(statusAttr.options.contains(.allowsCloudEncryption), "status must not be encrypted (needed for queries)")
+    }
+
     // MARK: - testDaysRemaining
 
     func testDaysRemaining() {

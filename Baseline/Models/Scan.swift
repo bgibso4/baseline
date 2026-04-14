@@ -7,8 +7,8 @@ final class Scan {
     var date: Date = Date()
     var type: String = ""
     var source: String = ""
-    var notes: String?
-    var payloadData: Data = Data()
+    @Attribute(.allowsCloudEncryption) var notes: String?
+    @Attribute(.allowsCloudEncryption) var payloadData: Data = Data()
     var createdAt: Date = Date()
     var updatedAt: Date = Date()
 

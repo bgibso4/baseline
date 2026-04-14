@@ -75,6 +75,9 @@ Running backlog of improvements, features, and fixes for Baseline.
 - [ ] **LLM vision upgrade** — Send scan image to Claude/GPT for structured extraction. The definitive solution for accuracy
 - [ ] **More scan types** — InBody 770, 270, DEXA. "More coming soon" placeholder already in UI
 
+### Goal Tracking
+- [ ] **Auto-detect goal completion for scans/measurements** — Wire checkCompletion after scan save (ScanEntryViewModel) and measurement save (LogMeasurementSheet) for non-weight goals like body fat %, waist size, etc.
+
 ### Features
 - [ ] **Apple Watch app** — Log weight from wrist, complication on watch face
 - [ ] **Siri Shortcuts** — Quick log from Siri
@@ -94,3 +97,4 @@ Running backlog of improvements, features, and fixes for Baseline.
 - [x] **Multi-photo hint** — "Multiple photos improve accuracy" on scan method card
 - [x] **Overwrite scan warning** — "Replace Existing Scan?" alert when saving on a date that already has a scan
 - [x] ~~Moving average line~~ — Already built (7-day rolling average on trends chart)
+- [x] **Guideline 5.1.3 compliance** — CloudKit fields encrypted with `.allowsCloudEncryption`, sync monitor added for keychain reset edge case

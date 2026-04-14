@@ -59,6 +59,35 @@ final class WeightEntryTests: XCTestCase {
         XCTAssertNotNil(entry.createdAt)
     }
 
+    // MARK: - CloudKit Encryption
+
+    func testHealthFieldsAllowCloudEncryption() throws {
+        let schema = Schema([WeightEntry.self])
+        let entity = try XCTUnwrap(schema.entities.first(where: { $0.name == "WeightEntry" }))
+
+        let weightAttr = try XCTUnwrap(entity.attributes.first(where: { $0.name == "weight" }))
+        XCTAssertTrue(weightAttr.options.contains(.allowsCloudEncryption), "weight must allow cloud encryption")
+
+        let notesAttr = try XCTUnwrap(entity.attributes.first(where: { $0.name == "notes" }))
+        XCTAssertTrue(notesAttr.options.contains(.allowsCloudEncryption), "notes must allow cloud encryption")
+
+        let photoAttr = try XCTUnwrap(entity.attributes.first(where: { $0.name == "photoData" }))
+        XCTAssertTrue(photoAttr.options.contains(.allowsCloudEncryption), "photoData must allow cloud encryption")
+    }
+
+    func testStructuralFieldsNotEncrypted() throws {
+        let schema = Schema([WeightEntry.self])
+        let entity = try XCTUnwrap(schema.entities.first(where: { $0.name == "WeightEntry" }))
+
+        let dateAttr = try XCTUnwrap(entity.attributes.first(where: { $0.name == "date" }))
+        XCTAssertFalse(dateAttr.options.contains(.allowsCloudEncryption), "date must not be encrypted (needed for sorting)")
+
+        let unitAttr = try XCTUnwrap(entity.attributes.first(where: { $0.name == "unit" }))
+        XCTAssertFalse(unitAttr.options.contains(.allowsCloudEncryption), "unit must not be encrypted")
+    }
+
+    // MARK: - Date Normalization
+
     func testDateStrippedToMidnight() {
         let now = Date()
         let entry = WeightEntry(weight: 197.4, date: now)

@@ -19,6 +19,7 @@ struct BaselineApp: App {
 
     init() {
         DecimalPadDoneBar.install()
+        CloudKitSyncMonitor.start()
 
         // User data — syncs to iCloud via CloudKit, stored in shared App Group container
         let cloudSchema = Schema([WeightEntry.self, Scan.self, BaselineMeasurement.self, Goal.self])

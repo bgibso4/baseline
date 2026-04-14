@@ -6,8 +6,8 @@ final class Measurement {
     var id: UUID = UUID()
     var date: Date = Date()
     var type: String = ""
-    var valueCm: Double = 0
-    var notes: String?
+    @Attribute(.allowsCloudEncryption) var valueCm: Double = 0
+    @Attribute(.allowsCloudEncryption) var notes: String?
     var createdAt: Date = Date()
     var updatedAt: Date = Date()
 

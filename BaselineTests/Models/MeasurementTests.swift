@@ -62,6 +62,30 @@ final class MeasurementTests: XCTestCase {
         }
     }
 
+    // MARK: - CloudKit Encryption
+
+    func testHealthFieldsAllowCloudEncryption() throws {
+        let schema = Schema([Measurement.self])
+        let entity = try XCTUnwrap(schema.entities.first(where: { $0.name == "Measurement" }))
+
+        let valueAttr = try XCTUnwrap(entity.attributes.first(where: { $0.name == "valueCm" }))
+        XCTAssertTrue(valueAttr.options.contains(.allowsCloudEncryption), "valueCm must allow cloud encryption")
+
+        let notesAttr = try XCTUnwrap(entity.attributes.first(where: { $0.name == "notes" }))
+        XCTAssertTrue(notesAttr.options.contains(.allowsCloudEncryption), "notes must allow cloud encryption")
+    }
+
+    func testStructuralFieldsNotEncrypted() throws {
+        let schema = Schema([Measurement.self])
+        let entity = try XCTUnwrap(schema.entities.first(where: { $0.name == "Measurement" }))
+
+        let dateAttr = try XCTUnwrap(entity.attributes.first(where: { $0.name == "date" }))
+        XCTAssertFalse(dateAttr.options.contains(.allowsCloudEncryption))
+
+        let typeAttr = try XCTUnwrap(entity.attributes.first(where: { $0.name == "type" }))
+        XCTAssertFalse(typeAttr.options.contains(.allowsCloudEncryption))
+    }
+
     func testMeasurementTypeCaseCount() {
         XCTAssertEqual(MeasurementType.allCases.count, 10)
     }

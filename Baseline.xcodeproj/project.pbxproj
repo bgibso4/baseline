@@ -89,6 +89,8 @@
 		BB87D004E462B3E0D529401F /* testWeighInSheet_DarkMode_Default.1.png in Resources */ = {isa = PBXBuildFile; fileRef = E9A19626533DA8C2F89573FB /* testWeighInSheet_DarkMode_Default.1.png */; };
 		BDA863FA90D638092A5D0806 /* BaselineWidgets.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4CBC035387A8087081A7BDD0 /* BaselineWidgets.swift */; };
 		C10684A3EC9B98187CDBA383 /* SyncHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8044E19E7B426BDCE5DA9922 /* SyncHelper.swift */; };
+		DAAD96C59AA746F0B2FE18B3 /* CloudKitSyncMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9517F95CBC894A229A0A8B90 /* CloudKitSyncMonitor.swift */; };
+		4CF8433DCFD24533BBC30BDF /* CloudKitSyncMonitorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8EAC1A3AD45A4B1782D2BA0C /* CloudKitSyncMonitorTests.swift */; };
 		C1C042DFC415E09CB44AA96B /* MetricTile.swift in Sources */ = {isa = PBXBuildFile; fileRef = F48EFFC280B6AF1B4D90AADE /* MetricTile.swift */; };
 		C5E95429DB3589EB7DB387E7 /* testTrendsView_DarkMode_EmptyState.1.png in Resources */ = {isa = PBXBuildFile; fileRef = BCFBF3D91364BB542C8564A7 /* testTrendsView_DarkMode_EmptyState.1.png */; };
 		CD47B6562AAE37739E2FADD0 /* BaselineTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 52A47437C87E1BCE8442A2FF /* BaselineTests.swift */; };
@@ -197,6 +199,8 @@
 		7C5711FD50AF3ED47B8906EC /* WeighInViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeighInViewModelTests.swift; sourceTree = "<group>"; };
 		7FB8FE60E06088A3CD2FDE17 /* MeasurementType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeasurementType.swift; sourceTree = "<group>"; };
 		8044E19E7B426BDCE5DA9922 /* SyncHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncHelper.swift; sourceTree = "<group>"; };
+		9517F95CBC894A229A0A8B90 /* CloudKitSyncMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudKitSyncMonitor.swift; sourceTree = "<group>"; };
+		8EAC1A3AD45A4B1782D2BA0C /* CloudKitSyncMonitorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudKitSyncMonitorTests.swift; sourceTree = "<group>"; };
 		80B55EB26A45854292DC73E4 /* AppState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppState.swift; sourceTree = "<group>"; };
 		88AF6FD6DF3173BDBDB33E58 /* Baseline.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Baseline.entitlements; sourceTree = "<group>"; };
 		8B2778585A57DC61D42C98DD /* testScanEntry_ManualForm.1.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = testScanEntry_ManualForm.1.png; sourceTree = "<group>"; };
@@ -299,7 +303,8 @@
 			children = (
 				FD91A7FB375167742BA11341 /* APIClientTests.swift */,
 				E332C18AA2C4ABD37FADD6A6 /* OutboundMirrorTests.swift */,
-			);
+			
+				8EAC1A3AD45A4B1782D2BA0C /* CloudKitSyncMonitorTests.swift */,);
 			path = Sync;
 			sourceTree = "<group>";
 		};
@@ -496,7 +501,8 @@
 				BE0CAF219477F20F228790BD /* MirrorableRecord.swift */,
 				9B617A136820EEC4C39AAFEA /* OutboundMirror.swift */,
 				8044E19E7B426BDCE5DA9922 /* SyncHelper.swift */,
-			);
+			
+				9517F95CBC894A229A0A8B90 /* CloudKitSyncMonitor.swift */,);
 			path = Sync;
 			sourceTree = "<group>";
 		};
@@ -793,7 +799,8 @@
 				4F5996756FAB95C53E59DEFE /* WeighInViewModelTests.swift in Sources */,
 				D4E5F6A1B2C3D4E5F6A1B2C3 /* GoalTests.swift in Sources */,
 				7F2647C6A3C1B0DE829C5847 /* WeightEntryTests.swift in Sources */,
-			);
+			
+				4CF8433DCFD24533BBC30BDF /* CloudKitSyncMonitorTests.swift in Sources */,);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		5BA0779C5FB69F0F3F614743 /* Sources */ = {
@@ -856,7 +863,8 @@
 				D3355A1D414FF7C657BCF5A7 /* WeighInViewModel.swift in Sources */,
 				B2C3D4E5F6A1B2C3D4E5F6A1 /* Goal.swift in Sources */,
 				D0394A7C2A7BFFD92369B3B1 /* WeightEntry.swift in Sources */,
-			);
+			
+				DAAD96C59AA746F0B2FE18B3 /* CloudKitSyncMonitor.swift in Sources */,);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		D402E0CEAF7E5F57A5DEBC8A /* Sources */ = {

@@ -192,6 +192,30 @@ final class ScanTests: XCTestCase {
         XCTAssertNil(decoded.rightArmLeanPct)
     }
 
+    // MARK: - CloudKit Encryption
+
+    func testHealthFieldsAllowCloudEncryption() throws {
+        let schema = Schema([Scan.self])
+        let entity = try XCTUnwrap(schema.entities.first(where: { $0.name == "Scan" }))
+
+        let payloadAttr = try XCTUnwrap(entity.attributes.first(where: { $0.name == "payloadData" }))
+        XCTAssertTrue(payloadAttr.options.contains(.allowsCloudEncryption), "payloadData must allow cloud encryption")
+
+        let notesAttr = try XCTUnwrap(entity.attributes.first(where: { $0.name == "notes" }))
+        XCTAssertTrue(notesAttr.options.contains(.allowsCloudEncryption), "notes must allow cloud encryption")
+    }
+
+    func testStructuralFieldsNotEncrypted() throws {
+        let schema = Schema([Scan.self])
+        let entity = try XCTUnwrap(schema.entities.first(where: { $0.name == "Scan" }))
+
+        let dateAttr = try XCTUnwrap(entity.attributes.first(where: { $0.name == "date" }))
+        XCTAssertFalse(dateAttr.options.contains(.allowsCloudEncryption), "date must not be encrypted")
+
+        let typeAttr = try XCTUnwrap(entity.attributes.first(where: { $0.name == "type" }))
+        XCTAssertFalse(typeAttr.options.contains(.allowsCloudEncryption), "type must not be encrypted")
+    }
+
     // MARK: - Enums
 
     func testScanTypeCases() {
