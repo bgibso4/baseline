@@ -310,7 +310,7 @@ struct NowView: View {
     private func goalStatCell(label: String, value: Double?, unit: String, accent: Bool, daysLeft: Int?) -> some View {
         let labelColor: Color = accent ? CadreColors.accent : CadreColors.textTertiary
         let valueColor: Color = accent ? CadreColors.accent : CadreColors.textPrimary
-        return VStack(spacing: 6) {
+        return VStack(spacing: 4) {
             Text(label)
                 .font(CadreTypography.statLabel)
                 .tracking(0.5)
@@ -326,11 +326,10 @@ struct NowView: View {
                         .foregroundStyle(CadreColors.textTertiary)
                 }
             }
-            if let days = daysLeft {
-                Text("\(days) days left")
-                    .font(.system(size: 9))
-                    .foregroundStyle(CadreColors.textTertiary)
-            }
+            // Always reserve space for subtitle to keep cells equal height
+            Text(daysLeft.map { "\($0) days left" } ?? " ")
+                .font(.system(size: 9, weight: .medium))
+                .foregroundStyle(daysLeft != nil ? CadreColors.textTertiary : .clear)
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, 14)

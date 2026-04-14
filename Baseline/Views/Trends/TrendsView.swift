@@ -383,10 +383,6 @@ struct TrendsView: View {
                     .padding(.top, 10)
             }
 
-            statsBlock(points: points, unit: unit)
-                .padding(.horizontal, CadreSpacing.sheetHorizontal)
-                .padding(.top, 12)
-
             GoalCard(
                 goal: goalVM?.activeGoal,
                 currentValue: points.last?.value,
@@ -395,7 +391,7 @@ struct TrendsView: View {
                 onManageGoal: { showManageGoal = true }
             )
             .padding(.horizontal, CadreSpacing.sheetHorizontal)
-            .padding(.top, 10)
+            .padding(.top, 12)
         }
     }
 
@@ -805,10 +801,6 @@ struct TrendsView: View {
                 .padding(.horizontal, CadreSpacing.sheetHorizontal)
                 .padding(.top, 14)
 
-            statsBlock(points: points, unit: unit)
-                .padding(.horizontal, CadreSpacing.sheetHorizontal)
-                .padding(.top, 12)
-
             GoalCard(
                 goal: goalVM?.activeGoal,
                 currentValue: points.last?.value,
@@ -817,7 +809,7 @@ struct TrendsView: View {
                 onManageGoal: { showManageGoal = true }
             )
             .padding(.horizontal, CadreSpacing.sheetHorizontal)
-            .padding(.top, 10)
+            .padding(.top, 12)
         }
     }
 
