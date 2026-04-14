@@ -116,6 +116,17 @@ struct TrendsView: View {
                 .presentationDragIndicator(.hidden)
                 .presentationBackground(Color(red: 28/255, green: 28/255, blue: 34/255))
             }
+            .sheet(isPresented: $showSetGoal) {
+                if let goalVM {
+                    SetGoalSheet(
+                        goalVM: goalVM,
+                        defaultMetric: vm?.selectedMetric ?? .weight,
+                        currentValue: vm?.dataPoints.last?.value
+                    )
+                    .presentationDetents([.medium])
+                    .presentationDragIndicator(.hidden)
+                }
+            }
             .onAppear {
                 guard injectedVM == nil else { return }
                 if vm == nil {
