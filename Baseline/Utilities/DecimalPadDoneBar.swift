@@ -18,8 +18,8 @@ enum DecimalPadDoneBar {
             object: nil, queue: .main
         ) { note in
             guard let tf = note.object as? UITextField,
-                  tf.inputAccessoryView == nil,
                   isNumericKeyboard(tf.keyboardType) else { return }
+            guard tf.inputAccessoryView == nil || tf.inputAccessoryView is UIToolbar else { return }
             tf.inputAccessoryView = makeToolbar()
             tf.reloadInputViews()
         }

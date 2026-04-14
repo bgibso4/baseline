@@ -51,6 +51,10 @@ struct TrendsView: View {
     @AppStorage("lengthUnit") private var lengthUnit = "in"
 
     @State private var vm: TrendsViewModel?
+    @State private var goalVM: GoalViewModel?
+    @State private var showSetGoal = false
+    @State private var showManageGoal = false
+    @State private var showEditGoal = false
     @State private var showMetricSheet = false
     @State private var compareEnabled = false
     @State private var secondaryMetric: TrendMetric?
@@ -113,10 +117,51 @@ struct TrendsView: View {
                 .presentationDragIndicator(.hidden)
                 .presentationBackground(Color(red: 28/255, green: 28/255, blue: 34/255))
             }
+            .sheet(isPresented: $showSetGoal) {
+                if let goalVM {
+                    SetGoalSheet(
+                        goalVM: goalVM,
+                        defaultMetric: vm?.selectedMetric ?? .weight,
+                        currentValue: vm?.dataPoints.last?.value
+                    )
+                    .presentationDetents([.medium])
+                    .presentationDragIndicator(.hidden)
+                }
+            }
+            .sheet(isPresented: $showManageGoal) {
+                if let goalVM, let goal = goalVM.activeGoal(for: vm?.selectedMetric.rawValue ?? "") {
+                    GoalManageSheet(
+                        goal: goal,
+                        currentValue: vm?.dataPoints.last?.value ?? 0,
+                        unit: vm?.selectedMetric.unit ?? "",
+                        onEdit: { showEditGoal = true },
+                        onComplete: { goalVM.completeGoal(metric: goal.metric) },
+                        onAbandon: { goalVM.abandonGoal(metric: goal.metric) }
+                    )
+                    .presentationDetents([.fraction(0.35)])
+                    .presentationDragIndicator(.hidden)
+                    .presentationBackground(CadreColors.card)
+                }
+            }
+            .sheet(isPresented: $showEditGoal) {
+                if let goalVM, let goal = goalVM.activeGoal(for: vm?.selectedMetric.rawValue ?? "") {
+                    SetGoalSheet(
+                        goalVM: goalVM,
+                        defaultMetric: vm?.selectedMetric ?? .weight,
+                        currentValue: vm?.dataPoints.last?.value,
+                        editingGoal: goal
+                    )
+                    .presentationDetents([.medium])
+                    .presentationDragIndicator(.hidden)
+                }
+            }
             .onAppear {
                 guard injectedVM == nil else { return }
                 if vm == nil {
                     vm = TrendsViewModel(modelContext: modelContext)
+                }
+                if goalVM == nil {
+                    goalVM = GoalViewModel(modelContext: modelContext)
                 }
                 // Pick up metric requested by another tab (e.g. Body → Trends)
                 if let metricName = appState?.trendMetric,
@@ -338,9 +383,15 @@ struct TrendsView: View {
                     .padding(.top, 10)
             }
 
-            statsBlock(points: points, unit: unit)
-                .padding(.horizontal, CadreSpacing.sheetHorizontal)
-                .padding(.top, 12)
+            GoalCard(
+                goal: goalVM?.activeGoal(for: vm?.selectedMetric.rawValue ?? ""),
+                currentValue: points.last?.value,
+                unit: unit,
+                onSetGoal: { showSetGoal = true },
+                onManageGoal: { showManageGoal = true }
+            )
+            .padding(.horizontal, CadreSpacing.sheetHorizontal)
+            .padding(.top, 12)
         }
     }
 
@@ -484,9 +535,14 @@ struct TrendsView: View {
         let sMin = vm?.secondaryMinValue ?? 0
         let sMax = vm?.secondaryMaxValue ?? 0
 
+        // Include goal target value in the primary range so the goal line is always visible
+        let goalTarget: Double? = goalVM?.activeGoal(for: vm?.selectedMetric.rawValue ?? "")?.targetValue
+        let rangeMin = goalTarget.map { Swift.min(pMin, $0) } ?? pMin
+        let rangeMax = goalTarget.map { Swift.max(pMax, $0) } ?? pMax
+
         // For previous period: merge both ranges since they share the same scale
-        let effectiveMin = hasPreviousPeriod ? Swift.min(pMin, sMin) : pMin
-        let effectiveMax = hasPreviousPeriod ? Swift.max(pMax, sMax) : pMax
+        let effectiveMin = hasPreviousPeriod ? Swift.min(rangeMin, sMin) : rangeMin
+        let effectiveMax = hasPreviousPeriod ? Swift.max(rangeMax, sMax) : rangeMax
         let pPad = max((effectiveMax - effectiveMin) * 0.05, 0.1)
         let primaryMin = effectiveMin - pPad
         let primaryMax = effectiveMax + pPad
@@ -547,6 +603,20 @@ struct TrendsView: View {
                     .foregroundStyle(secondaryColor)
                     .lineStyle(StrokeStyle(lineWidth: 1.8, lineCap: .round, lineJoin: .round, dash: [4, 3]))
                 }
+            }
+
+            // Goal line — dotted horizontal at target value (primary chart only)
+            if !dualAxis,
+               let goal = goalVM?.activeGoal(for: vm?.selectedMetric.rawValue ?? "") {
+                RuleMark(y: .value("Goal", goal.targetValue))
+                    .foregroundStyle(CadreColors.accent.opacity(0.5))
+                    .lineStyle(StrokeStyle(lineWidth: 1.5, dash: [6, 4]))
+                    .annotation(position: .trailing, alignment: .trailing) {
+                        Text(formatGoalLabel(goal.targetValue, unit: vm?.selectedMetric.unit ?? ""))
+                            .font(.system(size: 8, weight: .bold))
+                            .foregroundStyle(CadreColors.accent)
+                            .padding(.leading, 4)
+                    }
             }
         }
         .chartXAxis {
@@ -726,9 +796,15 @@ struct TrendsView: View {
                 .padding(.horizontal, CadreSpacing.sheetHorizontal)
                 .padding(.top, 14)
 
-            statsBlock(points: points, unit: unit)
-                .padding(.horizontal, CadreSpacing.sheetHorizontal)
-                .padding(.top, 12)
+            GoalCard(
+                goal: goalVM?.activeGoal(for: vm?.selectedMetric.rawValue ?? ""),
+                currentValue: points.last?.value,
+                unit: unit,
+                onSetGoal: { showSetGoal = true },
+                onManageGoal: { showManageGoal = true }
+            )
+            .padding(.horizontal, CadreSpacing.sheetHorizontal)
+            .padding(.top, 12)
         }
     }
 
@@ -1028,6 +1104,13 @@ struct TrendsView: View {
     /// Format a value for display (1 decimal place).
     private func formatValue(_ value: Double) -> String {
         String(format: "%.1f", value)
+    }
+
+    private func formatGoalLabel(_ value: Double, unit: String) -> String {
+        let formatted = value == value.rounded() && value >= 10
+            ? String(format: "%.0f", value)
+            : String(format: "%.1f", value)
+        return formatted + " " + unit
     }
 
     /// Builds the "Mar 6 – Apr 4 · -0.8 lb / week" string under the hero.

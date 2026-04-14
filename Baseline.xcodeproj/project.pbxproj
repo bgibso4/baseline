@@ -18,6 +18,7 @@
 		0BAB7EB581FEBEC95104DC1E /* TrendsViewSnapshotTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3FFC7E5904AEB1F7A6957D2D /* TrendsViewSnapshotTests.swift */; };
 		0C50ABA464D39A2FE1AAC9FC /* MetricHistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5998E990E3771B0504227A72 /* MetricHistoryView.swift */; };
 		0D82FB85309F585B25DFA19B /* ArcIndicatorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08676595D1E00491EDB74DF5 /* ArcIndicatorView.swift */; };
+		AA22BB33CC44DD55EE66FF88 /* GoalReachedOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB33CC44DD55EE66FF77AA88 /* GoalReachedOverlay.swift */; };
 		1420080C176B26B2E12FEE83 /* HistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A472F5E582548C05BBD1A751 /* HistoryView.swift */; };
 		14FE980511237871E2644BEE /* BaselineApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 007A5A45919FF650EAB251AE /* BaselineApp.swift */; };
 		179A4D608746808CFCE3A729 /* UnitConversionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB289EC0E5CC9756E1B62116 /* UnitConversionTests.swift */; };
@@ -44,6 +45,10 @@
 		4630EE25F5933B769FFC11FF /* APIClientTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD91A7FB375167742BA11341 /* APIClientTests.swift */; };
 		4F5996756FAB95C53E59DEFE /* WeighInViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C5711FD50AF3ED47B8906EC /* WeighInViewModelTests.swift */; };
 		4FEB35F248ED1757BCA0DC3F /* NowViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E0B169BE6D18A1AF3E2C9B2 /* NowViewModel.swift */; };
+		E5F6A1B2C3D4E5F6A1B2C3D4 /* GoalViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = F6A1B2C3D4E5F6A1B2C3D4E5 /* GoalViewModel.swift */; };
+		CC11AA22BB33CC44DD55EE66 /* GoalCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD22BB33CC44DD55EE66FF77 /* GoalCard.swift */; };
+		EE11FF22AA33BB44CC55DD66 /* SetGoalSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF22AA33BB44CC55DD66EE77 /* SetGoalSheet.swift */; };
+		AA11BB22CC33DD44EE55FF66 /* GoalManageSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB22CC33DD44EE55FF66AA77 /* GoalManageSheet.swift */; };
 		50C087ECEBE50B0D8B922A8A /* HistoryViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D02782E48D9542687519EF82 /* HistoryViewModel.swift */; };
 		5890E3D66833DB31B705D1FA /* OutboundMirrorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E332C18AA2C4ABD37FADD6A6 /* OutboundMirrorTests.swift */; };
 		58CD5BFE69D3B06C2642ABCB /* DocumentScannerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F262B884AFB7AC56754A8585 /* DocumentScannerView.swift */; };
@@ -71,6 +76,8 @@
 		92B02A5AE4EBA1597947A801 /* UnitConversion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A9525A1638C18453603A9F6 /* UnitConversion.swift */; };
 		9525FADCC968F0DEB4768D53 /* ScanDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F9E0701D264BBEE3B1833E0D /* ScanDetailView.swift */; };
 		9DDDD276C649F100FFF941FE /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F33E3CB74C4DCE41C764260D /* SettingsView.swift */; };
+		B2C3D4E5F6A1B2C3D4E5F6A1 /* Goal.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F6A1B2C3D4E5F6 /* Goal.swift */; };
+		D4E5F6A1B2C3D4E5F6A1B2C3 /* GoalTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3D4E5F6A1B2C3D4E5F6A1B2 /* GoalTests.swift */; };
 		A03E1D29BD1EFF2BB8B7CD74 /* WeightEntry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 312ECD390BFC532EC10D9819 /* WeightEntry.swift */; };
 		A16B5583BE60ABD8BF6FA519 /* DoubleExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48CD5547B419BCE4B9D76860 /* DoubleExtensions.swift */; };
 		A57EEB8655AA931F183DCC5A /* ScanHistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 44F25E2DF4D4198F90CBFA5F /* ScanHistoryView.swift */; };
@@ -138,6 +145,7 @@
 		0070AF17E85C200AF4B68F44 /* WeightLockScreenWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeightLockScreenWidget.swift; sourceTree = "<group>"; };
 		007A5A45919FF650EAB251AE /* BaselineApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BaselineApp.swift; sourceTree = "<group>"; };
 		08676595D1E00491EDB74DF5 /* ArcIndicatorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArcIndicatorView.swift; sourceTree = "<group>"; };
+		BB33CC44DD55EE66FF77AA88 /* GoalReachedOverlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GoalReachedOverlay.swift; sourceTree = "<group>"; };
 		16180890AC21C5FBC902279E /* BodyViewSnapshotTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BodyViewSnapshotTests.swift; sourceTree = "<group>"; };
 		18F90EA3B79CAA8467685396 /* HealthKitManagerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthKitManagerTests.swift; sourceTree = "<group>"; };
 		1A36E8D666AC44FF62BE94B0 /* MetricPickerSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetricPickerSheet.swift; sourceTree = "<group>"; };
@@ -149,6 +157,8 @@
 		2B794C4FCDC3253893C365AB /* HistoryViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryViewModelTests.swift; sourceTree = "<group>"; };
 		2BB58E9F38A99C7C4D86D8DF /* Measurement.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Measurement.swift; sourceTree = "<group>"; };
 		2DD62082CE52C25DD0DC3AA5 /* NowViewSnapshotTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NowViewSnapshotTests.swift; sourceTree = "<group>"; };
+		A1B2C3D4E5F6A1B2C3D4E5F6 /* Goal.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Goal.swift; sourceTree = "<group>"; };
+		C3D4E5F6A1B2C3D4E5F6A1B2 /* GoalTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GoalTests.swift; sourceTree = "<group>"; };
 		312ECD390BFC532EC10D9819 /* WeightEntry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeightEntry.swift; sourceTree = "<group>"; };
 		32B28DC15F13A362B58FD326 /* HealthKitManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthKitManager.swift; sourceTree = "<group>"; };
 		33EA9A555C61700BA6F94BE2 /* testScanEntry_ReviewForm_WithLowConfidence.1.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = testScanEntry_ReviewForm_WithLowConfidence.1.png; sourceTree = "<group>"; };
@@ -171,6 +181,10 @@
 		598DECCC084B47239B6A252E /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		6DF459A44A46B33902867DBF /* ScanPayloads.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScanPayloads.swift; sourceTree = "<group>"; };
 		6E0B169BE6D18A1AF3E2C9B2 /* NowViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NowViewModel.swift; sourceTree = "<group>"; };
+		F6A1B2C3D4E5F6A1B2C3D4E5 /* GoalViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GoalViewModel.swift; sourceTree = "<group>"; };
+		DD22BB33CC44DD55EE66FF77 /* GoalCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GoalCard.swift; sourceTree = "<group>"; };
+		FF22AA33BB44CC55DD66EE77 /* SetGoalSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SetGoalSheet.swift; sourceTree = "<group>"; };
+		BB22CC33DD44EE55FF66AA77 /* GoalManageSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GoalManageSheet.swift; sourceTree = "<group>"; };
 		7029020DDDDCBA996EC07235 /* testScanEntry_TypeSelection.1.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = testScanEntry_TypeSelection.1.png; sourceTree = "<group>"; };
 		7163A3D21EC88D92F54DF5C7 /* ScanEntryViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScanEntryViewModel.swift; sourceTree = "<group>"; };
 		71F1544FF8E513297B2BF5B4 /* BodyViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BodyViewModel.swift; sourceTree = "<group>"; };
@@ -258,6 +272,7 @@
 			children = (
 				EDAFFD2ADF932608CA8B378E /* MeasurementTests.swift */,
 				D2121B6D4BDACF68F0B99C30 /* ScanTests.swift */,
+				C3D4E5F6A1B2C3D4E5F6A1B2 /* GoalTests.swift */,
 				F133F7888A7F42479BC2329D /* WeightEntryTests.swift */,
 			);
 			path = Models;
@@ -324,7 +339,10 @@
 		3BC7C789A95F943AC4BD95C8 /* Trends */ = {
 			isa = PBXGroup;
 			children = (
+					DD22BB33CC44DD55EE66FF77 /* GoalCard.swift */,
+				BB22CC33DD44EE55FF66AA77 /* GoalManageSheet.swift */,
 				1A36E8D666AC44FF62BE94B0 /* MetricPickerSheet.swift */,
+				FF22AA33BB44CC55DD66EE77 /* SetGoalSheet.swift */,
 				4F67EB45DA1DAE23E04AD404 /* TrendsView.swift */,
 			);
 			path = Trends;
@@ -381,6 +399,7 @@
 			isa = PBXGroup;
 			children = (
 				71F1544FF8E513297B2BF5B4 /* BodyViewModel.swift */,
+				F6A1B2C3D4E5F6A1B2C3D4E5 /* GoalViewModel.swift */,
 				D02782E48D9542687519EF82 /* HistoryViewModel.swift */,
 				6E0B169BE6D18A1AF3E2C9B2 /* NowViewModel.swift */,
 				7163A3D21EC88D92F54DF5C7 /* ScanEntryViewModel.swift */,
@@ -437,6 +456,7 @@
 			isa = PBXGroup;
 			children = (
 				08676595D1E00491EDB74DF5 /* ArcIndicatorView.swift */,
+				BB33CC44DD55EE66FF77AA88 /* GoalReachedOverlay.swift */,
 				F48EFFC280B6AF1B4D90AADE /* MetricTile.swift */,
 				A1F7BB657D83894D1E5B4400 /* SparklineView.swift */,
 			);
@@ -614,6 +634,7 @@
 				F4B62AE88FB82E485614E3D0 /* Scan.swift */,
 				6DF459A44A46B33902867DBF /* ScanPayloads.swift */,
 				F0FDF5DB2E481DF3A8881BD1 /* SyncState.swift */,
+				A1B2C3D4E5F6A1B2C3D4E5F6 /* Goal.swift */,
 				312ECD390BFC532EC10D9819 /* WeightEntry.swift */,
 			);
 			path = Models;
@@ -770,6 +791,7 @@
 				179A4D608746808CFCE3A729 /* UnitConversionTests.swift in Sources */,
 				E33DE75325B986802BA1D6C0 /* WeighInSheetSnapshotTests.swift in Sources */,
 				4F5996756FAB95C53E59DEFE /* WeighInViewModelTests.swift in Sources */,
+				D4E5F6A1B2C3D4E5F6A1B2C3 /* GoalTests.swift in Sources */,
 				7F2647C6A3C1B0DE829C5847 /* WeightEntryTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -781,6 +803,7 @@
 				E0288A71F6279F2726D154B0 /* APIClient.swift in Sources */,
 				4468566A53F28207A9455BBB /* AppState.swift in Sources */,
 				0D82FB85309F585B25DFA19B /* ArcIndicatorView.swift in Sources */,
+				AA22BB33CC44DD55EE66FF88 /* GoalReachedOverlay.swift in Sources */,
 				14FE980511237871E2644BEE /* BaselineApp.swift in Sources */,
 				785C5DEE4B6E4E89A3FB7D25 /* BaselineTips.swift in Sources */,
 				91FD42A3C02E08E269B0F10E /* BodyView.swift in Sources */,
@@ -808,6 +831,7 @@
 				D2A1F9D86C1D03A751893F99 /* MirrorableRecord.swift in Sources */,
 				25952DDEC892809F909C7E92 /* NowView.swift in Sources */,
 				4FEB35F248ED1757BCA0DC3F /* NowViewModel.swift in Sources */,
+				E5F6A1B2C3D4E5F6A1B2C3D4 /* GoalViewModel.swift in Sources */,
 				04F44A835CB9B8EACDFF760F /* OutboundMirror.swift in Sources */,
 				2EE2989E437EB8C57BBBE7F4 /* Scan.swift in Sources */,
 				9525FADCC968F0DEB4768D53 /* ScanDetailView.swift in Sources */,
@@ -822,11 +846,15 @@
 				C10684A3EC9B98187CDBA383 /* SyncHelper.swift in Sources */,
 				B75C84191E094A7A6442247B /* SyncState.swift in Sources */,
 				1D2B86EC0CD2F6E04169B12A /* TestDataSeeder.swift in Sources */,
+				CC11AA22BB33CC44DD55EE66 /* GoalCard.swift in Sources */,
+				AA11BB22CC33DD44EE55FF66 /* GoalManageSheet.swift in Sources */,
+				EE11FF22AA33BB44CC55DD66 /* SetGoalSheet.swift in Sources */,
 				353ED107DFB67E0B0D3C0B01 /* TrendsView.swift in Sources */,
 				921D43A164E135DC0C85E731 /* TrendsViewModel.swift in Sources */,
 				92B02A5AE4EBA1597947A801 /* UnitConversion.swift in Sources */,
 				E9AE862F20C7238325BF97E0 /* WeighInSheet.swift in Sources */,
 				D3355A1D414FF7C657BCF5A7 /* WeighInViewModel.swift in Sources */,
+				B2C3D4E5F6A1B2C3D4E5F6A1 /* Goal.swift in Sources */,
 				D0394A7C2A7BFFD92369B3B1 /* WeightEntry.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

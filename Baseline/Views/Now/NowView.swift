@@ -14,10 +14,16 @@ struct NowView: View {
     @AppStorage("weightUnit") private var weightUnit = "lb"
 
     @State private var vm: NowViewModel?
+    @State private var goalVM: GoalViewModel?
+    @State private var showGoalStats = true
     @State private var showWeighIn = false
     @State private var showSettings = false
     @State private var showHistory = false
     @State private var selectedRange: StatsRange = .thirtyDays
+    @State private var showGoalReached = false
+    @State private var reachedGoalTarget: Double = 0
+    @State private var reachedGoalStart: Double = 0
+    @State private var reachedGoalStartDate: Date = Date()
 
     /// When non-nil, the view uses this VM directly and skips the `.onAppear`
     /// lazy init. Lets snapshot/unit tests pre-load state synchronously.
@@ -72,7 +78,24 @@ struct NowView: View {
                 WeighInSheet(
                     lastWeight: vm?.todayEntry?.weight ?? vm?.lastWeight,
                     unit: vm?.unit ?? "lb",
-                    onSave: { vm?.refresh() }
+                    onSave: {
+                        vm?.refresh()
+                        // Check goal completion after refresh
+                        if let goalVM, let goal = goalVM.activeWeightGoal {
+                            let currentWeight = vm?.todayEntry?.weight ?? 0
+                            let displayWeight = UnitConversion.displayWeight(currentWeight, storedUnit: vm?.todayEntry?.unit ?? "lb")
+                            // Capture goal info before completion marks it done
+                            let target = goal.targetValue
+                            let start = goal.startValue
+                            let startDate = goal.startDate
+                            if goalVM.checkCompletion(metricKey: TrendMetric.weight.rawValue, currentValue: displayWeight) {
+                                reachedGoalTarget = target
+                                reachedGoalStart = start
+                                reachedGoalStartDate = startDate
+                                showGoalReached = true
+                            }
+                        }
+                    }
                 )
                 .presentationDragIndicator(.hidden)
             }
@@ -90,6 +113,27 @@ struct NowView: View {
                     vm = NowViewModel(modelContext: modelContext)
                 }
                 vm?.refresh()
+                if goalVM == nil {
+                    goalVM = GoalViewModel(modelContext: modelContext)
+                }
+                goalVM?.refresh()
+            }
+            .overlay {
+                if showGoalReached {
+                    GoalReachedOverlay(
+                        targetValue: reachedGoalTarget,
+                        startValue: reachedGoalStart,
+                        unit: vm?.unit ?? "lb",
+                        startDate: reachedGoalStartDate,
+                        onNewGoal: {
+                            showGoalReached = false
+                            // Goal is already completed, user can go to Trends to set a new one
+                        },
+                        onDismiss: {
+                            showGoalReached = false
+                        }
+                    )
+                }
             }
         }
     }
@@ -205,7 +249,25 @@ struct NowView: View {
 
     private var bottomBlock: some View {
         VStack(spacing: 18) {
-            statsCard
+            if goalVM?.activeWeightGoal != nil, showGoalStats {
+                goalStatsCard
+                    .onTapGesture {
+                        withAnimation(.snappy(duration: 0.25)) {
+                            showGoalStats.toggle()
+                        }
+                        Haptics.selection()
+                    }
+            } else {
+                statsCard
+                    .onTapGesture {
+                        if goalVM?.activeWeightGoal != nil {
+                            withAnimation(.snappy(duration: 0.25)) {
+                                showGoalStats.toggle()
+                            }
+                            Haptics.selection()
+                        }
+                    }
+            }
             weighInButton
         }
     }
@@ -219,6 +281,56 @@ struct NowView: View {
         }
         .background(CadreColors.divider)
         .clipShape(RoundedRectangle(cornerRadius: 14))
+    }
+
+    private var goalStatsCard: some View {
+        let unit = vm?.unit ?? "lb"
+        let currentEntry = vm?.todayEntry ?? vm?.recentWeights.first
+        let currentDisplay: Double? = currentEntry.map { displayWeight(for: $0) }
+        let goal = goalVM?.activeWeightGoal
+        let targetDisplay: Double? = goal.map { UnitConversion.displayWeight($0.targetValue, storedUnit: "lb") }
+        let remaining: Double? = {
+            guard let goal, currentDisplay != nil else { return nil }
+            // Use stored unit value for goal computation (goal.targetValue is in stored units)
+            let currentStored = currentEntry.map { $0.weight } ?? 0.0
+            return goal.remaining(currentValue: currentStored)
+        }()
+        let remainingDisplay: Double? = remaining.map { UnitConversion.displayWeight($0, storedUnit: "lb") }
+        let daysLeft: Int? = goal?.daysRemaining
+
+        return HStack(spacing: 1) {
+            goalStatCell(label: "CURRENT", value: currentDisplay, unit: unit, accent: false, daysLeft: nil)
+            goalStatCell(label: "TARGET", value: targetDisplay, unit: unit, accent: true, daysLeft: nil)
+            goalStatCell(label: daysLeft.map { "TO GO (\($0)d)" } ?? "TO GO", value: remainingDisplay, unit: unit, accent: false, daysLeft: nil)
+        }
+        .background(CadreColors.divider)
+        .clipShape(RoundedRectangle(cornerRadius: 14))
+    }
+
+    private func goalStatCell(label: String, value: Double?, unit: String, accent: Bool, daysLeft: Int?) -> some View {
+        let labelColor: Color = accent ? CadreColors.accent : CadreColors.textTertiary
+        let valueColor: Color = accent ? CadreColors.accent : CadreColors.textPrimary
+        return VStack(spacing: 6) {
+            Text(label)
+                .font(CadreTypography.statLabel)
+                .tracking(0.5)
+                .foregroundStyle(labelColor)
+            HStack(alignment: .firstTextBaseline, spacing: 2) {
+                Text(value.map { UnitConversion.formatWeight($0, unit: unit) } ?? "—")
+                    .font(CadreTypography.statValue)
+                    .foregroundStyle(valueColor)
+                    .contentTransition(.numericText())
+                if value != nil {
+                    Text(unit)
+                        .font(CadreTypography.statUnit)
+                        .foregroundStyle(CadreColors.textTertiary)
+                }
+            }
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 14)
+        .padding(.horizontal, 6)
+        .background(CadreColors.card)
     }
 
     private func statCell(label: String, value: Double?) -> some View {
