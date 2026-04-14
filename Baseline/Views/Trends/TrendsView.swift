@@ -500,9 +500,18 @@ struct TrendsView: View {
         let sMin = vm?.secondaryMinValue ?? 0
         let sMax = vm?.secondaryMaxValue ?? 0
 
+        // Include goal target value in the primary range so the goal line is always visible
+        let goalTarget: Double? = {
+            guard let goal = goalVM?.activeGoal,
+                  goal.metric == vm?.selectedMetric.rawValue else { return nil }
+            return goal.targetValue
+        }()
+        let rangeMin = goalTarget.map { Swift.min(pMin, $0) } ?? pMin
+        let rangeMax = goalTarget.map { Swift.max(pMax, $0) } ?? pMax
+
         // For previous period: merge both ranges since they share the same scale
-        let effectiveMin = hasPreviousPeriod ? Swift.min(pMin, sMin) : pMin
-        let effectiveMax = hasPreviousPeriod ? Swift.max(pMax, sMax) : pMax
+        let effectiveMin = hasPreviousPeriod ? Swift.min(rangeMin, sMin) : rangeMin
+        let effectiveMax = hasPreviousPeriod ? Swift.max(rangeMax, sMax) : rangeMax
         let pPad = max((effectiveMax - effectiveMin) * 0.05, 0.1)
         let primaryMin = effectiveMin - pPad
         let primaryMax = effectiveMax + pPad
@@ -563,6 +572,21 @@ struct TrendsView: View {
                     .foregroundStyle(secondaryColor)
                     .lineStyle(StrokeStyle(lineWidth: 1.8, lineCap: .round, lineJoin: .round, dash: [4, 3]))
                 }
+            }
+
+            // Goal line — dotted horizontal at target value (primary chart only)
+            if !dualAxis,
+               let goal = goalVM?.activeGoal,
+               goal.metric == vm?.selectedMetric.rawValue {
+                RuleMark(y: .value("Goal", goal.targetValue))
+                    .foregroundStyle(CadreColors.accent.opacity(0.5))
+                    .lineStyle(StrokeStyle(lineWidth: 1.5, dash: [6, 4]))
+                    .annotation(position: .trailing, alignment: .trailing) {
+                        Text(formatGoalLabel(goal.targetValue, unit: vm?.selectedMetric.unit ?? ""))
+                            .font(.system(size: 8, weight: .bold))
+                            .foregroundStyle(CadreColors.accent)
+                            .padding(.leading, 4)
+                    }
             }
         }
         .chartXAxis {
@@ -1054,6 +1078,13 @@ struct TrendsView: View {
     /// Format a value for display (1 decimal place).
     private func formatValue(_ value: Double) -> String {
         String(format: "%.1f", value)
+    }
+
+    private func formatGoalLabel(_ value: Double, unit: String) -> String {
+        let formatted = value == value.rounded() && value >= 10
+            ? String(format: "%.0f", value)
+            : String(format: "%.1f", value)
+        return formatted + " " + unit
     }
 
     /// Builds the "Mar 6 – Apr 4 · -0.8 lb / week" string under the hero.
