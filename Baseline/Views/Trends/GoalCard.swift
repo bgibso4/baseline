@@ -54,7 +54,8 @@ struct GoalCard: View {
         let progressValue = goal.progress(currentValue: current)
         let remaining = goal.remaining(currentValue: current)
 
-        return VStack(spacing: 0) {
+        return Button(action: onManageGoal) {
+        VStack(spacing: 0) {
             // Header
             HStack(spacing: 0) {
                 if let targetDate = goal.targetDate {
@@ -69,14 +70,9 @@ struct GoalCard: View {
                         .foregroundStyle(CadreColors.accent)
                 }
                 Spacer()
-                Button(action: onManageGoal) {
-                    Image(systemName: "ellipsis")
-                        .font(.system(size: 13, weight: .medium))
-                        .foregroundStyle(CadreColors.textSecondary)
-                        .frame(width: 28, height: 28)
-                        .contentShape(Rectangle())
-                }
-                .buttonStyle(.plain)
+                Image(systemName: "ellipsis")
+                    .font(.system(size: 13, weight: .medium))
+                    .foregroundStyle(CadreColors.textSecondary)
             }
             .padding(.horizontal, 14)
             .padding(.top, 12)
@@ -154,6 +150,7 @@ struct GoalCard: View {
             .padding(.horizontal, 14)
             .padding(.bottom, 12)
         }
+        .contentShape(Rectangle())
         .background(
             RoundedRectangle(cornerRadius: CadreRadius.md)
                 .fill(CadreColors.card)
@@ -162,6 +159,8 @@ struct GoalCard: View {
                         .stroke(CadreColors.divider, lineWidth: 1)
                 )
         )
+        }
+        .buttonStyle(.plain)
     }
 
     // MARK: - Helpers
