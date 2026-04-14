@@ -20,6 +20,10 @@ struct NowView: View {
     @State private var showSettings = false
     @State private var showHistory = false
     @State private var selectedRange: StatsRange = .thirtyDays
+    @State private var showGoalReached = false
+    @State private var reachedGoalTarget: Double = 0
+    @State private var reachedGoalStart: Double = 0
+    @State private var reachedGoalStartDate: Date = Date()
 
     /// When non-nil, the view uses this VM directly and skips the `.onAppear`
     /// lazy init. Lets snapshot/unit tests pre-load state synchronously.
@@ -74,7 +78,24 @@ struct NowView: View {
                 WeighInSheet(
                     lastWeight: vm?.todayEntry?.weight ?? vm?.lastWeight,
                     unit: vm?.unit ?? "lb",
-                    onSave: { vm?.refresh() }
+                    onSave: {
+                        vm?.refresh()
+                        // Check goal completion after refresh
+                        if let goalVM, let goal = goalVM.activeGoal {
+                            let currentWeight = vm?.todayEntry?.weight ?? 0
+                            let displayWeight = UnitConversion.displayWeight(currentWeight, storedUnit: vm?.todayEntry?.unit ?? "lb")
+                            // Capture goal info before completion marks it done
+                            let target = goal.targetValue
+                            let start = goal.startValue
+                            let startDate = goal.startDate
+                            if goalVM.checkCompletion(metricKey: "weight", currentValue: displayWeight) {
+                                reachedGoalTarget = target
+                                reachedGoalStart = start
+                                reachedGoalStartDate = startDate
+                                showGoalReached = true
+                            }
+                        }
+                    }
                 )
                 .presentationDragIndicator(.hidden)
             }
@@ -94,6 +115,23 @@ struct NowView: View {
                 vm?.refresh()
                 if goalVM == nil {
                     goalVM = GoalViewModel(modelContext: modelContext)
+                }
+            }
+            .overlay {
+                if showGoalReached {
+                    GoalReachedOverlay(
+                        targetValue: reachedGoalTarget,
+                        startValue: reachedGoalStart,
+                        unit: vm?.unit ?? "lb",
+                        startDate: reachedGoalStartDate,
+                        onNewGoal: {
+                            showGoalReached = false
+                            // Goal is already completed, user can go to Trends to set a new one
+                        },
+                        onDismiss: {
+                            showGoalReached = false
+                        }
+                    )
                 }
             }
         }

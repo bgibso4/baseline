@@ -18,6 +18,7 @@
 		0BAB7EB581FEBEC95104DC1E /* TrendsViewSnapshotTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3FFC7E5904AEB1F7A6957D2D /* TrendsViewSnapshotTests.swift */; };
 		0C50ABA464D39A2FE1AAC9FC /* MetricHistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5998E990E3771B0504227A72 /* MetricHistoryView.swift */; };
 		0D82FB85309F585B25DFA19B /* ArcIndicatorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08676595D1E00491EDB74DF5 /* ArcIndicatorView.swift */; };
+		AA22BB33CC44DD55EE66FF88 /* GoalReachedOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB33CC44DD55EE66FF77AA88 /* GoalReachedOverlay.swift */; };
 		1420080C176B26B2E12FEE83 /* HistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A472F5E582548C05BBD1A751 /* HistoryView.swift */; };
 		14FE980511237871E2644BEE /* BaselineApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 007A5A45919FF650EAB251AE /* BaselineApp.swift */; };
 		179A4D608746808CFCE3A729 /* UnitConversionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB289EC0E5CC9756E1B62116 /* UnitConversionTests.swift */; };
@@ -144,6 +145,7 @@
 		0070AF17E85C200AF4B68F44 /* WeightLockScreenWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeightLockScreenWidget.swift; sourceTree = "<group>"; };
 		007A5A45919FF650EAB251AE /* BaselineApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BaselineApp.swift; sourceTree = "<group>"; };
 		08676595D1E00491EDB74DF5 /* ArcIndicatorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArcIndicatorView.swift; sourceTree = "<group>"; };
+		BB33CC44DD55EE66FF77AA88 /* GoalReachedOverlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GoalReachedOverlay.swift; sourceTree = "<group>"; };
 		16180890AC21C5FBC902279E /* BodyViewSnapshotTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BodyViewSnapshotTests.swift; sourceTree = "<group>"; };
 		18F90EA3B79CAA8467685396 /* HealthKitManagerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthKitManagerTests.swift; sourceTree = "<group>"; };
 		1A36E8D666AC44FF62BE94B0 /* MetricPickerSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetricPickerSheet.swift; sourceTree = "<group>"; };
@@ -454,6 +456,7 @@
 			isa = PBXGroup;
 			children = (
 				08676595D1E00491EDB74DF5 /* ArcIndicatorView.swift */,
+				BB33CC44DD55EE66FF77AA88 /* GoalReachedOverlay.swift */,
 				F48EFFC280B6AF1B4D90AADE /* MetricTile.swift */,
 				A1F7BB657D83894D1E5B4400 /* SparklineView.swift */,
 			);
@@ -800,6 +803,7 @@
 				E0288A71F6279F2726D154B0 /* APIClient.swift in Sources */,
 				4468566A53F28207A9455BBB /* AppState.swift in Sources */,
 				0D82FB85309F585B25DFA19B /* ArcIndicatorView.swift in Sources */,
+				AA22BB33CC44DD55EE66FF88 /* GoalReachedOverlay.swift in Sources */,
 				14FE980511237871E2644BEE /* BaselineApp.swift in Sources */,
 				785C5DEE4B6E4E89A3FB7D25 /* BaselineTips.swift in Sources */,
 				91FD42A3C02E08E269B0F10E /* BodyView.swift in Sources */,
