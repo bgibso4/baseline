@@ -14,6 +14,8 @@ struct NowView: View {
     @AppStorage("weightUnit") private var weightUnit = "lb"
 
     @State private var vm: NowViewModel?
+    @State private var goalVM: GoalViewModel?
+    @State private var showGoalStats = true
     @State private var showWeighIn = false
     @State private var showSettings = false
     @State private var showHistory = false
@@ -90,6 +92,9 @@ struct NowView: View {
                     vm = NowViewModel(modelContext: modelContext)
                 }
                 vm?.refresh()
+                if goalVM == nil {
+                    goalVM = GoalViewModel(modelContext: modelContext)
+                }
             }
         }
     }
@@ -205,7 +210,25 @@ struct NowView: View {
 
     private var bottomBlock: some View {
         VStack(spacing: 18) {
-            statsCard
+            if goalVM?.activeGoal != nil && showGoalStats {
+                goalStatsCard
+                    .onTapGesture {
+                        withAnimation(.snappy(duration: 0.25)) {
+                            showGoalStats.toggle()
+                        }
+                        Haptics.selection()
+                    }
+            } else {
+                statsCard
+                    .onTapGesture {
+                        if goalVM?.activeGoal != nil {
+                            withAnimation(.snappy(duration: 0.25)) {
+                                showGoalStats.toggle()
+                            }
+                            Haptics.selection()
+                        }
+                    }
+            }
             weighInButton
         }
     }
@@ -219,6 +242,61 @@ struct NowView: View {
         }
         .background(CadreColors.divider)
         .clipShape(RoundedRectangle(cornerRadius: 14))
+    }
+
+    private var goalStatsCard: some View {
+        let unit = vm?.unit ?? "lb"
+        let currentEntry = vm?.todayEntry ?? vm?.recentWeights.first
+        let currentDisplay: Double? = currentEntry.map { displayWeight(for: $0) }
+        let goal = goalVM?.activeGoal
+        let targetDisplay: Double? = goal.map { UnitConversion.displayWeight($0.targetValue, storedUnit: "lb") }
+        let remaining: Double? = {
+            guard let goal, currentDisplay != nil else { return nil }
+            // Use stored unit value for goal computation (goal.targetValue is in stored units)
+            let currentStored = currentEntry.map { $0.weight } ?? 0.0
+            return goal.remaining(currentValue: currentStored)
+        }()
+        let remainingDisplay: Double? = remaining.map { UnitConversion.displayWeight($0, storedUnit: "lb") }
+        let daysLeft: Int? = goal?.daysRemaining
+
+        return HStack(spacing: 1) {
+            goalStatCell(label: "CURRENT", value: currentDisplay, unit: unit, accent: false, daysLeft: nil)
+            goalStatCell(label: "TARGET", value: targetDisplay, unit: unit, accent: true, daysLeft: nil)
+            goalStatCell(label: "TO GO", value: remainingDisplay, unit: unit, accent: false, daysLeft: daysLeft)
+        }
+        .background(CadreColors.divider)
+        .clipShape(RoundedRectangle(cornerRadius: 14))
+    }
+
+    private func goalStatCell(label: String, value: Double?, unit: String, accent: Bool, daysLeft: Int?) -> some View {
+        let labelColor: Color = accent ? CadreColors.accent : CadreColors.textTertiary
+        let valueColor: Color = accent ? CadreColors.accent : CadreColors.textPrimary
+        return VStack(spacing: 6) {
+            Text(label)
+                .font(CadreTypography.statLabel)
+                .tracking(0.5)
+                .foregroundStyle(labelColor)
+            HStack(alignment: .firstTextBaseline, spacing: 2) {
+                Text(value.map { UnitConversion.formatWeight($0, unit: unit) } ?? "—")
+                    .font(CadreTypography.statValue)
+                    .foregroundStyle(valueColor)
+                    .contentTransition(.numericText())
+                if value != nil {
+                    Text(unit)
+                        .font(CadreTypography.statUnit)
+                        .foregroundStyle(CadreColors.textTertiary)
+                }
+            }
+            if let days = daysLeft {
+                Text("\(days) days left")
+                    .font(.system(size: 9))
+                    .foregroundStyle(CadreColors.textTertiary)
+            }
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 14)
+        .padding(.horizontal, 6)
+        .background(CadreColors.card)
     }
 
     private func statCell(label: String, value: Double?) -> some View {
