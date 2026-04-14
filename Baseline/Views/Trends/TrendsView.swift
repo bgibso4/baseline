@@ -51,6 +51,9 @@ struct TrendsView: View {
     @AppStorage("lengthUnit") private var lengthUnit = "in"
 
     @State private var vm: TrendsViewModel?
+    @State private var goalVM: GoalViewModel?
+    @State private var showSetGoal = false
+    @State private var showManageGoal = false
     @State private var showMetricSheet = false
     @State private var compareEnabled = false
     @State private var secondaryMetric: TrendMetric?
@@ -117,6 +120,9 @@ struct TrendsView: View {
                 guard injectedVM == nil else { return }
                 if vm == nil {
                     vm = TrendsViewModel(modelContext: modelContext)
+                }
+                if goalVM == nil {
+                    goalVM = GoalViewModel(modelContext: modelContext)
                 }
                 // Pick up metric requested by another tab (e.g. Body → Trends)
                 if let metricName = appState?.trendMetric,
@@ -341,6 +347,16 @@ struct TrendsView: View {
             statsBlock(points: points, unit: unit)
                 .padding(.horizontal, CadreSpacing.sheetHorizontal)
                 .padding(.top, 12)
+
+            GoalCard(
+                goal: goalVM?.activeGoal,
+                currentValue: points.last?.value,
+                unit: unit,
+                onSetGoal: { showSetGoal = true },
+                onManageGoal: { showManageGoal = true }
+            )
+            .padding(.horizontal, CadreSpacing.sheetHorizontal)
+            .padding(.top, 10)
         }
     }
 
@@ -729,6 +745,16 @@ struct TrendsView: View {
             statsBlock(points: points, unit: unit)
                 .padding(.horizontal, CadreSpacing.sheetHorizontal)
                 .padding(.top, 12)
+
+            GoalCard(
+                goal: goalVM?.activeGoal,
+                currentValue: points.last?.value,
+                unit: unit,
+                onSetGoal: { showSetGoal = true },
+                onManageGoal: { showManageGoal = true }
+            )
+            .padding(.horizontal, CadreSpacing.sheetHorizontal)
+            .padding(.top, 10)
         }
     }
 
