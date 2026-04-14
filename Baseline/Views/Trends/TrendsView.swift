@@ -384,7 +384,7 @@ struct TrendsView: View {
             }
 
             GoalCard(
-                goal: goalVM?.activeGoal,
+                goal: goalVM?.activeGoal?.metric == vm?.selectedMetric.rawValue ? goalVM?.activeGoal : nil,
                 currentValue: points.last?.value,
                 unit: unit,
                 onSetGoal: { showSetGoal = true },
@@ -802,7 +802,7 @@ struct TrendsView: View {
                 .padding(.top, 14)
 
             GoalCard(
-                goal: goalVM?.activeGoal,
+                goal: goalVM?.activeGoal?.metric == vm?.selectedMetric.rawValue ? goalVM?.activeGoal : nil,
                 currentValue: points.last?.value,
                 unit: unit,
                 onSetGoal: { showSetGoal = true },
