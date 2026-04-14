@@ -249,7 +249,7 @@ struct NowView: View {
 
     private var bottomBlock: some View {
         VStack(spacing: 18) {
-            if goalVM?.activeGoal != nil && showGoalStats {
+            if let goal = goalVM?.activeGoal, goal.metric == TrendMetric.weight.rawValue, showGoalStats {
                 goalStatsCard
                     .onTapGesture {
                         withAnimation(.snappy(duration: 0.25)) {
@@ -260,7 +260,7 @@ struct NowView: View {
             } else {
                 statsCard
                     .onTapGesture {
-                        if goalVM?.activeGoal != nil {
+                        if let goal = goalVM?.activeGoal, goal.metric == TrendMetric.weight.rawValue {
                             withAnimation(.snappy(duration: 0.25)) {
                                 showGoalStats.toggle()
                             }
