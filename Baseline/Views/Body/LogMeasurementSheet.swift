@@ -20,6 +20,7 @@ struct LogMeasurementSheet: View {
     @State private var showTypePicker = false
     @State private var showDatePicker = false
     @State private var selectedDate = Date()
+    @State private var notes: String = ""
 
     init(viewModel: BodyViewModel? = nil) {
         self.injectedVM = viewModel
@@ -107,6 +108,9 @@ struct LogMeasurementSheet: View {
 
             stepper
                 .padding(.top, 20)
+
+            notesField
+                .padding(.top, 24)
         }
     }
 
@@ -235,13 +239,24 @@ struct LogMeasurementSheet: View {
             .clipShape(Circle())
     }
 
+    private var notesField: some View {
+        TextField("Notes (optional)", text: $notes)
+            .font(.system(size: 15))
+            .foregroundStyle(CadreColors.textPrimary)
+            .padding(.horizontal, 14)
+            .padding(.vertical, 12)
+            .background(CadreColors.card)
+            .clipShape(RoundedRectangle(cornerRadius: CadreRadius.md))
+    }
+
     /// 40px margin above save per DESIGN_DECISIONS.md.
     private var saveButton: some View {
         Button {
             // Convert display value to cm for storage based on user's length preference
             let valueCm = lengthPref == "cm" ? currentValue : UnitConversion.inToCm(currentValue)
+            let trimmedNotes = notes.trimmingCharacters(in: .whitespacesAndNewlines)
             let resolvedVM = bodyVM ?? injectedVM
-            resolvedVM?.saveMeasurement(type: selectedType, valueCm: valueCm, date: selectedDate)
+            resolvedVM?.saveMeasurement(type: selectedType, valueCm: valueCm, date: selectedDate, notes: trimmedNotes.isEmpty ? nil : trimmedNotes)
             Haptics.success()
             dismiss()
         } label: {

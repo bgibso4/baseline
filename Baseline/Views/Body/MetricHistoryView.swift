@@ -1,7 +1,8 @@
 import SwiftUI
 
 /// Lightweight metric history — shows date + value rows for a single metric.
-/// Used when tapping body comp or measurement tiles on the Body tab.
+/// Used when tapping body comp or measurement tiles on the Body tab,
+/// or from the Trends "Show all entries" link for measurement metrics.
 struct MetricHistoryView: View {
     // Track unit preference so SwiftUI re-renders when it changes
     @AppStorage("lengthUnit") private var lengthUnit = "in"
@@ -9,6 +10,7 @@ struct MetricHistoryView: View {
     let metricName: String
     let unit: String
     let entries: [(date: Date, value: String)]
+    var onDelete: ((IndexSet) -> Void)?
 
     var body: some View {
         ZStack {
@@ -54,6 +56,9 @@ struct MetricHistoryView: View {
                         }
                         .listRowBackground(CadreColors.card)
                         .listRowInsets(EdgeInsets(top: 12, leading: CadreSpacing.md, bottom: 12, trailing: CadreSpacing.md))
+                    }
+                    .onDelete { indexSet in
+                        onDelete?(indexSet)
                     }
                 }
                 .listStyle(.plain)

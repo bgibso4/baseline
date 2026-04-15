@@ -170,11 +170,7 @@ struct BodyView: View {
                             .buttonStyle(.plain)
                         } else {
                             NavigationLink {
-                                MetricHistoryView(
-                                    metricName: tile.label,
-                                    unit: tile.unit,
-                                    entries: measurementHistory(for: tile.label)
-                                )
+                                measurementHistoryView(for: tile.label, unit: tile.unit)
                             } label: {
                                 MetricTile(
                                     sfSymbol: tile.sfSymbol,
@@ -430,6 +426,29 @@ struct BodyView: View {
             let display = UnitConversion.formattedLength(m.valueCm)
             return (date: m.date, value: display.text)
         }
+    }
+
+    /// Build a MetricHistoryView with swipe-to-delete for tape measurements.
+    private func measurementHistoryView(for label: String, unit: String) -> MetricHistoryView {
+        guard let type = MeasurementType.allCases.first(where: { $0.tileLabel == label }) else {
+            return MetricHistoryView(metricName: label, unit: unit, entries: [])
+        }
+        let all = vm?.allMeasurements(ofType: type) ?? []
+        let entries = all.map { m in
+            let display = UnitConversion.formattedLength(m.valueCm)
+            return (date: m.date, value: display.text)
+        }
+        return MetricHistoryView(
+            metricName: label,
+            unit: unit,
+            entries: entries,
+            onDelete: { indexSet in
+                for index in indexSet {
+                    guard index < all.count else { continue }
+                    vm?.deleteMeasurement(all[index])
+                }
+            }
+        )
     }
 
     /// Maps a body comp tile label to the corresponding Trends metric name.
