@@ -154,34 +154,11 @@ struct BodyView: View {
             if !tiles.isEmpty {
                 LazyVGrid(columns: tileColumns, spacing: 8) {
                     ForEach(tiles, id: \.label) { tile in
-                        if let trendName = trendMetricNameForMeasurement(tile.label) {
-                            Button {
-                                appState?.trendMetric = trendName
-                                appState?.selectedTab = .trends
-                            } label: {
-                                MetricTile(
-                                    sfSymbol: tile.sfSymbol,
-                                    label: tile.label,
-                                    value: tile.value,
-                                    unit: tile.unit,
-                                    delta: tile.delta
-                                )
-                            }
-                            .buttonStyle(.plain)
-                        } else {
-                            NavigationLink {
-                                measurementHistoryView(for: tile.label, unit: tile.unit)
-                            } label: {
-                                MetricTile(
-                                    sfSymbol: tile.sfSymbol,
-                                    label: tile.label,
-                                    value: tile.value,
-                                    unit: tile.unit,
-                                    delta: tile.delta
-                                )
-                            }
-                            .buttonStyle(.plain)
-                        }
+                        MeasurementTileLink(
+                            tile: tile,
+                            trendName: trendMetricNameForMeasurement(tile.label),
+                            appState: appState
+                        )
                     }
                 }
                 .padding(.horizontal, CadreSpacing.sheetHorizontal)
@@ -418,39 +395,6 @@ struct BodyView: View {
         }
     }
 
-    /// Extract full history for a tape measurement metric (reverse chronological).
-    private func measurementHistory(for label: String) -> [(date: Date, value: String)] {
-        guard let type = MeasurementType.allCases.first(where: { $0.tileLabel == label }) else { return [] }
-        let all = vm?.allMeasurements(ofType: type) ?? []
-        return all.map { m in
-            let display = UnitConversion.formattedLength(m.valueCm)
-            return (date: m.date, value: display.text)
-        }
-    }
-
-    /// Build a MetricHistoryView with swipe-to-delete for tape measurements.
-    private func measurementHistoryView(for label: String, unit: String) -> MetricHistoryView {
-        guard let type = MeasurementType.allCases.first(where: { $0.tileLabel == label }) else {
-            return MetricHistoryView(metricName: label, unit: unit, entries: [])
-        }
-        let all = vm?.allMeasurements(ofType: type) ?? []
-        let entries = all.map { m in
-            let display = UnitConversion.formattedLength(m.valueCm)
-            return (date: m.date, value: display.text)
-        }
-        return MetricHistoryView(
-            metricName: label,
-            unit: unit,
-            entries: entries,
-            onDelete: { indexSet in
-                for index in indexSet {
-                    guard index < all.count else { continue }
-                    vm?.deleteMeasurement(all[index])
-                }
-            }
-        )
-    }
-
     /// Maps a body comp tile label to the corresponding Trends metric name.
     /// All scan-derived metrics route to Trends with the matching TrendMetric.
     private func trendMetricName(for tileLabel: String) -> String? {
@@ -471,6 +415,48 @@ struct BodyView: View {
     /// All measurements navigate to their own history view, not Trends.
     private func trendMetricNameForMeasurement(_ tileLabel: String) -> String? {
         return nil
+    }
+
+    // MARK: - Measurement Tile Link
+
+    /// Extracted to a separate struct to reduce Swift type-checker complexity.
+    private struct MeasurementTileLink: View {
+        let tile: TileData
+        let trendName: String?
+        let appState: AppState?
+
+        var body: some View {
+            if let trendName {
+                Button {
+                    appState?.trendMetric = trendName
+                    appState?.selectedTab = .trends
+                } label: {
+                    MetricTile(
+                        sfSymbol: tile.sfSymbol,
+                        label: tile.label,
+                        value: tile.value,
+                        unit: tile.unit,
+                        delta: tile.delta
+                    )
+                }
+                .buttonStyle(.plain)
+            } else {
+                NavigationLink {
+                    MeasurementHistoryView(
+                        metricType: MeasurementType.allCases.first(where: { $0.tileLabel == tile.label }) ?? .waist
+                    )
+                } label: {
+                    MetricTile(
+                        sfSymbol: tile.sfSymbol,
+                        label: tile.label,
+                        value: tile.value,
+                        unit: tile.unit,
+                        delta: tile.delta
+                    )
+                }
+                .buttonStyle(.plain)
+            }
+        }
     }
 
     private var scanHistorySubtitle: String {
