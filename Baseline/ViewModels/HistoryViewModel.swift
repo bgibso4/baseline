@@ -62,6 +62,11 @@ class HistoryViewModel {
     }
 
     func update(_ entry: WeightEntry, weight: Double, notes: String, date: Date? = nil) {
+        // Delete any conflicting entry at the target date
+        if let date, let conflict = existingEntry(for: date, excluding: entry.id) {
+            modelContext.delete(conflict)
+            Log.data.info("Deleted conflicting weight entry during overwrite")
+        }
         let trimmed = notes.trimmingCharacters(in: .whitespacesAndNewlines)
         entry.weight = weight
         entry.notes = trimmed.isEmpty ? nil : trimmed
