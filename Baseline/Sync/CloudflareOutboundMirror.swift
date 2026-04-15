@@ -1,6 +1,5 @@
 import Foundation
 import SwiftData
-import os
 
 /// Cadre-build implementation of `OutboundMirror` that pushes records
 /// to Cloudflare D1 via the shared API (same endpoints Apex uses).
@@ -9,7 +8,6 @@ import os
 /// the source of truth; this mirror is purely additive.
 struct CloudflareOutboundMirror: OutboundMirror {
     private let apiClient: APIClient
-    private let logger = Logger(subsystem: "com.cadre.baseline", category: "OutboundMirror")
 
     init(apiClient: APIClient) {
         self.apiClient = apiClient
@@ -20,9 +18,9 @@ struct CloudflareOutboundMirror: OutboundMirror {
     func mirror(_ record: MirrorableRecord) async {
         let success = await apiClient.push(record)
         if success {
-            logger.debug("Mirrored record to \(record.mirrorTable)")
+            Log.sync.debug("Mirrored record to \(record.mirrorTable)")
         } else {
-            logger.warning("Failed to mirror record to \(record.mirrorTable)")
+            Log.sync.warning("Failed to mirror record to \(record.mirrorTable)")
         }
     }
 
@@ -63,16 +61,16 @@ struct CloudflareOutboundMirror: OutboundMirror {
                 records = try context.fetch(descriptor)
             }
         } catch {
-            logger.error("Reconcile fetch failed for \(tableName): \(error.localizedDescription)")
+            Log.sync.error("Reconcile fetch failed for \(tableName): \(error.localizedDescription)")
             return
         }
 
         guard !records.isEmpty else {
-            logger.debug("Reconcile: \(tableName) is up to date")
+            Log.sync.debug("Reconcile: \(tableName) is up to date")
             return
         }
 
-        logger.info("Reconcile: pushing \(records.count) records to \(tableName)")
+        Log.sync.info("Reconcile: pushing \(records.count) records to \(tableName)")
 
         var latestUpdate: Date?
         for record in records {

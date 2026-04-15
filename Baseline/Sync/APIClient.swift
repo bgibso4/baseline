@@ -64,8 +64,6 @@ struct APIClient {
     // MARK: - Private
 
     private func log(_ message: String) {
-        #if DEBUG
-        print("[APIClient] \(message)")
-        #endif
+        Log.sync.warning(message)
     }
 }

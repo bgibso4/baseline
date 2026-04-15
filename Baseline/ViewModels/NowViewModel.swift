@@ -45,7 +45,11 @@ class NowViewModel {
             predicate: #Predicate { $0.date == today }
         )
         todayDescriptor.fetchLimit = 1
-        todayEntry = try? modelContext.fetch(todayDescriptor).first
+        do {
+            todayEntry = try modelContext.fetch(todayDescriptor).first
+        } catch {
+            Log.data.error("Fetch today's weight failed", error)
+        }
 
         // Fetch most recent entry before today
         var previousDescriptor = FetchDescriptor<WeightEntry>(
@@ -53,12 +57,21 @@ class NowViewModel {
             sortBy: [SortDescriptor(\.date, order: .reverse)]
         )
         previousDescriptor.fetchLimit = 1
-        previousEntry = try? modelContext.fetch(previousDescriptor).first
+        do {
+            previousEntry = try modelContext.fetch(previousDescriptor).first
+        } catch {
+            Log.data.error("Fetch previous weight failed", error)
+        }
 
         // Fetch all weight entries for stats (filtered by range in the view)
         let recentDescriptor = FetchDescriptor<WeightEntry>(
             sortBy: [SortDescriptor(\.date, order: .forward)]
         )
-        recentWeights = (try? modelContext.fetch(recentDescriptor)) ?? []
+        do {
+            recentWeights = try modelContext.fetch(recentDescriptor)
+        } catch {
+            Log.data.error("Fetch recent weights failed", error)
+            recentWeights = []
+        }
     }
 }

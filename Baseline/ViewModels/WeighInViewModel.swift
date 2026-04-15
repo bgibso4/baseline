@@ -45,7 +45,7 @@ class WeighInViewModel {
         descriptor.fetchLimit = 1
 
         let savedEntry: WeightEntry
-        if let existing = try? modelContext.fetch(descriptor).first {
+        if let existing = (try? modelContext.fetch(descriptor))?.first {
             existing.weight = currentWeight
             existing.notes = notesToSave
             if let photo = photoData { existing.photoData = photo }
@@ -57,7 +57,12 @@ class WeighInViewModel {
             savedEntry = entry
         }
 
-        try? modelContext.save()
+        do {
+            try modelContext.save()
+            Log.data.info("Saved weight entry: \(currentWeight) \(unit)")
+        } catch {
+            Log.data.error("Save weight entry failed", error)
+        }
         SyncHelper.mirrorRecord(savedEntry)
 
         Task {

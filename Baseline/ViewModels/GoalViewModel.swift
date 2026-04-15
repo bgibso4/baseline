@@ -24,8 +24,13 @@ class GoalViewModel {
 
     func refresh() {
         let descriptor = FetchDescriptor<Goal>()
-        let all = (try? modelContext.fetch(descriptor)) ?? []
-        activeGoals = all.filter { $0.status == .active }
+        do {
+            let all = try modelContext.fetch(descriptor)
+            activeGoals = all.filter { $0.status == .active }
+        } catch {
+            Log.goal.error("Fetch goals failed", error)
+            activeGoals = []
+        }
     }
 
     func setGoal(metric: String, targetValue: Double, startValue: Double, targetDate: Date? = nil) {
@@ -33,7 +38,12 @@ class GoalViewModel {
         guard activeGoal(for: metric) == nil else { return }
         let goal = Goal(metric: metric, targetValue: targetValue, startValue: startValue, targetDate: targetDate)
         modelContext.insert(goal)
-        try? modelContext.save()
+        do {
+            try modelContext.save()
+            Log.goal.info("Set \(metric) goal: \(startValue) → \(targetValue)")
+        } catch {
+            Log.goal.error("Save goal failed", error)
+        }
         activeGoals.append(goal)
     }
 
@@ -41,14 +51,24 @@ class GoalViewModel {
         guard let goal = activeGoal(for: metric) else { return }
         goal.targetValue = targetValue
         goal.targetDate = targetDate.map { Calendar.current.startOfDay(for: $0) }
-        try? modelContext.save()
+        do {
+            try modelContext.save()
+            Log.goal.info("Updated \(metric) goal target to \(targetValue)")
+        } catch {
+            Log.goal.error("Update goal failed", error)
+        }
     }
 
     func completeGoal(metric: String) {
         guard let goal = activeGoal(for: metric) else { return }
         goal.status = .completed
         goal.completedDate = Date()
-        try? modelContext.save()
+        do {
+            try modelContext.save()
+            Log.goal.info("Completed \(metric) goal")
+        } catch {
+            Log.goal.error("Complete goal failed", error)
+        }
         activeGoals.removeAll { $0.id == goal.id }
     }
 
@@ -56,7 +76,12 @@ class GoalViewModel {
         guard let goal = activeGoal(for: metric) else { return }
         goal.status = .abandoned
         goal.completedDate = Date()
-        try? modelContext.save()
+        do {
+            try modelContext.save()
+            Log.goal.info("Abandoned \(metric) goal")
+        } catch {
+            Log.goal.error("Abandon goal failed", error)
+        }
         activeGoals.removeAll { $0.id == goal.id }
     }
 

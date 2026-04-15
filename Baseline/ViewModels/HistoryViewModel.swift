@@ -19,7 +19,12 @@ class HistoryViewModel {
         let descriptor = FetchDescriptor<WeightEntry>(
             sortBy: [SortDescriptor(\.date, order: .reverse)]
         )
-        entries = (try? modelContext.fetch(descriptor)) ?? []
+        do {
+            entries = try modelContext.fetch(descriptor)
+        } catch {
+            Log.data.error("Fetch history failed", error)
+            entries = []
+        }
     }
 
     /// Delta = this entry's weight minus the chronologically-previous entry's
@@ -38,7 +43,12 @@ class HistoryViewModel {
 
     func delete(_ entry: WeightEntry) {
         modelContext.delete(entry)
-        try? modelContext.save()
+        do {
+            try modelContext.save()
+            Log.data.info("Deleted weight entry")
+        } catch {
+            Log.data.error("Delete weight entry failed", error)
+        }
         refresh()
     }
 
@@ -47,7 +57,12 @@ class HistoryViewModel {
         entry.weight = weight
         entry.notes = trimmed.isEmpty ? nil : trimmed
         entry.updatedAt = Date()
-        try? modelContext.save()
+        do {
+            try modelContext.save()
+            Log.data.info("Updated weight entry")
+        } catch {
+            Log.data.error("Update weight entry failed", error)
+        }
         refresh()
     }
 }

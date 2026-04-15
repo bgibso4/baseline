@@ -1,7 +1,6 @@
 import Foundation
 import CloudKit
 import CoreData
-import os
 
 /// Monitors NSPersistentCloudKitContainer sync events and handles the
 /// iCloud Keychain reset edge case (encrypted field data becomes unreadable).
@@ -9,7 +8,6 @@ import os
 /// Call `CloudKitSyncMonitor.start()` once at app launch.
 enum CloudKitSyncMonitor {
 
-    private static let logger = Logger(subsystem: "com.cadre.baseline", category: "CloudKitSync")
     private static var observer: NSObjectProtocol?
 
     /// Begin observing CloudKit sync events.
@@ -63,11 +61,11 @@ enum CloudKitSyncMonitor {
             }
         }
 
-        logger.warning("CloudKit sync error: \(error.localizedDescription)")
+        Log.sync.warning("CloudKit sync error: \(error.localizedDescription)")
     }
 
     private static func handleKeychainReset() {
-        logger.error("iCloud Keychain was reset — encrypted CloudKit data is unreadable. Local data is intact.")
+        Log.sync.error("iCloud Keychain was reset — encrypted CloudKit data is unreadable. Local data is intact.")
         // Local SwiftData store is unaffected (encryption is cloud-side only).
         // NSPersistentCloudKitContainer will automatically re-export local records
         // on the next sync cycle, encrypting them with the new key material.

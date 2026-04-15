@@ -18,6 +18,7 @@ struct BaselineApp: App {
     }()
 
     init() {
+        Log.app.info("Baseline launching")
         DecimalPadDoneBar.install()
         CloudKitSyncMonitor.start()
 
@@ -51,6 +52,7 @@ struct BaselineApp: App {
                 configurations: [cloudConfig, localConfig]
             )
         } catch {
+            Log.app.error("SwiftData configuration failed", error)
             fatalError("Failed to configure SwiftData: \(error)")
         }
 

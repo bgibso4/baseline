@@ -26,7 +26,12 @@ class BodyViewModel {
         let notesToSave: String? = (trimmed?.isEmpty ?? true) ? nil : trimmed
         let measurement = Measurement(date: date, type: type, valueCm: valueCm, notes: notesToSave)
         modelContext.insert(measurement)
-        try? modelContext.save()
+        do {
+            try modelContext.save()
+            Log.data.info("Saved \(type.rawValue) measurement: \(valueCm) cm")
+        } catch {
+            Log.data.error("Save measurement failed", error)
+        }
         SyncHelper.mirrorRecord(measurement)
 
         if type == .waist {
@@ -40,19 +45,32 @@ class BodyViewModel {
 
     func deleteMeasurement(_ measurement: Measurement) {
         modelContext.delete(measurement)
-        try? modelContext.save()
+        do {
+            try modelContext.save()
+            Log.data.info("Deleted measurement")
+        } catch {
+            Log.data.error("Delete measurement failed", error)
+        }
         refresh()
     }
 
     // MARK: - Scans
 
     func saveScan(type: ScanType, source: ScanSource, payload: Encodable, notes: String? = nil) {
-        guard let data = try? JSONEncoder().encode(AnyEncodable(payload)) else { return }
+        guard let data = try? JSONEncoder().encode(AnyEncodable(payload)) else {
+            Log.scan.error("Failed to encode scan payload")
+            return
+        }
         let trimmed = notes?.trimmingCharacters(in: .whitespacesAndNewlines)
         let notesToSave: String? = (trimmed?.isEmpty ?? true) ? nil : trimmed
         let scan = Scan(date: Date(), type: type, source: source, payload: data, notes: notesToSave)
         modelContext.insert(scan)
-        try? modelContext.save()
+        do {
+            try modelContext.save()
+            Log.data.info("Saved \(type.rawValue) scan via \(source.rawValue)")
+        } catch {
+            Log.data.error("Save scan failed", error)
+        }
         SyncHelper.mirrorRecord(scan)
 
         Task {
@@ -64,14 +82,24 @@ class BodyViewModel {
 
     func deleteScan(_ scan: Scan) {
         modelContext.delete(scan)
-        try? modelContext.save()
+        do {
+            try modelContext.save()
+            Log.data.info("Deleted scan")
+        } catch {
+            Log.data.error("Delete scan failed", error)
+        }
         refresh()
     }
 
     func updateScan(_ scan: Scan, payload: Data) {
         scan.payloadData = payload
         scan.updatedAt = Date()
-        try? modelContext.save()
+        do {
+            try modelContext.save()
+            Log.data.info("Updated scan payload")
+        } catch {
+            Log.data.error("Update scan failed", error)
+        }
         refresh()
     }
 

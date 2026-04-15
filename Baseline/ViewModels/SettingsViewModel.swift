@@ -230,7 +230,7 @@ class SettingsViewModel {
             try modelContext.save()
         } catch {
             // Log but don't crash — partial deletion is acceptable.
-            print("SettingsViewModel: failed to delete data: \(error)")
+            Log.data.error("Delete all data failed", error)
         }
 
         // Reset profile + unit prefs

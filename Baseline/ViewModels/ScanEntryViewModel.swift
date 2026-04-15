@@ -150,18 +150,14 @@ class ScanEntryViewModel {
         errorMessage = nil
 
         let pageCount = scan.pageCount
-        #if DEBUG
-        print("[ScanEntryViewModel] Processing \(pageCount) page(s)")
-        #endif
+        Log.scan.info("Processing \(pageCount) page(s)")
 
         // Process pages one at a time to limit memory.
         // Downscale each page before parsing — the document camera captures
         // at full sensor resolution (~4000px) which is way more than OCR needs.
         var combined = InBodyParseResult()
         for i in 0..<pageCount {
-            #if DEBUG
-            print("[ScanEntryViewModel] Parsing page \(i + 1)/\(pageCount)")
-            #endif
+            Log.scan.debug("Parsing page \(i + 1)/\(pageCount)")
             let scaled = Self.downscale(scan.imageOfPage(at: i), maxDimension: 2048)
             let pageResult = await InBodyDocumentParser.parse(image: scaled)
             combined.merge(with: pageResult)

@@ -25,8 +25,16 @@ enum HealthKitManager {
     // MARK: - Authorization
 
     static func requestAuthorizationIfNeeded() async {
-        guard HKHealthStore.isHealthDataAvailable() else { return }
-        try? await store.requestAuthorization(toShare: allWriteTypes, read: [])
+        guard HKHealthStore.isHealthDataAvailable() else {
+            Log.health.info("HealthKit not available on this device")
+            return
+        }
+        do {
+            try await store.requestAuthorization(toShare: allWriteTypes, read: [])
+            Log.health.info("HealthKit authorization requested")
+        } catch {
+            Log.health.error("HealthKit authorization failed", error)
+        }
     }
 
     // MARK: - Weight
@@ -34,7 +42,12 @@ enum HealthKitManager {
     static func saveWeight(_ entry: WeightEntry) async {
         guard HKHealthStore.isHealthDataAvailable() else { return }
         let sample = buildWeightSample(weight: entry.weight, unit: entry.unit, date: entry.date)
-        try? await store.save(sample)
+        do {
+            try await store.save(sample)
+            Log.health.debug("Saved weight to HealthKit")
+        } catch {
+            Log.health.error("Save weight to HealthKit failed", error)
+        }
     }
 
     static func buildWeightSample(weight: Double, unit: String, date: Date) -> HKQuantitySample {
@@ -53,7 +66,12 @@ enum HealthKitManager {
     static func saveBodyFat(percentage: Double, date: Date) async {
         guard HKHealthStore.isHealthDataAvailable() else { return }
         let sample = buildBodyFatSample(percentage: percentage, date: date)
-        try? await store.save(sample)
+        do {
+            try await store.save(sample)
+            Log.health.debug("Saved body fat to HealthKit")
+        } catch {
+            Log.health.error("Save body fat to HealthKit failed", error)
+        }
     }
 
     static func buildBodyFatSample(percentage: Double, date: Date) -> HKQuantitySample {
@@ -73,7 +91,12 @@ enum HealthKitManager {
     static func saveLeanBodyMass(kg: Double, date: Date) async {
         guard HKHealthStore.isHealthDataAvailable() else { return }
         let sample = buildLeanBodyMassSample(kg: kg, date: date)
-        try? await store.save(sample)
+        do {
+            try await store.save(sample)
+            Log.health.debug("Saved lean body mass to HealthKit")
+        } catch {
+            Log.health.error("Save lean body mass to HealthKit failed", error)
+        }
     }
 
     static func buildLeanBodyMassSample(kg: Double, date: Date) -> HKQuantitySample {
@@ -91,7 +114,12 @@ enum HealthKitManager {
     static func saveBMI(_ bmi: Double, date: Date) async {
         guard HKHealthStore.isHealthDataAvailable() else { return }
         let sample = buildBMISample(bmi: bmi, date: date)
-        try? await store.save(sample)
+        do {
+            try await store.save(sample)
+            Log.health.debug("Saved BMI to HealthKit")
+        } catch {
+            Log.health.error("Save BMI to HealthKit failed", error)
+        }
     }
 
     static func buildBMISample(bmi: Double, date: Date) -> HKQuantitySample {
@@ -109,7 +137,12 @@ enum HealthKitManager {
     static func saveBMR(kcal: Double, date: Date) async {
         guard HKHealthStore.isHealthDataAvailable() else { return }
         let sample = buildBMRSample(kcal: kcal, date: date)
-        try? await store.save(sample)
+        do {
+            try await store.save(sample)
+            Log.health.debug("Saved BMR to HealthKit")
+        } catch {
+            Log.health.error("Save BMR to HealthKit failed", error)
+        }
     }
 
     static func buildBMRSample(kcal: Double, date: Date) -> HKQuantitySample {
@@ -127,7 +160,12 @@ enum HealthKitManager {
     static func saveWaistCircumference(valueCm: Double, date: Date) async {
         guard HKHealthStore.isHealthDataAvailable() else { return }
         let sample = buildWaistSample(valueCm: valueCm, date: date)
-        try? await store.save(sample)
+        do {
+            try await store.save(sample)
+            Log.health.debug("Saved waist circumference to HealthKit")
+        } catch {
+            Log.health.error("Save waist circumference to HealthKit failed", error)
+        }
     }
 
     static func buildWaistSample(valueCm: Double, date: Date) -> HKQuantitySample {
@@ -144,7 +182,10 @@ enum HealthKitManager {
 
     static func saveScanMetrics(_ scan: Scan) async {
         guard HKHealthStore.isHealthDataAvailable() else { return }
-        guard let content = try? scan.decoded() else { return }
+        guard let content = try? scan.decoded() else {
+            Log.health.error("Failed to decode scan for HealthKit metrics")
+            return
+        }
         switch content {
         case .inBody(let payload):
             await saveBodyFat(percentage: payload.bodyFatPct, date: scan.date)
