@@ -134,11 +134,12 @@ struct MeasurementHistoryView: View {
         .sheet(item: $editingMeasurement) { measurement in
             EditMeasurementSheet(
                 measurement: measurement,
-                onSave: { newValue, notes in
+                onSave: { newValue, notes, date in
                     let valueCm = lengthUnit == "cm" ? newValue : UnitConversion.inToCm(newValue)
                     measurement.valueCm = valueCm
                     let trimmed = notes.trimmingCharacters(in: .whitespacesAndNewlines)
                     measurement.notes = trimmed.isEmpty ? nil : trimmed
+                    measurement.date = Calendar.current.startOfDay(for: date)
                     measurement.updatedAt = Date()
                     do {
                         try modelContext.save()
@@ -151,6 +152,15 @@ struct MeasurementHistoryView: View {
                 onDelete: {
                     vm?.deleteMeasurement(measurement)
                     refresh()
+                },
+                checkConflict: { date, measurementID in
+                    let targetDay = Calendar.current.startOfDay(for: date)
+                    let typeRaw = metricType.rawValue
+                    let descriptor = FetchDescriptor<BodyMeasurement>(
+                        predicate: #Predicate { $0.date == targetDay && $0.type == typeRaw }
+                    )
+                    let existing = (try? modelContext.fetch(descriptor)) ?? []
+                    return existing.contains(where: { $0.id != measurementID })
                 }
             )
             .presentationDetents([.medium])
@@ -265,76 +275,123 @@ private struct MeasurementRow: View {
 private struct EditMeasurementSheet: View {
     @Environment(\.dismiss) private var dismiss
     let measurement: BodyMeasurement
-    let onSave: (Double, String) -> Void
+    let onSave: (Double, String, Date) -> Void
     let onDelete: () -> Void
+    let checkConflict: (Date, UUID) -> Bool
 
     @AppStorage("lengthUnit") private var lengthUnit = "in"
     @State private var valueText: String
     @State private var notes: String
+    @State private var selectedDate: Date
+    @State private var showDatePicker = false
+    @State private var showOverwriteAlert = false
     @FocusState private var isFieldFocused: Bool
 
     init(
         measurement: BodyMeasurement,
-        onSave: @escaping (Double, String) -> Void,
-        onDelete: @escaping () -> Void
+        onSave: @escaping (Double, String, Date) -> Void,
+        onDelete: @escaping () -> Void,
+        checkConflict: @escaping (Date, UUID) -> Bool
     ) {
         self.measurement = measurement
         self.onSave = onSave
         self.onDelete = onDelete
+        self.checkConflict = checkConflict
         let display = UnitConversion.displayLength(measurement.valueCm)
         self._valueText = State(initialValue: String(format: "%.1f", display.value))
         self._notes = State(initialValue: measurement.notes ?? "")
+        self._selectedDate = State(initialValue: measurement.date)
     }
 
     var body: some View {
         NavigationStack {
-            Form {
-                Section {
-                    HStack {
-                        Text("Value")
-                            .foregroundStyle(CadreColors.textSecondary)
-                        Spacer()
-                        TextField("Value", text: $valueText)
-                            .keyboardType(.decimalPad)
-                            .multilineTextAlignment(.trailing)
+            ZStack {
+                Form {
+                    Section {
+                        HStack {
+                            Text("Value")
+                                .foregroundStyle(CadreColors.textSecondary)
+                            Spacer()
+                            TextField("Value", text: $valueText)
+                                .keyboardType(.decimalPad)
+                                .multilineTextAlignment(.trailing)
+                                .foregroundStyle(CadreColors.textPrimary)
+                                .focused($isFieldFocused)
+                            Text(lengthUnit)
+                                .foregroundStyle(CadreColors.textTertiary)
+                        }
+                        Button {
+                            isFieldFocused = false
+                            withAnimation(.easeInOut(duration: 0.25)) {
+                                showDatePicker.toggle()
+                            }
+                        } label: {
+                            HStack {
+                                Text("Date")
+                                    .foregroundStyle(CadreColors.textSecondary)
+                                Spacer()
+                                Text(DateFormatting.fullDate(selectedDate))
+                                    .foregroundStyle(CadreColors.textPrimary)
+                                Image(systemName: "chevron.down")
+                                    .font(.system(size: 9, weight: .bold))
+                                    .foregroundStyle(CadreColors.textTertiary)
+                            }
+                        }
+                    }
+                    .listRowBackground(CadreColors.card)
+
+                    Section("Notes") {
+                        TextField("Notes", text: $notes, axis: .vertical)
+                            .lineLimit(2...4)
                             .foregroundStyle(CadreColors.textPrimary)
                             .focused($isFieldFocused)
-                        Text(lengthUnit)
-                            .foregroundStyle(CadreColors.textTertiary)
                     }
-                    HStack {
-                        Text("Date")
-                            .foregroundStyle(CadreColors.textSecondary)
-                        Spacer()
-                        Text(DateFormatting.fullDate(measurement.date))
-                            .foregroundStyle(CadreColors.textPrimary)
-                    }
-                }
-                .listRowBackground(CadreColors.card)
+                    .listRowBackground(CadreColors.card)
 
-                Section("Notes") {
-                    TextField("Notes", text: $notes, axis: .vertical)
-                        .lineLimit(2...4)
-                        .foregroundStyle(CadreColors.textPrimary)
-                        .focused($isFieldFocused)
-                }
-                .listRowBackground(CadreColors.card)
-
-                Section {
-                    Button(role: .destructive) {
-                        onDelete()
-                        dismiss()
-                    } label: {
-                        Text("Delete Measurement")
-                            .frame(maxWidth: .infinity)
+                    Section {
+                        Button(role: .destructive) {
+                            onDelete()
+                            dismiss()
+                        } label: {
+                            Text("Delete Measurement")
+                                .frame(maxWidth: .infinity)
+                        }
                     }
+                    .listRowBackground(CadreColors.card)
                 }
-                .listRowBackground(CadreColors.card)
+                .scrollContentBackground(.hidden)
+                .background(CadreColors.bg)
+
+                if showDatePicker {
+                    Color.black.opacity(0.5)
+                        .ignoresSafeArea()
+                        .onTapGesture {
+                            withAnimation { showDatePicker = false }
+                        }
+
+                    DatePicker("", selection: $selectedDate, in: ...Date(), displayedComponents: .date)
+                        .datePickerStyle(.graphical)
+                        .tint(CadreColors.accent)
+                        .labelsHidden()
+                        .padding()
+                        .background(
+                            RoundedRectangle(cornerRadius: 16)
+                                .fill(CadreColors.card)
+                        )
+                        .padding(.horizontal, 16)
+                }
             }
-            .scrollContentBackground(.hidden)
-            .background(CadreColors.bg)
             .navigationTitle("Edit Measurement")
             .navigationBarTitleDisplayMode(.inline)
+            .onChange(of: selectedDate) { _, _ in
+                withAnimation { showDatePicker = false }
+            }
+            .alert("Overwrite Measurement?", isPresented: $showOverwriteAlert) {
+                Button("Cancel", role: .cancel) { }
+                Button("Overwrite", role: .destructive) { performSave() }
+            } message: {
+                Text("You already have a measurement for this date. Do you want to replace it?")
+            }
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") { dismiss() }
@@ -342,10 +399,12 @@ private struct EditMeasurementSheet: View {
                 }
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Save") {
-                        if let v = Double(valueText) {
-                            onSave(v, notes)
+                        let dateChanged = Calendar.current.startOfDay(for: selectedDate) != measurement.date
+                        if dateChanged && checkConflict(selectedDate, measurement.id) {
+                            showOverwriteAlert = true
+                        } else {
+                            performSave()
                         }
-                        dismiss()
                     }
                     .foregroundStyle(CadreColors.accent)
                 }
@@ -356,5 +415,12 @@ private struct EditMeasurementSheet: View {
                 }
             }
         }
+    }
+
+    private func performSave() {
+        if let v = Double(valueText) {
+            onSave(v, notes, selectedDate)
+        }
+        dismiss()
     }
 }

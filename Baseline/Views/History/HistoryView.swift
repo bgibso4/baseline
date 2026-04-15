@@ -40,11 +40,14 @@ struct HistoryView: View {
         .sheet(item: $editingEntry) { entry in
             EditEntrySheet(
                 entry: entry,
-                onSave: { weight, notes in
-                    vm?.update(entry, weight: weight, notes: notes)
+                onSave: { weight, notes, date in
+                    vm?.update(entry, weight: weight, notes: notes, date: date)
                 },
                 onDelete: {
                     vm?.delete(entry)
+                },
+                checkConflict: { date, entryID in
+                    vm?.existingEntry(for: date, excluding: entryID) != nil
                 }
             )
             .presentationDetents([.medium])
@@ -211,79 +214,126 @@ private struct HistoryRow: View {
 private struct EditEntrySheet: View {
     @Environment(\.dismiss) private var dismiss
     let entry: WeightEntry
-    let onSave: (Double, String) -> Void
+    let onSave: (Double, String, Date) -> Void
     let onDelete: () -> Void
+    let checkConflict: (Date, UUID) -> Bool
 
     private let displayUnit: String
     @State private var weightText: String
     @State private var notes: String
+    @State private var selectedDate: Date
+    @State private var showDatePicker = false
+    @State private var showOverwriteAlert = false
 
     init(
         entry: WeightEntry,
-        onSave: @escaping (Double, String) -> Void,
-        onDelete: @escaping () -> Void
+        onSave: @escaping (Double, String, Date) -> Void,
+        onDelete: @escaping () -> Void,
+        checkConflict: @escaping (Date, UUID) -> Bool
     ) {
         self.entry = entry
         self.onSave = onSave
         self.onDelete = onDelete
+        self.checkConflict = checkConflict
         let pref = UnitConversion.preferredWeightUnit
         self.displayUnit = pref
         let displayW = UnitConversion.displayWeight(entry.weight, storedUnit: entry.unit)
         self._weightText = State(initialValue: String(format: "%.1f", displayW))
         self._notes = State(initialValue: entry.notes ?? "")
+        self._selectedDate = State(initialValue: entry.date)
     }
 
     @FocusState private var isFieldFocused: Bool
 
     var body: some View {
         NavigationStack {
-            Form {
-                Section {
-                    HStack {
-                        Text("Weight")
-                            .foregroundStyle(CadreColors.textSecondary)
-                        Spacer()
-                        TextField("Weight", text: $weightText)
-                            .keyboardType(.decimalPad)
-                            .multilineTextAlignment(.trailing)
+            ZStack {
+                Form {
+                    Section {
+                        HStack {
+                            Text("Weight")
+                                .foregroundStyle(CadreColors.textSecondary)
+                            Spacer()
+                            TextField("Weight", text: $weightText)
+                                .keyboardType(.decimalPad)
+                                .multilineTextAlignment(.trailing)
+                                .foregroundStyle(CadreColors.textPrimary)
+                                .focused($isFieldFocused)
+                            Text(displayUnit)
+                                .foregroundStyle(CadreColors.textTertiary)
+                        }
+                        Button {
+                            isFieldFocused = false
+                            withAnimation(.easeInOut(duration: 0.25)) {
+                                showDatePicker.toggle()
+                            }
+                        } label: {
+                            HStack {
+                                Text("Date")
+                                    .foregroundStyle(CadreColors.textSecondary)
+                                Spacer()
+                                Text(DateFormatting.fullDate(selectedDate))
+                                    .foregroundStyle(CadreColors.textPrimary)
+                                Image(systemName: "chevron.down")
+                                    .font(.system(size: 9, weight: .bold))
+                                    .foregroundStyle(CadreColors.textTertiary)
+                            }
+                        }
+                    }
+                    .listRowBackground(CadreColors.card)
+
+                    Section("Notes") {
+                        TextField("Notes", text: $notes, axis: .vertical)
+                            .lineLimit(2...4)
                             .foregroundStyle(CadreColors.textPrimary)
                             .focused($isFieldFocused)
-                        Text(displayUnit)
-                            .foregroundStyle(CadreColors.textTertiary)
                     }
-                    HStack {
-                        Text("Date")
-                            .foregroundStyle(CadreColors.textSecondary)
-                        Spacer()
-                        Text(DateFormatting.fullDate(entry.date))
-                            .foregroundStyle(CadreColors.textPrimary)
-                    }
-                }
-                .listRowBackground(CadreColors.card)
+                    .listRowBackground(CadreColors.card)
 
-                Section("Notes") {
-                    TextField("Notes", text: $notes, axis: .vertical)
-                        .lineLimit(2...4)
-                        .foregroundStyle(CadreColors.textPrimary)
-                        .focused($isFieldFocused)
-                }
-                .listRowBackground(CadreColors.card)
-
-                Section {
-                    Button(role: .destructive) {
-                        onDelete()
-                        dismiss()
-                    } label: {
-                        Text("Delete Entry")
-                            .frame(maxWidth: .infinity)
+                    Section {
+                        Button(role: .destructive) {
+                            onDelete()
+                            dismiss()
+                        } label: {
+                            Text("Delete Entry")
+                                .frame(maxWidth: .infinity)
+                        }
                     }
+                    .listRowBackground(CadreColors.card)
                 }
-                .listRowBackground(CadreColors.card)
+                .scrollContentBackground(.hidden)
+                .background(CadreColors.bg)
+
+                if showDatePicker {
+                    Color.black.opacity(0.5)
+                        .ignoresSafeArea()
+                        .onTapGesture {
+                            withAnimation { showDatePicker = false }
+                        }
+
+                    DatePicker("", selection: $selectedDate, in: ...Date(), displayedComponents: .date)
+                        .datePickerStyle(.graphical)
+                        .tint(CadreColors.accent)
+                        .labelsHidden()
+                        .padding()
+                        .background(
+                            RoundedRectangle(cornerRadius: 16)
+                                .fill(CadreColors.card)
+                        )
+                        .padding(.horizontal, 16)
+                }
             }
-            .scrollContentBackground(.hidden)
-            .background(CadreColors.bg)
             .navigationTitle("Edit Entry")
             .navigationBarTitleDisplayMode(.inline)
+            .onChange(of: selectedDate) { _, _ in
+                withAnimation { showDatePicker = false }
+            }
+            .alert("Overwrite Entry?", isPresented: $showOverwriteAlert) {
+                Button("Cancel", role: .cancel) { }
+                Button("Overwrite", role: .destructive) { performSave() }
+            } message: {
+                Text("You already have a weigh-in for this date. Do you want to replace it?")
+            }
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") { dismiss() }
@@ -291,19 +341,12 @@ private struct EditEntrySheet: View {
                 }
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Save") {
-                        if let w = Double(weightText) {
-                            // Convert from display unit back to the entry's stored unit
-                            let storedW: Double
-                            if displayUnit == entry.unit {
-                                storedW = w
-                            } else if displayUnit == "lb" {
-                                storedW = UnitConversion.lbToKg(w)
-                            } else {
-                                storedW = UnitConversion.kgToLb(w)
-                            }
-                            onSave(storedW, notes)
+                        let dateChanged = Calendar.current.startOfDay(for: selectedDate) != entry.date
+                        if dateChanged && checkConflict(selectedDate, entry.id) {
+                            showOverwriteAlert = true
+                        } else {
+                            performSave()
                         }
-                        dismiss()
                     }
                     .foregroundStyle(CadreColors.accent)
                 }
@@ -314,6 +357,21 @@ private struct EditEntrySheet: View {
                 }
             }
         }
+    }
+
+    private func performSave() {
+        if let w = Double(weightText) {
+            let storedW: Double
+            if displayUnit == entry.unit {
+                storedW = w
+            } else if displayUnit == "lb" {
+                storedW = UnitConversion.lbToKg(w)
+            } else {
+                storedW = UnitConversion.kgToLb(w)
+            }
+            onSave(storedW, notes, selectedDate)
+        }
+        dismiss()
     }
 }
 

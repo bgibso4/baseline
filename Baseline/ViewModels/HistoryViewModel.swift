@@ -52,10 +52,22 @@ class HistoryViewModel {
         refresh()
     }
 
-    func update(_ entry: WeightEntry, weight: Double, notes: String) {
+    /// Check if a weight entry exists for the given date (excluding a specific entry).
+    func existingEntry(for date: Date, excluding entryID: UUID) -> WeightEntry? {
+        let targetDay = Calendar.current.startOfDay(for: date)
+        let descriptor = FetchDescriptor<WeightEntry>(
+            predicate: #Predicate { $0.date == targetDay }
+        )
+        return (try? modelContext.fetch(descriptor))?.first(where: { $0.id != entryID })
+    }
+
+    func update(_ entry: WeightEntry, weight: Double, notes: String, date: Date? = nil) {
         let trimmed = notes.trimmingCharacters(in: .whitespacesAndNewlines)
         entry.weight = weight
         entry.notes = trimmed.isEmpty ? nil : trimmed
+        if let date {
+            entry.date = Calendar.current.startOfDay(for: date)
+        }
         entry.updatedAt = Date()
         do {
             try modelContext.save()
