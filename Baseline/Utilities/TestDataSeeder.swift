@@ -9,11 +9,16 @@ enum TestDataSeeder {
     // MARK: - Public API
 
     static func seed(context: ModelContext) {
+        // Prevent test data from being written to Apple Health
+        HealthKitManager.writesDisabled = true
+        defer { HealthKitManager.writesDisabled = false }
+
         clearAll(context: context)
         seedWeightEntries(context: context)
         seedScans(context: context)
         seedMeasurements(context: context)
         try? context.save()
+        Log.app.info("Seeded test data (HealthKit writes suppressed)")
     }
 
     static func clearAll(context: ModelContext) {

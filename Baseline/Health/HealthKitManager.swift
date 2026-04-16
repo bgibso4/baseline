@@ -5,6 +5,14 @@ enum HealthKitManager {
 
     private static let store = HKHealthStore()
 
+    /// When true, all HealthKit writes are suppressed. Used during test data
+    /// seeding to prevent fake entries from polluting the user's Apple Health.
+    static var writesDisabled = false
+
+    private static var canWrite: Bool {
+        !writesDisabled && HKHealthStore.isHealthDataAvailable()
+    }
+
     // MARK: - Types
 
     static let allWriteTypes: Set<HKSampleType> = {
@@ -40,7 +48,7 @@ enum HealthKitManager {
     // MARK: - Weight
 
     static func saveWeight(_ entry: WeightEntry) async {
-        guard HKHealthStore.isHealthDataAvailable() else { return }
+        guard canWrite else { return }
         let sample = buildWeightSample(weight: entry.weight, unit: entry.unit, date: entry.date)
         do {
             try await store.save(sample)
@@ -64,7 +72,7 @@ enum HealthKitManager {
     // MARK: - Body Fat
 
     static func saveBodyFat(percentage: Double, date: Date) async {
-        guard HKHealthStore.isHealthDataAvailable() else { return }
+        guard canWrite else { return }
         let sample = buildBodyFatSample(percentage: percentage, date: date)
         do {
             try await store.save(sample)
@@ -89,7 +97,7 @@ enum HealthKitManager {
     // MARK: - Lean Body Mass
 
     static func saveLeanBodyMass(kg: Double, date: Date) async {
-        guard HKHealthStore.isHealthDataAvailable() else { return }
+        guard canWrite else { return }
         let sample = buildLeanBodyMassSample(kg: kg, date: date)
         do {
             try await store.save(sample)
@@ -112,7 +120,7 @@ enum HealthKitManager {
     // MARK: - BMI
 
     static func saveBMI(_ bmi: Double, date: Date) async {
-        guard HKHealthStore.isHealthDataAvailable() else { return }
+        guard canWrite else { return }
         let sample = buildBMISample(bmi: bmi, date: date)
         do {
             try await store.save(sample)
@@ -135,7 +143,7 @@ enum HealthKitManager {
     // MARK: - Basal Metabolic Rate
 
     static func saveBMR(kcal: Double, date: Date) async {
-        guard HKHealthStore.isHealthDataAvailable() else { return }
+        guard canWrite else { return }
         let sample = buildBMRSample(kcal: kcal, date: date)
         do {
             try await store.save(sample)
@@ -158,7 +166,7 @@ enum HealthKitManager {
     // MARK: - Waist Circumference
 
     static func saveWaistCircumference(valueCm: Double, date: Date) async {
-        guard HKHealthStore.isHealthDataAvailable() else { return }
+        guard canWrite else { return }
         let sample = buildWaistSample(valueCm: valueCm, date: date)
         do {
             try await store.save(sample)
@@ -181,7 +189,7 @@ enum HealthKitManager {
     // MARK: - Scan Metrics (composite)
 
     static func saveScanMetrics(_ scan: Scan) async {
-        guard HKHealthStore.isHealthDataAvailable() else { return }
+        guard canWrite else { return }
         guard let content = try? scan.decoded() else {
             Log.health.error("Failed to decode scan for HealthKit metrics")
             return
