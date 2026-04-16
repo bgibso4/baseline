@@ -162,15 +162,15 @@ struct SetGoalSheet: View {
                         selectedMetric = metric
                     } label: {
                         if metric == selectedMetric {
-                            Label(metric.rawValue, systemImage: "checkmark")
+                            Label(metric.displayName, systemImage: "checkmark")
                         } else {
-                            Text(metric.rawValue)
+                            Text(metric.displayName)
                         }
                     }
                 }
             } label: {
                 HStack(spacing: 4) {
-                    Text(selectedMetric.rawValue)
+                    Text(selectedMetric.displayName)
                         .font(.system(size: 15))
                         .foregroundStyle(CadreColors.textSecondary)
                     Image(systemName: "chevron.up.chevron.down")

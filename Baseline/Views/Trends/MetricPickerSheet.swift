@@ -128,7 +128,7 @@ struct MetricPickerSheet: View {
                                          : isSecondary ? secondary
                                          : CadreColors.textSecondary)
                 }
-                Text(metric.rawValue)
+                Text(metric.displayName)
                     .font(.system(size: 14, weight: .medium))
                     .foregroundStyle(CadreColors.textPrimary)
                 Spacer()

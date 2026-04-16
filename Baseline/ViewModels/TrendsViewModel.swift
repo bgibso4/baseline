@@ -110,6 +110,21 @@ enum TrendMetric: String, CaseIterable {
         }
     }
 
+    /// User-facing display name. Spells out acronyms with abbreviation in parentheses.
+    /// rawValue is kept short for data storage (goal metric keys).
+    var displayName: String {
+        switch self {
+        case .icw: return "Intracellular Water (ICW)"
+        case .ecw: return "Extracellular Water (ECW)"
+        case .bmr: return "Basal Metabolic Rate (BMR)"
+        case .skeletalMuscle: return "Skeletal Muscle Mass (SMM)"
+        case .leanBodyMass: return "Lean Body Mass (LBM)"
+        case .fatMass: return "Body Fat Mass"
+        case .totalBodyWater: return "Total Body Water (TBW)"
+        default: return rawValue
+        }
+    }
+
     var icon: String {
         switch self {
         case .weight: return "scalemass"

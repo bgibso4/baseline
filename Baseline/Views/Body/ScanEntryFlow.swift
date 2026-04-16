@@ -507,22 +507,22 @@ struct ScanEntryFlow: View {
         VStack(spacing: 0) {
             // Body Composition Analysis
             reviewSectionLabel("Body Composition Analysis")
-            reviewRow("ICW", value: fieldBinding("intracellularWaterL", vm: vm), unit: "lbs", key: "intracellularWaterL", vm: vm)
-            reviewRow("ECW", value: fieldBinding("extracellularWaterL", vm: vm), unit: "lbs", key: "extracellularWaterL", vm: vm)
-            reviewRow("TBW", value: fieldBinding("totalBodyWaterL", vm: vm), unit: "lbs", key: "totalBodyWaterL", vm: vm)
+            reviewRow("Intracellular Water (ICW)", value: fieldBinding("intracellularWaterL", vm: vm), unit: "lbs", key: "intracellularWaterL", vm: vm)
+            reviewRow("Extracellular Water (ECW)", value: fieldBinding("extracellularWaterL", vm: vm), unit: "lbs", key: "extracellularWaterL", vm: vm)
+            reviewRow("Total Body Water (TBW)", value: fieldBinding("totalBodyWaterL", vm: vm), unit: "lbs", key: "totalBodyWaterL", vm: vm)
             reviewRow("Dry Lean Mass", value: fieldBinding("dryLeanMassKg", vm: vm), unit: "lbs", key: "dryLeanMassKg", vm: vm)
-            reviewRow("LBM", value: fieldBinding("leanBodyMassKg", vm: vm), unit: "lbs", key: "leanBodyMassKg", vm: vm)
+            reviewRow("Lean Body Mass (LBM)", value: fieldBinding("leanBodyMassKg", vm: vm), unit: "lbs", key: "leanBodyMassKg", vm: vm)
             reviewRow("Body Fat Mass", value: fieldBinding("bodyFatMassKg", vm: vm), unit: "lbs", key: "bodyFatMassKg", vm: vm)
 
             // Muscle-Fat Analysis
             reviewSectionLabel("Muscle-Fat Analysis")
             reviewRow("Weight", value: fieldBinding("weightKg", vm: vm), unit: "lbs", key: "weightKg", vm: vm)
-            reviewRow("SMM", value: fieldBinding("skeletalMuscleMassKg", vm: vm), unit: "lbs", key: "skeletalMuscleMassKg", vm: vm)
+            reviewRow("Skeletal Muscle Mass (SMM)", value: fieldBinding("skeletalMuscleMassKg", vm: vm), unit: "lbs", key: "skeletalMuscleMassKg", vm: vm)
 
             // Obesity Analysis
             reviewSectionLabel("Obesity Analysis")
             reviewRow("BMI", value: fieldBinding("bmi", vm: vm), unit: "kg/m\u{00B2}", key: "bmi", vm: vm)
-            reviewRow("PBF", value: fieldBinding("bodyFatPct", vm: vm), unit: "%", key: "bodyFatPct", vm: vm)
+            reviewRow("Body Fat % (PBF)", value: fieldBinding("bodyFatPct", vm: vm), unit: "%", key: "bodyFatPct", vm: vm)
 
             // Segmental Lean Analysis
             reviewSectionLabel("Segmental Lean Analysis")
@@ -534,7 +534,7 @@ struct ScanEntryFlow: View {
             segmentalRow("Left Leg", mass: fieldBinding("leftLegLeanKg", vm: vm), massKey: "leftLegLeanKg", pct: fieldBinding("leftLegLeanPct", vm: vm), pctKey: "leftLegLeanPct", vm: vm)
 
             // ECW/TBW
-            reviewSectionLabel("ECW/TBW")
+            reviewSectionLabel("ECW/TBW Analysis")
             reviewRow("Ratio", value: fieldBinding("ecwTbwRatio", vm: vm), unit: "", key: "ecwTbwRatio", vm: vm)
 
             // Segmental Fat Analysis
@@ -548,8 +548,8 @@ struct ScanEntryFlow: View {
 
             // Additional Metrics
             reviewSectionLabel("Additional Metrics")
-            reviewRow("BMR", value: fieldBinding("basalMetabolicRate", vm: vm), unit: "kcal", key: "basalMetabolicRate", vm: vm)
-            reviewRow("SMI", value: fieldBinding("skeletalMuscleIndex", vm: vm), unit: "kg/m\u{00B2}", key: "skeletalMuscleIndex", vm: vm)
+            reviewRow("Basal Metabolic Rate (BMR)", value: fieldBinding("basalMetabolicRate", vm: vm), unit: "kcal", key: "basalMetabolicRate", vm: vm)
+            reviewRow("Skeletal Muscle Index (SMI)", value: fieldBinding("skeletalMuscleIndex", vm: vm), unit: "kg/m\u{00B2}", key: "skeletalMuscleIndex", vm: vm)
             reviewRow("Visceral Fat Level", value: fieldBinding("visceralFatLevel", vm: vm), unit: "", key: "visceralFatLevel", vm: vm)
         }
         .padding(.bottom, 16)

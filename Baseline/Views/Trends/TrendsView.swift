@@ -254,7 +254,7 @@ struct TrendsView: View {
                             .foregroundStyle(secondaryColor)
                             .offset(x: 5, y: 4)
                     }
-                    Text("\(selectedMetric.rawValue) \u{00B7} \(secondary.rawValue)")
+                    Text("\(selectedMetric.displayName) \u{00B7} \(secondary.displayName)")
                         .font(CadreTypography.trendsMetricName)
                         .tracking(-0.1)
                         .foregroundStyle(CadreColors.textPrimary)
@@ -269,7 +269,7 @@ struct TrendsView: View {
                             .font(.system(size: 14, weight: .semibold))
                             .foregroundStyle(CadreColors.accent)
                     }
-                    Text("\(selectedMetric.rawValue) \u{00B7} vs \(period.rawValue)")
+                    Text("\(selectedMetric.displayName) \u{00B7} vs \(period.rawValue)")
                         .font(CadreTypography.trendsMetricName)
                         .tracking(-0.1)
                         .foregroundStyle(CadreColors.textPrimary)
@@ -283,7 +283,7 @@ struct TrendsView: View {
                             .font(.system(size: 14, weight: .semibold))
                             .foregroundStyle(CadreColors.accent)
                     }
-                    Text(selectedMetric.rawValue)
+                    Text(selectedMetric.displayName)
                         .font(CadreTypography.trendsMetricName)
                         .tracking(-0.1)
                         .foregroundStyle(CadreColors.textPrimary)
@@ -353,8 +353,8 @@ struct TrendsView: View {
         return VStack(spacing: 0) {
             if compareEnabled, let secMetric = secondaryMetric, !secondaryPoints.isEmpty {
                 dualHeroBlock(
-                    primaryValue: latestValue, primaryUnit: unit, primaryLabel: selectedMetric.rawValue,
-                    secondaryValue: secondaryPoints.last?.value ?? 0, secondaryUnit: secMetric.unit, secondaryLabel: secMetric.rawValue,
+                    primaryValue: latestValue, primaryUnit: unit, primaryLabel: selectedMetric.displayName,
+                    secondaryValue: secondaryPoints.last?.value ?? 0, secondaryUnit: secMetric.unit, secondaryLabel: secMetric.displayName,
                     sub: periodSub
                 )
                 .padding(.horizontal, CadreSpacing.sheetHorizontal)
@@ -667,7 +667,7 @@ struct TrendsView: View {
                 .padding(8)
         }
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel("\(selectedMetric.rawValue) trend chart with \(points.count) data points")
+        .accessibilityLabel("\(selectedMetric.displayName) trend chart with \(points.count) data points")
     }
 
     private var expandStub: some View {
@@ -691,8 +691,8 @@ struct TrendsView: View {
     private var legendBlock: some View {
         HStack(spacing: 14) {
             if compareEnabled, let sec = secondaryMetric {
-                legendItem(color: CadreColors.accent, label: selectedMetric.rawValue)
-                legendItem(color: secondaryColor, label: sec.rawValue, dashed: true)
+                legendItem(color: CadreColors.accent, label: selectedMetric.displayName)
+                legendItem(color: secondaryColor, label: sec.displayName, dashed: true)
             } else if compareEnabled, let period = previousPeriod {
                 legendItem(color: CadreColors.accent, label: "Current")
                 legendItem(color: secondaryColor, label: period.rawValue, dashed: true)
@@ -875,7 +875,7 @@ struct TrendsView: View {
                         // Primary
                         HStack(spacing: 8) {
                             Circle().fill(CadreColors.accent).frame(width: 8, height: 8)
-                            Text(selectedMetric.rawValue)
+                            Text(selectedMetric.displayName)
                                 .font(.system(size: 12, weight: .semibold))
                                 .foregroundStyle(CadreColors.textPrimary)
                         }
@@ -916,7 +916,7 @@ struct TrendsView: View {
                         // Single metric hero
                         HStack(spacing: 8) {
                             Circle().fill(CadreColors.accent).frame(width: 8, height: 8)
-                            Text(selectedMetric.rawValue)
+                            Text(selectedMetric.displayName)
                                 .font(.system(size: 14, weight: .semibold))
                                 .foregroundStyle(CadreColors.textPrimary)
                         }
