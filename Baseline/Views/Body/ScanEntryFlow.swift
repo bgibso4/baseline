@@ -1,5 +1,6 @@
 import SwiftUI
 import SwiftData
+import TipKit
 
 /// Multi-step scan entry flow — 5 screens driven by `ScanEntryViewModel`.
 ///
@@ -155,6 +156,8 @@ struct ScanEntryFlow: View {
 
     // MARK: - Step 2: Input Method
 
+    private let multiPhotoTip = MultiPhotoTip()
+
     private func inputMethodStep(vm: ScanEntryViewModel) -> some View {
         VStack(spacing: 0) {
             pushHeader(title: "New Scan", subtitle: "Step 2 of 2") {
@@ -169,6 +172,10 @@ struct ScanEntryFlow: View {
                     .padding(.horizontal, CadreSpacing.sheetHorizontal)
                     .padding(.top, 20)
                     .padding(.bottom, 8)
+
+                TipView(multiPhotoTip)
+                    .padding(.horizontal, CadreSpacing.sheetHorizontal)
+                    .padding(.bottom, 4)
 
                 VStack(spacing: 12) {
                     methodCard(

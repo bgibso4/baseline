@@ -242,7 +242,15 @@ struct InBodyParseResult {
     /// - Apple's OCR confidence is used as tiebreaker, not primary signal
     static func consensusVote(_ results: [InBodyParseResult], userEditedFields: Set<String> = []) -> InBodyParseResult {
         guard !results.isEmpty else { return InBodyParseResult() }
-        guard results.count > 1 else { return results[0] }
+
+        // Single scan — no consensus possible. Cap all confidence low to flag for review.
+        if results.count == 1 {
+            var single = results[0]
+            for key in allFieldKeys where single.value(forKey: key) != nil {
+                single.confidence[key] = min(single.confidence[key] ?? 0, 0.4)
+            }
+            return single
+        }
 
         var final = InBodyParseResult()
         final.scanDate = results.compactMap(\.scanDate).min()
@@ -261,9 +269,10 @@ struct InBodyParseResult {
             guard !candidates.isEmpty else { continue }
 
             if candidates.count == 1 {
-                // Only one scan had this field — keep it with its confidence
+                // Only one scan had this field — keep it but cap confidence
+                // (no corroboration from other scans)
                 final.setValue(candidates[0].value, forKey: key)
-                final.confidence[key] = candidates[0].conf
+                final.confidence[key] = min(candidates[0].conf, 0.6)
                 continue
             }
 

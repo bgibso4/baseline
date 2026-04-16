@@ -71,13 +71,22 @@ final class ConsensusVoteTests: XCTestCase {
 
     // MARK: - Single Scan
 
-    func testSingleScan_KeepsOriginalConfidence() {
-        let r1 = makeResult(weightKg: 80.0, conf: 0.8)
+    func testSingleScan_CapsConfidenceLow() {
+        let r1 = makeResult(weightKg: 80.0, conf: 0.9)
 
         let voted = InBodyParseResult.consensusVote([r1])
 
         XCTAssertEqual(voted.weightKg, 80.0)
-        XCTAssertEqual(voted.confidence["weightKg"], 0.8, "Single scan keeps its confidence")
+        XCTAssertEqual(voted.confidence["weightKg"], 0.4, "Single scan capped at 0.4 — flags everything for review")
+    }
+
+    func testSingleScan_AlreadyLowConfidence_StaysLow() {
+        let r1 = makeResult(weightKg: 80.0, conf: 0.2)
+
+        let voted = InBodyParseResult.consensusVote([r1])
+
+        XCTAssertEqual(voted.weightKg, 80.0)
+        XCTAssertEqual(voted.confidence["weightKg"], 0.2, "Already low stays low")
     }
 
     // MARK: - Partial Data
@@ -99,7 +108,7 @@ final class ConsensusVoteTests: XCTestCase {
         XCTAssertEqual(voted.weightKg, 80.0)
         XCTAssertEqual(voted.confidence["weightKg"], 0.95, "Both agree on weight")
         XCTAssertEqual(voted.bmi, 25.0, "BMI from only scan that has it")
-        XCTAssertEqual(voted.confidence["bmi"], 0.7, "Single source keeps its confidence")
+        XCTAssertEqual(voted.confidence["bmi"], 0.6, "Single source capped at 0.6 (no corroboration)")
     }
 
     // MARK: - User Edited Fields Protected

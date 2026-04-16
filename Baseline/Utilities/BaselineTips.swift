@@ -30,6 +30,21 @@ struct ScanTip: Tip {
     }
 }
 
+/// Tip shown before camera opens for scan — encourages multiple photos.
+struct MultiPhotoTip: Tip {
+    var title: Text {
+        Text("Take multiple photos")
+    }
+
+    var message: Text? {
+        Text("Scanning the same page 2–3 times significantly improves accuracy. Each photo is cross-checked to catch OCR errors.")
+    }
+
+    var image: Image? {
+        Image(systemName: "photo.on.rectangle.angled")
+    }
+}
+
 /// Tip shown on the Trends screen when data exists.
 struct TrendsTip: Tip {
     var title: Text {
