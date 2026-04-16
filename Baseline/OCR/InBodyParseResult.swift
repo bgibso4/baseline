@@ -133,6 +133,186 @@ struct InBodyParseResult {
         )
     }
 
+    // MARK: - Consensus Voting
+
+    /// All field keys that can be extracted from a scan.
+    static let allFieldKeys: [String] = [
+        "weightKg", "skeletalMuscleMassKg", "bodyFatMassKg", "bodyFatPct",
+        "totalBodyWaterL", "bmi", "basalMetabolicRate",
+        "intracellularWaterL", "extracellularWaterL", "dryLeanMassKg", "leanBodyMassKg",
+        "inBodyScore", "ecwTbwRatio", "skeletalMuscleIndex", "visceralFatLevel",
+        "rightArmLeanKg", "leftArmLeanKg", "trunkLeanKg", "rightLegLeanKg", "leftLegLeanKg",
+        "rightArmFatKg", "leftArmFatKg", "trunkFatKg", "rightLegFatKg", "leftLegFatKg",
+        "rightArmLeanPct", "leftArmLeanPct", "trunkLeanPct", "rightLegLeanPct", "leftLegLeanPct",
+        "rightArmFatPct", "leftArmFatPct", "trunkFatPct", "rightLegFatPct", "leftLegFatPct",
+    ]
+
+    /// Get a field value by key.
+    func value(forKey key: String) -> Double? {
+        switch key {
+        case "weightKg": return weightKg
+        case "skeletalMuscleMassKg": return skeletalMuscleMassKg
+        case "bodyFatMassKg": return bodyFatMassKg
+        case "bodyFatPct": return bodyFatPct
+        case "totalBodyWaterL": return totalBodyWaterL
+        case "bmi": return bmi
+        case "basalMetabolicRate": return basalMetabolicRate
+        case "intracellularWaterL": return intracellularWaterL
+        case "extracellularWaterL": return extracellularWaterL
+        case "dryLeanMassKg": return dryLeanMassKg
+        case "leanBodyMassKg": return leanBodyMassKg
+        case "inBodyScore": return inBodyScore
+        case "rightArmLeanKg": return rightArmLeanKg
+        case "leftArmLeanKg": return leftArmLeanKg
+        case "trunkLeanKg": return trunkLeanKg
+        case "rightLegLeanKg": return rightLegLeanKg
+        case "leftLegLeanKg": return leftLegLeanKg
+        case "rightArmFatKg": return rightArmFatKg
+        case "leftArmFatKg": return leftArmFatKg
+        case "trunkFatKg": return trunkFatKg
+        case "rightLegFatKg": return rightLegFatKg
+        case "leftLegFatKg": return leftLegFatKg
+        case "ecwTbwRatio": return ecwTbwRatio
+        case "skeletalMuscleIndex": return skeletalMuscleIndex
+        case "visceralFatLevel": return visceralFatLevel
+        case "rightArmLeanPct": return rightArmLeanPct
+        case "leftArmLeanPct": return leftArmLeanPct
+        case "trunkLeanPct": return trunkLeanPct
+        case "rightLegLeanPct": return rightLegLeanPct
+        case "leftLegLeanPct": return leftLegLeanPct
+        case "rightArmFatPct": return rightArmFatPct
+        case "leftArmFatPct": return leftArmFatPct
+        case "trunkFatPct": return trunkFatPct
+        case "rightLegFatPct": return rightLegFatPct
+        case "leftLegFatPct": return leftLegFatPct
+        default: return nil
+        }
+    }
+
+    /// Set a field value by key.
+    mutating func setValue(_ value: Double?, forKey key: String) {
+        switch key {
+        case "weightKg": weightKg = value
+        case "skeletalMuscleMassKg": skeletalMuscleMassKg = value
+        case "bodyFatMassKg": bodyFatMassKg = value
+        case "bodyFatPct": bodyFatPct = value
+        case "totalBodyWaterL": totalBodyWaterL = value
+        case "bmi": bmi = value
+        case "basalMetabolicRate": basalMetabolicRate = value
+        case "intracellularWaterL": intracellularWaterL = value
+        case "extracellularWaterL": extracellularWaterL = value
+        case "dryLeanMassKg": dryLeanMassKg = value
+        case "leanBodyMassKg": leanBodyMassKg = value
+        case "inBodyScore": inBodyScore = value
+        case "rightArmLeanKg": rightArmLeanKg = value
+        case "leftArmLeanKg": leftArmLeanKg = value
+        case "trunkLeanKg": trunkLeanKg = value
+        case "rightLegLeanKg": rightLegLeanKg = value
+        case "leftLegLeanKg": leftLegLeanKg = value
+        case "rightArmFatKg": rightArmFatKg = value
+        case "leftArmFatKg": leftArmFatKg = value
+        case "trunkFatKg": trunkFatKg = value
+        case "rightLegFatKg": rightLegFatKg = value
+        case "leftLegFatKg": leftLegFatKg = value
+        case "ecwTbwRatio": ecwTbwRatio = value
+        case "skeletalMuscleIndex": skeletalMuscleIndex = value
+        case "visceralFatLevel": visceralFatLevel = value
+        case "rightArmLeanPct": rightArmLeanPct = value
+        case "leftArmLeanPct": leftArmLeanPct = value
+        case "trunkLeanPct": trunkLeanPct = value
+        case "rightLegLeanPct": rightLegLeanPct = value
+        case "leftLegLeanPct": leftLegLeanPct = value
+        case "rightArmFatPct": rightArmFatPct = value
+        case "leftArmFatPct": leftArmFatPct = value
+        case "trunkFatPct": trunkFatPct = value
+        case "rightLegFatPct": rightLegFatPct = value
+        case "leftLegFatPct": leftLegFatPct = value
+        default: break
+        }
+    }
+
+    /// Produce a consensus result from multiple scan results using majority voting.
+    ///
+    /// For each field:
+    /// - Values within 1% of each other are considered "agreeing"
+    /// - If majority agree → use that value, confidence 0.95
+    /// - If 2 of 3 agree → use majority value, confidence 0.85
+    /// - If all differ → use the one with highest Apple OCR confidence, confidence 0.3
+    /// - If only 1 scan has the value → use it, keep its original confidence
+    /// - Apple's OCR confidence is used as tiebreaker, not primary signal
+    static func consensusVote(_ results: [InBodyParseResult], userEditedFields: Set<String> = []) -> InBodyParseResult {
+        guard !results.isEmpty else { return InBodyParseResult() }
+        guard results.count > 1 else { return results[0] }
+
+        var final = InBodyParseResult()
+        final.scanDate = results.compactMap(\.scanDate).min()
+        final.rawText = results.map(\.rawText).filter { !$0.isEmpty }.joined(separator: "\n---\n")
+        final.detectedUnit = results.first?.detectedUnit ?? .lbs
+
+        for key in allFieldKeys {
+            guard !userEditedFields.contains(key) else { continue }
+
+            // Collect all non-nil values with their confidence
+            let candidates: [(value: Double, conf: Float)] = results.compactMap { r in
+                guard let v = r.value(forKey: key) else { return nil }
+                return (v, r.confidence[key] ?? 0)
+            }
+
+            guard !candidates.isEmpty else { continue }
+
+            if candidates.count == 1 {
+                // Only one scan had this field — keep it with its confidence
+                final.setValue(candidates[0].value, forKey: key)
+                final.confidence[key] = candidates[0].conf
+                continue
+            }
+
+            // Group values that agree (within 1% tolerance)
+            let groups = groupByAgreement(candidates.map(\.value), tolerance: 0.01)
+            let largest = groups.max(by: { $0.count < $1.count })!
+
+            if largest.count == candidates.count {
+                // All agree — very high confidence
+                let avg = largest.reduce(0, +) / Double(largest.count)
+                final.setValue(avg, forKey: key)
+                final.confidence[key] = 0.95
+            } else if largest.count > 1 {
+                // Majority agrees — high confidence, use majority average
+                let avg = largest.reduce(0, +) / Double(largest.count)
+                final.setValue(avg, forKey: key)
+                final.confidence[key] = 0.85
+            } else {
+                // All differ — low confidence, pick highest Apple OCR confidence
+                let best = candidates.max(by: { $0.conf < $1.conf })!
+                final.setValue(best.value, forKey: key)
+                final.confidence[key] = 0.3
+            }
+        }
+
+        return final
+    }
+
+    /// Group values that are within `tolerance` (relative) of each other.
+    private static func groupByAgreement(_ values: [Double], tolerance: Double) -> [[Double]] {
+        var groups: [[Double]] = []
+        for value in values {
+            var placed = false
+            for i in groups.indices {
+                let representative = groups[i][0]
+                let diff = abs(value - representative) / max(abs(representative), 0.01)
+                if diff <= tolerance {
+                    groups[i].append(value)
+                    placed = true
+                    break
+                }
+            }
+            if !placed {
+                groups.append([value])
+            }
+        }
+        return groups
+    }
+
     // MARK: - Merge
 
     /// Merges another parse result into this one. Higher confidence wins per field.

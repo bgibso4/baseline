@@ -145,30 +145,43 @@ class ScanEntryViewModel {
 
     // MARK: - OCR Processing
 
+    /// All per-page parse results collected across scans (for consensus voting).
+    var allPageResults: [InBodyParseResult] = []
+
     func processScan(_ scan: VNDocumentCameraScan) async {
         isProcessing = true
         errorMessage = nil
 
         let pageCount = scan.pageCount
-        Log.scan.info("Processing \(pageCount) page(s)")
+        Log.scan.info("Processing \(pageCount) page(s), scan attempt \(retryCount + 1)")
 
         // Process pages one at a time to limit memory.
         // Downscale each page before parsing — the document camera captures
         // at full sensor resolution (~4000px) which is way more than OCR needs.
-        var combined = InBodyParseResult()
         for i in 0..<pageCount {
             Log.scan.debug("Parsing page \(i + 1)/\(pageCount)")
             let scaled = Self.downscale(scan.imageOfPage(at: i), maxDimension: 2048)
             let pageResult = await InBodyDocumentParser.parse(image: scaled)
-            combined.merge(with: pageResult)
+            allPageResults.append(pageResult)
         }
 
+        // Consensus vote across all collected pages/scans
+        let voted = InBodyParseResult.consensusVote(allPageResults, userEditedFields: userEditedFields)
+
         if retryCount > 0 {
-            mergeRetryResult(combined)
+            // Preserve user-edited field values
+            let savedEdits = userEditedFields.reduce(into: [String: String]()) { dict, key in
+                dict[key] = fields[key, default: ""]
+            }
+            populateFields(from: voted)
+            for (key, value) in savedEdits {
+                fields[key] = value
+            }
         } else {
-            self.parseResult = combined
-            populateFields(from: combined)
+            populateFields(from: voted)
         }
+
+        Log.scan.info("Consensus vote from \(allPageResults.count) page(s): \(voted.confidence.filter { $0.value >= 0.85 }.count) high-confidence fields")
 
         isProcessing = false
         currentStep = .review

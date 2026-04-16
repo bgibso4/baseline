@@ -95,9 +95,11 @@ struct InBodyDocumentParser {
             // Segmental lean: needs special handling (lbs vs % in same Y-band)
             extractSegmentalLean(doc.paragraphs, into: &result)
 
-            // Cross-reference: Body Composition History section has Weight, SMM, PBF, ECW/TBW
-            // in a simple tabular layout. Use these to validate/fill the bar chart extractions.
-            crossReferenceHistory(doc.paragraphs, into: &result)
+            // Cross-reference disabled — history section layout is unpredictable on
+            // repeat scans (mini-graphs, variable columns). Risk of extracting old
+            // values outweighs validation benefit. Re-enable when we understand the
+            // history format better across multiple scan sessions.
+            // crossReferenceHistory(doc.paragraphs, into: &result)
 
             // Fallback: table-based extraction for anything position missed
             extractFromTables(doc.tables, into: &result, confidence: confidence)
