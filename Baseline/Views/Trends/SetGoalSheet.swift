@@ -55,7 +55,7 @@ struct SetGoalSheet: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                CadreColors.bg.ignoresSafeArea()
+                GradientBackground(center: .top)
 
                 ScrollView {
                     VStack(spacing: 16) {

@@ -21,7 +21,7 @@ struct SettingsView: View {
 
     var body: some View {
         ZStack {
-            CadreColors.bg.ignoresSafeArea()
+            GradientBackground(center: .top)
 
             ScrollView {
                 VStack(spacing: 0) {

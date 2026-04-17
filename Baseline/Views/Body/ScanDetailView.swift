@@ -22,7 +22,7 @@ struct ScanDetailView: View {
 
     var body: some View {
         ZStack {
-            CadreColors.bg.ignoresSafeArea()
+            GradientBackground(center: .top)
 
             if let content {
                 ScrollView {
@@ -392,7 +392,7 @@ struct ScanEditView: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                CadreColors.bg.ignoresSafeArea()
+                GradientBackground(center: .top)
 
                 VStack(spacing: 0) {
                     ScrollView {

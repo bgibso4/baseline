@@ -74,7 +74,7 @@ struct TrendsView: View {
     var body: some View {
         NavigationStack {
             ZStack(alignment: .top) {
-                CadreColors.bg.ignoresSafeArea()
+                GradientBackground(center: .top)
 
                 VStack(spacing: 0) {
                     metricChipButton
@@ -295,14 +295,7 @@ struct TrendsView: View {
             }
             .padding(.horizontal, 14)
             .padding(.vertical, 12)
-            .background(
-                RoundedRectangle(cornerRadius: CadreRadius.md)
-                    .fill(CadreColors.card)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: CadreRadius.md)
-                            .stroke(CadreColors.divider, lineWidth: 1)
-                    )
-            )
+            .glassCard()
         }
         .buttonStyle(.plain)
     }
@@ -333,10 +326,7 @@ struct TrendsView: View {
             }
         }
         .padding(3)
-        .background(
-            RoundedRectangle(cornerRadius: 10)
-                .fill(CadreColors.card)
-        )
+        .glassCard(cornerRadius: 10)
     }
 
     // MARK: - Full variant (2+ data points)
@@ -865,7 +855,7 @@ struct TrendsView: View {
         let hasSecondary = compareEnabled && secondaryMetric != nil && !secondaryPoints.isEmpty
 
         return ZStack {
-            CadreColors.bg.ignoresSafeArea()
+            GradientBackground(center: .top)
 
             HStack(spacing: 0) {
                 // Left panel: metric info

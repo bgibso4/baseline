@@ -25,7 +25,7 @@ struct HistoryView: View {
 
     var body: some View {
         ZStack {
-            CadreColors.bg.ignoresSafeArea()
+            GradientBackground(center: .top)
 
             if let vm, !vm.entries.isEmpty {
                 list(vm: vm)

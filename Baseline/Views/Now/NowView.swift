@@ -37,7 +37,7 @@ struct NowView: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                CadreColors.bg.ignoresSafeArea()
+                GradientBackground(center: .top)
 
                 VStack(spacing: 0) {
                     // Hero: arc + number + range toggle, centered in open area
@@ -239,10 +239,7 @@ struct NowView: View {
             }
         }
         .padding(3)
-        .background(
-            RoundedRectangle(cornerRadius: 10)
-                .fill(CadreColors.card)
-        )
+        .glassCard(cornerRadius: 10)
     }
 
     // MARK: - Bottom block (stats + button)
@@ -279,8 +276,8 @@ struct NowView: View {
             statCell(label: "AVERAGE", value: stats.average)
             statCell(label: "HIGHEST", value: stats.highest)
         }
-        .background(CadreColors.divider)
         .clipShape(RoundedRectangle(cornerRadius: 14))
+        .glassCard(cornerRadius: 14)
     }
 
     private var goalStatsCard: some View {
@@ -303,8 +300,8 @@ struct NowView: View {
             goalStatCell(label: "TARGET", value: targetDisplay, unit: unit, accent: true, daysLeft: nil)
             goalStatCell(label: daysLeft.map { "TO GO (\($0)d)" } ?? "TO GO", value: remainingDisplay, unit: unit, accent: false, daysLeft: nil)
         }
-        .background(CadreColors.divider)
         .clipShape(RoundedRectangle(cornerRadius: 14))
+        .glassCard(cornerRadius: 14)
     }
 
     private func goalStatCell(label: String, value: Double?, unit: String, accent: Bool, daysLeft: Int?) -> some View {
@@ -358,7 +355,7 @@ struct NowView: View {
         .frame(maxWidth: .infinity)
         .padding(.vertical, 14)
         .padding(.horizontal, 6)
-        .background(CadreColors.card)
+        .background(CadreColors.cardGlass)
     }
 
     private var weighInButton: some View {

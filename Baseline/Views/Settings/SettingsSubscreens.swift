@@ -12,7 +12,7 @@ struct NameEditView: View {
 
     var body: some View {
         ZStack {
-            CadreColors.bg.ignoresSafeArea()
+            GradientBackground(center: .top)
 
             VStack(alignment: .leading, spacing: 0) {
                 // Text input card with accent border
@@ -103,7 +103,7 @@ struct HeightPickerView: View {
 
     var body: some View {
         ZStack {
-            CadreColors.bg.ignoresSafeArea()
+            GradientBackground(center: .top)
 
             VStack(spacing: 0) {
                 if isMetric {
@@ -215,7 +215,7 @@ struct BirthdayPickerView: View {
 
     var body: some View {
         ZStack {
-            CadreColors.bg.ignoresSafeArea()
+            GradientBackground(center: .top)
 
             VStack(spacing: 0) {
                 DatePicker(
@@ -293,7 +293,7 @@ struct GenderPickerView: View {
 
     var body: some View {
         ZStack {
-            CadreColors.bg.ignoresSafeArea()
+            GradientBackground(center: .top)
 
             VStack(spacing: 0) {
                 VStack(spacing: 0) {
@@ -355,7 +355,7 @@ struct ThemePickerView: View {
 
     var body: some View {
         ZStack {
-            CadreColors.bg.ignoresSafeArea()
+            GradientBackground(center: .top)
 
             VStack(spacing: 0) {
                 VStack(spacing: 0) {
@@ -425,7 +425,7 @@ struct CadreSyncView: View {
 
     var body: some View {
         ZStack {
-            CadreColors.bg.ignoresSafeArea()
+            GradientBackground(center: .top)
 
             VStack(alignment: .leading, spacing: 0) {
                 // API URL
@@ -575,7 +575,7 @@ struct ExportCSVView: View {
 
     var body: some View {
         ZStack {
-            CadreColors.bg.ignoresSafeArea()
+            GradientBackground(center: .top)
 
             VStack(spacing: 0) {
                 // Hero icon + title
@@ -680,7 +680,7 @@ private struct ExportItem {
 struct AboutCadreView: View {
     var body: some View {
         ZStack {
-            CadreColors.bg.ignoresSafeArea()
+            GradientBackground(center: .top)
 
             ScrollView {
                 VStack(spacing: 0) {

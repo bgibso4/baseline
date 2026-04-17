@@ -39,7 +39,7 @@ struct BodyView: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                CadreColors.bg.ignoresSafeArea()
+                GradientBackground(center: .top)
 
                 ScrollView {
                     VStack(spacing: 0) {
@@ -202,8 +202,8 @@ struct BodyView: View {
             }
             .padding(.horizontal, 14)
             .padding(.vertical, 14)
-            .background(CadreColors.card)
             .clipShape(RoundedRectangle(cornerRadius: CadreRadius.md))
+            .glassCard()
         }
         .buttonStyle(.plain)
     }

@@ -28,7 +28,7 @@ struct LogMeasurementSheet: View {
 
     var body: some View {
         ZStack {
-            CadreColors.bg.ignoresSafeArea()
+            GradientBackground(center: .top)
 
             VStack(spacing: 0) {
                 sheetHandle
@@ -277,7 +277,7 @@ struct LogMeasurementSheet: View {
     private var typePickerSheet: some View {
         NavigationStack {
             ZStack {
-                CadreColors.bg.ignoresSafeArea()
+                GradientBackground(center: .top)
                 List {
                     ForEach(MeasurementType.allCases, id: \.self) { type in
                         Button {

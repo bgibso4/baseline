@@ -14,7 +14,7 @@ struct MetricHistoryView: View {
 
     var body: some View {
         ZStack {
-            CadreColors.bg.ignoresSafeArea()
+            GradientBackground(center: .top)
 
             if entries.isEmpty {
                 VStack(spacing: 12) {
@@ -86,7 +86,7 @@ struct MeasurementHistoryView: View {
 
     var body: some View {
         ZStack {
-            CadreColors.bg.ignoresSafeArea()
+            GradientBackground(center: .top)
 
             if measurements.isEmpty {
                 VStack(spacing: 12) {

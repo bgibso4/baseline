@@ -27,7 +27,7 @@ struct ScanEntryFlow: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                CadreColors.bg.ignoresSafeArea()
+                GradientBackground(center: .top)
 
                 if let vm = resolvedVM {
                     // AnyView breaks the type metadata chain — without it, the

@@ -18,6 +18,8 @@
 		0BAB7EB581FEBEC95104DC1E /* TrendsViewSnapshotTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3FFC7E5904AEB1F7A6957D2D /* TrendsViewSnapshotTests.swift */; };
 		0C50ABA464D39A2FE1AAC9FC /* MetricHistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5998E990E3771B0504227A72 /* MetricHistoryView.swift */; };
 		0D82FB85309F585B25DFA19B /* ArcIndicatorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08676595D1E00491EDB74DF5 /* ArcIndicatorView.swift */; };
+		6CFEB0E0629C6205349D2964 /* GradientBackground.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9F75D29D530A43D2588D84A /* GradientBackground.swift */; };
+		D45EE0A20FB785973D9206A0 /* GlassCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15D80B91DBB8B57CC3D79170 /* GlassCard.swift */; };
 		AA22BB33CC44DD55EE66FF88 /* GoalReachedOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB33CC44DD55EE66FF77AA88 /* GoalReachedOverlay.swift */; };
 		1420080C176B26B2E12FEE83 /* HistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A472F5E582548C05BBD1A751 /* HistoryView.swift */; };
 		14FE980511237871E2644BEE /* BaselineApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 007A5A45919FF650EAB251AE /* BaselineApp.swift */; };
@@ -149,6 +151,8 @@
 		0070AF17E85C200AF4B68F44 /* WeightLockScreenWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeightLockScreenWidget.swift; sourceTree = "<group>"; };
 		007A5A45919FF650EAB251AE /* BaselineApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BaselineApp.swift; sourceTree = "<group>"; };
 		08676595D1E00491EDB74DF5 /* ArcIndicatorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArcIndicatorView.swift; sourceTree = "<group>"; };
+		C9F75D29D530A43D2588D84A /* GradientBackground.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GradientBackground.swift; sourceTree = "<group>"; };
+		15D80B91DBB8B57CC3D79170 /* GlassCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlassCard.swift; sourceTree = "<group>"; };
 		BB33CC44DD55EE66FF77AA88 /* GoalReachedOverlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GoalReachedOverlay.swift; sourceTree = "<group>"; };
 		16180890AC21C5FBC902279E /* BodyViewSnapshotTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BodyViewSnapshotTests.swift; sourceTree = "<group>"; };
 		18F90EA3B79CAA8467685396 /* HealthKitManagerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthKitManagerTests.swift; sourceTree = "<group>"; };
@@ -467,6 +471,8 @@
 			isa = PBXGroup;
 			children = (
 				08676595D1E00491EDB74DF5 /* ArcIndicatorView.swift */,
+				C9F75D29D530A43D2588D84A /* GradientBackground.swift */,
+				15D80B91DBB8B57CC3D79170 /* GlassCard.swift */,
 				BB33CC44DD55EE66FF77AA88 /* GoalReachedOverlay.swift */,
 				F48EFFC280B6AF1B4D90AADE /* MetricTile.swift */,
 				A1F7BB657D83894D1E5B4400 /* SparklineView.swift */,
@@ -817,6 +823,8 @@
 				E0288A71F6279F2726D154B0 /* APIClient.swift in Sources */,
 				4468566A53F28207A9455BBB /* AppState.swift in Sources */,
 				0D82FB85309F585B25DFA19B /* ArcIndicatorView.swift in Sources */,
+				6CFEB0E0629C6205349D2964 /* GradientBackground.swift in Sources */,
+				D45EE0A20FB785973D9206A0 /* GlassCard.swift in Sources */,
 				AA22BB33CC44DD55EE66FF88 /* GoalReachedOverlay.swift in Sources */,
 				14FE980511237871E2644BEE /* BaselineApp.swift in Sources */,
 				785C5DEE4B6E4E89A3FB7D25 /* BaselineTips.swift in Sources */,
