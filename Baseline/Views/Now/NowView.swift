@@ -245,7 +245,7 @@ struct NowView: View {
     // MARK: - Bottom block (stats + button)
 
     private var bottomBlock: some View {
-        VStack(spacing: 18) {
+        VStack(spacing: 20) {
             if goalVM?.activeWeightGoal != nil, showGoalStats {
                 goalStatsCard
                     .onTapGesture {

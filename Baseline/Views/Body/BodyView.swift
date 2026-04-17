@@ -32,8 +32,8 @@ struct BodyView: View {
     // MARK: - Grid
 
     private let tileColumns = [
-        GridItem(.flexible(), spacing: 8),
-        GridItem(.flexible(), spacing: 8)
+        GridItem(.flexible(), spacing: 10),
+        GridItem(.flexible(), spacing: 10)
     ]
 
     var body: some View {
@@ -49,10 +49,11 @@ struct BodyView: View {
                         bodyCompositionSection
                         scanHistoryCard
                             .padding(.horizontal, CadreSpacing.sheetHorizontal)
-                            .padding(.top, 12)
+                            .padding(.top, 16)
                         measurementsSection
+                            .padding(.top, 8)
                     }
-                    .padding(.bottom, 24)
+                    .padding(.bottom, 32)
                 }
             }
             .toolbar {
@@ -93,7 +94,7 @@ struct BodyView: View {
             )
 
             if let tiles = bodyCompTiles, !tiles.isEmpty {
-                LazyVGrid(columns: tileColumns, spacing: 8) {
+                LazyVGrid(columns: tileColumns, spacing: 10) {
                     ForEach(tiles, id: \.label) { tile in
                         if let trendName = trendMetricName(for: tile.label) {
                             Button {
@@ -152,7 +153,7 @@ struct BodyView: View {
 
             let tiles = measurementTiles
             if !tiles.isEmpty {
-                LazyVGrid(columns: tileColumns, spacing: 8) {
+                LazyVGrid(columns: tileColumns, spacing: 10) {
                     ForEach(tiles, id: \.label) { tile in
                         MeasurementTileLink(
                             tile: tile,

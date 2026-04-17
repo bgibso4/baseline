@@ -83,7 +83,7 @@ struct TrendsView: View {
 
                     rangeTabs
                         .padding(.horizontal, CadreSpacing.sheetHorizontal)
-                        .padding(.top, 10)
+                        .padding(.top, 12)
 
                     TipView(trendsTip)
                         .padding(.horizontal, CadreSpacing.sheetHorizontal)
@@ -365,12 +365,12 @@ struct TrendsView: View {
 
             chartBlock(points: points, movingAverage: ma)
                 .padding(.horizontal, CadreSpacing.sheetHorizontal)
-                .padding(.top, 14)
+                .padding(.top, 18)
 
             if !ma.isEmpty {
                 legendBlock
                     .padding(.horizontal, CadreSpacing.sheetHorizontal)
-                    .padding(.top, 10)
+                    .padding(.top, 12)
             }
 
             GoalCard(
@@ -381,7 +381,7 @@ struct TrendsView: View {
                 onManageGoal: { showManageGoal = true }
             )
             .padding(.horizontal, CadreSpacing.sheetHorizontal)
-            .padding(.top, 12)
+            .padding(.top, 16)
         }
     }
 

@@ -11,6 +11,7 @@ struct GlassCard: ViewModifier {
             .background(
                 RoundedRectangle(cornerRadius: cornerRadius)
                     .fill(CadreColors.cardGlass)
+                    .shadow(color: .black.opacity(0.35), radius: 8, x: 0, y: 4)
             )
             .overlay(
                 RoundedRectangle(cornerRadius: cornerRadius)
