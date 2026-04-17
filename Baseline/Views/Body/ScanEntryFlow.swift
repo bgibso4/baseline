@@ -299,6 +299,13 @@ struct ScanEntryFlow: View {
                         reviewDateChip(vm: vm)
                             .padding(.top, 12)
 
+                        // Single-photo accuracy warning
+                        if vm.allPageResults.count <= 1 {
+                            singlePhotoBanner(vm: vm)
+                                .padding(.horizontal, CadreSpacing.sheetHorizontal)
+                                .padding(.top, 12)
+                        }
+
                         // Warning banner: N fields may need review
                         if !vm.lowConfidenceFields.isEmpty {
                             warningBanner(count: vm.lowConfidenceFields.count)
@@ -440,6 +447,48 @@ struct ScanEntryFlow: View {
         .overlay(
             RoundedRectangle(cornerRadius: 10)
                 .stroke(amberColor.opacity(0.3), lineWidth: 1)
+        )
+        .clipShape(RoundedRectangle(cornerRadius: 10))
+    }
+
+    private func singlePhotoBanner(vm: ScanEntryViewModel) -> some View {
+        HStack(spacing: 10) {
+            Image(systemName: "camera.viewfinder")
+                .font(.system(size: 15, weight: .medium))
+                .foregroundStyle(CadreColors.accent)
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text("Single photo scan")
+                    .font(.system(size: 13, weight: .bold))
+                    .foregroundStyle(CadreColors.textPrimary)
+                Text("Results may be inaccurate. Scan again to improve accuracy.")
+                    .font(.system(size: 11, weight: .medium))
+                    .foregroundStyle(CadreColors.textSecondary)
+                    .lineSpacing(1)
+            }
+
+            Spacer(minLength: 0)
+
+            Button {
+                vm.retryCount += 1
+                vm.currentStep = .camera
+            } label: {
+                Text("Scan Again")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundStyle(.white)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 7)
+                    .background(CadreColors.accent)
+                    .clipShape(RoundedRectangle(cornerRadius: 8))
+            }
+            .buttonStyle(.plain)
+        }
+        .padding(.horizontal, 14)
+        .padding(.vertical, 12)
+        .background(CadreColors.accent.opacity(0.08))
+        .overlay(
+            RoundedRectangle(cornerRadius: 10)
+                .stroke(CadreColors.accent.opacity(0.3), lineWidth: 1)
         )
         .clipShape(RoundedRectangle(cornerRadius: 10))
     }
