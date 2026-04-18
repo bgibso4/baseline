@@ -47,7 +47,7 @@ struct ScanDetailView: View {
         }
         .navigationTitle(scanTitle)
         .navigationBarTitleDisplayMode(.inline)
-        .toolbarBackground(CadreColors.bg, for: .navigationBar)
+        .toolbarBackground(CadreColors.bgGradientCenter, for: .navigationBar)
         .toolbarColorScheme(.dark, for: .navigationBar)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
@@ -435,7 +435,7 @@ struct ScanEditView: View {
                         .foregroundStyle(CadreColors.textSecondary)
                 }
             }
-            .toolbarBackground(CadreColors.bg, for: .navigationBar)
+            .toolbarBackground(CadreColors.bgGradientCenter, for: .navigationBar)
             .toolbarColorScheme(.dark, for: .navigationBar)
         }
     }

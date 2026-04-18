@@ -312,6 +312,8 @@ struct NowView: View {
                 .font(CadreTypography.statLabel)
                 .tracking(0.5)
                 .foregroundStyle(labelColor)
+                .lineLimit(1)
+                .minimumScaleFactor(0.8)
             HStack(alignment: .firstTextBaseline, spacing: 2) {
                 Text(value.map { UnitConversion.formatWeight($0, unit: unit) } ?? "—")
                     .font(CadreTypography.statValue)
@@ -327,25 +329,22 @@ struct NowView: View {
         .frame(maxWidth: .infinity)
         .padding(.vertical, 14)
         .padding(.horizontal, 6)
-        .background(CadreColors.card)
+        .background(CadreColors.cardGlass)
     }
 
     private func statCell(label: String, value: Double?) -> some View {
         let unit = vm?.unit ?? "lb"
         return VStack(spacing: 6) {
-            // Uppercase caption — 9pt semibold, 0.5px tracking (mockup .stat .label)
             Text(label)
                 .font(CadreTypography.statLabel)
                 .tracking(0.5)
                 .foregroundStyle(CadreColors.textTertiary)
             HStack(alignment: .firstTextBaseline, spacing: 2) {
-                // Stat value — 18pt bold (mockup .stat .value)
                 Text(value.map { UnitConversion.formatWeight($0, unit: unit) } ?? "—")
                     .font(CadreTypography.statValue)
                     .foregroundStyle(CadreColors.textPrimary)
                     .contentTransition(.numericText())
                 if value != nil {
-                    // Stat unit suffix — 10pt regular (mockup .stat .value .unit)
                     Text(unit)
                         .font(CadreTypography.statUnit)
                         .foregroundStyle(CadreColors.textTertiary)
@@ -371,6 +370,7 @@ struct NowView: View {
                 .padding(.vertical, 18)
                 .background(CadreColors.accent)
                 .clipShape(RoundedRectangle(cornerRadius: 16))
+                .shadow(color: CadreColors.accent.opacity(0.4), radius: 12, x: 0, y: 4)
         }
     }
 

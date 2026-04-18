@@ -54,9 +54,10 @@ class HistoryViewModel {
 
     /// Check if a weight entry exists for the given date (excluding a specific entry).
     func existingEntry(for date: Date, excluding entryID: UUID) -> WeightEntry? {
-        let targetDay = Calendar.current.startOfDay(for: date)
+        let dayStart = Calendar.current.startOfDay(for: date)
+        let dayEnd = Calendar.current.date(byAdding: .day, value: 1, to: dayStart)!
         let descriptor = FetchDescriptor<WeightEntry>(
-            predicate: #Predicate { $0.date == targetDay }
+            predicate: #Predicate { $0.date >= dayStart && $0.date < dayEnd }
         )
         return (try? modelContext.fetch(descriptor))?.first(where: { $0.id != entryID })
     }
@@ -71,7 +72,13 @@ class HistoryViewModel {
         entry.weight = weight
         entry.notes = trimmed.isEmpty ? nil : trimmed
         if let date {
-            entry.date = Calendar.current.startOfDay(for: date)
+            // Preserve time of day: use noon on the selected date so it sorts correctly
+            var components = Calendar.current.dateComponents([.year, .month, .day], from: date)
+            let originalTime = Calendar.current.dateComponents([.hour, .minute, .second], from: entry.date)
+            components.hour = originalTime.hour
+            components.minute = originalTime.minute
+            components.second = originalTime.second
+            entry.date = Calendar.current.date(from: components) ?? date
         }
         entry.updatedAt = Date()
         do {

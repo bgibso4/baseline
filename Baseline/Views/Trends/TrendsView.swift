@@ -96,7 +96,7 @@ struct TrendsView: View {
                     Spacer(minLength: 0)
                 }
             }
-            .navigationBarHidden(true)
+            .toolbarVisibility(.hidden, for: .navigationBar)
             .fullScreenCover(isPresented: $showFullscreen) {
                 LandscapeHostingController(content: fullscreenChartContent)
                     .ignoresSafeArea()

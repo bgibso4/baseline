@@ -38,11 +38,12 @@ class NowViewModel {
     }
 
     func refresh() {
-        let today = Calendar.current.startOfDay(for: Date())
+        let todayStart = Calendar.current.startOfDay(for: Date())
+        let tomorrowStart = Calendar.current.date(byAdding: .day, value: 1, to: todayStart)!
 
-        // Fetch today's entry
+        // Fetch today's entry (any time today)
         var todayDescriptor = FetchDescriptor<WeightEntry>(
-            predicate: #Predicate { $0.date == today }
+            predicate: #Predicate { $0.date >= todayStart && $0.date < tomorrowStart }
         )
         todayDescriptor.fetchLimit = 1
         do {
@@ -53,7 +54,7 @@ class NowViewModel {
 
         // Fetch most recent entry before today
         var previousDescriptor = FetchDescriptor<WeightEntry>(
-            predicate: #Predicate { $0.date < today },
+            predicate: #Predicate { $0.date < todayStart },
             sortBy: [SortDescriptor(\.date, order: .reverse)]
         )
         previousDescriptor.fetchLimit = 1

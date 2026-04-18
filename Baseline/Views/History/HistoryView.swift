@@ -35,7 +35,7 @@ struct HistoryView: View {
         }
         .navigationTitle("History")
         .navigationBarTitleDisplayMode(.inline)
-        .toolbarBackground(CadreColors.bg, for: .navigationBar)
+        .toolbarBackground(CadreColors.bgGradientCenter, for: .navigationBar)
         .toolbarColorScheme(.dark, for: .navigationBar)
         .sheet(item: $editingEntry) { entry in
             EditEntrySheet(
@@ -61,36 +61,73 @@ struct HistoryView: View {
         }
     }
 
+    // MARK: - Grouped by month
+
+    /// Groups entries by "Month Year" (e.g. "April 2026"), preserving reverse-chronological order.
+    private func groupedEntries(_ entries: [WeightEntry]) -> [(key: String, entries: [WeightEntry])] {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "MMMM yyyy"
+        var groups: [(key: String, entries: [WeightEntry])] = []
+        var currentKey = ""
+        var currentGroup: [WeightEntry] = []
+        for entry in entries {
+            let key = formatter.string(from: entry.date)
+            if key != currentKey {
+                if !currentGroup.isEmpty {
+                    groups.append((key: currentKey, entries: currentGroup))
+                }
+                currentKey = key
+                currentGroup = [entry]
+            } else {
+                currentGroup.append(entry)
+            }
+        }
+        if !currentGroup.isEmpty {
+            groups.append((key: currentKey, entries: currentGroup))
+        }
+        return groups
+    }
+
     // MARK: - List
 
     private func list(vm: HistoryViewModel) -> some View {
         List {
-            ForEach(vm.entries) { entry in
-                HistoryRow(
-                    entry: entry,
-                    delta: vm.delta(for: entry)
-                )
-                .listRowBackground(CadreColors.bg)
-                .listRowSeparatorTint(CadreColors.divider)
-                .listRowInsets(EdgeInsets(top: 12, leading: CadreSpacing.md, bottom: 12, trailing: CadreSpacing.md))
-                .contentShape(Rectangle())
-                .onTapGesture { editingEntry = entry }
-                .swipeActions(edge: .trailing, allowsFullSwipe: false) {
-                    Button(role: .destructive) {
-                        vm.delete(entry)
-                    } label: {
-                        Label("Delete", systemImage: "trash")
+            ForEach(groupedEntries(vm.entries), id: \.key) { group in
+                Section {
+                    ForEach(group.entries) { entry in
+                        HistoryRow(
+                            entry: entry,
+                            delta: vm.delta(for: entry)
+                        )
+                        .listRowBackground(CadreColors.cardGlass)
+                        .listRowSeparatorTint(CadreColors.divider.opacity(0.5))
+                        .listRowInsets(EdgeInsets(top: 16, leading: 16, bottom: 16, trailing: 16))
+                        .contentShape(Rectangle())
+                        .onTapGesture { editingEntry = entry }
+                        .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                            Button(role: .destructive) {
+                                vm.delete(entry)
+                            } label: {
+                                Label("Delete", systemImage: "trash")
+                            }
+                            Button {
+                                editingEntry = entry
+                            } label: {
+                                Label("Edit", systemImage: "pencil")
+                            }
+                            .tint(CadreColors.accent)
+                        }
                     }
-                    Button {
-                        editingEntry = entry
-                    } label: {
-                        Label("Edit", systemImage: "pencil")
-                    }
-                    .tint(CadreColors.accent)
+                } header: {
+                    Text(group.key.uppercased())
+                        .font(.system(size: 11, weight: .semibold))
+                        .tracking(0.5)
+                        .foregroundStyle(CadreColors.textTertiary)
+                        .listRowInsets(EdgeInsets(top: 16, leading: 4, bottom: 8, trailing: 0))
                 }
             }
         }
-        .listStyle(.plain)
+        .listStyle(.insetGrouped)
         .scrollContentBackground(.hidden)
     }
 
@@ -122,14 +159,21 @@ private struct HistoryRow: View {
         return UnitConversion.displayWeight(entry.weight, storedUnit: entry.unit)
     }
 
-    private var dayNumber: String {
-        let cal = Calendar.current
-        return "\(cal.component(.day, from: entry.date))"
+    private var dateLabel: String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "MMM d"
+        return formatter.string(from: entry.date)
     }
 
-    private var monthYear: String {
+    /// Show time only if the entry was logged on the day it represents.
+    /// Back-dated entries have meaningless times (midnight or log time).
+    private var showTime: Bool {
+        Calendar.current.isDate(entry.date, inSameDayAs: entry.createdAt)
+    }
+
+    private var timeLabel: String {
         let formatter = DateFormatter()
-        formatter.dateFormat = "MMM yyyy"
+        formatter.dateFormat = "h:mm a"
         return formatter.string(from: entry.date)
     }
 
@@ -139,37 +183,45 @@ private struct HistoryRow: View {
         return formatter.string(from: entry.date)
     }
 
+    private var weekdayLabel: String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "EEEE"
+        return formatter.string(from: entry.date)
+    }
+
     var body: some View {
         VStack(spacing: 0) {
-            HStack(spacing: 16) {
-                // Date block — mirrors ScanHistoryView pattern
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(dayNumber)
-                        .font(.system(size: 28, weight: .bold))
+            HStack(spacing: 0) {
+                // Date + optional time on the left
+                VStack(alignment: .leading, spacing: 3) {
+                    Text(dateLabel)
+                        .font(.system(size: 14, weight: .semibold))
                         .foregroundStyle(CadreColors.textPrimary)
-                    Text(monthYear)
-                        .font(.system(size: 12, weight: .medium))
-                        .foregroundStyle(CadreColors.textSecondary)
+                    if showTime {
+                        Text(timeLabel)
+                            .font(.system(size: 12, weight: .medium))
+                            .foregroundStyle(CadreColors.textTertiary)
+                    }
                 }
-                .frame(width: 60, alignment: .leading)
 
                 Spacer()
 
-                // Weight + delta — always in user's preferred unit
-                VStack(alignment: .trailing, spacing: 4) {
-                    HStack(alignment: .firstTextBaseline, spacing: 3) {
-                        Text(UnitConversion.formatWeight(displayWeight, unit: displayUnit))
-                            .font(.system(size: 22, weight: .bold))
-                            .foregroundStyle(CadreColors.textPrimary)
-                        Text(displayUnit)
-                            .font(.system(size: 13, weight: .medium))
-                            .foregroundStyle(CadreColors.textSecondary)
-                    }
-                    if let delta {
-                        Text(UnitConversion.formatDelta(delta))
-                            .font(.system(size: 13, weight: .medium))
-                            .foregroundStyle(deltaColor(delta))
-                    }
+                // Weight — big and bold on the right
+                HStack(alignment: .firstTextBaseline, spacing: 4) {
+                    Text(UnitConversion.formatWeight(displayWeight, unit: displayUnit))
+                        .font(.system(size: 24, weight: .bold))
+                        .foregroundStyle(CadreColors.textPrimary)
+                    Text(displayUnit.uppercased())
+                        .font(.system(size: 11, weight: .semibold))
+                        .foregroundStyle(CadreColors.textTertiary)
+                }
+
+                // Delta badge
+                if let delta {
+                    Text(UnitConversion.formatDelta(delta))
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundStyle(deltaColor(delta))
+                        .padding(.leading, 10)
                 }
             }
 
@@ -187,7 +239,7 @@ private struct HistoryRow: View {
     }
 
     private var rowAccessibilityLabel: String {
-        var label = "\(weekday), \(monthYear) \(dayNumber), \(UnitConversion.formatWeight(displayWeight, unit: displayUnit)) \(displayUnit)"
+        var label = "\(weekday), \(dateLabel), \(UnitConversion.formatWeight(displayWeight, unit: displayUnit)) \(displayUnit)"
         if let delta {
             label += ", \(deltaText(delta)) change"
         }
@@ -341,7 +393,7 @@ private struct EditEntrySheet: View {
                 }
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Save") {
-                        let dateChanged = Calendar.current.startOfDay(for: selectedDate) != entry.date
+                        let dateChanged = !Calendar.current.isDate(selectedDate, inSameDayAs: entry.date)
                         if dateChanged && checkConflict(selectedDate, entry.id) {
                             showOverwriteAlert = true
                         } else {

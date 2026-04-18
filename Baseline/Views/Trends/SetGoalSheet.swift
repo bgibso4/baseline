@@ -132,7 +132,7 @@ struct SetGoalSheet: View {
                     .foregroundStyle(CadreColors.textSecondary)
                 }
             }
-            .toolbarBackground(CadreColors.bg, for: .navigationBar)
+            .toolbarBackground(CadreColors.bgGradientCenter, for: .navigationBar)
             .toolbarBackground(.visible, for: .navigationBar)
             .toolbarColorScheme(.dark, for: .navigationBar)
         }

@@ -39,7 +39,7 @@ struct SettingsView: View {
             }
         }
         .navigationBarTitleDisplayMode(.inline)
-        .toolbarBackground(CadreColors.bg, for: .navigationBar)
+        .toolbarBackground(CadreColors.bgGradientCenter, for: .navigationBar)
         .toolbar {
             ToolbarItem(placement: .principal) {
                 Text("Settings")
@@ -158,8 +158,8 @@ struct SettingsView: View {
                     )
                 )
             }
-            .padding(.horizontal, 22)
-            .padding(.vertical, 13)
+            .padding(.horizontal, 16)
+            .padding(.vertical, 14)
 
             SettingsDivider()
 
@@ -178,8 +178,8 @@ struct SettingsView: View {
                     )
                 )
             }
-            .padding(.horizontal, 22)
-            .padding(.vertical, 13)
+            .padding(.horizontal, 16)
+            .padding(.vertical, 14)
         }
     }
 
@@ -404,8 +404,8 @@ struct SettingsRow: View {
                     .background(CadreColors.cardElevated, in: RoundedRectangle(cornerRadius: 5))
             }
         }
-        .padding(.horizontal, 22)
-        .padding(.vertical, 13)
+        .padding(.horizontal, 16)
+        .padding(.vertical, 14)
         .contentShape(Rectangle())
     }
 }
@@ -444,7 +444,7 @@ private extension SettingsIconTint {
     }
 }
 
-/// Section container with uppercase label.
+/// Section container with uppercase label and glass card background.
 struct SettingsSectionView<Content: View>: View {
     let title: String
     @ViewBuilder let content: Content
@@ -460,7 +460,12 @@ struct SettingsSectionView<Content: View>: View {
                 .padding(.top, 22)
                 .padding(.bottom, 8)
 
-            content
+            VStack(spacing: 0) {
+                content
+            }
+            .clipShape(RoundedRectangle(cornerRadius: CadreRadius.md))
+            .glassCard()
+            .padding(.horizontal, 16)
         }
     }
 }
@@ -471,7 +476,7 @@ struct SettingsDivider: View {
         Rectangle()
             .fill(CadreColors.divider)
             .frame(height: 0.5)
-            .padding(.leading, 64) // icon width (28) + gap (14) + padding (22)
+            .padding(.leading, 50) // icon width (28) + gap (14) + inner padding (8)
     }
 }
 

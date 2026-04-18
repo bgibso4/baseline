@@ -83,7 +83,7 @@ struct NameEditView: View {
                     .font(.system(size: 15, weight: .semibold))
             }
         }
-        .toolbarBackground(CadreColors.bg, for: .navigationBar)
+        .toolbarBackground(CadreColors.bgGradientCenter, for: .navigationBar)
         .onAppear { draft = viewModel.name }
     }
 }
@@ -190,7 +190,7 @@ struct HeightPickerView: View {
                 .foregroundStyle(CadreColors.accent)
             }
         }
-        .toolbarBackground(CadreColors.bg, for: .navigationBar)
+        .toolbarBackground(CadreColors.bgGradientCenter, for: .navigationBar)
         .onAppear {
             draftFeet = viewModel.heightFeet > 0 ? viewModel.heightFeet : 5
             draftInches = viewModel.heightInches
@@ -276,7 +276,7 @@ struct BirthdayPickerView: View {
                 .foregroundStyle(CadreColors.accent)
             }
         }
-        .toolbarBackground(CadreColors.bg, for: .navigationBar)
+        .toolbarBackground(CadreColors.bgGradientCenter, for: .navigationBar)
         .onAppear {
             if let existing = viewModel.birthday {
                 draftDate = existing
@@ -343,7 +343,7 @@ struct GenderPickerView: View {
                     .tracking(-0.2)
             }
         }
-        .toolbarBackground(CadreColors.bg, for: .navigationBar)
+        .toolbarBackground(CadreColors.bgGradientCenter, for: .navigationBar)
     }
 }
 
@@ -409,7 +409,7 @@ struct ThemePickerView: View {
                     .tracking(-0.2)
             }
         }
-        .toolbarBackground(CadreColors.bg, for: .navigationBar)
+        .toolbarBackground(CadreColors.bgGradientCenter, for: .navigationBar)
     }
 }
 
@@ -533,7 +533,7 @@ struct CadreSyncView: View {
                     .tracking(-0.2)
             }
         }
-        .toolbarBackground(CadreColors.bg, for: .navigationBar)
+        .toolbarBackground(CadreColors.bgGradientCenter, for: .navigationBar)
         .onAppear {
             apiURL = viewModel.syncAPIURL
             apiKey = viewModel.syncAPIKey
@@ -643,7 +643,7 @@ struct ExportCSVView: View {
                     .tracking(-0.2)
             }
         }
-        .toolbarBackground(CadreColors.bg, for: .navigationBar)
+        .toolbarBackground(CadreColors.bgGradientCenter, for: .navigationBar)
     }
 
     private func exportToggle(_ label: String, isOn: Binding<Bool>) -> some View {
@@ -740,7 +740,7 @@ struct AboutCadreView: View {
                     .tracking(-0.2)
             }
         }
-        .toolbarBackground(CadreColors.bg, for: .navigationBar)
+        .toolbarBackground(CadreColors.bgGradientCenter, for: .navigationBar)
     }
 
     private enum BadgeStyle { case current, normal }
