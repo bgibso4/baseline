@@ -15,7 +15,7 @@ struct ScanHistoryView: View {
 
     var body: some View {
         ZStack {
-            CadreColors.bg.ignoresSafeArea()
+            GradientBackground(center: .top)
 
             if scans.isEmpty {
                 emptyState

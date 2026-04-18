@@ -16,7 +16,7 @@ class WeightEntry {
         self.id = UUID()
         self.weight = weight
         self.unit = unit
-        self.date = Calendar.current.startOfDay(for: date)
+        self.date = date
         self.notes = notes
         self.photoData = photoData
         self.createdAt = Date()

@@ -55,7 +55,7 @@ struct SetGoalSheet: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                CadreColors.bg.ignoresSafeArea()
+                GradientBackground(center: .top)
 
                 ScrollView {
                     VStack(spacing: 16) {
@@ -132,7 +132,7 @@ struct SetGoalSheet: View {
                     .foregroundStyle(CadreColors.textSecondary)
                 }
             }
-            .toolbarBackground(CadreColors.bg, for: .navigationBar)
+            .toolbarBackground(CadreColors.bgGradientCenter, for: .navigationBar)
             .toolbarBackground(.visible, for: .navigationBar)
             .toolbarColorScheme(.dark, for: .navigationBar)
         }

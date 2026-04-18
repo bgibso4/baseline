@@ -12,9 +12,29 @@ struct MetricHistoryView: View {
     let unit: String
     let entries: [(date: Date, value: String)]
 
+    private func groupedEntries() -> [(key: String, entries: [(date: Date, value: String)])] {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "MMMM yyyy"
+        var groups: [(key: String, entries: [(date: Date, value: String)])] = []
+        var currentKey = ""
+        var currentGroup: [(date: Date, value: String)] = []
+        for entry in entries {
+            let key = formatter.string(from: entry.date)
+            if key != currentKey {
+                if !currentGroup.isEmpty { groups.append((key: currentKey, entries: currentGroup)) }
+                currentKey = key
+                currentGroup = [entry]
+            } else {
+                currentGroup.append(entry)
+            }
+        }
+        if !currentGroup.isEmpty { groups.append((key: currentKey, entries: currentGroup)) }
+        return groups
+    }
+
     var body: some View {
         ZStack {
-            CadreColors.bg.ignoresSafeArea()
+            GradientBackground(center: .top)
 
             if entries.isEmpty {
                 VStack(spacing: 12) {
@@ -27,39 +47,52 @@ struct MetricHistoryView: View {
                 }
             } else {
                 List {
-                    ForEach(Array(entries.enumerated()), id: \.offset) { _, entry in
-                        HStack(spacing: 16) {
-                            VStack(alignment: .leading, spacing: 2) {
-                                Text("\(Calendar.current.component(.day, from: entry.date))")
-                                    .font(.system(size: 28, weight: .bold))
-                                    .foregroundStyle(CadreColors.textPrimary)
-                                Text({
-                                    let f = DateFormatter(); f.dateFormat = "MMM yyyy"
-                                    return f.string(from: entry.date)
-                                }())
-                                    .font(.system(size: 12, weight: .medium))
-                                    .foregroundStyle(CadreColors.textSecondary)
-                            }
-                            .frame(width: 60, alignment: .leading)
+                    ForEach(groupedEntries(), id: \.key) { group in
+                        Section {
+                            ForEach(Array(group.entries.enumerated()), id: \.offset) { _, entry in
+                                HStack(spacing: 0) {
+                                    VStack(alignment: .leading, spacing: 3) {
+                                        Text({
+                                            let f = DateFormatter(); f.dateFormat = "EEEE"
+                                            return f.string(from: entry.date)
+                                        }())
+                                            .font(.system(size: 14, weight: .semibold))
+                                            .foregroundStyle(CadreColors.textPrimary)
+                                        Text({
+                                            let f = DateFormatter(); f.dateFormat = "MMM d"
+                                            return f.string(from: entry.date)
+                                        }())
+                                            .font(.system(size: 12, weight: .medium))
+                                            .foregroundStyle(CadreColors.textTertiary)
+                                    }
 
-                            Spacer()
+                                    Spacer()
 
-                            HStack(alignment: .firstTextBaseline, spacing: 3) {
-                                Text(entry.value)
-                                    .font(.system(size: 22, weight: .bold))
-                                    .foregroundStyle(CadreColors.textPrimary)
-                                if !unit.isEmpty {
-                                    Text(unit)
-                                        .font(.system(size: 13, weight: .medium))
-                                        .foregroundStyle(CadreColors.textSecondary)
+                                    HStack(alignment: .firstTextBaseline, spacing: 4) {
+                                        Text(entry.value)
+                                            .font(.system(size: 24, weight: .bold))
+                                            .foregroundStyle(CadreColors.textPrimary)
+                                        if !unit.isEmpty {
+                                            Text(unit.uppercased())
+                                                .font(.system(size: 11, weight: .semibold))
+                                                .foregroundStyle(CadreColors.textTertiary)
+                                        }
+                                    }
                                 }
+                                .listRowBackground(CadreColors.cardGlass)
+                                .listRowSeparatorTint(CadreColors.divider.opacity(0.5))
+                                .listRowInsets(EdgeInsets(top: 16, leading: 16, bottom: 16, trailing: 16))
                             }
+                        } header: {
+                            Text(group.key.uppercased())
+                                .font(.system(size: 11, weight: .semibold))
+                                .tracking(0.5)
+                                .foregroundStyle(CadreColors.textTertiary)
+                                .listRowInsets(EdgeInsets(top: 16, leading: 4, bottom: 8, trailing: 0))
                         }
-                        .listRowBackground(CadreColors.card)
-                        .listRowInsets(EdgeInsets(top: 12, leading: CadreSpacing.md, bottom: 12, trailing: CadreSpacing.md))
                     }
                 }
-                .listStyle(.plain)
+                .listStyle(.insetGrouped)
                 .scrollContentBackground(.hidden)
             }
         }
@@ -86,7 +119,7 @@ struct MeasurementHistoryView: View {
 
     var body: some View {
         ZStack {
-            CadreColors.bg.ignoresSafeArea()
+            GradientBackground(center: .top)
 
             if measurements.isEmpty {
                 VStack(spacing: 12) {
@@ -99,33 +132,43 @@ struct MeasurementHistoryView: View {
                 }
             } else {
                 List {
-                    ForEach(measurements) { measurement in
-                        MeasurementRow(
-                            measurement: measurement,
-                            delta: delta(for: measurement)
-                        )
-                        .listRowBackground(CadreColors.bg)
-                        .listRowSeparatorTint(CadreColors.divider)
-                        .listRowInsets(EdgeInsets(top: 12, leading: CadreSpacing.md, bottom: 12, trailing: CadreSpacing.md))
-                        .contentShape(Rectangle())
-                        .onTapGesture { editingMeasurement = measurement }
-                        .swipeActions(edge: .trailing, allowsFullSwipe: false) {
-                            Button(role: .destructive) {
-                                vm?.deleteMeasurement(measurement)
-                                refresh()
-                            } label: {
-                                Label("Delete", systemImage: "trash")
+                    ForEach(groupedMeasurements(), id: \.key) { group in
+                        Section {
+                            ForEach(group.entries) { measurement in
+                                MeasurementRow(
+                                    measurement: measurement,
+                                    delta: delta(for: measurement)
+                                )
+                                .listRowBackground(CadreColors.cardGlass)
+                                .listRowSeparatorTint(CadreColors.divider.opacity(0.5))
+                                .listRowInsets(EdgeInsets(top: 16, leading: 16, bottom: 16, trailing: 16))
+                                .contentShape(Rectangle())
+                                .onTapGesture { editingMeasurement = measurement }
+                                .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                                    Button(role: .destructive) {
+                                        vm?.deleteMeasurement(measurement)
+                                        refresh()
+                                    } label: {
+                                        Label("Delete", systemImage: "trash")
+                                    }
+                                    Button {
+                                        editingMeasurement = measurement
+                                    } label: {
+                                        Label("Edit", systemImage: "pencil")
+                                    }
+                                    .tint(CadreColors.accent)
+                                }
                             }
-                            Button {
-                                editingMeasurement = measurement
-                            } label: {
-                                Label("Edit", systemImage: "pencil")
-                            }
-                            .tint(CadreColors.accent)
+                        } header: {
+                            Text(group.key.uppercased())
+                                .font(.system(size: 11, weight: .semibold))
+                                .tracking(0.5)
+                                .foregroundStyle(CadreColors.textTertiary)
+                                .listRowInsets(EdgeInsets(top: 16, leading: 4, bottom: 8, trailing: 0))
                         }
                     }
                 }
-                .listStyle(.plain)
+                .listStyle(.insetGrouped)
                 .scrollContentBackground(.hidden)
             }
         }
@@ -189,6 +232,26 @@ struct MeasurementHistoryView: View {
         measurements = vm?.allMeasurements(ofType: metricType) ?? []
     }
 
+    private func groupedMeasurements() -> [(key: String, entries: [BodyMeasurement])] {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "MMMM yyyy"
+        var groups: [(key: String, entries: [BodyMeasurement])] = []
+        var currentKey = ""
+        var currentGroup: [BodyMeasurement] = []
+        for m in measurements {
+            let key = formatter.string(from: m.date)
+            if key != currentKey {
+                if !currentGroup.isEmpty { groups.append((key: currentKey, entries: currentGroup)) }
+                currentKey = key
+                currentGroup = [m]
+            } else {
+                currentGroup.append(m)
+            }
+        }
+        if !currentGroup.isEmpty { groups.append((key: currentKey, entries: currentGroup)) }
+        return groups
+    }
+
     /// Delta from the chronologically-previous entry, in display units.
     private func delta(for measurement: BodyMeasurement) -> Double? {
         guard let idx = measurements.firstIndex(where: { $0.id == measurement.id }) else { return nil }
@@ -214,45 +277,44 @@ private struct MeasurementRow: View {
         UnitConversion.displayLength(measurement.valueCm).value
     }
 
-    private var dayNumber: String {
-        "\(Calendar.current.component(.day, from: measurement.date))"
+    private var dateLabel: String {
+        let f = DateFormatter(); f.dateFormat = "MMM d"
+        return f.string(from: measurement.date)
     }
 
-    private var monthYear: String {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "MMM yyyy"
-        return formatter.string(from: measurement.date)
+    private var weekdayLabel: String {
+        let f = DateFormatter(); f.dateFormat = "EEEE"
+        return f.string(from: measurement.date)
     }
 
     var body: some View {
         VStack(spacing: 0) {
-            HStack(spacing: 16) {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(dayNumber)
-                        .font(.system(size: 28, weight: .bold))
+            HStack(spacing: 0) {
+                VStack(alignment: .leading, spacing: 3) {
+                    Text(weekdayLabel)
+                        .font(.system(size: 14, weight: .semibold))
                         .foregroundStyle(CadreColors.textPrimary)
-                    Text(monthYear)
+                    Text(dateLabel)
                         .font(.system(size: 12, weight: .medium))
-                        .foregroundStyle(CadreColors.textSecondary)
+                        .foregroundStyle(CadreColors.textTertiary)
                 }
-                .frame(width: 60, alignment: .leading)
 
                 Spacer()
 
-                VStack(alignment: .trailing, spacing: 4) {
-                    HStack(alignment: .firstTextBaseline, spacing: 3) {
-                        Text(String(format: "%.1f", displayValue))
-                            .font(.system(size: 22, weight: .bold))
-                            .foregroundStyle(CadreColors.textPrimary)
-                        Text(displayUnit)
-                            .font(.system(size: 13, weight: .medium))
-                            .foregroundStyle(CadreColors.textSecondary)
-                    }
-                    if let delta {
-                        Text(formatDelta(delta))
-                            .font(.system(size: 13, weight: .medium))
-                            .foregroundStyle(deltaColor(delta))
-                    }
+                HStack(alignment: .firstTextBaseline, spacing: 4) {
+                    Text(String(format: "%.1f", displayValue))
+                        .font(.system(size: 24, weight: .bold))
+                        .foregroundStyle(CadreColors.textPrimary)
+                    Text(displayUnit.uppercased())
+                        .font(.system(size: 11, weight: .semibold))
+                        .foregroundStyle(CadreColors.textTertiary)
+                }
+
+                if let delta {
+                    Text(formatDelta(delta))
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundStyle(deltaColor(delta))
+                        .padding(.leading, 10)
                 }
             }
 

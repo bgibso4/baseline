@@ -15,8 +15,17 @@ enum CadreColors {
     static let textSecondary = Color(hex: "797B83")
     static let textTertiary = Color(hex: "494B52")
 
+    // Glass card — translucent version of card for use over gradients
+    static let cardGlass = Color(hex: "17171B").opacity(0.75)
+    static let cardBorder = Color.white.opacity(0.06)
+
     // Divider
     static let divider = Color(hex: "2A2A30")
+
+    // Background gradient — subtle cool depth
+    // Radial glow: a whisper of dusty blue bleeding into the charcoal
+    static let bgGradientCenter = Color(hex: "111520")  // barely-blue charcoal
+    static let bgGradientEdge = Color(hex: "0B0B0E")    // == bg, pure charcoal
 
     // Accent — dusty blue (swappable token; amber + warm-gray in reserve)
     static let accent = Color(hex: "6B7B94")

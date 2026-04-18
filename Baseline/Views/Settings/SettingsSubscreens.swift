@@ -12,7 +12,7 @@ struct NameEditView: View {
 
     var body: some View {
         ZStack {
-            CadreColors.bg.ignoresSafeArea()
+            GradientBackground(center: .top)
 
             VStack(alignment: .leading, spacing: 0) {
                 // Text input card with accent border
@@ -83,7 +83,7 @@ struct NameEditView: View {
                     .font(.system(size: 15, weight: .semibold))
             }
         }
-        .toolbarBackground(CadreColors.bg, for: .navigationBar)
+        .toolbarBackground(CadreColors.bgGradientCenter, for: .navigationBar)
         .onAppear { draft = viewModel.name }
     }
 }
@@ -103,7 +103,7 @@ struct HeightPickerView: View {
 
     var body: some View {
         ZStack {
-            CadreColors.bg.ignoresSafeArea()
+            GradientBackground(center: .top)
 
             VStack(spacing: 0) {
                 if isMetric {
@@ -190,7 +190,7 @@ struct HeightPickerView: View {
                 .foregroundStyle(CadreColors.accent)
             }
         }
-        .toolbarBackground(CadreColors.bg, for: .navigationBar)
+        .toolbarBackground(CadreColors.bgGradientCenter, for: .navigationBar)
         .onAppear {
             draftFeet = viewModel.heightFeet > 0 ? viewModel.heightFeet : 5
             draftInches = viewModel.heightInches
@@ -215,7 +215,7 @@ struct BirthdayPickerView: View {
 
     var body: some View {
         ZStack {
-            CadreColors.bg.ignoresSafeArea()
+            GradientBackground(center: .top)
 
             VStack(spacing: 0) {
                 DatePicker(
@@ -276,7 +276,7 @@ struct BirthdayPickerView: View {
                 .foregroundStyle(CadreColors.accent)
             }
         }
-        .toolbarBackground(CadreColors.bg, for: .navigationBar)
+        .toolbarBackground(CadreColors.bgGradientCenter, for: .navigationBar)
         .onAppear {
             if let existing = viewModel.birthday {
                 draftDate = existing
@@ -293,7 +293,7 @@ struct GenderPickerView: View {
 
     var body: some View {
         ZStack {
-            CadreColors.bg.ignoresSafeArea()
+            GradientBackground(center: .top)
 
             VStack(spacing: 0) {
                 VStack(spacing: 0) {
@@ -343,7 +343,7 @@ struct GenderPickerView: View {
                     .tracking(-0.2)
             }
         }
-        .toolbarBackground(CadreColors.bg, for: .navigationBar)
+        .toolbarBackground(CadreColors.bgGradientCenter, for: .navigationBar)
     }
 }
 
@@ -355,7 +355,7 @@ struct ThemePickerView: View {
 
     var body: some View {
         ZStack {
-            CadreColors.bg.ignoresSafeArea()
+            GradientBackground(center: .top)
 
             VStack(spacing: 0) {
                 VStack(spacing: 0) {
@@ -409,7 +409,7 @@ struct ThemePickerView: View {
                     .tracking(-0.2)
             }
         }
-        .toolbarBackground(CadreColors.bg, for: .navigationBar)
+        .toolbarBackground(CadreColors.bgGradientCenter, for: .navigationBar)
     }
 }
 
@@ -425,7 +425,7 @@ struct CadreSyncView: View {
 
     var body: some View {
         ZStack {
-            CadreColors.bg.ignoresSafeArea()
+            GradientBackground(center: .top)
 
             VStack(alignment: .leading, spacing: 0) {
                 // API URL
@@ -533,7 +533,7 @@ struct CadreSyncView: View {
                     .tracking(-0.2)
             }
         }
-        .toolbarBackground(CadreColors.bg, for: .navigationBar)
+        .toolbarBackground(CadreColors.bgGradientCenter, for: .navigationBar)
         .onAppear {
             apiURL = viewModel.syncAPIURL
             apiKey = viewModel.syncAPIKey
@@ -575,7 +575,7 @@ struct ExportCSVView: View {
 
     var body: some View {
         ZStack {
-            CadreColors.bg.ignoresSafeArea()
+            GradientBackground(center: .top)
 
             VStack(spacing: 0) {
                 // Hero icon + title
@@ -643,7 +643,7 @@ struct ExportCSVView: View {
                     .tracking(-0.2)
             }
         }
-        .toolbarBackground(CadreColors.bg, for: .navigationBar)
+        .toolbarBackground(CadreColors.bgGradientCenter, for: .navigationBar)
     }
 
     private func exportToggle(_ label: String, isOn: Binding<Bool>) -> some View {
@@ -680,7 +680,7 @@ private struct ExportItem {
 struct AboutCadreView: View {
     var body: some View {
         ZStack {
-            CadreColors.bg.ignoresSafeArea()
+            GradientBackground(center: .top)
 
             ScrollView {
                 VStack(spacing: 0) {
@@ -740,7 +740,7 @@ struct AboutCadreView: View {
                     .tracking(-0.2)
             }
         }
-        .toolbarBackground(CadreColors.bg, for: .navigationBar)
+        .toolbarBackground(CadreColors.bgGradientCenter, for: .navigationBar)
     }
 
     private enum BadgeStyle { case current, normal }

@@ -44,7 +44,7 @@ struct WeighInSheet: View {
     var body: some View {
         NavigationStack {
         ZStack {
-            CadreColors.bg.ignoresSafeArea()
+            GradientBackground(center: .top)
 
             VStack(spacing: 0) {
                 sheetHandle

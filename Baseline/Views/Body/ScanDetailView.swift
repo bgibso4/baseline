@@ -22,7 +22,7 @@ struct ScanDetailView: View {
 
     var body: some View {
         ZStack {
-            CadreColors.bg.ignoresSafeArea()
+            GradientBackground(center: .top)
 
             if let content {
                 ScrollView {
@@ -47,7 +47,7 @@ struct ScanDetailView: View {
         }
         .navigationTitle(scanTitle)
         .navigationBarTitleDisplayMode(.inline)
-        .toolbarBackground(CadreColors.bg, for: .navigationBar)
+        .toolbarBackground(CadreColors.bgGradientCenter, for: .navigationBar)
         .toolbarColorScheme(.dark, for: .navigationBar)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
@@ -392,7 +392,7 @@ struct ScanEditView: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                CadreColors.bg.ignoresSafeArea()
+                GradientBackground(center: .top)
 
                 VStack(spacing: 0) {
                     ScrollView {
@@ -435,7 +435,7 @@ struct ScanEditView: View {
                         .foregroundStyle(CadreColors.textSecondary)
                 }
             }
-            .toolbarBackground(CadreColors.bg, for: .navigationBar)
+            .toolbarBackground(CadreColors.bgGradientCenter, for: .navigationBar)
             .toolbarColorScheme(.dark, for: .navigationBar)
         }
     }

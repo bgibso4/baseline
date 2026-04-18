@@ -37,7 +37,7 @@ struct NowView: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                CadreColors.bg.ignoresSafeArea()
+                GradientBackground(center: .top)
 
                 VStack(spacing: 0) {
                     // Hero: arc + number + range toggle, centered in open area
@@ -239,16 +239,13 @@ struct NowView: View {
             }
         }
         .padding(3)
-        .background(
-            RoundedRectangle(cornerRadius: 10)
-                .fill(CadreColors.card)
-        )
+        .glassCard(cornerRadius: 10)
     }
 
     // MARK: - Bottom block (stats + button)
 
     private var bottomBlock: some View {
-        VStack(spacing: 18) {
+        VStack(spacing: 20) {
             if goalVM?.activeWeightGoal != nil, showGoalStats {
                 goalStatsCard
                     .onTapGesture {
@@ -279,8 +276,8 @@ struct NowView: View {
             statCell(label: "AVERAGE", value: stats.average)
             statCell(label: "HIGHEST", value: stats.highest)
         }
-        .background(CadreColors.divider)
         .clipShape(RoundedRectangle(cornerRadius: 14))
+        .glassCard(cornerRadius: 14)
     }
 
     private var goalStatsCard: some View {
@@ -303,8 +300,8 @@ struct NowView: View {
             goalStatCell(label: "TARGET", value: targetDisplay, unit: unit, accent: true, daysLeft: nil)
             goalStatCell(label: daysLeft.map { "TO GO (\($0)d)" } ?? "TO GO", value: remainingDisplay, unit: unit, accent: false, daysLeft: nil)
         }
-        .background(CadreColors.divider)
         .clipShape(RoundedRectangle(cornerRadius: 14))
+        .glassCard(cornerRadius: 14)
     }
 
     private func goalStatCell(label: String, value: Double?, unit: String, accent: Bool, daysLeft: Int?) -> some View {
@@ -315,6 +312,8 @@ struct NowView: View {
                 .font(CadreTypography.statLabel)
                 .tracking(0.5)
                 .foregroundStyle(labelColor)
+                .lineLimit(1)
+                .minimumScaleFactor(0.8)
             HStack(alignment: .firstTextBaseline, spacing: 2) {
                 Text(value.map { UnitConversion.formatWeight($0, unit: unit) } ?? "—")
                     .font(CadreTypography.statValue)
@@ -330,25 +329,22 @@ struct NowView: View {
         .frame(maxWidth: .infinity)
         .padding(.vertical, 14)
         .padding(.horizontal, 6)
-        .background(CadreColors.card)
+        .background(CadreColors.cardGlass)
     }
 
     private func statCell(label: String, value: Double?) -> some View {
         let unit = vm?.unit ?? "lb"
         return VStack(spacing: 6) {
-            // Uppercase caption — 9pt semibold, 0.5px tracking (mockup .stat .label)
             Text(label)
                 .font(CadreTypography.statLabel)
                 .tracking(0.5)
                 .foregroundStyle(CadreColors.textTertiary)
             HStack(alignment: .firstTextBaseline, spacing: 2) {
-                // Stat value — 18pt bold (mockup .stat .value)
                 Text(value.map { UnitConversion.formatWeight($0, unit: unit) } ?? "—")
                     .font(CadreTypography.statValue)
                     .foregroundStyle(CadreColors.textPrimary)
                     .contentTransition(.numericText())
                 if value != nil {
-                    // Stat unit suffix — 10pt regular (mockup .stat .value .unit)
                     Text(unit)
                         .font(CadreTypography.statUnit)
                         .foregroundStyle(CadreColors.textTertiary)
@@ -358,7 +354,7 @@ struct NowView: View {
         .frame(maxWidth: .infinity)
         .padding(.vertical, 14)
         .padding(.horizontal, 6)
-        .background(CadreColors.card)
+        .background(CadreColors.cardGlass)
     }
 
     private var weighInButton: some View {
@@ -374,6 +370,7 @@ struct NowView: View {
                 .padding(.vertical, 18)
                 .background(CadreColors.accent)
                 .clipShape(RoundedRectangle(cornerRadius: 16))
+                .shadow(color: CadreColors.accent.opacity(0.4), radius: 12, x: 0, y: 4)
         }
     }
 

@@ -67,8 +67,8 @@ struct MetricTile: View {
         .padding(.horizontal, 12)
         .padding(.vertical, 13)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(CadreColors.card)
         .clipShape(RoundedRectangle(cornerRadius: CadreRadius.md))
+        .glassCard()
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(tileAccessibilityLabel)
     }
@@ -130,8 +130,8 @@ struct MetricTileEmpty: View {
         .padding(.horizontal, 12)
         .padding(.vertical, 13)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(CadreColors.card)
         .clipShape(RoundedRectangle(cornerRadius: CadreRadius.md))
+        .glassCard()
     }
 }
 

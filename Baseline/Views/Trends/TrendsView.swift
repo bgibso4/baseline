@@ -74,7 +74,7 @@ struct TrendsView: View {
     var body: some View {
         NavigationStack {
             ZStack(alignment: .top) {
-                CadreColors.bg.ignoresSafeArea()
+                GradientBackground(center: .top)
 
                 VStack(spacing: 0) {
                     metricChipButton
@@ -83,7 +83,7 @@ struct TrendsView: View {
 
                     rangeTabs
                         .padding(.horizontal, CadreSpacing.sheetHorizontal)
-                        .padding(.top, 10)
+                        .padding(.top, 12)
 
                     TipView(trendsTip)
                         .padding(.horizontal, CadreSpacing.sheetHorizontal)
@@ -96,7 +96,7 @@ struct TrendsView: View {
                     Spacer(minLength: 0)
                 }
             }
-            .navigationBarHidden(true)
+            .toolbarVisibility(.hidden, for: .navigationBar)
             .fullScreenCover(isPresented: $showFullscreen) {
                 LandscapeHostingController(content: fullscreenChartContent)
                     .ignoresSafeArea()
@@ -295,14 +295,7 @@ struct TrendsView: View {
             }
             .padding(.horizontal, 14)
             .padding(.vertical, 12)
-            .background(
-                RoundedRectangle(cornerRadius: CadreRadius.md)
-                    .fill(CadreColors.card)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: CadreRadius.md)
-                            .stroke(CadreColors.divider, lineWidth: 1)
-                    )
-            )
+            .glassCard()
         }
         .buttonStyle(.plain)
     }
@@ -333,10 +326,7 @@ struct TrendsView: View {
             }
         }
         .padding(3)
-        .background(
-            RoundedRectangle(cornerRadius: 10)
-                .fill(CadreColors.card)
-        )
+        .glassCard(cornerRadius: 10)
     }
 
     // MARK: - Full variant (2+ data points)
@@ -375,12 +365,12 @@ struct TrendsView: View {
 
             chartBlock(points: points, movingAverage: ma)
                 .padding(.horizontal, CadreSpacing.sheetHorizontal)
-                .padding(.top, 14)
+                .padding(.top, 18)
 
             if !ma.isEmpty {
                 legendBlock
                     .padding(.horizontal, CadreSpacing.sheetHorizontal)
-                    .padding(.top, 10)
+                    .padding(.top, 12)
             }
 
             GoalCard(
@@ -391,7 +381,7 @@ struct TrendsView: View {
                 onManageGoal: { showManageGoal = true }
             )
             .padding(.horizontal, CadreSpacing.sheetHorizontal)
-            .padding(.top, 12)
+            .padding(.top, 16)
         }
     }
 
@@ -865,7 +855,7 @@ struct TrendsView: View {
         let hasSecondary = compareEnabled && secondaryMetric != nil && !secondaryPoints.isEmpty
 
         return ZStack {
-            CadreColors.bg.ignoresSafeArea()
+            GradientBackground(center: .top)
 
             HStack(spacing: 0) {
                 // Left panel: metric info

@@ -16,11 +16,12 @@ class WeighInViewModel {
         self.currentWeight = lastWeight ?? (unit == "kg" ? 70.0 : 150.0)
     }
 
-    /// Check if a weigh-in already exists for the given date.
+    /// Check if a weigh-in already exists for the given date (any time that day).
     func existingEntry(for date: Date) -> WeightEntry? {
-        let targetDay = Calendar.current.startOfDay(for: date)
+        let dayStart = Calendar.current.startOfDay(for: date)
+        let dayEnd = Calendar.current.date(byAdding: .day, value: 1, to: dayStart)!
         var descriptor = FetchDescriptor<WeightEntry>(
-            predicate: #Predicate { $0.date == targetDay }
+            predicate: #Predicate { $0.date >= dayStart && $0.date < dayEnd }
         )
         descriptor.fetchLimit = 1
         return try? modelContext.fetch(descriptor).first
@@ -35,12 +36,13 @@ class WeighInViewModel {
     }
 
     func save(date: Date = Date(), photoData: Data? = nil) {
-        let targetDay = Calendar.current.startOfDay(for: date)
+        let dayStart = Calendar.current.startOfDay(for: date)
+        let dayEnd = Calendar.current.date(byAdding: .day, value: 1, to: dayStart)!
         let trimmedNotes = notes.trimmingCharacters(in: .whitespacesAndNewlines)
         let notesToSave: String? = trimmedNotes.isEmpty ? nil : trimmedNotes
 
         var descriptor = FetchDescriptor<WeightEntry>(
-            predicate: #Predicate { $0.date == targetDay }
+            predicate: #Predicate { $0.date >= dayStart && $0.date < dayEnd }
         )
         descriptor.fetchLimit = 1
 
