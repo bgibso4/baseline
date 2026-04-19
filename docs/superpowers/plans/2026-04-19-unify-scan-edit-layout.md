@@ -121,7 +121,8 @@ Add to `BaselineTests/ViewModels/ScanEntryViewModelTests.swift` before the closi
 
         // 80 kg → 176.37 lb
         let expectedLb = UnitConversion.kgToLb(80.0)
-        XCTAssertEqual(Double(vm.weightKg), expectedLb, accuracy: 0.1)
+        let weightLb = try XCTUnwrap(Double(vm.weightKg))
+        XCTAssertEqual(weightLb, expectedLb, accuracy: 0.1)
         // Non-mass fields stay the same
         XCTAssertEqual(vm.bodyFatPct, "20")
         XCTAssertEqual(vm.bmi, "24")
@@ -179,8 +180,10 @@ In `Baseline/ViewModels/ScanEntryViewModel.swift`, add after `init(modelContext:
     /// to kg on save.
     func loadForEdit(scan: Scan, payload: InBodyPayload, massPref: String) {
         self.editingScan = scan
-        self.selectedType = scan.scanType
-        self.selectedSource = scan.scanSource
+        // `scan.scanType` / `scan.scanSource` return optionals because the
+        // stored raw-string could fail to parse. Fall back to current defaults.
+        self.selectedType = scan.scanType ?? .inBody
+        self.selectedSource = scan.scanSource ?? .manual
         self.scanDate = scan.date
         self.currentStep = .manualEntry
 
@@ -431,6 +434,42 @@ Append to `BaselineTests/ViewModels/ScanEntryViewModelTests.swift`:
 
         XCTAssertNil(vm.existingScanForSelectedDate(),
                      "Editing scan should not flag itself as a conflict on its own date")
+    }
+
+    /// End-to-end unit round-trip: a scan stored in kg, edited under an "lb"
+    /// display preference, must save back to kg with no drift. Catches the
+    /// "converted twice" or "converted wrong direction" class of bugs.
+    func testEditFlow_UnitRoundTrip_KgStoredLbEditedKgSaved() throws {
+        UserDefaults.standard.set("lb", forKey: "weightUnit")
+        defer { UserDefaults.standard.set("kg", forKey: "weightUnit") }
+
+        let original = InBodyPayload(
+            weightKg: 80.0, skeletalMuscleMassKg: 38.0, bodyFatMassKg: 16.0,
+            bodyFatPct: 20.0, totalBodyWaterL: 48.0, bmi: 24.0,
+            basalMetabolicRate: 1800,
+            rightArmLeanKg: 3.5
+        )
+        let scan = Scan(date: Date(), type: .inBody, source: .manual,
+                        payload: try JSONEncoder().encode(original))
+        context.insert(scan)
+        try context.save()
+
+        let vm = ScanEntryViewModel(modelContext: context)
+        vm.loadForEdit(scan: scan, payload: original, massPref: "lb")
+        // Form field should display lb (80 kg → ~176.37 lb), but without
+        // the user mutating anything, saving must round-trip back to 80 kg.
+        try vm.save()
+
+        let reloaded = try context.fetch(FetchDescriptor<Scan>()).first!
+        if case .inBody(let saved) = try reloaded.decoded() {
+            XCTAssertEqual(saved.weightKg, 80.0, accuracy: 0.01,
+                           "Stored weight must round-trip in kg regardless of display unit")
+            XCTAssertEqual(saved.skeletalMuscleMassKg, 38.0, accuracy: 0.01)
+            XCTAssertEqual(saved.bodyFatMassKg, 16.0, accuracy: 0.01)
+            XCTAssertEqual(saved.rightArmLeanKg ?? 0, 3.5, accuracy: 0.01)
+        } else {
+            XCTFail("Expected inBody payload")
+        }
     }
 ```
 

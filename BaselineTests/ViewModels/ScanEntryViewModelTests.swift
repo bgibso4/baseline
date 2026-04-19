@@ -247,4 +247,120 @@ final class ScanEntryViewModelTests: XCTestCase {
         vm.retryCount += 1
         XCTAssertEqual(vm.retryCount, 1)
     }
+
+    // MARK: - Edit Mode
+
+    func testLoadForEdit_SeedsAllFieldsWithKgUnits() throws {
+        let vm = ScanEntryViewModel(modelContext: context)
+
+        let payload = InBodyPayload(
+            weightKg: 80.0,
+            skeletalMuscleMassKg: 38.0,
+            bodyFatMassKg: 16.0,
+            bodyFatPct: 20.0,
+            totalBodyWaterL: 48.0,
+            bmi: 24.0,
+            basalMetabolicRate: 1800,
+            intracellularWaterL: 30.0,
+            extracellularWaterL: 18.0,
+            dryLeanMassKg: 14.0,
+            leanBodyMassKg: 62.0,
+            inBodyScore: 76,
+            rightArmLeanKg: 3.5,
+            leftArmLeanKg: 3.4,
+            trunkLeanKg: 29.0,
+            rightLegLeanKg: 10.1,
+            leftLegLeanKg: 10.0,
+            rightArmFatKg: 0.9,
+            leftArmFatKg: 0.9,
+            trunkFatKg: 8.0,
+            rightLegFatKg: 2.8,
+            leftLegFatKg: 2.8,
+            ecwTbwRatio: 0.378,
+            skeletalMuscleIndex: 10.2,
+            visceralFatLevel: 5,
+            rightArmLeanPct: 110.0,
+            leftArmLeanPct: 108.0,
+            trunkLeanPct: 100.0,
+            rightLegLeanPct: 102.0,
+            leftLegLeanPct: 101.0,
+            rightArmFatPct: 90.0,
+            leftArmFatPct: 92.0,
+            trunkFatPct: 110.0,
+            rightLegFatPct: 95.0,
+            leftLegFatPct: 96.0
+        )
+        let data = try JSONEncoder().encode(payload)
+        let scanDate = Calendar.current.startOfDay(for: Date().addingTimeInterval(-86400))
+        let scan = Scan(date: scanDate, type: .inBody, source: .ocr, payload: data)
+        context.insert(scan)
+        try context.save()
+
+        vm.loadForEdit(scan: scan, payload: payload, massPref: "kg")
+
+        XCTAssertTrue(vm.editingScan === scan)
+        XCTAssertEqual(vm.currentStep, .manualEntry)
+        XCTAssertEqual(vm.selectedType, .inBody)
+        XCTAssertEqual(vm.selectedSource, .ocr)
+        XCTAssertEqual(vm.scanDate, scanDate)
+        XCTAssertEqual(vm.weightKg, "80")
+        XCTAssertEqual(vm.skeletalMuscleMassKg, "38")
+        XCTAssertEqual(vm.bodyFatPct, "20")
+        XCTAssertEqual(vm.bmi, "24")
+        XCTAssertEqual(vm.basalMetabolicRate, "1800")
+        XCTAssertEqual(vm.fieldValue("rightArmLeanKg"), "3.5")
+        XCTAssertEqual(vm.fieldValue("ecwTbwRatio"), "0.378")
+        XCTAssertEqual(vm.fieldValue("visceralFatLevel"), "5")
+    }
+
+    func testLoadForEdit_ConvertsMassFieldsToLbWhenPrefIsLb() throws {
+        let vm = ScanEntryViewModel(modelContext: context)
+
+        let payload = InBodyPayload(
+            weightKg: 80.0,
+            skeletalMuscleMassKg: 38.0,
+            bodyFatMassKg: 16.0,
+            bodyFatPct: 20.0,
+            totalBodyWaterL: 48.0,
+            bmi: 24.0,
+            basalMetabolicRate: 1800
+        )
+        let data = try JSONEncoder().encode(payload)
+        let scan = Scan(date: Date(), type: .inBody, source: .manual, payload: data)
+        context.insert(scan)
+
+        vm.loadForEdit(scan: scan, payload: payload, massPref: "lb")
+
+        // 80 kg → 176.37 lb
+        let expectedLb = UnitConversion.kgToLb(80.0)
+        let weightLb = try XCTUnwrap(Double(vm.weightKg))
+        XCTAssertEqual(weightLb, expectedLb, accuracy: 0.1)
+        // Non-mass fields stay the same
+        XCTAssertEqual(vm.bodyFatPct, "20")
+        XCTAssertEqual(vm.bmi, "24")
+    }
+
+    func testLoadForEdit_LeavesEmptyStringForMissingOptionals() throws {
+        let vm = ScanEntryViewModel(modelContext: context)
+
+        let payload = InBodyPayload(
+            weightKg: 80.0,
+            skeletalMuscleMassKg: 38.0,
+            bodyFatMassKg: 16.0,
+            bodyFatPct: 20.0,
+            totalBodyWaterL: 48.0,
+            bmi: 24.0,
+            basalMetabolicRate: 1800
+        )
+        let data = try JSONEncoder().encode(payload)
+        let scan = Scan(date: Date(), type: .inBody, source: .manual, payload: data)
+        context.insert(scan)
+
+        vm.loadForEdit(scan: scan, payload: payload, massPref: "kg")
+
+        XCTAssertEqual(vm.fieldValue("rightArmLeanKg"), "")
+        XCTAssertEqual(vm.fieldValue("ecwTbwRatio"), "")
+        XCTAssertEqual(vm.fieldValue("visceralFatLevel"), "")
+        XCTAssertEqual(vm.fieldValue("inBodyScore"), "")
+    }
 }
