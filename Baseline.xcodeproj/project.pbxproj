@@ -21,6 +21,7 @@
 		14FE980511237871E2644BEE /* BaselineApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 007A5A45919FF650EAB251AE /* BaselineApp.swift */; };
 		179A4D608746808CFCE3A729 /* UnitConversionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB289EC0E5CC9756E1B62116 /* UnitConversionTests.swift */; };
 		1D2B86EC0CD2F6E04169B12A /* TestDataSeeder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2019690E1B79A00585C461C5 /* TestDataSeeder.swift */; };
+		9F8E7D6C5B4A3210FEDCBA98 /* GoalAutoCompleter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A1B2C3D4E5F67890123ABCD /* GoalAutoCompleter.swift */; };
 		1EE8812183832C30DD541E19 /* BodyViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 29BEDC0D79358B9B15F3738D /* BodyViewModelTests.swift */; };
 		21BB0A4DAE9AC51C0987DC67 /* SettingsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A777911A4E98904254416624 /* SettingsViewModel.swift */; };
 		251FFC2B4504866B32DDB194 /* testScanEntry_ManualForm.1.png in Resources */ = {isa = PBXBuildFile; fileRef = 8B2778585A57DC61D42C98DD /* testScanEntry_ManualForm.1.png */; };
@@ -159,6 +160,7 @@
 		1AF6412F243C441BE0D8164E /* NowViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NowViewModelTests.swift; sourceTree = "<group>"; };
 		1BF47DA1A29A20B42AE37685 /* testHistoryView_DarkMode_iPhone13Pro.1.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = testHistoryView_DarkMode_iPhone13Pro.1.png; sourceTree = "<group>"; };
 		2019690E1B79A00585C461C5 /* TestDataSeeder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestDataSeeder.swift; sourceTree = "<group>"; };
+		0A1B2C3D4E5F67890123ABCD /* GoalAutoCompleter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GoalAutoCompleter.swift; sourceTree = "<group>"; };
 		259F301EF2210DEFF2801026 /* testNowView_DarkMode_iPhone13Pro.1.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = testNowView_DarkMode_iPhone13Pro.1.png; sourceTree = "<group>"; };
 		29BEDC0D79358B9B15F3738D /* BodyViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BodyViewModelTests.swift; sourceTree = "<group>"; };
 		2B794C4FCDC3253893C365AB /* HistoryViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryViewModelTests.swift; sourceTree = "<group>"; };
@@ -209,7 +211,7 @@
 		8F76CA414AF7805F2B73F420 /* BaselineTips.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BaselineTips.swift; sourceTree = "<group>"; };
 		90026F3A1D7167909BB75A33 /* DateFormatting.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DateFormatting.swift; sourceTree = "<group>"; };
 		91169E132AC487FA9F6C19B0 /* InBodyParseResult.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InBodyParseResult.swift; sourceTree = "<group>"; };
-		917EC6C734FA7FDEF274FFAD /* Baseline.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = Baseline.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		917EC6C734FA7FDEF274FFAD /* Baseline.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Baseline.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		9B617A136820EEC4C39AAFEA /* OutboundMirror.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OutboundMirror.swift; sourceTree = "<group>"; };
 		9C6E3FC3B8CEA3502EDE634C /* GoalTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GoalTests.swift; sourceTree = "<group>"; };
 		9CC95090F8F39C9959C8DFAD /* testBodyView_DarkMode_WithData.1.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = testBodyView_DarkMode_WithData.1.png; sourceTree = "<group>"; };
@@ -237,8 +239,8 @@
 		CE9D81237D70C24BBA30C9BA /* ScanEntryFlow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScanEntryFlow.swift; sourceTree = "<group>"; };
 		D02782E48D9542687519EF82 /* HistoryViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryViewModel.swift; sourceTree = "<group>"; };
 		D2121B6D4BDACF68F0B99C30 /* ScanTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScanTests.swift; sourceTree = "<group>"; };
-		D25FD52DA7EFC4286FE7A191 /* BaselineWidgets.appex */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = "wrapper.app-extension"; path = BaselineWidgets.appex; sourceTree = BUILT_PRODUCTS_DIR; };
-		D2EB71FC82094D506CFDCC73 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		D25FD52DA7EFC4286FE7A191 /* BaselineWidgets.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = BaselineWidgets.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		D2EB71FC82094D506CFDCC73 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		DA714D5002EBF0AEE77EE339 /* CloudflareOutboundMirror.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudflareOutboundMirror.swift; sourceTree = "<group>"; };
 		DFD8816E90F91D28A05AA943 /* InBodyDocumentParserTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InBodyDocumentParserTests.swift; sourceTree = "<group>"; };
 		E22A1EED058DA9647318A9C3 /* Haptics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Haptics.swift; sourceTree = "<group>"; };
@@ -330,6 +332,7 @@
 				3A9983801F2F087AB7948B5C /* CSVExporter.swift */,
 				90026F3A1D7167909BB75A33 /* DateFormatting.swift */,
 				48CD5547B419BCE4B9D76860 /* DoubleExtensions.swift */,
+				0A1B2C3D4E5F67890123ABCD /* GoalAutoCompleter.swift */,
 				E22A1EED058DA9647318A9C3 /* Haptics.swift */,
 				6CA4DFDD50AB3412413C94F1 /* Log.swift */,
 				2019690E1B79A00585C461C5 /* TestDataSeeder.swift */,
@@ -724,8 +727,6 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = YES;
 				LastUpgradeCheck = 1600;
-				TargetAttributes = {
-				};
 			};
 			buildConfigurationList = DEC0D2E01D9C2DEEE50E4CE0 /* Build configuration list for PBXProject "Baseline" */;
 			developmentRegion = en;
@@ -872,6 +873,7 @@
 				C10684A3EC9B98187CDBA383 /* SyncHelper.swift in Sources */,
 				B75C84191E094A7A6442247B /* SyncState.swift in Sources */,
 				1D2B86EC0CD2F6E04169B12A /* TestDataSeeder.swift in Sources */,
+				9F8E7D6C5B4A3210FEDCBA98 /* GoalAutoCompleter.swift in Sources */,
 				353ED107DFB67E0B0D3C0B01 /* TrendsView.swift in Sources */,
 				921D43A164E135DC0C85E731 /* TrendsViewModel.swift in Sources */,
 				92B02A5AE4EBA1597947A801 /* UnitConversion.swift in Sources */,
@@ -914,6 +916,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = BaselineWidgets/BaselineWidgets.entitlements;
+				DEVELOPMENT_TEAM = W6S6K84XVM;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = BaselineWidgets/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -931,6 +934,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = BaselineWidgets/BaselineWidgets.entitlements;
+				DEVELOPMENT_TEAM = W6S6K84XVM;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = BaselineWidgets/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -1107,6 +1111,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = Baseline/Baseline.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
+				DEVELOPMENT_TEAM = W6S6K84XVM;
 				INFOPLIST_FILE = Baseline/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -1124,6 +1129,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = Baseline/Baseline.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
+				DEVELOPMENT_TEAM = W6S6K84XVM;
 				INFOPLIST_FILE = Baseline/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",

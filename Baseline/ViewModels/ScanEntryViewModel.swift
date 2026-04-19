@@ -495,6 +495,52 @@ class ScanEntryViewModel {
             modelContext.insert(scan)
         }
         try modelContext.save()
+
+        // Auto-complete any matching goals. Mass fields are converted from
+        // stored kg back to the user's preferred display unit to match how
+        // goal target/start values were entered and stored.
+        GoalAutoCompleter.checkCompletions(
+            values: Self.trendMetricValues(from: payload),
+            in: modelContext
+        )
+    }
+
+    /// Maps an `InBodyPayload` into a dict keyed by `TrendMetric.rawValue`
+    /// with values already converted to the user's display units.
+    private static func trendMetricValues(from payload: InBodyPayload) -> [String: Double] {
+        let massPref = UserDefaults.standard.string(forKey: "weightUnit") ?? "lb"
+        let toMass: (Double) -> Double = { kg in
+            massPref == "kg" ? kg : UnitConversion.kgToLb(kg)
+        }
+
+        var values: [String: Double] = [:]
+        values[TrendMetric.weight.rawValue] = toMass(payload.weightKg)
+        values[TrendMetric.bodyFatPct.rawValue] = payload.bodyFatPct
+        values[TrendMetric.skeletalMuscle.rawValue] = toMass(payload.skeletalMuscleMassKg)
+        values[TrendMetric.bmi.rawValue] = payload.bmi
+        values[TrendMetric.fatMass.rawValue] = toMass(payload.bodyFatMassKg)
+        values[TrendMetric.totalBodyWater.rawValue] = payload.totalBodyWaterL
+        values[TrendMetric.bmr.rawValue] = payload.basalMetabolicRate
+
+        if let lbm = payload.leanBodyMassKg { values[TrendMetric.leanBodyMass.rawValue] = toMass(lbm) }
+        if let icw = payload.intracellularWaterL { values[TrendMetric.icw.rawValue] = icw }
+        if let ecw = payload.extracellularWaterL { values[TrendMetric.ecw.rawValue] = ecw }
+        if let dlm = payload.dryLeanMassKg { values[TrendMetric.dryLeanMass.rawValue] = toMass(dlm) }
+        if let score = payload.inBodyScore { values[TrendMetric.inBodyScore.rawValue] = score }
+
+        if let v = payload.rightArmLeanKg { values[TrendMetric.rightArmLean.rawValue] = toMass(v) }
+        if let v = payload.leftArmLeanKg { values[TrendMetric.leftArmLean.rawValue] = toMass(v) }
+        if let v = payload.trunkLeanKg { values[TrendMetric.trunkLean.rawValue] = toMass(v) }
+        if let v = payload.rightLegLeanKg { values[TrendMetric.rightLegLean.rawValue] = toMass(v) }
+        if let v = payload.leftLegLeanKg { values[TrendMetric.leftLegLean.rawValue] = toMass(v) }
+
+        if let v = payload.rightArmFatKg { values[TrendMetric.rightArmFat.rawValue] = toMass(v) }
+        if let v = payload.leftArmFatKg { values[TrendMetric.leftArmFat.rawValue] = toMass(v) }
+        if let v = payload.trunkFatKg { values[TrendMetric.trunkFat.rawValue] = toMass(v) }
+        if let v = payload.rightLegFatKg { values[TrendMetric.rightLegFat.rawValue] = toMass(v) }
+        if let v = payload.leftLegFatKg { values[TrendMetric.leftLegFat.rawValue] = toMass(v) }
+
+        return values
     }
 
     func buildPayload() throws -> InBodyPayload {

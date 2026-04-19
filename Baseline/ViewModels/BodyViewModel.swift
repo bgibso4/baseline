@@ -40,6 +40,16 @@ class BodyViewModel {
             }
         }
 
+        // Auto-complete any matching goal (body fat %, waist, lean mass, etc.).
+        // Goals are stored in the user's display unit — convert cm to the
+        // preferred length unit before checking.
+        let lengthPref = UserDefaults.standard.string(forKey: "lengthUnit") ?? "in"
+        let displayValue = lengthPref == "cm" ? valueCm : UnitConversion.cmToIn(valueCm)
+        GoalAutoCompleter.checkCompletions(
+            values: [type.trendMetric.rawValue: displayValue],
+            in: modelContext
+        )
+
         refresh()
     }
 

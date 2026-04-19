@@ -36,6 +36,22 @@ enum MeasurementType: String, CaseIterable, Codable {
         }
     }
 
+    /// Corresponding `TrendMetric` for goal auto-completion and trend routing.
+    var trendMetric: TrendMetric {
+        switch self {
+        case .waist: return .waist
+        case .hips: return .hips
+        case .chest: return .chest
+        case .neck: return .neck
+        case .armLeft: return .armLeft
+        case .armRight: return .armRight
+        case .thighLeft: return .thighLeft
+        case .thighRight: return .thighRight
+        case .calfLeft: return .calfLeft
+        case .calfRight: return .calfRight
+        }
+    }
+
     /// Tile label for Body tab (shorter than displayName for bilateral).
     var tileLabel: String {
         switch self {
