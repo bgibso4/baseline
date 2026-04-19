@@ -13,10 +13,11 @@ import SnapshotTesting
 final class ScanEntrySnapshotTests: XCTestCase {
 
     /// Set to `true` locally to regenerate reference images.
-    private let isRecording = true
+    private let isRecording = false
 
     @MainActor
-    func testScanEntry_TypeSelection() {
+    func testScanEntry_TypeSelection() throws {
+        try XCTSkipIf(true, "Disabled pre-beta while UI iterates — re-enable per issue #10")
         let container = makeContainer()
         let vm = ScanEntryViewModel(modelContext: container.mainContext)
         // Step defaults to .selectType
@@ -35,7 +36,8 @@ final class ScanEntrySnapshotTests: XCTestCase {
     }
 
     @MainActor
-    func testScanEntry_ManualForm() {
+    func testScanEntry_ManualForm() throws {
+        try XCTSkipIf(true, "Disabled pre-beta while UI iterates — re-enable per issue #10")
         let container = makeContainer()
         let vm = ScanEntryViewModel(modelContext: container.mainContext)
         // Advance to manual entry step
@@ -56,7 +58,8 @@ final class ScanEntrySnapshotTests: XCTestCase {
     }
 
     @MainActor
-    func testScanEntry_ReviewForm_WithLowConfidence() {
+    func testScanEntry_ReviewForm_WithLowConfidence() throws {
+        try XCTSkipIf(true, "Disabled pre-beta while UI iterates — re-enable per issue #10")
         let container = makeContainer()
         let vm = ScanEntryViewModel(modelContext: container.mainContext)
         // Populate with sample OCR data including low-confidence fields

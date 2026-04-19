@@ -12,11 +12,16 @@ final class ScanEntryViewModelTests: XCTestCase {
         let config = ModelConfiguration(isStoredInMemoryOnly: true)
         container = try! ModelContainer(for: schema, configurations: [config])
         context = ModelContext(container)
+        // Tests assert literal kg values, so pin the unit preference.
+        // Production default is "lb", which would trigger a lb→kg conversion
+        // in buildPayload and make the assertions fail.
+        UserDefaults.standard.set("kg", forKey: "weightUnit")
     }
 
     override func tearDown() {
         container = nil
         context = nil
+        UserDefaults.standard.removeObject(forKey: "weightUnit")
         super.tearDown()
     }
 

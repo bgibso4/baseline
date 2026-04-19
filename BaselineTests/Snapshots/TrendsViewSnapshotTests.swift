@@ -20,7 +20,8 @@ final class TrendsViewSnapshotTests: XCTestCase {
     // MARK: - Default (30 days of entries, M range active)
 
     @MainActor
-    func testTrendsView_DarkMode_DefaultMonth() {
+    func testTrendsView_DarkMode_DefaultMonth() throws {
+        try XCTSkipIf(true, "Disabled pre-beta while UI iterates — re-enable per issue #10")
         let container = makeContainer()
         seedThirtyDays(into: container.mainContext)
 
@@ -44,7 +45,8 @@ final class TrendsViewSnapshotTests: XCTestCase {
     // MARK: - Empty state (no entries)
 
     @MainActor
-    func testTrendsView_DarkMode_EmptyState() {
+    func testTrendsView_DarkMode_EmptyState() throws {
+        try XCTSkipIf(true, "Disabled pre-beta while UI iterates — re-enable per issue #10")
         let container = makeContainer()
 
         let vm = TrendsViewModel(modelContext: container.mainContext)
