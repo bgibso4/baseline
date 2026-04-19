@@ -99,165 +99,203 @@ struct ScanDetailView: View {
 
     @ViewBuilder
     private func inBodySections(_ p: InBodyPayload) -> some View {
-        // Date header
-        VStack(spacing: 4) {
-            Text(DateFormatting.fullDate(scan.date))
-                .font(.system(size: 13, weight: .medium))
-                .foregroundStyle(CadreColors.textSecondary)
-        }
-        .padding(.top, 16)
-        .padding(.bottom, 8)
+        dateChip
+            .padding(.top, 12)
 
-        detailSection("Core") {
-            massRow("Weight", value: p.weightKg)
-            massRow("Skeletal Muscle Mass", value: p.skeletalMuscleMassKg)
-            massRow("Body Fat Mass", value: p.bodyFatMassKg)
-            detailRow("Body Fat", value: fmt(p.bodyFatPct), unit: "%")
-            detailRow("Total Body Water", value: fmt(p.totalBodyWaterL), unit: "L")
-            detailRow("BMI", value: fmt(p.bmi), unit: "")
-            detailRow("Basal Metabolic Rate", value: String(format: "%.0f", p.basalMetabolicRate), unit: "kcal")
-        }
+        sectionLabel("Body Composition Analysis")
+        optRow("Intracellular Water (ICW)", value: p.intracellularWaterL, unit: "L")
+        optRow("Extracellular Water (ECW)", value: p.extracellularWaterL, unit: "L")
+        row("Total Body Water (TBW)", value: fmt(p.totalBodyWaterL), unit: "L")
+        optMassRow("Dry Lean Mass", kg: p.dryLeanMassKg)
+        optMassRow("Lean Body Mass (LBM)", kg: p.leanBodyMassKg)
+        massRow("Body Fat Mass", kg: p.bodyFatMassKg)
 
-        detailSection("Body Composition") {
-            optionalRow("Intracellular Water", value: p.intracellularWaterL, unit: "L")
-            optionalRow("Extracellular Water", value: p.extracellularWaterL, unit: "L")
-            optionalMassRow("Dry Lean Mass", value: p.dryLeanMassKg)
-            optionalMassRow("Lean Body Mass", value: p.leanBodyMassKg)
-            optionalRow("InBody Score", value: p.inBodyScore, unit: "")
-            optionalRow("ECW/TBW Ratio", value: p.ecwTbwRatio, unit: "")
-        }
+        sectionLabel("Muscle-Fat Analysis")
+        massRow("Weight", kg: p.weightKg)
+        massRow("Skeletal Muscle Mass (SMM)", kg: p.skeletalMuscleMassKg)
 
-        detailSection("Additional Metrics") {
-            optionalRow("Skeletal Muscle Index", value: p.skeletalMuscleIndex, unit: "kg/m²")
-            optionalRow("Visceral Fat Level", value: p.visceralFatLevel, unit: "")
-        }
+        sectionLabel("Obesity Analysis")
+        row("BMI", value: fmt(p.bmi), unit: "kg/m\u{00B2}")
+        row("Body Fat % (PBF)", value: fmt(p.bodyFatPct), unit: "%")
 
-        detailSection("Segmental Lean") {
-            optionalMassWithPctRow("Right Arm", mass: p.rightArmLeanKg, pct: p.rightArmLeanPct)
-            optionalMassWithPctRow("Left Arm", mass: p.leftArmLeanKg, pct: p.leftArmLeanPct)
-            optionalMassWithPctRow("Trunk", mass: p.trunkLeanKg, pct: p.trunkLeanPct)
-            optionalMassWithPctRow("Right Leg", mass: p.rightLegLeanKg, pct: p.rightLegLeanPct)
-            optionalMassWithPctRow("Left Leg", mass: p.leftLegLeanKg, pct: p.leftLegLeanPct)
+        sectionLabel("Segmental Lean Analysis")
+        segmentalTableHeader()
+        segmentalRow("Right Arm", mass: p.rightArmLeanKg, pct: p.rightArmLeanPct)
+        segmentalRow("Left Arm", mass: p.leftArmLeanKg, pct: p.leftArmLeanPct)
+        segmentalRow("Trunk", mass: p.trunkLeanKg, pct: p.trunkLeanPct)
+        segmentalRow("Right Leg", mass: p.rightLegLeanKg, pct: p.rightLegLeanPct)
+        segmentalRow("Left Leg", mass: p.leftLegLeanKg, pct: p.leftLegLeanPct)
+
+        if p.ecwTbwRatio != nil {
+            sectionLabel("ECW/TBW Analysis")
+            optRow("Ratio", value: p.ecwTbwRatio, unit: "", format: { String(format: "%.3f", $0) })
         }
 
-        detailSection("Segmental Fat") {
-            optionalMassWithPctRow("Right Arm", mass: p.rightArmFatKg, pct: p.rightArmFatPct)
-            optionalMassWithPctRow("Left Arm", mass: p.leftArmFatKg, pct: p.leftArmFatPct)
-            optionalMassWithPctRow("Trunk", mass: p.trunkFatKg, pct: p.trunkFatPct)
-            optionalMassWithPctRow("Right Leg", mass: p.rightLegFatKg, pct: p.rightLegFatPct)
-            optionalMassWithPctRow("Left Leg", mass: p.leftLegFatKg, pct: p.leftLegFatPct)
-        }
+        sectionLabel("Segmental Fat Analysis")
+        segmentalTableHeader()
+        segmentalRow("Right Arm", mass: p.rightArmFatKg, pct: p.rightArmFatPct)
+        segmentalRow("Left Arm", mass: p.leftArmFatKg, pct: p.leftArmFatPct)
+        segmentalRow("Trunk", mass: p.trunkFatKg, pct: p.trunkFatPct)
+        segmentalRow("Right Leg", mass: p.rightLegFatKg, pct: p.rightLegFatPct)
+        segmentalRow("Left Leg", mass: p.leftLegFatKg, pct: p.leftLegFatPct)
+
+        sectionLabel("Additional Metrics")
+        row("Basal Metabolic Rate (BMR)", value: String(format: "%.0f", p.basalMetabolicRate), unit: "kcal")
+        optRow("Skeletal Muscle Index (SMI)", value: p.skeletalMuscleIndex, unit: "kg/m\u{00B2}")
+        optRow("Visceral Fat Level", value: p.visceralFatLevel, unit: "", format: { String(format: "%.0f", $0) })
+        optRow("InBody Score", value: p.inBodyScore, unit: "", format: { String(format: "%.0f", $0) })
     }
 
-    // MARK: - Section & Row Helpers
+    // MARK: - Date Chip (read-only pill matching entry/edit's interactive chip)
 
-    private func detailSection<Content: View>(_ title: String, @ViewBuilder content: () -> Content) -> some View {
-        VStack(alignment: .leading, spacing: 0) {
-            Text(title.uppercased())
-                .font(.system(size: 11, weight: .bold))
-                .tracking(0.6)
-                .foregroundStyle(CadreColors.textTertiary)
-                .padding(.horizontal, 22)
-                .padding(.top, 20)
-                .padding(.bottom, 8)
-
-            VStack(spacing: 0) {
-                content()
-            }
-            .background(CadreColors.card, in: RoundedRectangle(cornerRadius: 12))
-            .padding(.horizontal, 16)
-        }
+    private var dateChip: some View {
+        Text(DateFormatting.fullDate(scan.date))
+            .font(.system(size: 13, weight: .medium))
+            .foregroundStyle(CadreColors.textPrimary)
+            .padding(.horizontal, 14)
+            .padding(.vertical, 8)
+            .background(CadreColors.card)
+            .overlay(
+                RoundedRectangle(cornerRadius: CadreRadius.full)
+                    .stroke(CadreColors.divider, lineWidth: 1)
+            )
+            .clipShape(RoundedRectangle(cornerRadius: CadreRadius.full))
     }
 
-    private func detailRow(_ label: String, value: String, unit: String) -> some View {
+    // MARK: - Section & Row Helpers (read-only mirrors of ScanEntryFlow.reviewRow/segmentalRow)
+
+    private func sectionLabel(_ title: String) -> some View {
+        Text(title.uppercased())
+            .font(.system(size: 10, weight: .semibold))
+            .tracking(0.6)
+            .foregroundStyle(CadreColors.textTertiary)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.horizontal, CadreSpacing.sheetHorizontal)
+            .padding(.top, 20)
+            .padding(.bottom, 8)
+    }
+
+    private func row(_ label: String, value: String, unit: String) -> some View {
         HStack {
             Text(label)
-                .font(.system(size: 14, weight: .medium))
+                .font(.system(size: 13, weight: .medium))
                 .foregroundStyle(CadreColors.textSecondary)
-            Spacer()
+
+            Spacer(minLength: 8)
+
             HStack(alignment: .firstTextBaseline, spacing: 3) {
                 Text(value)
-                    .font(.system(size: 15, weight: .bold))
+                    .font(.system(size: 15, weight: .bold, design: .default))
+                    .tracking(-0.2)
                     .foregroundStyle(CadreColors.textPrimary)
                 if !unit.isEmpty {
                     Text(unit)
-                        .font(.system(size: 11, weight: .medium))
-                        .foregroundStyle(CadreColors.textTertiary)
-                }
-            }
-        }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 11)
-    }
-
-    /// Row for mass values (kg) that converts based on user's weight unit preference.
-    private func massRow(_ label: String, value: Double) -> some View {
-        _ = weightUnit  // SwiftUI dependency: re-render when unit preference changes
-        let display = UnitConversion.formattedMass(value)
-        return detailRow(label, value: display.text, unit: display.unit)
-    }
-
-    /// Optional mass row — only shows if value is non-nil, with unit conversion.
-    @ViewBuilder
-    private func optionalMassRow(_ label: String, value: Double?) -> some View {
-        if let value {
-            VStack(spacing: 0) {
-                Rectangle()
-                    .fill(CadreColors.divider)
-                    .frame(height: 0.5)
-                massRow(label, value: value)
-            }
-        }
-    }
-
-    @ViewBuilder
-    private func optionalRow(_ label: String, value: Double?, unit: String) -> some View {
-        if let value {
-            VStack(spacing: 0) {
-                Rectangle()
-                    .fill(CadreColors.divider)
-                    .frame(height: 0.5)
-                detailRow(label, value: fmt(value), unit: unit)
-            }
-        }
-    }
-
-    /// Optional mass row that appends a sufficiency percentage as a secondary value when available.
-    /// Shows: "Right Arm    7.94 lb · 112.4%"
-    @ViewBuilder
-    private func optionalMassWithPctRow(_ label: String, mass: Double?, pct: Double?) -> some View {
-        if let mass {
-            VStack(spacing: 0) {
-                Rectangle()
-                    .fill(CadreColors.divider)
-                    .frame(height: 0.5)
-                HStack {
-                    Text(label)
-                        .font(.system(size: 14, weight: .medium))
+                        .font(.system(size: 10, weight: .medium))
                         .foregroundStyle(CadreColors.textSecondary)
-                    Spacer()
-                    HStack(alignment: .firstTextBaseline, spacing: 3) {
-                        let display = UnitConversion.formattedMass(mass)
-                        Text(display.text)
-                            .font(.system(size: 15, weight: .bold))
-                            .foregroundStyle(CadreColors.textPrimary)
-                        Text(display.unit)
-                            .font(.system(size: 11, weight: .medium))
-                            .foregroundStyle(CadreColors.textTertiary)
-                        if let pct {
-                            Text("·")
-                                .font(.system(size: 11, weight: .medium))
-                                .foregroundStyle(CadreColors.textTertiary)
-                            Text(String(format: "%.1f%%", pct))
-                                .font(.system(size: 13, weight: .semibold))
-                                .foregroundStyle(CadreColors.textSecondary)
-                        }
-                    }
                 }
-                .padding(.horizontal, 16)
-                .padding(.vertical, 11)
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 8)
+            .background(CadreColors.card)
+            .overlay(
+                RoundedRectangle(cornerRadius: 9)
+                    .stroke(CadreColors.divider, lineWidth: 1)
+            )
+            .clipShape(RoundedRectangle(cornerRadius: 9))
+            .frame(width: 120)
+        }
+        .padding(.horizontal, CadreSpacing.sheetHorizontal)
+        .padding(.vertical, 4)
+    }
+
+    @ViewBuilder
+    private func optRow(_ label: String, value: Double?, unit: String, format: (Double) -> String = { String(format: "%.1f", $0) }) -> some View {
+        if let value {
+            row(label, value: format(value), unit: unit)
+        }
+    }
+
+    /// Mass row — converts from stored kg to user's preferred unit.
+    private func massRow(_ label: String, kg: Double) -> some View {
+        _ = weightUnit  // SwiftUI dependency: re-render when unit preference changes
+        let display = UnitConversion.formattedMass(kg)
+        return row(label, value: display.text, unit: display.unit)
+    }
+
+    @ViewBuilder
+    private func optMassRow(_ label: String, kg: Double?) -> some View {
+        if let kg {
+            massRow(label, kg: kg)
+        }
+    }
+
+    // MARK: - Segmental Table
+
+    private func segmentalTableHeader() -> some View {
+        HStack {
+            Text("Segment")
+                .frame(maxWidth: .infinity, alignment: .leading)
+            Text("Mass")
+                .frame(width: 92, alignment: .center)
+            Text("Suff. %")
+                .frame(width: 78, alignment: .center)
+        }
+        .font(.system(size: 10, weight: .semibold))
+        .foregroundStyle(CadreColors.textTertiary)
+        .padding(.horizontal, CadreSpacing.sheetHorizontal)
+        .padding(.bottom, 6)
+    }
+
+    private func segmentalRow(_ segment: String, mass: Double?, pct: Double?) -> some View {
+        _ = weightUnit
+        return HStack(spacing: 6) {
+            Text(segment)
+                .font(.system(size: 13, weight: .medium))
+                .foregroundStyle(CadreColors.textSecondary)
+                .frame(maxWidth: .infinity, alignment: .leading)
+
+            segmentalCell(
+                valueText: mass.map { UnitConversion.formattedMass($0).text } ?? "",
+                unit: mass.map { UnitConversion.formattedMass($0).unit } ?? ""
+            )
+            .frame(width: 92)
+
+            segmentalCell(
+                valueText: pct.map { String(format: "%.1f", $0) } ?? "",
+                unit: pct == nil ? "" : "%"
+            )
+            .frame(width: 78)
+        }
+        .padding(.horizontal, CadreSpacing.sheetHorizontal)
+        .padding(.vertical, 3)
+    }
+
+    private func segmentalCell(valueText: String, unit: String) -> some View {
+        let isMissing = valueText.isEmpty
+        return HStack(alignment: .firstTextBaseline, spacing: 2) {
+            Text(isMissing ? "—" : valueText)
+                .font(.system(size: 13, weight: .bold, design: .default))
+                .tracking(-0.2)
+                .foregroundStyle(isMissing ? CadreColors.textTertiary : CadreColors.textPrimary)
+                .frame(maxWidth: .infinity, alignment: .trailing)
+
+            if !unit.isEmpty {
+                Text(unit)
+                    .font(.system(size: 9, weight: .medium))
+                    .foregroundStyle(CadreColors.textSecondary)
             }
         }
+        .padding(.horizontal, 8)
+        .padding(.vertical, 6)
+        .background(CadreColors.card)
+        .overlay(
+            RoundedRectangle(cornerRadius: 7)
+                .stroke(
+                    isMissing ? CadreColors.textTertiary : CadreColors.divider,
+                    style: isMissing ? StrokeStyle(lineWidth: 1, dash: [4, 3]) : StrokeStyle(lineWidth: 1)
+                )
+        )
+        .clipShape(RoundedRectangle(cornerRadius: 7))
     }
 
     private func fmt(_ value: Double) -> String {
