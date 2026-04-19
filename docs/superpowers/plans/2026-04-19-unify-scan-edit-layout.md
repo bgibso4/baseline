@@ -462,11 +462,13 @@ Append to `BaselineTests/ViewModels/ScanEntryViewModelTests.swift`:
 
         let reloaded = try context.fetch(FetchDescriptor<Scan>()).first!
         if case .inBody(let saved) = try reloaded.decoded() {
-            XCTAssertEqual(saved.weightKg, 80.0, accuracy: 0.01,
+            // 0.02 kg (~0.04 lb) accommodates the 1-decimal-place display
+            // formatting round-trip. Pre-refactor code has the same drift.
+            XCTAssertEqual(saved.weightKg, 80.0, accuracy: 0.02,
                            "Stored weight must round-trip in kg regardless of display unit")
-            XCTAssertEqual(saved.skeletalMuscleMassKg, 38.0, accuracy: 0.01)
-            XCTAssertEqual(saved.bodyFatMassKg, 16.0, accuracy: 0.01)
-            XCTAssertEqual(saved.rightArmLeanKg ?? 0, 3.5, accuracy: 0.01)
+            XCTAssertEqual(saved.skeletalMuscleMassKg, 38.0, accuracy: 0.02)
+            XCTAssertEqual(saved.bodyFatMassKg, 16.0, accuracy: 0.02)
+            XCTAssertEqual(saved.rightArmLeanKg ?? 0, 3.5, accuracy: 0.02)
         } else {
             XCTFail("Expected inBody payload")
         }
@@ -488,17 +490,25 @@ In `Baseline/ViewModels/ScanEntryViewModel.swift`, replace the existing `existin
     /// In edit mode, excludes the scan being edited so it never flags itself.
     func existingScanForSelectedDate() -> Scan? {
         let targetDate = Calendar.current.startOfDay(for: scanDate ?? Date())
-        let editingId = editingScan?.id
-        let descriptor = FetchDescriptor<Scan>(
-            predicate: #Predicate { scan in
-                scan.date == targetDate && scan.id != editingId
-            }
-        )
+        // SwiftData's #Predicate macro rejects Optional<UUID> vs UUID comparisons,
+        // so branch explicitly rather than embed the optional in the predicate.
+        let descriptor: FetchDescriptor<Scan>
+        if let editingId = editingScan?.id {
+            descriptor = FetchDescriptor<Scan>(
+                predicate: #Predicate { scan in
+                    scan.date == targetDate && scan.id != editingId
+                }
+            )
+        } else {
+            descriptor = FetchDescriptor<Scan>(
+                predicate: #Predicate { scan in
+                    scan.date == targetDate
+                }
+            )
+        }
         return try? modelContext.fetch(descriptor).first
     }
 ```
-
-Note: `#Predicate` handles an optional `UUID?` captured as `editingId` — when nil, the `scan.id != editingId` clause is trivially true (since scan.id is non-optional UUID, it can never equal nil), preserving original behavior for the entry flow.
 
 - [ ] **Step 4: Modify `save()` to branch on edit mode**
 
@@ -518,8 +528,8 @@ In `Baseline/ViewModels/ScanEntryViewModel.swift`, replace the existing `save()`
         if let editing = editingScan {
             editing.payloadData = data
             editing.date = targetDate
-            editing.scanType = selectedType
-            editing.scanSource = selectedSource
+            editing.type = selectedType.rawValue
+            editing.source = selectedSource.rawValue
             editing.updatedAt = Date()
         } else {
             let scan = Scan(date: targetDate, type: selectedType, source: selectedSource, payload: data)

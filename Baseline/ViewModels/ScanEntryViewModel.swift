@@ -452,23 +452,48 @@ class ScanEntryViewModel {
     }
 
     /// Check if a scan already exists for the selected date.
+    /// In edit mode, excludes the scan being edited so it never flags itself.
     func existingScanForSelectedDate() -> Scan? {
         let targetDate = Calendar.current.startOfDay(for: scanDate ?? Date())
-        let descriptor = FetchDescriptor<Scan>(
-            predicate: #Predicate { $0.date == targetDate }
-        )
+        // SwiftData's #Predicate macro rejects Optional<UUID> vs UUID comparisons,
+        // so branch explicitly rather than embed the optional in the predicate.
+        let descriptor: FetchDescriptor<Scan>
+        if let editingId = editingScan?.id {
+            descriptor = FetchDescriptor<Scan>(
+                predicate: #Predicate { scan in
+                    scan.date == targetDate && scan.id != editingId
+                }
+            )
+        } else {
+            descriptor = FetchDescriptor<Scan>(
+                predicate: #Predicate { scan in
+                    scan.date == targetDate
+                }
+            )
+        }
         return try? modelContext.fetch(descriptor).first
     }
 
     func save() throws {
-        // If a scan exists for this date, delete it first (caller confirms overwrite)
-        if let existing = existingScanForSelectedDate() {
-            modelContext.delete(existing)
-        }
         let payload = try buildPayload()
         let data = try JSONEncoder().encode(payload)
-        let scan = Scan(date: scanDate ?? Date(), type: selectedType, source: selectedSource, payload: data)
-        modelContext.insert(scan)
+        let targetDate = Calendar.current.startOfDay(for: scanDate ?? Date())
+
+        // Delete any OTHER scan already on the target date — excludes self in edit mode.
+        if let conflict = existingScanForSelectedDate() {
+            modelContext.delete(conflict)
+        }
+
+        if let editing = editingScan {
+            editing.payloadData = data
+            editing.date = targetDate
+            editing.type = selectedType.rawValue
+            editing.source = selectedSource.rawValue
+            editing.updatedAt = Date()
+        } else {
+            let scan = Scan(date: targetDate, type: selectedType, source: selectedSource, payload: data)
+            modelContext.insert(scan)
+        }
         try modelContext.save()
     }
 
