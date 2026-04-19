@@ -354,6 +354,7 @@ private struct EditEntrySheet: View {
                     .listRowBackground(CadreColors.card)
                 }
                 .scrollContentBackground(.hidden)
+                .scrollDismissesKeyboard(.interactively)
                 .background(CadreColors.bg)
 
                 if showDatePicker {
@@ -401,11 +402,6 @@ private struct EditEntrySheet: View {
                         }
                     }
                     .foregroundStyle(CadreColors.accent)
-                }
-                ToolbarItemGroup(placement: .keyboard) {
-                    Spacer()
-                    Button("Done") { isFieldFocused = false }
-                        .font(.system(size: 15, weight: .semibold))
                 }
             }
         }

@@ -12,6 +12,10 @@ struct ScanEntryFlow: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
 
+    // User's preferred mass unit — mass fields display and round-trip in this
+    // unit. ScanEntryViewModel.buildPayload converts back to kg on save.
+    @AppStorage("weightUnit") private var weightUnit = "lb"
+
     private let injectedVM: ScanEntryViewModel?
     @State private var vm: ScanEntryViewModel?
     @FocusState private var isFieldFocused: Bool
@@ -28,6 +32,8 @@ struct ScanEntryFlow: View {
         NavigationStack {
             ZStack {
                 GradientBackground(center: .top)
+                    .contentShape(Rectangle())
+                    .onTapGesture { isFieldFocused = false }
 
                 if let vm = resolvedVM {
                     // AnyView breaks the type metadata chain — without it, the
@@ -555,18 +561,20 @@ struct ScanEntryFlow: View {
     private func reviewFields(vm: ScanEntryViewModel) -> some View {
         VStack(spacing: 0) {
             // Body Composition Analysis
+            // Water metrics are reported on the printout in mass units (same as
+            // weight), so they use the user's mass preference too.
             reviewSectionLabel("Body Composition Analysis")
-            reviewRow("Intracellular Water (ICW)", value: fieldBinding("intracellularWaterL", vm: vm), unit: "lbs", key: "intracellularWaterL", vm: vm)
-            reviewRow("Extracellular Water (ECW)", value: fieldBinding("extracellularWaterL", vm: vm), unit: "lbs", key: "extracellularWaterL", vm: vm)
-            reviewRow("Total Body Water (TBW)", value: fieldBinding("totalBodyWaterL", vm: vm), unit: "lbs", key: "totalBodyWaterL", vm: vm)
-            reviewRow("Dry Lean Mass", value: fieldBinding("dryLeanMassKg", vm: vm), unit: "lbs", key: "dryLeanMassKg", vm: vm)
-            reviewRow("Lean Body Mass (LBM)", value: fieldBinding("leanBodyMassKg", vm: vm), unit: "lbs", key: "leanBodyMassKg", vm: vm)
-            reviewRow("Body Fat Mass", value: fieldBinding("bodyFatMassKg", vm: vm), unit: "lbs", key: "bodyFatMassKg", vm: vm)
+            reviewRow("Intracellular Water (ICW)", value: fieldBinding("intracellularWaterL", vm: vm), unit: weightUnit, key: "intracellularWaterL", vm: vm)
+            reviewRow("Extracellular Water (ECW)", value: fieldBinding("extracellularWaterL", vm: vm), unit: weightUnit, key: "extracellularWaterL", vm: vm)
+            reviewRow("Total Body Water (TBW)", value: fieldBinding("totalBodyWaterL", vm: vm), unit: weightUnit, key: "totalBodyWaterL", vm: vm)
+            reviewRow("Dry Lean Mass", value: fieldBinding("dryLeanMassKg", vm: vm), unit: weightUnit, key: "dryLeanMassKg", vm: vm)
+            reviewRow("Lean Body Mass (LBM)", value: fieldBinding("leanBodyMassKg", vm: vm), unit: weightUnit, key: "leanBodyMassKg", vm: vm)
+            reviewRow("Body Fat Mass", value: fieldBinding("bodyFatMassKg", vm: vm), unit: weightUnit, key: "bodyFatMassKg", vm: vm)
 
             // Muscle-Fat Analysis
             reviewSectionLabel("Muscle-Fat Analysis")
-            reviewRow("Weight", value: fieldBinding("weightKg", vm: vm), unit: "lbs", key: "weightKg", vm: vm)
-            reviewRow("Skeletal Muscle Mass (SMM)", value: fieldBinding("skeletalMuscleMassKg", vm: vm), unit: "lbs", key: "skeletalMuscleMassKg", vm: vm)
+            reviewRow("Weight", value: fieldBinding("weightKg", vm: vm), unit: weightUnit, key: "weightKg", vm: vm)
+            reviewRow("Skeletal Muscle Mass (SMM)", value: fieldBinding("skeletalMuscleMassKg", vm: vm), unit: weightUnit, key: "skeletalMuscleMassKg", vm: vm)
 
             // Obesity Analysis
             reviewSectionLabel("Obesity Analysis")
@@ -735,7 +743,7 @@ struct ScanEntryFlow: View {
 
             segmentalCell(
                 value: mass,
-                unit: "lb",
+                unit: weightUnit,
                 key: massKey,
                 isLowConfidence: massLow,
                 isMissing: massMissing,

@@ -23,6 +23,11 @@ struct NameEditView: View {
                         .tint(CadreColors.accent)
                         .autocorrectionDisabled()
                         .focused($isFocused)
+                        .submitLabel(.done)
+                        .onSubmit {
+                            viewModel.name = draft.trimmingCharacters(in: .whitespaces)
+                            dismiss()
+                        }
 
                     if !draft.isEmpty {
                         Button {
@@ -76,11 +81,6 @@ struct NameEditView: View {
                 }
                 .font(.system(size: 14, weight: .semibold))
                 .foregroundStyle(CadreColors.accent)
-            }
-            ToolbarItemGroup(placement: .keyboard) {
-                Spacer()
-                Button("Done") { isFocused = false }
-                    .font(.system(size: 15, weight: .semibold))
             }
         }
         .toolbarBackground(CadreColors.bgGradientCenter, for: .navigationBar)

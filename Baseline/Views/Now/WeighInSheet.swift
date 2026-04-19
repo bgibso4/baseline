@@ -25,7 +25,12 @@ struct WeighInSheet: View {
     @State private var selectedDate: Date = Date()
     @State private var selectedPhoto: PhotosPickerItem?
     @State private var photoData: Data?
+    @State private var showPhotosPicker: Bool = false
     @State private var showOverwriteAlert = false
+    /// Collapsed-state detent sized so the Note / Photo chips stay visible
+    /// without swiping. Full `.medium` is too short once hero + stepper fit.
+    private static let collapsedDetent: PresentationDetent = .fraction(0.62)
+    @State private var selectedDetent: PresentationDetent = WeighInSheet.collapsedDetent
     @FocusState private var isFieldFocused: Bool
 
     init(
@@ -45,16 +50,25 @@ struct WeighInSheet: View {
         NavigationStack {
         ZStack {
             GradientBackground(center: .top)
+                .contentShape(Rectangle())
+                .onTapGesture {
+                    // Tap-outside-field to dismiss the keyboard. SwiftUI buttons
+                    // and text fields swallow their own taps, so this only
+                    // fires on empty regions (weight display area, padding, etc).
+                    isFieldFocused = false
+                }
 
             VStack(spacing: 0) {
                 sheetHandle
                     .padding(.top, 10)
                     .padding(.bottom, 14)
 
-                contentStack
-                    .padding(.horizontal, CadreSpacing.sheetHorizontal)
-
-                Spacer(minLength: 0)
+                ScrollView {
+                    contentStack
+                        .padding(.horizontal, CadreSpacing.sheetHorizontal)
+                        .padding(.bottom, 16)
+                }
+                .scrollDismissesKeyboard(.interactively)
 
                 saveButton
                     .padding(.horizontal, CadreSpacing.sheetHorizontal)
@@ -83,16 +97,9 @@ struct WeighInSheet: View {
                 }
             }
         }
-        .toolbar {
-            ToolbarItemGroup(placement: .keyboard) {
-                Spacer()
-                Button("Done") { isFieldFocused = false }
-                    .font(.system(size: 15, weight: .semibold))
-            }
-        }
         .navigationBarHidden(true)
         } // NavigationStack
-        .presentationDetents(sheetDetents)
+        .presentationDetents([WeighInSheet.collapsedDetent, .large], selection: $selectedDetent)
         .onAppear {
             guard injectedVM == nil, vm == nil else { return }
             vm = WeighInViewModel(
@@ -104,14 +111,9 @@ struct WeighInSheet: View {
         .onChange(of: selectedDate) { _, _ in
             withAnimation { showDatePicker = false }
         }
-    }
-
-    /// Adaptive sheet detents based on content state.
-    private var sheetDetents: Set<PresentationDetent> {
-        if photoData != nil {
-            return [.large]
+        .onChange(of: showNoteField) { _, newValue in
+            if newValue { withAnimation { selectedDetent = .large } }
         }
-        return [.medium]
     }
 
     // MARK: - Sections
@@ -134,10 +136,10 @@ struct WeighInSheet: View {
                 .padding(.top, 10)
 
             stepper
-                .padding(.top, 24)
+                .padding(.top, 16)
 
             addChipsRow
-                .padding(.top, 20)
+                .padding(.top, 14)
 
             if showNoteField {
                 noteFieldView
@@ -145,13 +147,42 @@ struct WeighInSheet: View {
                     .transition(.opacity.combined(with: .move(edge: .top)))
             }
 
-            if let photoData, let uiImage = UIImage(data: photoData) {
+            if let data = photoData, let uiImage = UIImage(data: data) {
+                // Compute the exact rendered frame from the image's aspect
+                // ratio. `.scaledToFit()` + `.frame(maxHeight:)` on its own
+                // kept the view full-width with the image centered inside, so
+                // `.overlay(.topTrailing)` anchored to the invisible column
+                // edge instead of the visible image edge. Fixing both
+                // dimensions makes the overlay alignment unambiguous.
+                let aspect = uiImage.size.width / uiImage.size.height
+                let maxPhotoHeight: CGFloat = 260
+                let maxPhotoWidth: CGFloat = 300
+                let photoSize: CGSize = {
+                    let byHeight = CGSize(width: maxPhotoHeight * aspect, height: maxPhotoHeight)
+                    if byHeight.width <= maxPhotoWidth { return byHeight }
+                    return CGSize(width: maxPhotoWidth, height: maxPhotoWidth / aspect)
+                }()
+
                 Image(uiImage: uiImage)
                     .resizable()
-                    .scaledToFill()
-                    .frame(height: 120)
-                    .clipped()
+                    .frame(width: photoSize.width, height: photoSize.height)
                     .clipShape(RoundedRectangle(cornerRadius: 12))
+                    .overlay(alignment: .topTrailing) {
+                        Button {
+                            withAnimation(.easeInOut(duration: 0.2)) {
+                                photoData = nil
+                            }
+                            selectedPhoto = nil
+                        } label: {
+                            Image(systemName: "xmark.circle.fill")
+                                .font(.system(size: 22, weight: .regular))
+                                .foregroundStyle(.white, Color.black.opacity(0.55))
+                        }
+                        .buttonStyle(.plain)
+                        .padding(8)
+                        .accessibilityLabel("Remove photo")
+                    }
+                    .frame(maxWidth: .infinity)
                     .padding(.top, 16)
                     .transition(.opacity.combined(with: .move(edge: .top)))
             }
@@ -262,17 +293,34 @@ struct WeighInSheet: View {
                     showNoteField.toggle()
                 }
             }
-            PhotosPicker(selection: $selectedPhoto, matching: .images) {
+
+            // Pre-expand the sheet to `.large` before opening the picker.
+            // Dynamically growing the detent on `photoData` change fires while
+            // the PhotosPicker is dismissing, and SwiftUI's hit-testing uses
+            // the pre-transition frame during that window — buttons in the
+            // newly-grown area stop receiving taps. Expanding before the
+            // picker opens avoids that mid-transition.
+            Button {
+                UIApplication.shared.sendAction(
+                    #selector(UIResponder.resignFirstResponder),
+                    to: nil, from: nil, for: nil
+                )
+                isFieldFocused = false
+                withAnimation(.easeInOut(duration: 0.25)) {
+                    selectedDetent = .large
+                }
+                showPhotosPicker = true
+            } label: {
                 chip(label: photoData != nil ? "Photo" : "Add photo", systemImage: "camera", filled: photoData != nil)
             }
             .buttonStyle(.plain)
+            .photosPicker(isPresented: $showPhotosPicker, selection: $selectedPhoto, matching: .images)
             .onChange(of: selectedPhoto) { _, newValue in
                 Task {
                     if let data = try? await newValue?.loadTransferable(type: Data.self) {
-                        withAnimation(.easeInOut(duration: 0.25)) {
-                            photoData = data
-                        }
+                        await MainActor.run { photoData = data }
                     }
+                    await MainActor.run { selectedPhoto = nil }
                 }
             }
         }
@@ -329,7 +377,10 @@ struct WeighInSheet: View {
     // Photo stub removed — replaced with PhotosPicker in addChipsRow
 
     private var saveButton: some View {
-        // 40px margin above Save button per DESIGN_DECISIONS.md
+        // Previously had a 40pt top padding from the design spec; with the
+        // ScrollView wrapping the content above, we let the scroll region
+        // absorb the breathing room so chips stay visible at the collapsed
+        // detent.
         Button {
             if vm?.existingEntry(for: selectedDate) != nil {
                 showOverwriteAlert = true
@@ -346,7 +397,7 @@ struct WeighInSheet: View {
                 .background(CadreColors.accent)
                 .clipShape(RoundedRectangle(cornerRadius: 16))
         }
-        .padding(.top, 40)
+        .padding(.top, 12)
         .alert("Overwrite Entry?", isPresented: $showOverwriteAlert) {
             Button("Cancel", role: .cancel) { }
             Button("Overwrite", role: .destructive) {

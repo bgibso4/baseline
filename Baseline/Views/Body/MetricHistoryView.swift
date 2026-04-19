@@ -434,6 +434,7 @@ private struct EditMeasurementSheet: View {
                     .listRowBackground(CadreColors.card)
                 }
                 .scrollContentBackground(.hidden)
+                .scrollDismissesKeyboard(.interactively)
                 .background(CadreColors.bg)
 
                 if showDatePicker {
@@ -481,11 +482,6 @@ private struct EditMeasurementSheet: View {
                         }
                     }
                     .foregroundStyle(CadreColors.accent)
-                }
-                ToolbarItemGroup(placement: .keyboard) {
-                    Spacer()
-                    Button("Done") { isFieldFocused = false }
-                        .font(.system(size: 15, weight: .semibold))
                 }
             }
         }

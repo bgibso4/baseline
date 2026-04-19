@@ -375,6 +375,20 @@ class ScanEntryViewModel {
     func buildPayload() throws -> InBodyPayload {
         func f(_ key: String) -> Double? { Double(fields[key, default: ""]) }
 
+        // The review form displays mass values in the user's preferred unit
+        // (see ScanEntryFlow labels). The parser extracts raw numbers from the
+        // printout, which matches the user's unit setting on their InBody. Here
+        // we convert back to kg for canonical storage — ScanDetailView reads
+        // payload.weightKg as kg and re-formats for display.
+        let massPref = UserDefaults.standard.string(forKey: "weightUnit") ?? "lb"
+        let toKg: (Double) -> Double = { v in
+            massPref == "kg" ? v : UnitConversion.lbToKg(v)
+        }
+        let optToKg: (Double?) -> Double? = { v in
+            guard let v else { return nil }
+            return massPref == "kg" ? v : UnitConversion.lbToKg(v)
+        }
+
         var missing: [String] = []
         let w = f("weightKg"); if w == nil { missing.append("Weight") }
         let smm = f("skeletalMuscleMassKg"); if smm == nil { missing.append("Skeletal Muscle Mass") }
@@ -390,24 +404,29 @@ class ScanEntryViewModel {
         }
 
         var payload = InBodyPayload(
-            weightKg: w, skeletalMuscleMassKg: smm, bodyFatMassKg: bfm,
-            bodyFatPct: bf, totalBodyWaterL: tbw, bmi: b, basalMetabolicRate: bmr
+            weightKg: toKg(w),
+            skeletalMuscleMassKg: toKg(smm),
+            bodyFatMassKg: toKg(bfm),
+            bodyFatPct: bf,
+            totalBodyWaterL: tbw,
+            bmi: b,
+            basalMetabolicRate: bmr
         )
         payload.intracellularWaterL = f("intracellularWaterL")
         payload.extracellularWaterL = f("extracellularWaterL")
-        payload.dryLeanMassKg = f("dryLeanMassKg")
-        payload.leanBodyMassKg = f("leanBodyMassKg")
+        payload.dryLeanMassKg = optToKg(f("dryLeanMassKg"))
+        payload.leanBodyMassKg = optToKg(f("leanBodyMassKg"))
         payload.inBodyScore = f("inBodyScore")
-        payload.rightArmLeanKg = f("rightArmLeanKg")
-        payload.leftArmLeanKg = f("leftArmLeanKg")
-        payload.trunkLeanKg = f("trunkLeanKg")
-        payload.rightLegLeanKg = f("rightLegLeanKg")
-        payload.leftLegLeanKg = f("leftLegLeanKg")
-        payload.rightArmFatKg = f("rightArmFatKg")
-        payload.leftArmFatKg = f("leftArmFatKg")
-        payload.trunkFatKg = f("trunkFatKg")
-        payload.rightLegFatKg = f("rightLegFatKg")
-        payload.leftLegFatKg = f("leftLegFatKg")
+        payload.rightArmLeanKg = optToKg(f("rightArmLeanKg"))
+        payload.leftArmLeanKg = optToKg(f("leftArmLeanKg"))
+        payload.trunkLeanKg = optToKg(f("trunkLeanKg"))
+        payload.rightLegLeanKg = optToKg(f("rightLegLeanKg"))
+        payload.leftLegLeanKg = optToKg(f("leftLegLeanKg"))
+        payload.rightArmFatKg = optToKg(f("rightArmFatKg"))
+        payload.leftArmFatKg = optToKg(f("leftArmFatKg"))
+        payload.trunkFatKg = optToKg(f("trunkFatKg"))
+        payload.rightLegFatKg = optToKg(f("rightLegFatKg"))
+        payload.leftLegFatKg = optToKg(f("leftLegFatKg"))
         payload.ecwTbwRatio = f("ecwTbwRatio")
         payload.skeletalMuscleIndex = f("skeletalMuscleIndex")
         payload.visceralFatLevel = f("visceralFatLevel")

@@ -318,6 +318,9 @@ struct ScanEditView: View {
     @State private var leftLegFatPct: String
 
     @State private var errorMessage: String?
+    @State private var editableDate: Date
+    @State private var showDatePicker: Bool = false
+    @State private var showOverwriteAlert: Bool = false
 
     /// User's preferred mass unit — read once at init so the form is consistent.
     private let massPref: String
@@ -331,6 +334,8 @@ struct ScanEditView: View {
 
         let pref = UserDefaults.standard.string(forKey: "weightUnit") ?? "lb"
         self.massPref = pref
+
+        _editableDate = State(initialValue: scan.date)
 
         // Convert kg → display unit for mass fields
         let m: (Double) -> String = { kg in
@@ -393,23 +398,23 @@ struct ScanEditView: View {
         NavigationStack {
             ZStack {
                 GradientBackground(center: .top)
+                    .contentShape(Rectangle())
+                    .onTapGesture { isFieldFocused = false }
 
                 VStack(spacing: 0) {
                     ScrollView {
                         VStack(spacing: 0) {
-                            // Date display
-                            Text(DateFormatting.fullDate(scan.date))
-                                .font(.system(size: 13, weight: .medium))
-                                .foregroundStyle(CadreColors.textSecondary)
+                            editDateChip
                                 .padding(.top, 16)
 
                             editFormFields
                         }
                     }
+                    .scrollDismissesKeyboard(.interactively)
 
                     // Save button
                     Button {
-                        saveEdits()
+                        attemptSave()
                     } label: {
                         Text("Save")
                             .font(CadreTypography.buttonLabel)
@@ -425,6 +430,31 @@ struct ScanEditView: View {
                     .padding(.top, 12)
                     .padding(.bottom, 16)
                 }
+
+                // Date picker overlay — floats on top without affecting layout.
+                if showDatePicker {
+                    Color.black.opacity(0.5)
+                        .ignoresSafeArea()
+                        .onTapGesture {
+                            withAnimation { showDatePicker = false }
+                        }
+
+                    DatePicker(
+                        "",
+                        selection: $editableDate,
+                        in: ...Date(),
+                        displayedComponents: .date
+                    )
+                    .datePickerStyle(.graphical)
+                    .tint(CadreColors.accent)
+                    .labelsHidden()
+                    .padding()
+                    .background(
+                        RoundedRectangle(cornerRadius: 16)
+                            .fill(CadreColors.card)
+                    )
+                    .padding(.horizontal, 16)
+                }
             }
             .navigationTitle("Edit Scan")
             .navigationBarTitleDisplayMode(.inline)
@@ -437,12 +467,69 @@ struct ScanEditView: View {
             }
             .toolbarBackground(CadreColors.bgGradientCenter, for: .navigationBar)
             .toolbarColorScheme(.dark, for: .navigationBar)
+            .onChange(of: editableDate) { _, _ in
+                withAnimation { showDatePicker = false }
+            }
+            .alert("Replace Existing Scan?", isPresented: $showOverwriteAlert) {
+                Button("Cancel", role: .cancel) { }
+                Button("Replace", role: .destructive) { saveEdits() }
+            } message: {
+                Text("You already have a scan on this date. Saving will replace it.")
+            }
         }
+    }
+
+    // MARK: - Date Chip
+
+    private var editDateChipLabel: String {
+        DateFormatting.isToday(editableDate) ? "Today" : DateFormatting.fullDate(editableDate)
+    }
+
+    private var editDateChip: some View {
+        Button {
+            isFieldFocused = false
+            withAnimation(.easeInOut(duration: 0.25)) {
+                showDatePicker.toggle()
+            }
+        } label: {
+            HStack(spacing: 6) {
+                Text(editDateChipLabel)
+                    .font(.system(size: 13, weight: .medium))
+                    .foregroundStyle(CadreColors.textPrimary)
+                Image(systemName: "chevron.down")
+                    .font(.system(size: 9, weight: .bold))
+                    .foregroundStyle(CadreColors.textTertiary)
+            }
+            .padding(.horizontal, 14)
+            .padding(.vertical, 8)
+            .background(CadreColors.card)
+            .overlay(
+                RoundedRectangle(cornerRadius: CadreRadius.full)
+                    .stroke(CadreColors.divider, lineWidth: 1)
+            )
+            .clipShape(RoundedRectangle(cornerRadius: CadreRadius.full))
+        }
+        .buttonStyle(.plain)
     }
 
     // MARK: - Form Fields
 
+    // Sections are composed through `AnyView` to break Swift's type-metadata
+    // chain — the flattened tuple of all 36 rows overflows the main thread's
+    // type-decoder stack on ARM at runtime (EXC_BAD_ACCESS in body.getter).
+    // Same workaround pattern as `ScanEntryFlow`'s step switch.
     private var editFormFields: some View {
+        VStack(spacing: 0) {
+            AnyView(coreSection)
+            AnyView(bodyCompositionSection)
+            AnyView(additionalMetricsSection)
+            AnyView(segmentalLeanSection)
+            AnyView(segmentalFatSection)
+        }
+        .padding(.bottom, 16)
+    }
+
+    private var coreSection: some View {
         VStack(spacing: 0) {
             formSectionLabel("Core")
             formRow("Weight", value: $weightKg, unit: massUnit)
@@ -452,7 +539,11 @@ struct ScanEditView: View {
             formRow("BMI", value: $bmi, unit: "")
             formRow("BMR", value: $basalMetabolicRate, unit: "kcal")
             formRow("Total Body Water", value: $totalBodyWaterL, unit: "L")
+        }
+    }
 
+    private var bodyCompositionSection: some View {
+        VStack(spacing: 0) {
             formSectionLabel("Body Composition")
             formRow("Intracellular Water", value: $intracellularWaterL, unit: "L")
             formRow("Extracellular Water", value: $extracellularWaterL, unit: "L")
@@ -460,11 +551,19 @@ struct ScanEditView: View {
             formRow("Lean Body Mass", value: $leanBodyMassKg, unit: massUnit)
             formRow("InBody Score", value: $inBodyScore, unit: "")
             formRow("ECW/TBW Ratio", value: $ecwTbwRatio, unit: "")
+        }
+    }
 
+    private var additionalMetricsSection: some View {
+        VStack(spacing: 0) {
             formSectionLabel("Additional Metrics")
             formRow("Skeletal Muscle Index", value: $skeletalMuscleIndex, unit: "kg/m²")
             formRow("Visceral Fat Level", value: $visceralFatLevel, unit: "")
+        }
+    }
 
+    private var segmentalLeanSection: some View {
+        VStack(spacing: 0) {
             formSectionLabel("Segmental Lean")
             formRow("Right Arm", value: $rightArmLeanKg, unit: massUnit)
             formRow("Right Arm %", value: $rightArmLeanPct, unit: "%")
@@ -476,7 +575,11 @@ struct ScanEditView: View {
             formRow("Right Leg %", value: $rightLegLeanPct, unit: "%")
             formRow("Left Leg", value: $leftLegLeanKg, unit: massUnit)
             formRow("Left Leg %", value: $leftLegLeanPct, unit: "%")
+        }
+    }
 
+    private var segmentalFatSection: some View {
+        VStack(spacing: 0) {
             formSectionLabel("Segmental Fat")
             formRow("Right Arm", value: $rightArmFatKg, unit: massUnit)
             formRow("Right Arm %", value: $rightArmFatPct, unit: "%")
@@ -489,7 +592,6 @@ struct ScanEditView: View {
             formRow("Left Leg", value: $leftLegFatKg, unit: massUnit)
             formRow("Left Leg %", value: $leftLegFatPct, unit: "%")
         }
-        .padding(.bottom, 16)
     }
 
     private func formSectionLabel(_ title: String) -> some View {
@@ -553,6 +655,26 @@ struct ScanEditView: View {
         return toKg(v)
     }
 
+    /// Returns any other scan already on the target date (excluding this scan
+    /// itself), so we can warn before overwriting during a date edit.
+    private func conflictingScanOnEditedDate() -> Scan? {
+        let targetDate = Calendar.current.startOfDay(for: editableDate)
+        let currentId = scan.id
+        let descriptor = FetchDescriptor<Scan>(
+            predicate: #Predicate { $0.date == targetDate && $0.id != currentId }
+        )
+        return try? modelContext.fetch(descriptor).first
+    }
+
+    private func attemptSave() {
+        let dateChanged = !Calendar.current.isDate(editableDate, inSameDayAs: scan.date)
+        if dateChanged && conflictingScanOnEditedDate() != nil {
+            showOverwriteAlert = true
+            return
+        }
+        saveEdits()
+    }
+
     private func saveEdits() {
         guard let w = Double(weightKg),
               let smm = Double(skeletalMuscleMassKg),
@@ -562,6 +684,12 @@ struct ScanEditView: View {
               let b = Double(bmi),
               let bmrVal = Double(basalMetabolicRate) else {
             return
+        }
+
+        // Delete any conflicting scan on the target date before updating this
+        // one — matches the overwrite pattern used by WeightEntry edit saves.
+        if let existing = conflictingScanOnEditedDate() {
+            modelContext.delete(existing)
         }
 
         let updated = InBodyPayload(
@@ -604,6 +732,7 @@ struct ScanEditView: View {
 
         guard let data = try? JSONEncoder().encode(updated) else { return }
         scan.payloadData = data
+        scan.date = Calendar.current.startOfDay(for: editableDate)
         scan.updatedAt = Date()
         try? modelContext.save()
         Haptics.success()

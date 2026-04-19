@@ -19,7 +19,6 @@ struct BaselineApp: App {
 
     init() {
         Log.app.info("Baseline launching")
-        DecimalPadDoneBar.install()
         CloudKitSyncMonitor.start()
 
         // User data — syncs to iCloud via CloudKit, stored in shared App Group container
