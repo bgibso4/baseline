@@ -67,7 +67,7 @@ struct LogMeasurementSheet: View {
                 }
             }
         }
-        .presentationDetents([.medium, .large])
+        .presentationDetents([.large])
         .onAppear {
             if injectedVM == nil, bodyVM == nil {
                 bodyVM = BodyViewModel(modelContext: modelContext)

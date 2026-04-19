@@ -27,9 +27,23 @@ private class LandscapeHostingVC<Content: View>: UIHostingController<Content> {
         .landscapeRight
     }
 
-    override func viewDidAppear(_ animated: Bool) {
-        super.viewDidAppear(animated)
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        BaselineAppDelegate.allowLandscape = true
         setNeedsUpdateOfSupportedInterfaceOrientations()
+        requestRotation(to: .landscape)
+    }
+
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        BaselineAppDelegate.allowLandscape = false
+        requestRotation(to: .portrait)
+    }
+
+    private func requestRotation(to mask: UIInterfaceOrientationMask) {
+        let scene = view.window?.windowScene
+            ?? UIApplication.shared.connectedScenes.first as? UIWindowScene
+        scene?.requestGeometryUpdate(.iOS(interfaceOrientations: mask))
     }
 }
 

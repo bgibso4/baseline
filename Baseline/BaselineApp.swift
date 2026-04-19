@@ -1,11 +1,28 @@
 import SwiftUI
 import SwiftData
 import TipKit
+import UIKit
 
 private typealias BaselineMeasurement = Baseline.Measurement
 
+/// App-wide orientation lock. The whole app is portrait by default;
+/// individual screens (currently only Trends fullscreen) can temporarily
+/// request landscape by flipping `allowLandscape` and calling
+/// `UIWindowScene.requestGeometryUpdate`.
+final class BaselineAppDelegate: NSObject, UIApplicationDelegate {
+    static var allowLandscape = false
+
+    func application(
+        _ application: UIApplication,
+        supportedInterfaceOrientationsFor window: UIWindow?
+    ) -> UIInterfaceOrientationMask {
+        BaselineAppDelegate.allowLandscape ? .landscape : .portrait
+    }
+}
+
 @main
 struct BaselineApp: App {
+    @UIApplicationDelegateAdaptor(BaselineAppDelegate.self) var appDelegate
     let modelContainer: ModelContainer
     let mirror: OutboundMirror
 
