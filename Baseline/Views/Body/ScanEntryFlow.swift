@@ -820,7 +820,7 @@ struct ScanEntryFlow: View {
         @Bindable var bvm = vm
         return ZStack {
             VStack(spacing: 0) {
-                formHeader(title: "New Scan", vm: vm)
+                formHeader(title: vm.editingScan == nil ? "New Scan" : "Edit Scan", vm: vm)
 
                 ScrollView {
                     VStack(spacing: 0) {
