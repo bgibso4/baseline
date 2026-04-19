@@ -42,6 +42,7 @@ class HistoryViewModel {
     }
 
     func delete(_ entry: WeightEntry) {
+        let entryID = entry.id
         modelContext.delete(entry)
         do {
             try modelContext.save()
@@ -49,6 +50,7 @@ class HistoryViewModel {
         } catch {
             Log.data.error("Delete weight entry failed", error)
         }
+        Task { await HealthKitManager.mirror.deleteSamples(forSourceID: entryID) }
         refresh()
     }
 
@@ -63,8 +65,11 @@ class HistoryViewModel {
     }
 
     func update(_ entry: WeightEntry, weight: Double, notes: String, date: Date? = nil) {
-        // Delete any conflicting entry at the target date
+        // Delete any conflicting entry at the target date — capture its id
+        // first so we can remove its HK samples after the SwiftData save.
+        var conflictID: UUID?
         if let date, let conflict = existingEntry(for: date, excluding: entry.id) {
+            conflictID = conflict.id
             modelContext.delete(conflict)
             Log.data.info("Deleted conflicting weight entry during overwrite")
         }
@@ -86,6 +91,24 @@ class HistoryViewModel {
             Log.data.info("Updated weight entry")
         } catch {
             Log.data.error("Update weight entry failed", error)
+        }
+        // Wipe stale HK samples (self + any overwritten conflict) then write
+        // fresh samples for this entry at its new date/value. Extract
+        // primitives before the Task so no SwiftData managed object crosses
+        // actor boundaries.
+        let entryID = entry.id
+        let entryWeight = entry.weight
+        let entryUnit = entry.unit
+        let entryDate = entry.date
+        Task {
+            if let conflictID { await HealthKitManager.mirror.deleteSamples(forSourceID: conflictID) }
+            await HealthKitManager.mirror.deleteSamples(forSourceID: entryID)
+            await HealthKitManager.mirror.saveWeight(
+                weight: entryWeight,
+                unit: entryUnit,
+                date: entryDate,
+                sourceID: entryID
+            )
         }
         refresh()
     }

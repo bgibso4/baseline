@@ -35,8 +35,14 @@ class BodyViewModel {
         SyncHelper.mirrorRecord(measurement)
 
         if type == .waist {
+            let sourceID = measurement.id
+            let measurementDate = measurement.date
             Task {
-                await HealthKitManager.saveWaistCircumference(valueCm: valueCm, date: Date())
+                await HealthKitManager.mirror.saveWaistCircumference(
+                    valueCm: valueCm,
+                    date: measurementDate,
+                    sourceID: sourceID
+                )
             }
         }
 
@@ -54,6 +60,8 @@ class BodyViewModel {
     }
 
     func deleteMeasurement(_ measurement: Measurement) {
+        let sourceID = measurement.id
+        let wasWaist = measurement.measurementType == .waist
         modelContext.delete(measurement)
         do {
             try modelContext.save()
@@ -61,6 +69,68 @@ class BodyViewModel {
         } catch {
             Log.data.error("Delete measurement failed", error)
         }
+        if wasWaist {
+            Task { await HealthKitManager.mirror.deleteSamples(forSourceID: sourceID) }
+        }
+        refresh()
+    }
+
+    /// Edits an existing measurement in place, optionally changing its date.
+    /// Deletes any other measurement of the same type on the target date
+    /// (overwrite semantics, confirmed by UI alert before reaching here).
+    /// Mirrors the final state to HealthKit for waist measurements only —
+    /// prior samples tied to this measurement (or to an overwritten conflict)
+    /// are cleared by UUID before a fresh sample is written.
+    func editMeasurement(
+        _ measurement: Measurement,
+        newValueCm: Double,
+        notes: String?,
+        date: Date
+    ) {
+        let targetDay = Calendar.current.startOfDay(for: date)
+        let typeRaw = measurement.type
+        let conflictDescriptor = FetchDescriptor<Measurement>(
+            predicate: #Predicate { $0.date == targetDay && $0.type == typeRaw }
+        )
+        var conflictIDs: [UUID] = []
+        if let conflicts = try? modelContext.fetch(conflictDescriptor) {
+            for conflict in conflicts where conflict.id != measurement.id {
+                conflictIDs.append(conflict.id)
+                modelContext.delete(conflict)
+                Log.data.info("Deleted conflicting measurement during overwrite")
+            }
+        }
+
+        measurement.valueCm = newValueCm
+        let trimmed = notes?.trimmingCharacters(in: .whitespacesAndNewlines)
+        measurement.notes = (trimmed?.isEmpty ?? true) ? nil : trimmed
+        measurement.date = targetDay
+        measurement.updatedAt = Date()
+
+        do {
+            try modelContext.save()
+            Log.data.info("Updated \(typeRaw) measurement")
+        } catch {
+            Log.data.error("Update measurement failed", error)
+        }
+
+        if measurement.measurementType == .waist {
+            let sourceID = measurement.id
+            let writeDate = measurement.date
+            let writeValueCm = newValueCm
+            Task {
+                for conflictID in conflictIDs {
+                    await HealthKitManager.mirror.deleteSamples(forSourceID: conflictID)
+                }
+                await HealthKitManager.mirror.deleteSamples(forSourceID: sourceID)
+                await HealthKitManager.mirror.saveWaistCircumference(
+                    valueCm: writeValueCm,
+                    date: writeDate,
+                    sourceID: sourceID
+                )
+            }
+        }
+
         refresh()
     }
 
@@ -83,14 +153,24 @@ class BodyViewModel {
         }
         SyncHelper.mirrorRecord(scan)
 
-        Task {
-            await HealthKitManager.saveScanMetrics(scan)
+        // Decode synchronously so the Task only captures primitives.
+        if let content = try? scan.decoded(), case .inBody(let inbody) = content {
+            let scanID = scan.id
+            let scanDate = scan.date
+            Task {
+                await HealthKitManager.mirror.saveScanMetrics(
+                    payload: inbody,
+                    date: scanDate,
+                    sourceID: scanID
+                )
+            }
         }
 
         refresh()
     }
 
     func deleteScan(_ scan: Scan) {
+        let sourceID = scan.id
         modelContext.delete(scan)
         do {
             try modelContext.save()
@@ -98,6 +178,7 @@ class BodyViewModel {
         } catch {
             Log.data.error("Delete scan failed", error)
         }
+        Task { await HealthKitManager.mirror.deleteSamples(forSourceID: sourceID) }
         refresh()
     }
 

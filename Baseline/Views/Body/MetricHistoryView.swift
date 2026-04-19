@@ -178,30 +178,13 @@ struct MeasurementHistoryView: View {
             EditMeasurementSheet(
                 measurement: measurement,
                 onSave: { newValue, notes, date in
-                    // Delete any conflicting measurement at the target date
-                    let targetDay = Calendar.current.startOfDay(for: date)
-                    let typeRaw = metricType.rawValue
-                    let conflictDescriptor = FetchDescriptor<BodyMeasurement>(
-                        predicate: #Predicate { $0.date == targetDay && $0.type == typeRaw }
-                    )
-                    if let conflicts = try? modelContext.fetch(conflictDescriptor) {
-                        for conflict in conflicts where conflict.id != measurement.id {
-                            modelContext.delete(conflict)
-                            Log.data.info("Deleted conflicting measurement during overwrite")
-                        }
-                    }
                     let valueCm = lengthUnit == "cm" ? newValue : UnitConversion.inToCm(newValue)
-                    measurement.valueCm = valueCm
-                    let trimmed = notes.trimmingCharacters(in: .whitespacesAndNewlines)
-                    measurement.notes = trimmed.isEmpty ? nil : trimmed
-                    measurement.date = targetDay
-                    measurement.updatedAt = Date()
-                    do {
-                        try modelContext.save()
-                        Log.data.info("Updated \(metricType.rawValue) measurement")
-                    } catch {
-                        Log.data.error("Update measurement failed", error)
-                    }
+                    vm?.editMeasurement(
+                        measurement,
+                        newValueCm: valueCm,
+                        notes: notes,
+                        date: date
+                    )
                     refresh()
                 },
                 onDelete: {

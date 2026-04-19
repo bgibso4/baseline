@@ -67,4 +67,42 @@ final class HealthKitManagerTests: XCTestCase {
         XCTAssertEqual(sample.quantityType, HKQuantityType(.waistCircumference))
         XCTAssertEqual(sample.quantity.doubleValue(for: .meterUnit(with: .centi)), 85.0, accuracy: 0.01)
     }
+
+    // MARK: - Source UUID metadata
+
+    func testBuildSampleWithoutSourceIDOmitsMetadata() {
+        let sample = HealthKitManager.buildWeightSample(weight: 180, unit: "lb", date: Date())
+        XCTAssertNil(sample.metadata?[HKMetadataKeyExternalUUID])
+    }
+
+    func testBuildSampleWithSourceIDTagsMetadata() {
+        let id = UUID()
+        let sample = HealthKitManager.buildWeightSample(
+            weight: 180, unit: "lb", date: Date(), sourceID: id
+        )
+        XCTAssertEqual(
+            sample.metadata?[HKMetadataKeyExternalUUID] as? String,
+            id.uuidString,
+            "Sample metadata must carry the source UUID so deleteSamples(forSourceID:) can find it later"
+        )
+    }
+
+    func testAllBuildersSupportSourceIDTagging() {
+        let id = UUID()
+        let date = Date()
+        let samples: [HKQuantitySample] = [
+            HealthKitManager.buildWeightSample(weight: 180, unit: "lb", date: date, sourceID: id),
+            HealthKitManager.buildBodyFatSample(percentage: 20, date: date, sourceID: id),
+            HealthKitManager.buildLeanBodyMassSample(kg: 70, date: date, sourceID: id),
+            HealthKitManager.buildBMISample(bmi: 25, date: date, sourceID: id),
+            HealthKitManager.buildBMRSample(kcal: 1800, date: date, sourceID: id),
+            HealthKitManager.buildWaistSample(valueCm: 85, date: date, sourceID: id),
+        ]
+        for sample in samples {
+            XCTAssertEqual(
+                sample.metadata?[HKMetadataKeyExternalUUID] as? String,
+                id.uuidString
+            )
+        }
+    }
 }

@@ -67,9 +67,22 @@ class WeighInViewModel {
         }
         SyncHelper.mirrorRecord(savedEntry)
 
+        // Clear any prior HK samples for this entry before writing the fresh
+        // value — idempotent on first save (no prior samples exist), and on
+        // same-day overwrite removes the stale sample tied to this entry.id.
+        // Extract primitives up front so the Task doesn't capture a SwiftData
+        // managed object across actor boundaries.
+        let entryID = savedEntry.id
+        let entryWeight = savedEntry.weight
+        let entryUnit = savedEntry.unit
+        let entryDate = savedEntry.date
         Task {
-            await HealthKitManager.saveWeight(
-                WeightEntry(weight: currentWeight, unit: unit, date: date)
+            await HealthKitManager.mirror.deleteSamples(forSourceID: entryID)
+            await HealthKitManager.mirror.saveWeight(
+                weight: entryWeight,
+                unit: entryUnit,
+                date: entryDate,
+                sourceID: entryID
             )
         }
     }

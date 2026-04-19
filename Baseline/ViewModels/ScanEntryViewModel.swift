@@ -479,22 +479,47 @@ class ScanEntryViewModel {
         let data = try JSONEncoder().encode(payload)
         let targetDate = Calendar.current.startOfDay(for: scanDate ?? Date())
 
-        // Delete any OTHER scan already on the target date — excludes self in edit mode.
+        // Delete any OTHER scan already on the target date — excludes self in
+        // edit mode. Capture its id first so its HK samples get cleaned up.
+        var conflictID: UUID?
         if let conflict = existingScanForSelectedDate() {
+            conflictID = conflict.id
             modelContext.delete(conflict)
         }
 
+        let savedScan: Scan
         if let editing = editingScan {
             editing.payloadData = data
             editing.date = targetDate
             editing.type = selectedType.rawValue
             editing.source = selectedSource.rawValue
             editing.updatedAt = Date()
+            savedScan = editing
         } else {
             let scan = Scan(date: targetDate, type: selectedType, source: selectedSource, payload: data)
             modelContext.insert(scan)
+            savedScan = scan
         }
         try modelContext.save()
+
+        // Mirror scan metrics to HealthKit. On edit (including date change) or
+        // overwrite, wipe any prior samples tied to either the replaced scan
+        // or the scan being saved, then write fresh samples tagged with the
+        // saved scan's id so future edits can locate and replace them.
+        // Extract primitives before the Task so no SwiftData managed object
+        // crosses actor boundaries.
+        let scanID = savedScan.id
+        let scanDateForHK = savedScan.date
+        let hkPayload = payload
+        Task {
+            if let conflictID { await HealthKitManager.mirror.deleteSamples(forSourceID: conflictID) }
+            await HealthKitManager.mirror.deleteSamples(forSourceID: scanID)
+            await HealthKitManager.mirror.saveScanMetrics(
+                payload: hkPayload,
+                date: scanDateForHK,
+                sourceID: scanID
+            )
+        }
 
         // Auto-complete any matching goals. Mass fields are converted from
         // stored kg back to the user's preferred display unit to match how
