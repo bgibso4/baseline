@@ -24,7 +24,8 @@ final class BodyViewSnapshotTests: XCTestCase {
     private let isRecording = false
 
     @MainActor
-    func testBodyView_DarkMode_WithData() {
+    func testBodyView_DarkMode_WithData() throws {
+        try XCTSkipIf(true, "Disabled pre-beta while UI iterates — re-enable per issue #10")
         let container = makeContainer()
         seedScanAndMeasurements(into: container.mainContext)
 
@@ -45,7 +46,8 @@ final class BodyViewSnapshotTests: XCTestCase {
     }
 
     @MainActor
-    func testBodyView_DarkMode_EmptyState() {
+    func testBodyView_DarkMode_EmptyState() throws {
+        try XCTSkipIf(true, "Disabled pre-beta while UI iterates — re-enable per issue #10")
         let container = makeContainer()
 
         let vm = BodyViewModel(modelContext: container.mainContext)

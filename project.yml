@@ -47,8 +47,10 @@ targets:
           - UIInterfaceOrientationPortrait
           - UIInterfaceOrientationLandscapeLeft
           - UIInterfaceOrientationLandscapeRight
+        NSHealthShareUsageDescription: "Baseline reads your weight and body composition from Apple Health to display your trends."
         NSHealthUpdateUsageDescription: "Baseline writes your weight and body composition to Apple Health so other apps can access it."
         NSCameraUsageDescription: "Baseline uses the camera to scan InBody printouts and extract your body composition data."
+        ITSAppUsesNonExemptEncryption: false
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.cadre.baseline

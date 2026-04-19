@@ -50,6 +50,10 @@ class ScanEntryViewModel {
     var retryCount: Int = 0
     var userEditedFields: Set<String> = []
 
+    /// When non-nil, `save()` updates this scan in place instead of inserting a new one.
+    /// Set by `loadForEdit` so the same VM drives the manual form for both new and edit flows.
+    var editingScan: Scan?
+
     // Convenience accessors for the 7 required core fields + commonly used ones
     var weightKg: String {
         get { fields["weightKg", default: ""] }
@@ -109,6 +113,102 @@ class ScanEntryViewModel {
 
     init(modelContext: ModelContext) {
         self.modelContext = modelContext
+    }
+
+    // MARK: - Edit Mode
+
+    /// Seed the VM from an existing scan so the manual form renders the same
+    /// layout for edit as for entry. Mass fields are converted from stored kg
+    /// to the user's preferred display unit; `buildPayload()` converts back
+    /// to kg on save.
+    func loadForEdit(scan: Scan, payload: InBodyPayload, massPref: String) {
+        self.editingScan = scan
+        // Fall back to current defaults if the stored raw-string can't parse —
+        // matches the production behavior (empty-string fallbacks default to
+        // .inBody / .manual). In practice a saved Scan always has a valid pair.
+        self.selectedType = scan.scanType ?? .inBody
+        self.selectedSource = scan.scanSource ?? .manual
+        self.scanDate = scan.date
+        self.currentStep = .manualEntry
+
+        let m: (Double) -> String = { kg in
+            Self.formatLoaded(massPref == "kg" ? kg : UnitConversion.kgToLb(kg))
+        }
+        let om: (Double?) -> String = { kg in
+            guard let kg else { return "" }
+            return Self.formatLoaded(massPref == "kg" ? kg : UnitConversion.kgToLb(kg))
+        }
+        let f: (Double) -> String = { Self.formatLoaded($0) }
+        let of: (Double?) -> String = { v in
+            guard let v else { return "" }
+            return Self.formatLoaded(v)
+        }
+        let ratio: (Double?) -> String = { v in
+            guard let v else { return "" }
+            return String(format: "%.3f", v)
+        }
+        let integer: (Double?) -> String = { v in
+            guard let v else { return "" }
+            return String(format: "%.0f", v)
+        }
+
+        // Core (required)
+        fields["weightKg"] = m(payload.weightKg)
+        fields["skeletalMuscleMassKg"] = m(payload.skeletalMuscleMassKg)
+        fields["bodyFatMassKg"] = m(payload.bodyFatMassKg)
+        fields["bodyFatPct"] = f(payload.bodyFatPct)
+        fields["totalBodyWaterL"] = f(payload.totalBodyWaterL)
+        fields["bmi"] = f(payload.bmi)
+        fields["basalMetabolicRate"] = f(payload.basalMetabolicRate)
+
+        // Body Composition (optional)
+        fields["intracellularWaterL"] = of(payload.intracellularWaterL)
+        fields["extracellularWaterL"] = of(payload.extracellularWaterL)
+        fields["dryLeanMassKg"] = om(payload.dryLeanMassKg)
+        fields["leanBodyMassKg"] = om(payload.leanBodyMassKg)
+        fields["inBodyScore"] = of(payload.inBodyScore)
+
+        // ECW/TBW + indices
+        fields["ecwTbwRatio"] = ratio(payload.ecwTbwRatio)
+        fields["skeletalMuscleIndex"] = of(payload.skeletalMuscleIndex)
+        fields["visceralFatLevel"] = integer(payload.visceralFatLevel)
+
+        // Segmental Lean (mass)
+        fields["rightArmLeanKg"] = om(payload.rightArmLeanKg)
+        fields["leftArmLeanKg"] = om(payload.leftArmLeanKg)
+        fields["trunkLeanKg"] = om(payload.trunkLeanKg)
+        fields["rightLegLeanKg"] = om(payload.rightLegLeanKg)
+        fields["leftLegLeanKg"] = om(payload.leftLegLeanKg)
+
+        // Segmental Lean (pct)
+        fields["rightArmLeanPct"] = of(payload.rightArmLeanPct)
+        fields["leftArmLeanPct"] = of(payload.leftArmLeanPct)
+        fields["trunkLeanPct"] = of(payload.trunkLeanPct)
+        fields["rightLegLeanPct"] = of(payload.rightLegLeanPct)
+        fields["leftLegLeanPct"] = of(payload.leftLegLeanPct)
+
+        // Segmental Fat (mass)
+        fields["rightArmFatKg"] = om(payload.rightArmFatKg)
+        fields["leftArmFatKg"] = om(payload.leftArmFatKg)
+        fields["trunkFatKg"] = om(payload.trunkFatKg)
+        fields["rightLegFatKg"] = om(payload.rightLegFatKg)
+        fields["leftLegFatKg"] = om(payload.leftLegFatKg)
+
+        // Segmental Fat (pct)
+        fields["rightArmFatPct"] = of(payload.rightArmFatPct)
+        fields["leftArmFatPct"] = of(payload.leftArmFatPct)
+        fields["trunkFatPct"] = of(payload.trunkFatPct)
+        fields["rightLegFatPct"] = of(payload.rightLegFatPct)
+        fields["leftLegFatPct"] = of(payload.leftLegFatPct)
+    }
+
+    /// Formats a loaded numeric field for display.
+    /// Integer if whole, one decimal otherwise.
+    private static func formatLoaded(_ value: Double) -> String {
+        if value == value.rounded() {
+            return String(format: "%.0f", value)
+        }
+        return String(format: "%.1f", value)
     }
 
     // MARK: - Navigation
@@ -352,28 +452,67 @@ class ScanEntryViewModel {
     }
 
     /// Check if a scan already exists for the selected date.
+    /// In edit mode, excludes the scan being edited so it never flags itself.
     func existingScanForSelectedDate() -> Scan? {
         let targetDate = Calendar.current.startOfDay(for: scanDate ?? Date())
-        let descriptor = FetchDescriptor<Scan>(
-            predicate: #Predicate { $0.date == targetDate }
-        )
+        // SwiftData's #Predicate macro rejects Optional<UUID> vs UUID comparisons,
+        // so branch explicitly rather than embed the optional in the predicate.
+        let descriptor: FetchDescriptor<Scan>
+        if let editingId = editingScan?.id {
+            descriptor = FetchDescriptor<Scan>(
+                predicate: #Predicate { scan in
+                    scan.date == targetDate && scan.id != editingId
+                }
+            )
+        } else {
+            descriptor = FetchDescriptor<Scan>(
+                predicate: #Predicate { scan in
+                    scan.date == targetDate
+                }
+            )
+        }
         return try? modelContext.fetch(descriptor).first
     }
 
     func save() throws {
-        // If a scan exists for this date, delete it first (caller confirms overwrite)
-        if let existing = existingScanForSelectedDate() {
-            modelContext.delete(existing)
-        }
         let payload = try buildPayload()
         let data = try JSONEncoder().encode(payload)
-        let scan = Scan(date: scanDate ?? Date(), type: selectedType, source: selectedSource, payload: data)
-        modelContext.insert(scan)
+        let targetDate = Calendar.current.startOfDay(for: scanDate ?? Date())
+
+        // Delete any OTHER scan already on the target date — excludes self in edit mode.
+        if let conflict = existingScanForSelectedDate() {
+            modelContext.delete(conflict)
+        }
+
+        if let editing = editingScan {
+            editing.payloadData = data
+            editing.date = targetDate
+            editing.type = selectedType.rawValue
+            editing.source = selectedSource.rawValue
+            editing.updatedAt = Date()
+        } else {
+            let scan = Scan(date: targetDate, type: selectedType, source: selectedSource, payload: data)
+            modelContext.insert(scan)
+        }
         try modelContext.save()
     }
 
     func buildPayload() throws -> InBodyPayload {
         func f(_ key: String) -> Double? { Double(fields[key, default: ""]) }
+
+        // The review form displays mass values in the user's preferred unit
+        // (see ScanEntryFlow labels). The parser extracts raw numbers from the
+        // printout, which matches the user's unit setting on their InBody. Here
+        // we convert back to kg for canonical storage — ScanDetailView reads
+        // payload.weightKg as kg and re-formats for display.
+        let massPref = UserDefaults.standard.string(forKey: "weightUnit") ?? "lb"
+        let toKg: (Double) -> Double = { v in
+            massPref == "kg" ? v : UnitConversion.lbToKg(v)
+        }
+        let optToKg: (Double?) -> Double? = { v in
+            guard let v else { return nil }
+            return massPref == "kg" ? v : UnitConversion.lbToKg(v)
+        }
 
         var missing: [String] = []
         let w = f("weightKg"); if w == nil { missing.append("Weight") }
@@ -390,24 +529,29 @@ class ScanEntryViewModel {
         }
 
         var payload = InBodyPayload(
-            weightKg: w, skeletalMuscleMassKg: smm, bodyFatMassKg: bfm,
-            bodyFatPct: bf, totalBodyWaterL: tbw, bmi: b, basalMetabolicRate: bmr
+            weightKg: toKg(w),
+            skeletalMuscleMassKg: toKg(smm),
+            bodyFatMassKg: toKg(bfm),
+            bodyFatPct: bf,
+            totalBodyWaterL: tbw,
+            bmi: b,
+            basalMetabolicRate: bmr
         )
         payload.intracellularWaterL = f("intracellularWaterL")
         payload.extracellularWaterL = f("extracellularWaterL")
-        payload.dryLeanMassKg = f("dryLeanMassKg")
-        payload.leanBodyMassKg = f("leanBodyMassKg")
+        payload.dryLeanMassKg = optToKg(f("dryLeanMassKg"))
+        payload.leanBodyMassKg = optToKg(f("leanBodyMassKg"))
         payload.inBodyScore = f("inBodyScore")
-        payload.rightArmLeanKg = f("rightArmLeanKg")
-        payload.leftArmLeanKg = f("leftArmLeanKg")
-        payload.trunkLeanKg = f("trunkLeanKg")
-        payload.rightLegLeanKg = f("rightLegLeanKg")
-        payload.leftLegLeanKg = f("leftLegLeanKg")
-        payload.rightArmFatKg = f("rightArmFatKg")
-        payload.leftArmFatKg = f("leftArmFatKg")
-        payload.trunkFatKg = f("trunkFatKg")
-        payload.rightLegFatKg = f("rightLegFatKg")
-        payload.leftLegFatKg = f("leftLegFatKg")
+        payload.rightArmLeanKg = optToKg(f("rightArmLeanKg"))
+        payload.leftArmLeanKg = optToKg(f("leftArmLeanKg"))
+        payload.trunkLeanKg = optToKg(f("trunkLeanKg"))
+        payload.rightLegLeanKg = optToKg(f("rightLegLeanKg"))
+        payload.leftLegLeanKg = optToKg(f("leftLegLeanKg"))
+        payload.rightArmFatKg = optToKg(f("rightArmFatKg"))
+        payload.leftArmFatKg = optToKg(f("leftArmFatKg"))
+        payload.trunkFatKg = optToKg(f("trunkFatKg"))
+        payload.rightLegFatKg = optToKg(f("rightLegFatKg"))
+        payload.leftLegFatKg = optToKg(f("leftLegFatKg"))
         payload.ecwTbwRatio = f("ecwTbwRatio")
         payload.skeletalMuscleIndex = f("skeletalMuscleIndex")
         payload.visceralFatLevel = f("visceralFatLevel")

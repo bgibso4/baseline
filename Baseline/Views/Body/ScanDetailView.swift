@@ -99,165 +99,203 @@ struct ScanDetailView: View {
 
     @ViewBuilder
     private func inBodySections(_ p: InBodyPayload) -> some View {
-        // Date header
-        VStack(spacing: 4) {
-            Text(DateFormatting.fullDate(scan.date))
-                .font(.system(size: 13, weight: .medium))
-                .foregroundStyle(CadreColors.textSecondary)
-        }
-        .padding(.top, 16)
-        .padding(.bottom, 8)
+        dateChip
+            .padding(.top, 12)
 
-        detailSection("Core") {
-            massRow("Weight", value: p.weightKg)
-            massRow("Skeletal Muscle Mass", value: p.skeletalMuscleMassKg)
-            massRow("Body Fat Mass", value: p.bodyFatMassKg)
-            detailRow("Body Fat", value: fmt(p.bodyFatPct), unit: "%")
-            detailRow("Total Body Water", value: fmt(p.totalBodyWaterL), unit: "L")
-            detailRow("BMI", value: fmt(p.bmi), unit: "")
-            detailRow("Basal Metabolic Rate", value: String(format: "%.0f", p.basalMetabolicRate), unit: "kcal")
-        }
+        sectionLabel("Body Composition Analysis")
+        optRow("Intracellular Water (ICW)", value: p.intracellularWaterL, unit: "L")
+        optRow("Extracellular Water (ECW)", value: p.extracellularWaterL, unit: "L")
+        row("Total Body Water (TBW)", value: fmt(p.totalBodyWaterL), unit: "L")
+        optMassRow("Dry Lean Mass", kg: p.dryLeanMassKg)
+        optMassRow("Lean Body Mass (LBM)", kg: p.leanBodyMassKg)
+        massRow("Body Fat Mass", kg: p.bodyFatMassKg)
 
-        detailSection("Body Composition") {
-            optionalRow("Intracellular Water", value: p.intracellularWaterL, unit: "L")
-            optionalRow("Extracellular Water", value: p.extracellularWaterL, unit: "L")
-            optionalMassRow("Dry Lean Mass", value: p.dryLeanMassKg)
-            optionalMassRow("Lean Body Mass", value: p.leanBodyMassKg)
-            optionalRow("InBody Score", value: p.inBodyScore, unit: "")
-            optionalRow("ECW/TBW Ratio", value: p.ecwTbwRatio, unit: "")
-        }
+        sectionLabel("Muscle-Fat Analysis")
+        massRow("Weight", kg: p.weightKg)
+        massRow("Skeletal Muscle Mass (SMM)", kg: p.skeletalMuscleMassKg)
 
-        detailSection("Additional Metrics") {
-            optionalRow("Skeletal Muscle Index", value: p.skeletalMuscleIndex, unit: "kg/m²")
-            optionalRow("Visceral Fat Level", value: p.visceralFatLevel, unit: "")
-        }
+        sectionLabel("Obesity Analysis")
+        row("BMI", value: fmt(p.bmi), unit: "kg/m\u{00B2}")
+        row("Body Fat % (PBF)", value: fmt(p.bodyFatPct), unit: "%")
 
-        detailSection("Segmental Lean") {
-            optionalMassWithPctRow("Right Arm", mass: p.rightArmLeanKg, pct: p.rightArmLeanPct)
-            optionalMassWithPctRow("Left Arm", mass: p.leftArmLeanKg, pct: p.leftArmLeanPct)
-            optionalMassWithPctRow("Trunk", mass: p.trunkLeanKg, pct: p.trunkLeanPct)
-            optionalMassWithPctRow("Right Leg", mass: p.rightLegLeanKg, pct: p.rightLegLeanPct)
-            optionalMassWithPctRow("Left Leg", mass: p.leftLegLeanKg, pct: p.leftLegLeanPct)
+        sectionLabel("Segmental Lean Analysis")
+        segmentalTableHeader()
+        segmentalRow("Right Arm", mass: p.rightArmLeanKg, pct: p.rightArmLeanPct)
+        segmentalRow("Left Arm", mass: p.leftArmLeanKg, pct: p.leftArmLeanPct)
+        segmentalRow("Trunk", mass: p.trunkLeanKg, pct: p.trunkLeanPct)
+        segmentalRow("Right Leg", mass: p.rightLegLeanKg, pct: p.rightLegLeanPct)
+        segmentalRow("Left Leg", mass: p.leftLegLeanKg, pct: p.leftLegLeanPct)
+
+        if p.ecwTbwRatio != nil {
+            sectionLabel("ECW/TBW Analysis")
+            optRow("Ratio", value: p.ecwTbwRatio, unit: "", format: { String(format: "%.3f", $0) })
         }
 
-        detailSection("Segmental Fat") {
-            optionalMassWithPctRow("Right Arm", mass: p.rightArmFatKg, pct: p.rightArmFatPct)
-            optionalMassWithPctRow("Left Arm", mass: p.leftArmFatKg, pct: p.leftArmFatPct)
-            optionalMassWithPctRow("Trunk", mass: p.trunkFatKg, pct: p.trunkFatPct)
-            optionalMassWithPctRow("Right Leg", mass: p.rightLegFatKg, pct: p.rightLegFatPct)
-            optionalMassWithPctRow("Left Leg", mass: p.leftLegFatKg, pct: p.leftLegFatPct)
-        }
+        sectionLabel("Segmental Fat Analysis")
+        segmentalTableHeader()
+        segmentalRow("Right Arm", mass: p.rightArmFatKg, pct: p.rightArmFatPct)
+        segmentalRow("Left Arm", mass: p.leftArmFatKg, pct: p.leftArmFatPct)
+        segmentalRow("Trunk", mass: p.trunkFatKg, pct: p.trunkFatPct)
+        segmentalRow("Right Leg", mass: p.rightLegFatKg, pct: p.rightLegFatPct)
+        segmentalRow("Left Leg", mass: p.leftLegFatKg, pct: p.leftLegFatPct)
+
+        sectionLabel("Additional Metrics")
+        row("Basal Metabolic Rate (BMR)", value: String(format: "%.0f", p.basalMetabolicRate), unit: "kcal")
+        optRow("Skeletal Muscle Index (SMI)", value: p.skeletalMuscleIndex, unit: "kg/m\u{00B2}")
+        optRow("Visceral Fat Level", value: p.visceralFatLevel, unit: "", format: { String(format: "%.0f", $0) })
+        optRow("InBody Score", value: p.inBodyScore, unit: "", format: { String(format: "%.0f", $0) })
     }
 
-    // MARK: - Section & Row Helpers
+    // MARK: - Date Chip (read-only pill matching entry/edit's interactive chip)
 
-    private func detailSection<Content: View>(_ title: String, @ViewBuilder content: () -> Content) -> some View {
-        VStack(alignment: .leading, spacing: 0) {
-            Text(title.uppercased())
-                .font(.system(size: 11, weight: .bold))
-                .tracking(0.6)
-                .foregroundStyle(CadreColors.textTertiary)
-                .padding(.horizontal, 22)
-                .padding(.top, 20)
-                .padding(.bottom, 8)
-
-            VStack(spacing: 0) {
-                content()
-            }
-            .background(CadreColors.card, in: RoundedRectangle(cornerRadius: 12))
-            .padding(.horizontal, 16)
-        }
+    private var dateChip: some View {
+        Text(DateFormatting.fullDate(scan.date))
+            .font(.system(size: 13, weight: .medium))
+            .foregroundStyle(CadreColors.textPrimary)
+            .padding(.horizontal, 14)
+            .padding(.vertical, 8)
+            .background(CadreColors.card)
+            .overlay(
+                RoundedRectangle(cornerRadius: CadreRadius.full)
+                    .stroke(CadreColors.divider, lineWidth: 1)
+            )
+            .clipShape(RoundedRectangle(cornerRadius: CadreRadius.full))
     }
 
-    private func detailRow(_ label: String, value: String, unit: String) -> some View {
+    // MARK: - Section & Row Helpers (read-only mirrors of ScanEntryFlow.reviewRow/segmentalRow)
+
+    private func sectionLabel(_ title: String) -> some View {
+        Text(title.uppercased())
+            .font(.system(size: 10, weight: .semibold))
+            .tracking(0.6)
+            .foregroundStyle(CadreColors.textTertiary)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.horizontal, CadreSpacing.sheetHorizontal)
+            .padding(.top, 20)
+            .padding(.bottom, 8)
+    }
+
+    private func row(_ label: String, value: String, unit: String) -> some View {
         HStack {
             Text(label)
-                .font(.system(size: 14, weight: .medium))
+                .font(.system(size: 13, weight: .medium))
                 .foregroundStyle(CadreColors.textSecondary)
-            Spacer()
+
+            Spacer(minLength: 8)
+
             HStack(alignment: .firstTextBaseline, spacing: 3) {
                 Text(value)
-                    .font(.system(size: 15, weight: .bold))
+                    .font(.system(size: 15, weight: .bold, design: .default))
+                    .tracking(-0.2)
                     .foregroundStyle(CadreColors.textPrimary)
                 if !unit.isEmpty {
                     Text(unit)
-                        .font(.system(size: 11, weight: .medium))
-                        .foregroundStyle(CadreColors.textTertiary)
-                }
-            }
-        }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 11)
-    }
-
-    /// Row for mass values (kg) that converts based on user's weight unit preference.
-    private func massRow(_ label: String, value: Double) -> some View {
-        _ = weightUnit  // SwiftUI dependency: re-render when unit preference changes
-        let display = UnitConversion.formattedMass(value)
-        return detailRow(label, value: display.text, unit: display.unit)
-    }
-
-    /// Optional mass row — only shows if value is non-nil, with unit conversion.
-    @ViewBuilder
-    private func optionalMassRow(_ label: String, value: Double?) -> some View {
-        if let value {
-            VStack(spacing: 0) {
-                Rectangle()
-                    .fill(CadreColors.divider)
-                    .frame(height: 0.5)
-                massRow(label, value: value)
-            }
-        }
-    }
-
-    @ViewBuilder
-    private func optionalRow(_ label: String, value: Double?, unit: String) -> some View {
-        if let value {
-            VStack(spacing: 0) {
-                Rectangle()
-                    .fill(CadreColors.divider)
-                    .frame(height: 0.5)
-                detailRow(label, value: fmt(value), unit: unit)
-            }
-        }
-    }
-
-    /// Optional mass row that appends a sufficiency percentage as a secondary value when available.
-    /// Shows: "Right Arm    7.94 lb · 112.4%"
-    @ViewBuilder
-    private func optionalMassWithPctRow(_ label: String, mass: Double?, pct: Double?) -> some View {
-        if let mass {
-            VStack(spacing: 0) {
-                Rectangle()
-                    .fill(CadreColors.divider)
-                    .frame(height: 0.5)
-                HStack {
-                    Text(label)
-                        .font(.system(size: 14, weight: .medium))
+                        .font(.system(size: 10, weight: .medium))
                         .foregroundStyle(CadreColors.textSecondary)
-                    Spacer()
-                    HStack(alignment: .firstTextBaseline, spacing: 3) {
-                        let display = UnitConversion.formattedMass(mass)
-                        Text(display.text)
-                            .font(.system(size: 15, weight: .bold))
-                            .foregroundStyle(CadreColors.textPrimary)
-                        Text(display.unit)
-                            .font(.system(size: 11, weight: .medium))
-                            .foregroundStyle(CadreColors.textTertiary)
-                        if let pct {
-                            Text("·")
-                                .font(.system(size: 11, weight: .medium))
-                                .foregroundStyle(CadreColors.textTertiary)
-                            Text(String(format: "%.1f%%", pct))
-                                .font(.system(size: 13, weight: .semibold))
-                                .foregroundStyle(CadreColors.textSecondary)
-                        }
-                    }
                 }
-                .padding(.horizontal, 16)
-                .padding(.vertical, 11)
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 8)
+            .background(CadreColors.card)
+            .overlay(
+                RoundedRectangle(cornerRadius: 9)
+                    .stroke(CadreColors.divider, lineWidth: 1)
+            )
+            .clipShape(RoundedRectangle(cornerRadius: 9))
+            .frame(width: 120)
+        }
+        .padding(.horizontal, CadreSpacing.sheetHorizontal)
+        .padding(.vertical, 4)
+    }
+
+    @ViewBuilder
+    private func optRow(_ label: String, value: Double?, unit: String, format: (Double) -> String = { String(format: "%.1f", $0) }) -> some View {
+        if let value {
+            row(label, value: format(value), unit: unit)
+        }
+    }
+
+    /// Mass row — converts from stored kg to user's preferred unit.
+    private func massRow(_ label: String, kg: Double) -> some View {
+        _ = weightUnit  // SwiftUI dependency: re-render when unit preference changes
+        let display = UnitConversion.formattedMass(kg)
+        return row(label, value: display.text, unit: display.unit)
+    }
+
+    @ViewBuilder
+    private func optMassRow(_ label: String, kg: Double?) -> some View {
+        if let kg {
+            massRow(label, kg: kg)
+        }
+    }
+
+    // MARK: - Segmental Table
+
+    private func segmentalTableHeader() -> some View {
+        HStack {
+            Text("Segment")
+                .frame(maxWidth: .infinity, alignment: .leading)
+            Text("Mass")
+                .frame(width: 92, alignment: .center)
+            Text("Suff. %")
+                .frame(width: 78, alignment: .center)
+        }
+        .font(.system(size: 10, weight: .semibold))
+        .foregroundStyle(CadreColors.textTertiary)
+        .padding(.horizontal, CadreSpacing.sheetHorizontal)
+        .padding(.bottom, 6)
+    }
+
+    private func segmentalRow(_ segment: String, mass: Double?, pct: Double?) -> some View {
+        _ = weightUnit
+        return HStack(spacing: 6) {
+            Text(segment)
+                .font(.system(size: 13, weight: .medium))
+                .foregroundStyle(CadreColors.textSecondary)
+                .frame(maxWidth: .infinity, alignment: .leading)
+
+            segmentalCell(
+                valueText: mass.map { UnitConversion.formattedMass($0).text } ?? "",
+                unit: mass.map { UnitConversion.formattedMass($0).unit } ?? ""
+            )
+            .frame(width: 92)
+
+            segmentalCell(
+                valueText: pct.map { String(format: "%.1f", $0) } ?? "",
+                unit: pct == nil ? "" : "%"
+            )
+            .frame(width: 78)
+        }
+        .padding(.horizontal, CadreSpacing.sheetHorizontal)
+        .padding(.vertical, 3)
+    }
+
+    private func segmentalCell(valueText: String, unit: String) -> some View {
+        let isMissing = valueText.isEmpty
+        return HStack(alignment: .firstTextBaseline, spacing: 2) {
+            Text(isMissing ? "—" : valueText)
+                .font(.system(size: 13, weight: .bold, design: .default))
+                .tracking(-0.2)
+                .foregroundStyle(isMissing ? CadreColors.textTertiary : CadreColors.textPrimary)
+                .frame(maxWidth: .infinity, alignment: .trailing)
+
+            if !unit.isEmpty {
+                Text(unit)
+                    .font(.system(size: 9, weight: .medium))
+                    .foregroundStyle(CadreColors.textSecondary)
             }
         }
+        .padding(.horizontal, 8)
+        .padding(.vertical, 6)
+        .background(CadreColors.card)
+        .overlay(
+            RoundedRectangle(cornerRadius: 7)
+                .stroke(
+                    isMissing ? CadreColors.textTertiary : CadreColors.divider,
+                    style: isMissing ? StrokeStyle(lineWidth: 1, dash: [4, 3]) : StrokeStyle(lineWidth: 1)
+                )
+        )
+        .clipShape(RoundedRectangle(cornerRadius: 7))
     }
 
     private func fmt(_ value: Double) -> String {
@@ -267,360 +305,33 @@ struct ScanDetailView: View {
 
 // MARK: - Scan Edit View
 
-/// Edit sheet for an existing scan — same form layout as manual scan entry,
-/// pre-populated with existing payload values. Save re-encodes and updates the Scan record.
+/// Edit sheet for an existing scan. Renders the same manual form used for new
+/// scans by seeding a `ScanEntryViewModel` with the scan's payload and letting
+/// `ScanEntryFlow` drive the UI. Unit conversion, save, and overwrite handling
+/// all live in the view model so entry and edit can never visually drift.
 struct ScanEditView: View {
     @Environment(\.modelContext) private var modelContext
-    @Environment(\.dismiss) private var dismiss
 
     let scan: Scan
     let payload: InBodyPayload
 
-    @FocusState private var isFieldFocused: Bool
-
-    // Editable string fields (mirrors ScanEntryViewModel fields)
-    @State private var weightKg: String
-    @State private var skeletalMuscleMassKg: String
-    @State private var bodyFatMassKg: String
-    @State private var bodyFatPct: String
-    @State private var totalBodyWaterL: String
-    @State private var bmi: String
-    @State private var basalMetabolicRate: String
-    @State private var intracellularWaterL: String
-    @State private var extracellularWaterL: String
-    @State private var dryLeanMassKg: String
-    @State private var leanBodyMassKg: String
-    @State private var inBodyScore: String
-    @State private var rightArmLeanKg: String
-    @State private var leftArmLeanKg: String
-    @State private var trunkLeanKg: String
-    @State private var rightLegLeanKg: String
-    @State private var leftLegLeanKg: String
-    @State private var rightArmFatKg: String
-    @State private var leftArmFatKg: String
-    @State private var trunkFatKg: String
-    @State private var rightLegFatKg: String
-    @State private var leftLegFatKg: String
-
-    // New fields (Task 1 expansion)
-    @State private var ecwTbwRatio: String
-    @State private var skeletalMuscleIndex: String
-    @State private var visceralFatLevel: String
-    @State private var rightArmLeanPct: String
-    @State private var leftArmLeanPct: String
-    @State private var trunkLeanPct: String
-    @State private var rightLegLeanPct: String
-    @State private var leftLegLeanPct: String
-    @State private var rightArmFatPct: String
-    @State private var leftArmFatPct: String
-    @State private var trunkFatPct: String
-    @State private var rightLegFatPct: String
-    @State private var leftLegFatPct: String
-
-    @State private var errorMessage: String?
-
-    /// User's preferred mass unit — read once at init so the form is consistent.
-    private let massPref: String
-
-    /// Display label for mass fields ("kg" or "lb").
-    private var massUnit: String { massPref }
-
-    init(scan: Scan, payload: InBodyPayload) {
-        self.scan = scan
-        self.payload = payload
-
-        let pref = UserDefaults.standard.string(forKey: "weightUnit") ?? "lb"
-        self.massPref = pref
-
-        // Convert kg → display unit for mass fields
-        let m: (Double) -> String = { kg in
-            Self.fmt(pref == "kg" ? kg : UnitConversion.kgToLb(kg))
-        }
-        let om: (Double?) -> String = { kg in
-            guard let kg else { return "" }
-            return Self.fmt(pref == "kg" ? kg : UnitConversion.kgToLb(kg))
-        }
-
-        _weightKg = State(initialValue: m(payload.weightKg))
-        _skeletalMuscleMassKg = State(initialValue: m(payload.skeletalMuscleMassKg))
-        _bodyFatMassKg = State(initialValue: m(payload.bodyFatMassKg))
-        _bodyFatPct = State(initialValue: Self.fmt(payload.bodyFatPct))
-        _totalBodyWaterL = State(initialValue: Self.fmt(payload.totalBodyWaterL))
-        _bmi = State(initialValue: Self.fmt(payload.bmi))
-        _basalMetabolicRate = State(initialValue: Self.fmt(payload.basalMetabolicRate))
-        _intracellularWaterL = State(initialValue: Self.optFmt(payload.intracellularWaterL))
-        _extracellularWaterL = State(initialValue: Self.optFmt(payload.extracellularWaterL))
-        _dryLeanMassKg = State(initialValue: om(payload.dryLeanMassKg))
-        _leanBodyMassKg = State(initialValue: om(payload.leanBodyMassKg))
-        _inBodyScore = State(initialValue: Self.optFmt(payload.inBodyScore))
-        _rightArmLeanKg = State(initialValue: om(payload.rightArmLeanKg))
-        _leftArmLeanKg = State(initialValue: om(payload.leftArmLeanKg))
-        _trunkLeanKg = State(initialValue: om(payload.trunkLeanKg))
-        _rightLegLeanKg = State(initialValue: om(payload.rightLegLeanKg))
-        _leftLegLeanKg = State(initialValue: om(payload.leftLegLeanKg))
-        _rightArmFatKg = State(initialValue: om(payload.rightArmFatKg))
-        _leftArmFatKg = State(initialValue: om(payload.leftArmFatKg))
-        _trunkFatKg = State(initialValue: om(payload.trunkFatKg))
-        _rightLegFatKg = State(initialValue: om(payload.rightLegFatKg))
-        _leftLegFatKg = State(initialValue: om(payload.leftLegFatKg))
-
-        _ecwTbwRatio = State(initialValue: Self.optFmt(payload.ecwTbwRatio))
-        _skeletalMuscleIndex = State(initialValue: Self.optFmt(payload.skeletalMuscleIndex))
-        _visceralFatLevel = State(initialValue: Self.optFmt(payload.visceralFatLevel))
-        _rightArmLeanPct = State(initialValue: Self.optFmt(payload.rightArmLeanPct))
-        _leftArmLeanPct = State(initialValue: Self.optFmt(payload.leftArmLeanPct))
-        _trunkLeanPct = State(initialValue: Self.optFmt(payload.trunkLeanPct))
-        _rightLegLeanPct = State(initialValue: Self.optFmt(payload.rightLegLeanPct))
-        _leftLegLeanPct = State(initialValue: Self.optFmt(payload.leftLegLeanPct))
-        _rightArmFatPct = State(initialValue: Self.optFmt(payload.rightArmFatPct))
-        _leftArmFatPct = State(initialValue: Self.optFmt(payload.leftArmFatPct))
-        _trunkFatPct = State(initialValue: Self.optFmt(payload.trunkFatPct))
-        _rightLegFatPct = State(initialValue: Self.optFmt(payload.rightLegFatPct))
-        _leftLegFatPct = State(initialValue: Self.optFmt(payload.leftLegFatPct))
-    }
-
-    private var canSave: Bool {
-        !weightKg.isEmpty &&
-        !skeletalMuscleMassKg.isEmpty &&
-        !bodyFatMassKg.isEmpty &&
-        !bodyFatPct.isEmpty &&
-        !totalBodyWaterL.isEmpty &&
-        !bmi.isEmpty &&
-        !basalMetabolicRate.isEmpty
-    }
+    @State private var vm: ScanEntryViewModel?
 
     var body: some View {
-        NavigationStack {
-            ZStack {
-                GradientBackground(center: .top)
-
-                VStack(spacing: 0) {
-                    ScrollView {
-                        VStack(spacing: 0) {
-                            // Date display
-                            Text(DateFormatting.fullDate(scan.date))
-                                .font(.system(size: 13, weight: .medium))
-                                .foregroundStyle(CadreColors.textSecondary)
-                                .padding(.top, 16)
-
-                            editFormFields
-                        }
-                    }
-
-                    // Save button
-                    Button {
-                        saveEdits()
-                    } label: {
-                        Text("Save")
-                            .font(CadreTypography.buttonLabel)
-                            .tracking(0.3)
-                            .foregroundStyle(.white)
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 15)
-                            .background(canSave ? CadreColors.accent : CadreColors.cardElevated)
-                            .clipShape(RoundedRectangle(cornerRadius: 14))
-                    }
-                    .disabled(!canSave)
-                    .padding(.horizontal, CadreSpacing.sheetHorizontal)
-                    .padding(.top, 12)
-                    .padding(.bottom, 16)
-                }
-            }
-            .navigationTitle("Edit Scan")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") { dismiss() }
-                        .font(.system(size: 14, weight: .semibold))
-                        .foregroundStyle(CadreColors.textSecondary)
-                }
-            }
-            .toolbarBackground(CadreColors.bgGradientCenter, for: .navigationBar)
-            .toolbarColorScheme(.dark, for: .navigationBar)
-        }
-    }
-
-    // MARK: - Form Fields
-
-    private var editFormFields: some View {
-        VStack(spacing: 0) {
-            formSectionLabel("Core")
-            formRow("Weight", value: $weightKg, unit: massUnit)
-            formRow("Body Fat", value: $bodyFatPct, unit: "%")
-            formRow("Skeletal Muscle", value: $skeletalMuscleMassKg, unit: massUnit)
-            formRow("Body Fat Mass", value: $bodyFatMassKg, unit: massUnit)
-            formRow("BMI", value: $bmi, unit: "")
-            formRow("BMR", value: $basalMetabolicRate, unit: "kcal")
-            formRow("Total Body Water", value: $totalBodyWaterL, unit: "L")
-
-            formSectionLabel("Body Composition")
-            formRow("Intracellular Water", value: $intracellularWaterL, unit: "L")
-            formRow("Extracellular Water", value: $extracellularWaterL, unit: "L")
-            formRow("Dry Lean Mass", value: $dryLeanMassKg, unit: massUnit)
-            formRow("Lean Body Mass", value: $leanBodyMassKg, unit: massUnit)
-            formRow("InBody Score", value: $inBodyScore, unit: "")
-            formRow("ECW/TBW Ratio", value: $ecwTbwRatio, unit: "")
-
-            formSectionLabel("Additional Metrics")
-            formRow("Skeletal Muscle Index", value: $skeletalMuscleIndex, unit: "kg/m²")
-            formRow("Visceral Fat Level", value: $visceralFatLevel, unit: "")
-
-            formSectionLabel("Segmental Lean")
-            formRow("Right Arm", value: $rightArmLeanKg, unit: massUnit)
-            formRow("Right Arm %", value: $rightArmLeanPct, unit: "%")
-            formRow("Left Arm", value: $leftArmLeanKg, unit: massUnit)
-            formRow("Left Arm %", value: $leftArmLeanPct, unit: "%")
-            formRow("Trunk", value: $trunkLeanKg, unit: massUnit)
-            formRow("Trunk %", value: $trunkLeanPct, unit: "%")
-            formRow("Right Leg", value: $rightLegLeanKg, unit: massUnit)
-            formRow("Right Leg %", value: $rightLegLeanPct, unit: "%")
-            formRow("Left Leg", value: $leftLegLeanKg, unit: massUnit)
-            formRow("Left Leg %", value: $leftLegLeanPct, unit: "%")
-
-            formSectionLabel("Segmental Fat")
-            formRow("Right Arm", value: $rightArmFatKg, unit: massUnit)
-            formRow("Right Arm %", value: $rightArmFatPct, unit: "%")
-            formRow("Left Arm", value: $leftArmFatKg, unit: massUnit)
-            formRow("Left Arm %", value: $leftArmFatPct, unit: "%")
-            formRow("Trunk", value: $trunkFatKg, unit: massUnit)
-            formRow("Trunk %", value: $trunkFatPct, unit: "%")
-            formRow("Right Leg", value: $rightLegFatKg, unit: massUnit)
-            formRow("Right Leg %", value: $rightLegFatPct, unit: "%")
-            formRow("Left Leg", value: $leftLegFatKg, unit: massUnit)
-            formRow("Left Leg %", value: $leftLegFatPct, unit: "%")
-        }
-        .padding(.bottom, 16)
-    }
-
-    private func formSectionLabel(_ title: String) -> some View {
-        Text(title.uppercased())
-            .font(.system(size: 10, weight: .semibold))
-            .tracking(0.5)
-            .foregroundStyle(CadreColors.textTertiary)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(.horizontal, CadreSpacing.sheetHorizontal)
-            .padding(.top, 18)
-            .padding(.bottom, 8)
-    }
-
-    private func formRow(_ label: String, value: Binding<String>, unit: String) -> some View {
-        HStack {
-            Text(label)
-                .font(.system(size: 13, weight: .medium))
-                .foregroundStyle(CadreColors.textPrimary)
-                .frame(width: 140, alignment: .leading)
-
-            TextField("", text: value)
-                .font(.system(size: 15, weight: .bold, design: .default))
-                .tracking(-0.2)
-                .foregroundStyle(CadreColors.textPrimary)
-                .keyboardType(.decimalPad)
-                .multilineTextAlignment(.trailing)
-                .focused($isFieldFocused)
-
-            if !unit.isEmpty {
-                Text(unit)
-                    .font(.system(size: 10, weight: .medium))
-                    .foregroundStyle(CadreColors.textTertiary)
-                    .frame(width: 30, alignment: .trailing)
+        Group {
+            if let vm {
+                ScanEntryFlow(viewModel: vm)
             } else {
-                Spacer()
-                    .frame(width: 30)
+                Color.clear
             }
         }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 8)
-        .background(CadreColors.card)
-        .overlay(
-            RoundedRectangle(cornerRadius: 9)
-                .stroke(CadreColors.divider, lineWidth: 1)
-        )
-        .clipShape(RoundedRectangle(cornerRadius: 9))
-        .padding(.horizontal, CadreSpacing.sheetHorizontal)
-        .padding(.vertical, 4)
-    }
-
-    // MARK: - Save
-
-    /// Convert a display-unit mass value back to kg for storage.
-    private func toKg(_ value: Double) -> Double {
-        massPref == "kg" ? value : UnitConversion.lbToKg(value)
-    }
-
-    /// Convert an optional display-unit mass string back to kg.
-    private func optToKg(_ text: String) -> Double? {
-        guard let v = Double(text) else { return nil }
-        return toKg(v)
-    }
-
-    private func saveEdits() {
-        guard let w = Double(weightKg),
-              let smm = Double(skeletalMuscleMassKg),
-              let bfm = Double(bodyFatMassKg),
-              let bf = Double(bodyFatPct),
-              let tbw = Double(totalBodyWaterL),
-              let b = Double(bmi),
-              let bmrVal = Double(basalMetabolicRate) else {
-            return
+        .onAppear {
+            if vm == nil {
+                let pref = UserDefaults.standard.string(forKey: "weightUnit") ?? "lb"
+                let newVM = ScanEntryViewModel(modelContext: modelContext)
+                newVM.loadForEdit(scan: scan, payload: payload, massPref: pref)
+                vm = newVM
+            }
         }
-
-        let updated = InBodyPayload(
-            weightKg: toKg(w),
-            skeletalMuscleMassKg: toKg(smm),
-            bodyFatMassKg: toKg(bfm),
-            bodyFatPct: bf,
-            totalBodyWaterL: tbw,
-            bmi: b,
-            basalMetabolicRate: bmrVal,
-            intracellularWaterL: Double(intracellularWaterL),
-            extracellularWaterL: Double(extracellularWaterL),
-            dryLeanMassKg: optToKg(dryLeanMassKg),
-            leanBodyMassKg: optToKg(leanBodyMassKg),
-            inBodyScore: Double(inBodyScore),
-            rightArmLeanKg: optToKg(rightArmLeanKg),
-            leftArmLeanKg: optToKg(leftArmLeanKg),
-            trunkLeanKg: optToKg(trunkLeanKg),
-            rightLegLeanKg: optToKg(rightLegLeanKg),
-            leftLegLeanKg: optToKg(leftLegLeanKg),
-            rightArmFatKg: optToKg(rightArmFatKg),
-            leftArmFatKg: optToKg(leftArmFatKg),
-            trunkFatKg: optToKg(trunkFatKg),
-            rightLegFatKg: optToKg(rightLegFatKg),
-            leftLegFatKg: optToKg(leftLegFatKg),
-            ecwTbwRatio: Double(ecwTbwRatio),
-            skeletalMuscleIndex: Double(skeletalMuscleIndex),
-            visceralFatLevel: Double(visceralFatLevel),
-            rightArmLeanPct: Double(rightArmLeanPct),
-            leftArmLeanPct: Double(leftArmLeanPct),
-            trunkLeanPct: Double(trunkLeanPct),
-            rightLegLeanPct: Double(rightLegLeanPct),
-            leftLegLeanPct: Double(leftLegLeanPct),
-            rightArmFatPct: Double(rightArmFatPct),
-            leftArmFatPct: Double(leftArmFatPct),
-            trunkFatPct: Double(trunkFatPct),
-            rightLegFatPct: Double(rightLegFatPct),
-            leftLegFatPct: Double(leftLegFatPct)
-        )
-
-        guard let data = try? JSONEncoder().encode(updated) else { return }
-        scan.payloadData = data
-        scan.updatedAt = Date()
-        try? modelContext.save()
-        Haptics.success()
-        dismiss()
-    }
-
-    // MARK: - Formatting Helpers
-
-    private static func fmt(_ value: Double) -> String {
-        if value == value.rounded() && value >= 10 {
-            return String(format: "%.0f", value)
-        }
-        return String(format: "%.1f", value)
-    }
-
-    private static func optFmt(_ value: Double?) -> String {
-        guard let value else { return "" }
-        return fmt(value)
     }
 }

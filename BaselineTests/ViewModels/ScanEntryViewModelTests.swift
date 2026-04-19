@@ -12,11 +12,16 @@ final class ScanEntryViewModelTests: XCTestCase {
         let config = ModelConfiguration(isStoredInMemoryOnly: true)
         container = try! ModelContainer(for: schema, configurations: [config])
         context = ModelContext(container)
+        // Tests assert literal kg values, so pin the unit preference.
+        // Production default is "lb", which would trigger a lb→kg conversion
+        // in buildPayload and make the assertions fail.
+        UserDefaults.standard.set("kg", forKey: "weightUnit")
     }
 
     override func tearDown() {
         container = nil
         context = nil
+        UserDefaults.standard.removeObject(forKey: "weightUnit")
         super.tearDown()
     }
 
@@ -241,5 +246,293 @@ final class ScanEntryViewModelTests: XCTestCase {
         XCTAssertEqual(vm.retryCount, 0)
         vm.retryCount += 1
         XCTAssertEqual(vm.retryCount, 1)
+    }
+
+    // MARK: - Edit Mode
+
+    func testLoadForEdit_SeedsAllFieldsWithKgUnits() throws {
+        let vm = ScanEntryViewModel(modelContext: context)
+
+        let payload = InBodyPayload(
+            weightKg: 80.0,
+            skeletalMuscleMassKg: 38.0,
+            bodyFatMassKg: 16.0,
+            bodyFatPct: 20.0,
+            totalBodyWaterL: 48.0,
+            bmi: 24.0,
+            basalMetabolicRate: 1800,
+            intracellularWaterL: 30.0,
+            extracellularWaterL: 18.0,
+            dryLeanMassKg: 14.0,
+            leanBodyMassKg: 62.0,
+            inBodyScore: 76,
+            rightArmLeanKg: 3.5,
+            leftArmLeanKg: 3.4,
+            trunkLeanKg: 29.0,
+            rightLegLeanKg: 10.1,
+            leftLegLeanKg: 10.0,
+            rightArmFatKg: 0.9,
+            leftArmFatKg: 0.9,
+            trunkFatKg: 8.0,
+            rightLegFatKg: 2.8,
+            leftLegFatKg: 2.8,
+            ecwTbwRatio: 0.378,
+            skeletalMuscleIndex: 10.2,
+            visceralFatLevel: 5,
+            rightArmLeanPct: 110.0,
+            leftArmLeanPct: 108.0,
+            trunkLeanPct: 100.0,
+            rightLegLeanPct: 102.0,
+            leftLegLeanPct: 101.0,
+            rightArmFatPct: 90.0,
+            leftArmFatPct: 92.0,
+            trunkFatPct: 110.0,
+            rightLegFatPct: 95.0,
+            leftLegFatPct: 96.0
+        )
+        let data = try JSONEncoder().encode(payload)
+        let scanDate = Calendar.current.startOfDay(for: Date().addingTimeInterval(-86400))
+        let scan = Scan(date: scanDate, type: .inBody, source: .ocr, payload: data)
+        context.insert(scan)
+        try context.save()
+
+        vm.loadForEdit(scan: scan, payload: payload, massPref: "kg")
+
+        XCTAssertTrue(vm.editingScan === scan)
+        XCTAssertEqual(vm.currentStep, .manualEntry)
+        XCTAssertEqual(vm.selectedType, .inBody)
+        XCTAssertEqual(vm.selectedSource, .ocr)
+        XCTAssertEqual(vm.scanDate, scanDate)
+        XCTAssertEqual(vm.weightKg, "80")
+        XCTAssertEqual(vm.skeletalMuscleMassKg, "38")
+        XCTAssertEqual(vm.bodyFatPct, "20")
+        XCTAssertEqual(vm.bmi, "24")
+        XCTAssertEqual(vm.basalMetabolicRate, "1800")
+        XCTAssertEqual(vm.fieldValue("rightArmLeanKg"), "3.5")
+        XCTAssertEqual(vm.fieldValue("ecwTbwRatio"), "0.378")
+        XCTAssertEqual(vm.fieldValue("visceralFatLevel"), "5")
+    }
+
+    func testLoadForEdit_ConvertsMassFieldsToLbWhenPrefIsLb() throws {
+        let vm = ScanEntryViewModel(modelContext: context)
+
+        let payload = InBodyPayload(
+            weightKg: 80.0,
+            skeletalMuscleMassKg: 38.0,
+            bodyFatMassKg: 16.0,
+            bodyFatPct: 20.0,
+            totalBodyWaterL: 48.0,
+            bmi: 24.0,
+            basalMetabolicRate: 1800
+        )
+        let data = try JSONEncoder().encode(payload)
+        let scan = Scan(date: Date(), type: .inBody, source: .manual, payload: data)
+        context.insert(scan)
+
+        vm.loadForEdit(scan: scan, payload: payload, massPref: "lb")
+
+        // 80 kg → 176.37 lb
+        let expectedLb = UnitConversion.kgToLb(80.0)
+        let weightLb = try XCTUnwrap(Double(vm.weightKg))
+        XCTAssertEqual(weightLb, expectedLb, accuracy: 0.1)
+        // Non-mass fields stay the same
+        XCTAssertEqual(vm.bodyFatPct, "20")
+        XCTAssertEqual(vm.bmi, "24")
+    }
+
+    func testLoadForEdit_LeavesEmptyStringForMissingOptionals() throws {
+        let vm = ScanEntryViewModel(modelContext: context)
+
+        let payload = InBodyPayload(
+            weightKg: 80.0,
+            skeletalMuscleMassKg: 38.0,
+            bodyFatMassKg: 16.0,
+            bodyFatPct: 20.0,
+            totalBodyWaterL: 48.0,
+            bmi: 24.0,
+            basalMetabolicRate: 1800
+        )
+        let data = try JSONEncoder().encode(payload)
+        let scan = Scan(date: Date(), type: .inBody, source: .manual, payload: data)
+        context.insert(scan)
+
+        vm.loadForEdit(scan: scan, payload: payload, massPref: "kg")
+
+        XCTAssertEqual(vm.fieldValue("rightArmLeanKg"), "")
+        XCTAssertEqual(vm.fieldValue("ecwTbwRatio"), "")
+        XCTAssertEqual(vm.fieldValue("visceralFatLevel"), "")
+        XCTAssertEqual(vm.fieldValue("inBodyScore"), "")
+    }
+
+    func testSave_InEditMode_UpdatesExistingScanInPlace() throws {
+        let vm = ScanEntryViewModel(modelContext: context)
+
+        let original = InBodyPayload(
+            weightKg: 80.0, skeletalMuscleMassKg: 38.0, bodyFatMassKg: 16.0,
+            bodyFatPct: 20.0, totalBodyWaterL: 48.0, bmi: 24.0,
+            basalMetabolicRate: 1800
+        )
+        let data = try JSONEncoder().encode(original)
+        let originalDate = Calendar.current.startOfDay(for: Date().addingTimeInterval(-86400))
+        let scan = Scan(date: originalDate, type: .inBody, source: .manual, payload: data)
+        context.insert(scan)
+        try context.save()
+        let originalId = scan.id
+
+        vm.loadForEdit(scan: scan, payload: original, massPref: "kg")
+        vm.weightKg = "85"
+        vm.bodyFatPct = "18"
+
+        try vm.save()
+
+        let scans = try context.fetch(FetchDescriptor<Scan>())
+        XCTAssertEqual(scans.count, 1, "Edit should not insert a new scan")
+        XCTAssertEqual(scans.first?.id, originalId)
+
+        if case .inBody(let updated) = try scans.first!.decoded() {
+            XCTAssertEqual(updated.weightKg, 85.0)
+            XCTAssertEqual(updated.bodyFatPct, 18.0)
+        } else {
+            XCTFail("Expected inBody payload")
+        }
+    }
+
+    func testSave_InEditMode_BumpsUpdatedAt() throws {
+        let vm = ScanEntryViewModel(modelContext: context)
+        let payload = InBodyPayload(
+            weightKg: 80.0, skeletalMuscleMassKg: 38.0, bodyFatMassKg: 16.0,
+            bodyFatPct: 20.0, totalBodyWaterL: 48.0, bmi: 24.0,
+            basalMetabolicRate: 1800
+        )
+        let data = try JSONEncoder().encode(payload)
+        let scan = Scan(date: Date(), type: .inBody, source: .manual, payload: data)
+        scan.updatedAt = Date(timeIntervalSince1970: 0)
+        context.insert(scan)
+        try context.save()
+
+        vm.loadForEdit(scan: scan, payload: payload, massPref: "kg")
+        try vm.save()
+
+        XCTAssertGreaterThan(scan.updatedAt.timeIntervalSince1970, 1_000_000)
+    }
+
+    func testSave_InEditMode_DeletesConflictingScanOnNewDate() throws {
+        let vm = ScanEntryViewModel(modelContext: context)
+
+        let dayA = Calendar.current.startOfDay(for: Date().addingTimeInterval(-86400 * 2))
+        let dayB = Calendar.current.startOfDay(for: Date().addingTimeInterval(-86400))
+
+        let payloadA = InBodyPayload(
+            weightKg: 80.0, skeletalMuscleMassKg: 38.0, bodyFatMassKg: 16.0,
+            bodyFatPct: 20.0, totalBodyWaterL: 48.0, bmi: 24.0,
+            basalMetabolicRate: 1800
+        )
+        let payloadB = InBodyPayload(
+            weightKg: 82.0, skeletalMuscleMassKg: 39.0, bodyFatMassKg: 17.0,
+            bodyFatPct: 21.0, totalBodyWaterL: 49.0, bmi: 25.0,
+            basalMetabolicRate: 1850
+        )
+
+        let scanA = Scan(date: dayA, type: .inBody, source: .manual,
+                         payload: try JSONEncoder().encode(payloadA))
+        let scanB = Scan(date: dayB, type: .inBody, source: .manual,
+                         payload: try JSONEncoder().encode(payloadB))
+        context.insert(scanA)
+        context.insert(scanB)
+        try context.save()
+        let scanAId = scanA.id
+
+        // Edit scanA and move its date to dayB — should delete scanB, keep scanA
+        vm.loadForEdit(scan: scanA, payload: payloadA, massPref: "kg")
+        vm.scanDate = dayB
+        try vm.save()
+
+        let remaining = try context.fetch(FetchDescriptor<Scan>())
+        XCTAssertEqual(remaining.count, 1, "Conflicting scan on target date should be deleted")
+        XCTAssertEqual(remaining.first?.id, scanAId, "The edited scan should survive, not the conflict")
+        XCTAssertEqual(remaining.first?.date, dayB)
+    }
+
+    func testSave_InEditMode_SameDateDoesNotDeleteSelf() throws {
+        let vm = ScanEntryViewModel(modelContext: context)
+        let payload = InBodyPayload(
+            weightKg: 80.0, skeletalMuscleMassKg: 38.0, bodyFatMassKg: 16.0,
+            bodyFatPct: 20.0, totalBodyWaterL: 48.0, bmi: 24.0,
+            basalMetabolicRate: 1800
+        )
+        let day = Calendar.current.startOfDay(for: Date())
+        let scan = Scan(date: day, type: .inBody, source: .manual,
+                        payload: try JSONEncoder().encode(payload))
+        context.insert(scan)
+        try context.save()
+        let scanId = scan.id
+
+        vm.loadForEdit(scan: scan, payload: payload, massPref: "kg")
+        vm.weightKg = "85" // edit a field but keep date
+        try vm.save()
+
+        let remaining = try context.fetch(FetchDescriptor<Scan>())
+        XCTAssertEqual(remaining.count, 1)
+        XCTAssertEqual(remaining.first?.id, scanId)
+    }
+
+    func testExistingScanForSelectedDate_ExcludesEditingScan() throws {
+        let vm = ScanEntryViewModel(modelContext: context)
+        let payload = InBodyPayload(
+            weightKg: 80.0, skeletalMuscleMassKg: 38.0, bodyFatMassKg: 16.0,
+            bodyFatPct: 20.0, totalBodyWaterL: 48.0, bmi: 24.0,
+            basalMetabolicRate: 1800
+        )
+        let day = Calendar.current.startOfDay(for: Date())
+        let scan = Scan(date: day, type: .inBody, source: .manual,
+                        payload: try JSONEncoder().encode(payload))
+        context.insert(scan)
+        try context.save()
+
+        vm.loadForEdit(scan: scan, payload: payload, massPref: "kg")
+        vm.scanDate = day
+
+        XCTAssertNil(vm.existingScanForSelectedDate(),
+                     "Editing scan should not flag itself as a conflict on its own date")
+    }
+
+    /// End-to-end unit round-trip: a scan stored in kg, edited under an "lb"
+    /// display preference, must save back to kg with no drift. Catches the
+    /// "converted twice" or "converted wrong direction" class of bugs.
+    func testEditFlow_UnitRoundTrip_KgStoredLbEditedKgSaved() throws {
+        UserDefaults.standard.set("lb", forKey: "weightUnit")
+        defer { UserDefaults.standard.set("kg", forKey: "weightUnit") }
+
+        let original = InBodyPayload(
+            weightKg: 80.0, skeletalMuscleMassKg: 38.0, bodyFatMassKg: 16.0,
+            bodyFatPct: 20.0, totalBodyWaterL: 48.0, bmi: 24.0,
+            basalMetabolicRate: 1800,
+            rightArmLeanKg: 3.5
+        )
+        let scan = Scan(date: Date(), type: .inBody, source: .manual,
+                        payload: try JSONEncoder().encode(original))
+        context.insert(scan)
+        try context.save()
+
+        let vm = ScanEntryViewModel(modelContext: context)
+        vm.loadForEdit(scan: scan, payload: original, massPref: "lb")
+        // Form field should display lb (80 kg → ~176.37 lb), but without
+        // the user mutating anything, saving must round-trip back to 80 kg.
+        try vm.save()
+
+        let reloaded = try context.fetch(FetchDescriptor<Scan>()).first!
+        if case .inBody(let saved) = try reloaded.decoded() {
+            // 0.02 kg (~0.04 lb) accommodates the 1-decimal-place display
+            // formatting round-trip. Tighter than that would require the form
+            // to hold higher-precision strings than the user ever sees — the
+            // same precision loss exists in the pre-refactor code path.
+            XCTAssertEqual(saved.weightKg, 80.0, accuracy: 0.02,
+                           "Stored weight must round-trip in kg regardless of display unit")
+            XCTAssertEqual(saved.skeletalMuscleMassKg, 38.0, accuracy: 0.02)
+            XCTAssertEqual(saved.bodyFatMassKg, 16.0, accuracy: 0.02)
+            XCTAssertEqual(saved.rightArmLeanKg ?? 0, 3.5, accuracy: 0.02)
+        } else {
+            XCTFail("Expected inBody payload")
+        }
     }
 }
