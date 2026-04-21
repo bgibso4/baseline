@@ -106,10 +106,13 @@ class ScanEntryViewModel {
     var lowConfidenceFields: Set<String> = []
 
     /// Confidence threshold — fields below this are flagged for review.
-    /// 0.75 balances catching uncertain fields without over-flagging correct ones.
+    /// Values at or above this pass; below it get flagged.
     /// Body comp grid (0.85), bullet-detected (0.9), segmental pairs (0.8) pass.
-    /// Height-sorted ambiguous (0.7), no-confidence (0.0), garbled (0.5) get flagged.
-    private static let confidenceThreshold: Float = 0.75
+    /// Height-sorted ambiguous (0.7) *also* pass — these are frequently the
+    /// correct bar-chart value. Cross-field math (see `CrossFieldValidator`)
+    /// is responsible for catching wrong-but-confident values.
+    /// Garbled (0.5) and no-confidence (0.0) still get flagged.
+    private static let confidenceThreshold: Float = 0.70
 
     init(modelContext: ModelContext) {
         self.modelContext = modelContext
@@ -436,6 +439,12 @@ class ScanEntryViewModel {
                 }
             }
         }
+
+        // Flag anything that fails a cross-field physical-identity check.
+        // Catches most wrong-but-confident parser outputs — e.g. PBF read
+        // off the wrong tick mark still has "high" confidence but doesn't
+        // match BFM/weight*100.
+        lowConfidenceFields.formUnion(CrossFieldValidator.validate(fields))
     }
 
     // MARK: - Save

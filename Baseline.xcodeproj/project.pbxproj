@@ -77,6 +77,8 @@
 		905B4B275BC4613C047A33A6 /* SparklineView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1F7BB657D83894D1E5B4400 /* SparklineView.swift */; };
 		90A6AE6C1B21C9219AD0C300 /* CSVExporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A9983801F2F087AB7948B5C /* CSVExporter.swift */; };
 		9138B36FABF2B1A699929972 /* InBodyDocumentParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 73AFB3A94550B5A64D1587DC /* InBodyDocumentParser.swift */; };
+		C2F201C2F201C2F201C2F201 /* CrossFieldValidator.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2F202C2F202C2F202C2F202 /* CrossFieldValidator.swift */; };
+		C2F203C2F203C2F203C2F203 /* CrossFieldValidatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2F204C2F204C2F204C2F204 /* CrossFieldValidatorTests.swift */; };
 		91FD42A3C02E08E269B0F10E /* BodyView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45BF63CA3A1291DFEE103E60 /* BodyView.swift */; };
 		921D43A164E135DC0C85E731 /* TrendsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = E8F6256EFFB58304F26A96B9 /* TrendsViewModel.swift */; };
 		92B02A5AE4EBA1597947A801 /* UnitConversion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A9525A1638C18453603A9F6 /* UnitConversion.swift */; };
@@ -204,6 +206,8 @@
 		71F1544FF8E513297B2BF5B4 /* BodyViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BodyViewModel.swift; sourceTree = "<group>"; };
 		71F88EDA9F6FB6C47F76FBCF /* SettingsSubscreens.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsSubscreens.swift; sourceTree = "<group>"; };
 		73AFB3A94550B5A64D1587DC /* InBodyDocumentParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InBodyDocumentParser.swift; sourceTree = "<group>"; };
+		C2F202C2F202C2F202C2F202 /* CrossFieldValidator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CrossFieldValidator.swift; sourceTree = "<group>"; };
+		C2F204C2F204C2F204C2F204 /* CrossFieldValidatorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CrossFieldValidatorTests.swift; sourceTree = "<group>"; };
 		74D5C40BED7A835BFB495376 /* ScanEntrySnapshotTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScanEntrySnapshotTests.swift; sourceTree = "<group>"; };
 		76B6D911AF8339B62A988B99 /* MainTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainTabView.swift; sourceTree = "<group>"; };
 		7A06A06DCC1BB86FD44CC36B /* testTrendsView_DarkMode_DefaultMonth.1.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = testTrendsView_DarkMode_DefaultMonth.1.png; sourceTree = "<group>"; };
@@ -334,6 +338,7 @@
 				08F96F01F5A56D98D3C4FF27 /* ConsensusVoteTests.swift */,
 				DFD8816E90F91D28A05AA943 /* InBodyDocumentParserTests.swift */,
 				C1F102C1F102C1F102C1F102 /* InBodyDocumentParserFixtureTests.swift */,
+				C2F204C2F204C2F204C2F204 /* CrossFieldValidatorTests.swift */,
 			);
 			path = OCR;
 			sourceTree = "<group>";
@@ -417,6 +422,7 @@
 			children = (
 				73AFB3A94550B5A64D1587DC /* InBodyDocumentParser.swift */,
 				91169E132AC487FA9F6C19B0 /* InBodyParseResult.swift */,
+				C2F202C2F202C2F202C2F202 /* CrossFieldValidator.swift */,
 			);
 			path = OCR;
 			sourceTree = "<group>";
@@ -835,6 +841,7 @@
 				5B654C7068D6D55B1DBB7AC6 /* HistoryViewSnapshotTests.swift in Sources */,
 				372F51B27906FBE4B81CDF27 /* InBodyDocumentParserTests.swift in Sources */,
 				C1F101C1F101C1F101C1F101 /* InBodyDocumentParserFixtureTests.swift in Sources */,
+				C2F203C2F203C2F203C2F203 /* CrossFieldValidatorTests.swift in Sources */,
 				E00B17F2D6B800569AEF06E0 /* MeasurementTests.swift in Sources */,
 				E3888989405060A77C5CAE6B /* NowViewModelTests.swift in Sources */,
 				6D6219BA93D116415510FF64 /* NowViewSnapshotTests.swift in Sources */,
@@ -882,6 +889,7 @@
 				1420080C176B26B2E12FEE83 /* HistoryView.swift in Sources */,
 				50C087ECEBE50B0D8B922A8A /* HistoryViewModel.swift in Sources */,
 				9138B36FABF2B1A699929972 /* InBodyDocumentParser.swift in Sources */,
+				C2F201C2F201C2F201C2F201 /* CrossFieldValidator.swift in Sources */,
 				F74C7852C461152D212B4A08 /* InBodyParseResult.swift in Sources */,
 				95B61866FF5749D7156F74EE /* Log.swift in Sources */,
 				27B6A79A90B82EB08F2E1AEF /* LogMeasurementSheet.swift in Sources */,

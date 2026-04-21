@@ -172,7 +172,18 @@ final class InBodyDocumentParserFixtureTests: XCTestCase {
             ("leftLegFatKg", result.leftLegFatKg, nil),
         ]
 
-        let confidenceThreshold: Float = 0.75
+        // Mirror ScanEntryViewModel.confidenceThreshold so diagnostic
+        // reflects what the user would actually see after populateFields.
+        let confidenceThreshold: Float = 0.70
+
+        // Convert parser result to the string-dict shape the validator expects.
+        var fieldsDict: [String: String] = [:]
+        for (key, value, _) in rows {
+            if let v = value {
+                fieldsDict[key] = String(v)
+            }
+        }
+        let crossFieldFailures = CrossFieldValidator.validate(fieldsDict)
 
         func pad(_ s: String, to width: Int, rightAlign: Bool = false) -> String {
             if s.count >= width { return s }
@@ -219,12 +230,24 @@ final class InBodyDocumentParserFixtureTests: XCTestCase {
         }
 
         if !wrongButConfident.isEmpty {
-            print("\n⚠️ WRONG BUT HIGH-CONFIDENCE (directly affects #24):")
-            for s in wrongButConfident { print("   - \(s)") }
+            print("\n⚠️ WRONG BUT HIGH-CONFIDENCE — cross-field check result:")
+            for s in wrongButConfident {
+                // Extract the key from the start of the string "keyname: ..."
+                let key = String(s.prefix(while: { $0 != ":" }))
+                let caught = crossFieldFailures.contains(key)
+                let marker = caught ? "✅ CAUGHT by CrossFieldValidator" : "❌ NOT caught"
+                print("   - \(s) [\(marker)]")
+            }
         }
         if !rightButFlagged.isEmpty {
-            print("\n⚠️ RIGHT BUT FLAGGED LOW (false positive on flagging):")
+            print("\n⚠️ RIGHT BUT FLAGGED LOW (confidence < \(confidenceThreshold)):")
             for s in rightButFlagged { print("   - \(s)") }
+        }
+        if !crossFieldFailures.isEmpty {
+            print("\n🧮 CROSS-FIELD INCONSISTENCIES (would be flagged in-app):")
+            for key in crossFieldFailures.sorted() {
+                print("   - \(key)")
+            }
         }
         if let date = result.scanDate {
             print("\nscanDate: \(date)")
