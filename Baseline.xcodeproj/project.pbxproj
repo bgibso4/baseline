@@ -37,6 +37,12 @@
 		C1F101C1F101C1F101C1F101 /* InBodyDocumentParserFixtureTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1F102C1F102C1F102C1F102 /* InBodyDocumentParserFixtureTests.swift */; };
 		C1F103C1F103C1F103C1F103 /* clean.jpg in Resources */ = {isa = PBXBuildFile; fileRef = C1F104C1F104C1F104C1F104 /* clean.jpg */; };
 		C1F105C1F105C1F105C1F105 /* marked.jpg in Resources */ = {isa = PBXBuildFile; fileRef = C1F106C1F106C1F106C1F106 /* marked.jpg */; };
+		C3A002C3A002C3A002C3A002 /* weights-clean.csv in Resources */ = {isa = PBXBuildFile; fileRef = C3A001C3A001C3A001C3A001 /* weights-clean.csv */; };
+		C3A004C3A004C3A004C3A004 /* weights-bom.csv in Resources */ = {isa = PBXBuildFile; fileRef = C3A003C3A003C3A003C3A003 /* weights-bom.csv */; };
+		C3A006C3A006C3A006C3A006 /* weights-crlf.csv in Resources */ = {isa = PBXBuildFile; fileRef = C3A005C3A005C3A005C3A005 /* weights-crlf.csv */; };
+		C3A008C3A008C3A008C3A008 /* weights-quoted-notes.csv in Resources */ = {isa = PBXBuildFile; fileRef = C3A007C3A007C3A007C3A007 /* weights-quoted-notes.csv */; };
+		C3A010C3A010C3A010C3A010 /* measurements-clean.csv in Resources */ = {isa = PBXBuildFile; fileRef = C3A009C3A009C3A009C3A009 /* measurements-clean.csv */; };
+		C3A012C3A012C3A012C3A012 /* scans-clean.csv in Resources */ = {isa = PBXBuildFile; fileRef = C3A011C3A011C3A011C3A011 /* scans-clean.csv */; };
 		3A26E7683F4A65D4A9240FE8 /* ScanPayloads.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6DF459A44A46B33902867DBF /* ScanPayloads.swift */; };
 		3C7C5C37D6A9222757E91364 /* testBodyView_DarkMode_WithData.1.png in Resources */ = {isa = PBXBuildFile; fileRef = 9CC95090F8F39C9959C8DFAD /* testBodyView_DarkMode_WithData.1.png */; };
 		3E91E4B24AC961ADA451AEC8 /* ScanEntryViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7163A3D21EC88D92F54DF5C7 /* ScanEntryViewModel.swift */; };
@@ -76,6 +82,8 @@
 		8A6C14E968F3488B503E757A /* SettingsViewSnapshotTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A302A68AB0914998FB21EF79 /* SettingsViewSnapshotTests.swift */; };
 		905B4B275BC4613C047A33A6 /* SparklineView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1F7BB657D83894D1E5B4400 /* SparklineView.swift */; };
 		90A6AE6C1B21C9219AD0C300 /* CSVExporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A9983801F2F087AB7948B5C /* CSVExporter.swift */; };
+		C2F206C2F206C2F206C2F206 /* CSVImporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2F205C2F205C2F205C2F205 /* CSVImporter.swift */; };
+		C2F208C2F208C2F208C2F208 /* CSVImporterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2F207C2F207C2F207C2F207 /* CSVImporterTests.swift */; };
 		9138B36FABF2B1A699929972 /* InBodyDocumentParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 73AFB3A94550B5A64D1587DC /* InBodyDocumentParser.swift */; };
 		C2F201C2F201C2F201C2F201 /* CrossFieldValidator.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2F202C2F202C2F202C2F202 /* CrossFieldValidator.swift */; };
 		C2F203C2F203C2F203C2F203 /* CrossFieldValidatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2F204C2F204C2F204C2F204 /* CrossFieldValidatorTests.swift */; };
@@ -181,6 +189,8 @@
 		32B28DC15F13A362B58FD326 /* HealthKitManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthKitManager.swift; sourceTree = "<group>"; };
 		33EA9A555C61700BA6F94BE2 /* testScanEntry_ReviewForm_WithLowConfidence.1.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = testScanEntry_ReviewForm_WithLowConfidence.1.png; sourceTree = "<group>"; };
 		3A9983801F2F087AB7948B5C /* CSVExporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CSVExporter.swift; sourceTree = "<group>"; };
+		C2F205C2F205C2F205C2F205 /* CSVImporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CSVImporter.swift; sourceTree = "<group>"; };
+		C2F207C2F207C2F207C2F207 /* CSVImporterTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CSVImporterTests.swift; sourceTree = "<group>"; };
 		3FC6E3A8780E8E70B0CF897B /* testBodyView_DarkMode_EmptyState.1.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = testBodyView_DarkMode_EmptyState.1.png; sourceTree = "<group>"; };
 		3FFC7E5904AEB1F7A6957D2D /* TrendsViewSnapshotTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrendsViewSnapshotTests.swift; sourceTree = "<group>"; };
 		44F25E2DF4D4198F90CBFA5F /* ScanHistoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScanHistoryView.swift; sourceTree = "<group>"; };
@@ -257,6 +267,12 @@
 		C1F102C1F102C1F102C1F102 /* InBodyDocumentParserFixtureTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InBodyDocumentParserFixtureTests.swift; sourceTree = "<group>"; };
 		C1F104C1F104C1F104C1F104 /* clean.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = clean.jpg; sourceTree = "<group>"; };
 		C1F106C1F106C1F106C1F106 /* marked.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = marked.jpg; sourceTree = "<group>"; };
+		C3A001C3A001C3A001C3A001 /* weights-clean.csv */ = {isa = PBXFileReference; lastKnownFileType = text; path = "weights-clean.csv"; sourceTree = "<group>"; };
+		C3A003C3A003C3A003C3A003 /* weights-bom.csv */ = {isa = PBXFileReference; lastKnownFileType = text; path = "weights-bom.csv"; sourceTree = "<group>"; };
+		C3A005C3A005C3A005C3A005 /* weights-crlf.csv */ = {isa = PBXFileReference; lastKnownFileType = text; path = "weights-crlf.csv"; sourceTree = "<group>"; };
+		C3A007C3A007C3A007C3A007 /* weights-quoted-notes.csv */ = {isa = PBXFileReference; lastKnownFileType = text; path = "weights-quoted-notes.csv"; sourceTree = "<group>"; };
+		C3A009C3A009C3A009C3A009 /* measurements-clean.csv */ = {isa = PBXFileReference; lastKnownFileType = text; path = "measurements-clean.csv"; sourceTree = "<group>"; };
+		C3A011C3A011C3A011C3A011 /* scans-clean.csv */ = {isa = PBXFileReference; lastKnownFileType = text; path = "scans-clean.csv"; sourceTree = "<group>"; };
 		E22A1EED058DA9647318A9C3 /* Haptics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Haptics.swift; sourceTree = "<group>"; };
 		E332C18AA2C4ABD37FADD6A6 /* OutboundMirrorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OutboundMirrorTests.swift; sourceTree = "<group>"; };
 		E3E8D4A6EF749D136743E261 /* WeightWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeightWidget.swift; sourceTree = "<group>"; };
@@ -346,9 +362,23 @@
 		C1F107C1F107C1F107C1F107 /* Fixtures */ = {
 			isa = PBXGroup;
 			children = (
+				C3A013C3A013C3A013C3A013 /* CSV */,
 				C1F108C1F108C1F108C1F108 /* Scans */,
 			);
 			path = Fixtures;
+			sourceTree = "<group>";
+		};
+		C3A013C3A013C3A013C3A013 /* CSV */ = {
+			isa = PBXGroup;
+			children = (
+				C3A009C3A009C3A009C3A009 /* measurements-clean.csv */,
+				C3A011C3A011C3A011C3A011 /* scans-clean.csv */,
+				C3A003C3A003C3A003C3A003 /* weights-bom.csv */,
+				C3A001C3A001C3A001C3A001 /* weights-clean.csv */,
+				C3A005C3A005C3A005C3A005 /* weights-crlf.csv */,
+				C3A007C3A007C3A007C3A007 /* weights-quoted-notes.csv */,
+			);
+			path = CSV;
 			sourceTree = "<group>";
 		};
 		C1F108C1F108C1F108C1F108 /* Scans */ = {
@@ -365,6 +395,7 @@
 			children = (
 				8F76CA414AF7805F2B73F420 /* BaselineTips.swift */,
 				3A9983801F2F087AB7948B5C /* CSVExporter.swift */,
+				C2F205C2F205C2F205C2F205 /* CSVImporter.swift */,
 				90026F3A1D7167909BB75A33 /* DateFormatting.swift */,
 				48CD5547B419BCE4B9D76860 /* DoubleExtensions.swift */,
 				0A1B2C3D4E5F67890123ABCD /* GoalAutoCompleter.swift */,
@@ -612,6 +643,7 @@
 			isa = PBXGroup;
 			children = (
 				7BD347427146045AA9060926 /* CSVExporterTests.swift */,
+				C2F207C2F207C2F207C2F207 /* CSVImporterTests.swift */,
 				AB289EC0E5CC9756E1B62116 /* UnitConversionTests.swift */,
 			);
 			path = Utilities;
@@ -805,6 +837,12 @@
 			files = (
 				C1F103C1F103C1F103C1F103 /* clean.jpg in Resources */,
 				C1F105C1F105C1F105C1F105 /* marked.jpg in Resources */,
+				C3A002C3A002C3A002C3A002 /* weights-clean.csv in Resources */,
+				C3A004C3A004C3A004C3A004 /* weights-bom.csv in Resources */,
+				C3A006C3A006C3A006C3A006 /* weights-crlf.csv in Resources */,
+				C3A008C3A008C3A008C3A008 /* weights-quoted-notes.csv in Resources */,
+				C3A010C3A010C3A010C3A010 /* measurements-clean.csv in Resources */,
+				C3A012C3A012C3A012C3A012 /* scans-clean.csv in Resources */,
 				D1AD95D006F07C3D3B5BD3B6 /* testBodyView_DarkMode_EmptyState.1.png in Resources */,
 				3C7C5C37D6A9222757E91364 /* testBodyView_DarkMode_WithData.1.png in Resources */,
 				E44F4F2EA294750C5F86D8A2 /* testHistoryView_DarkMode_iPhone13Pro.1.png in Resources */,
@@ -831,6 +869,7 @@
 				1EE8812183832C30DD541E19 /* BodyViewModelTests.swift in Sources */,
 				01D024BCF03FB689945792CA /* BodyViewSnapshotTests.swift in Sources */,
 				B3FB918216ECCE8A265E4686 /* CSVExporterTests.swift in Sources */,
+				C2F208C2F208C2F208C2F208 /* CSVImporterTests.swift in Sources */,
 				432827786CA2A6045E913872 /* CloudKitSyncMonitorTests.swift in Sources */,
 				81625F15F02E0FA9F6AA78AB /* ConsensusVoteTests.swift in Sources */,
 				A9E1A4B3AF560272E604B288 /* GoalTests.swift in Sources */,
@@ -871,6 +910,7 @@
 				91FD42A3C02E08E269B0F10E /* BodyView.swift in Sources */,
 				77B8997508F0ECBC3EE53EA9 /* BodyViewModel.swift in Sources */,
 				90A6AE6C1B21C9219AD0C300 /* CSVExporter.swift in Sources */,
+				C2F206C2F206C2F206C2F206 /* CSVImporter.swift in Sources */,
 				AE4F08FFC7E7366D526B7FE5 /* CadreTokens.swift in Sources */,
 				41873906668FDCA091D71DC4 /* CloudKitSyncMonitor.swift in Sources */,
 				3F839DAE75B52120DDEB6224 /* CloudflareOutboundMirror.swift in Sources */,

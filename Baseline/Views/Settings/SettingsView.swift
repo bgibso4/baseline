@@ -215,12 +215,16 @@ struct SettingsView: View {
                 )
             }
             SettingsDivider()
-            SettingsRow(
-                icon: "arrow.up.doc",
-                label: "Import from Weigh In",
-                value: nil,
-                style: .badge("Soon")
-            )
+            NavigationLink {
+                ImportCSVView()
+            } label: {
+                SettingsRow(
+                    icon: "arrow.up.doc",
+                    label: "Import from CSV",
+                    value: nil,
+                    style: .action
+                )
+            }
         }
     }
 
