@@ -781,6 +781,43 @@ final class CSVImporterTests: XCTestCase {
         XCTAssertEqual(parsed.rows[0].valueCm, 84.5058, accuracy: 0.0001)
     }
 
+    func testDate_allRowsInFixture_landInExpectedYears() {
+        // Regression: a production import of this same shape was storing
+        // dates as year 0001 CE. Every row's parsed year must match the
+        // 2-digit year in the source (21 → 2021, 26 → 2026, etc).
+        let csv = loadFixture("weights-slash-dates-split-time")
+        let parsed = try! CSVImporter.parseWeights(csv).get()
+        XCTAssertEqual(parsed.rows.count, 17)
+        XCTAssertEqual(parsed.issues.count, 0)
+
+        let cal = Calendar(identifier: .gregorian)
+        for row in parsed.rows {
+            let year = cal.component(.year, from: row.date)
+            XCTAssertTrue(year >= 2021 && year <= 2026,
+                          "row \(row) resolved to implausible year \(year)")
+        }
+    }
+
+    func testDate_rangeGuardRejectsImplausibleYears() {
+        // Year 1 CE is parseable by `yyyy-MM-dd` but trivially wrong for
+        // a weigh-in app. The range guard [1900, 3000] must filter it
+        // out OR (if some format happens to re-interpret it) the final
+        // stored year must at least not be 1. This is a belt-and-
+        // suspenders check for the production regression.
+        let csv = """
+        Date,Weight
+        0001-06-25,184.4
+        """
+        let parsed = try! CSVImporter.parseWeights(csv).get()
+        // Either the row is rejected (preferred) or it's stored with a
+        // sensible year — not year 1.
+        if let row = parsed.rows.first {
+            let year = Calendar(identifier: .gregorian).component(.year, from: row.date)
+            XCTAssertGreaterThan(year, 1900,
+                                 "year guard must keep 0001 out of the stored data; got \(year)")
+        }
+    }
+
     func testFlexible_measurementsInCm_passesThrough() {
         let csv = """
         Date,Type,Value (cm)

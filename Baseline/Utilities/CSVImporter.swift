@@ -321,10 +321,15 @@ enum FlexibleDateParser {
     /// Pre-built formatters covering each base format plus two common
     /// time-column append variants. Order matches `baseFormats`.
     private static let formatters: [DateFormatter] = {
+        // `Calendar.date(from:)` requires enough components to pin down a
+        // unique instant — year alone returns nil. Supply month + day so
+        // twoDigitStartDate is actually set and `yy` patterns anchor to
+        // the 2000s instead of falling back to DateFormatter's default
+        // sliding window (which can wander into year 0001 CE).
         let anchorYear2000: Date? = {
             var cal = Calendar(identifier: .gregorian)
             cal.locale = Locale(identifier: "en_US_POSIX")
-            return cal.date(from: DateComponents(year: 2000))
+            return cal.date(from: DateComponents(year: 2000, month: 1, day: 1))
         }()
 
         return baseFormats.flatMap { base -> [DateFormatter] in
@@ -343,7 +348,9 @@ enum FlexibleDateParser {
 
     /// Parses a date string (optionally combined with a separate time
     /// column) against every registered format, returning the first
-    /// successful match. Returns nil if nothing parses.
+    /// successful match whose year is plausibly modern. Returns nil if
+    /// nothing parses, or if every match lands outside 1900..3000 (which
+    /// indicates a `yyyy` pattern accepted a 2-digit year literally).
     static func parse(date dateString: String, time timeString: String? = nil) -> Date? {
         let dateTrim = dateString.trimmingCharacters(in: .whitespaces)
         guard !dateTrim.isEmpty else { return nil }
@@ -355,8 +362,20 @@ enum FlexibleDateParser {
             combined = dateTrim
         }
 
+        // Calendar for year validation — same gregorian/POSIX as parsers.
+        var validationCal = Calendar(identifier: .gregorian)
+        validationCal.locale = Locale(identifier: "en_US_POSIX")
+        validationCal.timeZone = TimeZone.current
+
         for formatter in formatters {
-            if let d = formatter.date(from: combined) { return d }
+            guard let candidate = formatter.date(from: combined) else { continue }
+            let year = validationCal.component(.year, from: candidate)
+            if year >= 1900 && year <= 3000 {
+                return candidate
+            }
+            // Otherwise this formatter produced an obviously-wrong year
+            // (e.g. `yyyy` pattern gobbled a 2-digit year as year 21).
+            // Skip it and let the next format attempt a real match.
         }
         return nil
     }
