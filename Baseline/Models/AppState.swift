@@ -10,4 +10,10 @@ import Observation
 class AppState {
     var selectedTab: AppTab = .now
     var trendMetric: String = "Weight"
+
+    /// When true, TrendsView will open the SetGoalSheet on its next
+    /// appear. Used by the goal-reached celebration on NowView so
+    /// tapping "Set New Goal" actually lands the user on the goal
+    /// creation surface instead of silently dismissing.
+    var showSetGoalOnTrendsAppear: Bool = false
 }

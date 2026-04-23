@@ -9,6 +9,7 @@ import TipKit
 /// in open area) → stats card → Weigh In button anchored above tab bar.
 struct NowView: View {
     @Environment(\.modelContext) private var modelContext
+    @Environment(AppState.self) private var appState: AppState?
 
     // Track unit preference so SwiftUI re-renders when it changes
     @AppStorage("weightUnit") private var weightUnit = "lb"
@@ -127,7 +128,12 @@ struct NowView: View {
                         startDate: reachedGoalStartDate,
                         onNewGoal: {
                             showGoalReached = false
-                            // Goal is already completed, user can go to Trends to set a new one
+                            // Route the user to the Trends tab and ask it to
+                            // open the SetGoalSheet on appear. Without the
+                            // AppState hop this button just dismissed the
+                            // overlay and left the user stranded.
+                            appState?.showSetGoalOnTrendsAppear = true
+                            appState?.selectedTab = .trends
                         },
                         onDismiss: {
                             showGoalReached = false

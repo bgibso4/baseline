@@ -184,6 +184,17 @@ struct TrendsView: View {
                 }
                 vm?.refresh()
                 availableMetrics = vm?.computeAvailableMetrics() ?? TrendMetric.allCases
+
+                // Honour a pending request from NowView's goal-reached
+                // overlay. Delay by one frame so the tab-switch animation
+                // finishes before the sheet slides up over it.
+                if appState?.showSetGoalOnTrendsAppear == true {
+                    appState?.showSetGoalOnTrendsAppear = false
+                    Task { @MainActor in
+                        try? await Task.sleep(nanoseconds: 250_000_000)
+                        showSetGoal = true
+                    }
+                }
             }
             .onChange(of: appState?.trendMetric) { _, newValue in
                 if let newValue, let metric = TrendMetric(rawValue: newValue) {
