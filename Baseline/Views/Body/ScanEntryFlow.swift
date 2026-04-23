@@ -59,6 +59,22 @@ struct ScanEntryFlow: View {
                 vm = ScanEntryViewModel(modelContext: modelContext)
             }
         }
+        // Surface scan-save failures. Without this, `performSave` writes
+        // the error into the VM and nothing displays it — the user taps
+        // Save, nothing happens, and their scan is lost silently.
+        .alert(
+            "Couldn't Save Scan",
+            isPresented: Binding(
+                get: { resolvedVM?.errorMessage != nil },
+                set: { if !$0 { resolvedVM?.errorMessage = nil } }
+            )
+        ) {
+            Button("OK", role: .cancel) {
+                resolvedVM?.errorMessage = nil
+            }
+        } message: {
+            Text(resolvedVM?.errorMessage ?? "Something went wrong while saving. Try again.")
+        }
     }
 
     // MARK: - Step 1: Scan Type Selection
