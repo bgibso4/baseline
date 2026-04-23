@@ -1,0 +1,3 @@
+date,type,source,weightKg,skeletalMuscleMassKg,bodyFatMassKg,bodyFatPct,totalBodyWaterL,bmi,basalMetabolicRate
+2026-04-15T00:00:00.000Z,inBody,manual,89.5,38.2,15.1,16.9,54.3,25.8,1850.0
+2026-04-17T00:00:00.000Z,inBody,ocr,89.1,38.3,14.8,16.6,54.5,25.7,1855.0
