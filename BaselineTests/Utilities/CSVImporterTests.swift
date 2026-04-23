@@ -78,23 +78,22 @@ final class CSVImporterTests: XCTestCase {
     }
 
     func testParseWeights_invalidRowsKeptAsIssues() {
+        // Unit "stone" now falls through to the defaultUnit because the
+        // resolver silently ignores unrecognised unit names — so the row
+        // succeeds as lb. Bad date/weight rows still become issues.
         let csv = """
         date,weight,unit,notes
         2026-04-15T00:00:00.000Z,185.4,lb,ok
         not-a-date,185.4,lb,bad date
         2026-04-17T00:00:00.000Z,heavy,lb,bad weight
-        2026-04-18T00:00:00.000Z,180.0,stone,bad unit
         2026-04-19T00:00:00.000Z,179.0,kg,good kg
         """
         let result = CSVImporter.parseWeights(csv)
         guard case .success(let parsed) = result else { return XCTFail("expected success") }
         XCTAssertEqual(parsed.rows.count, 2, "only 2 valid rows")
-        XCTAssertEqual(parsed.issues.count, 3)
-        // Line numbers are 1-indexed from the file start; header is line 1,
-        // so the first data row is line 2.
-        XCTAssertTrue(parsed.issues[0].reason.contains("invalid date"))
+        XCTAssertEqual(parsed.issues.count, 2)
+        XCTAssertTrue(parsed.issues[0].reason.contains("couldn't parse date"))
         XCTAssertTrue(parsed.issues[1].reason.contains("invalid weight"))
-        XCTAssertTrue(parsed.issues[2].reason.contains("unit must be"))
     }
 
     func testParseWeights_quotedNotesWithComma() {
@@ -114,15 +113,29 @@ final class CSVImporterTests: XCTestCase {
         XCTAssertEqual(err, .emptyFile)
     }
 
-    func testParseWeights_wrongHeader_returnsError() {
-        let csv = "timestamp,weight,unit\n"
+    func testParseWeights_missingRequiredColumns_returnsError() {
+        // Header has no weight column → the importer refuses and reports
+        // which required role is missing.
+        let csv = "date,unit,notes\n"
         let result = CSVImporter.parseWeights(csv)
         guard case .failure(let err) = result else { return XCTFail("expected failure") }
-        if case .missingOrMalformedHeader(let expected, _) = err {
-            XCTAssertEqual(expected, "date,weight,unit,notes")
+        if case .missingRequiredColumns(let missing) = err {
+            XCTAssertTrue(missing.contains("weight"),
+                          "expected 'weight' in missing list, got \(missing)")
         } else {
-            XCTFail("expected missingOrMalformedHeader, got \(err)")
+            XCTFail("expected missingRequiredColumns, got \(err)")
         }
+    }
+
+    func testParseWeights_acceptsTimestampSynonym() {
+        // `timestamp` is a registered synonym for `date` — file should parse.
+        let csv = """
+        timestamp,weight,unit,notes
+        2026-04-15T00:00:00.000Z,185.4,lb,
+        """
+        let result = CSVImporter.parseWeights(csv)
+        guard case .success(let parsed) = result else { return XCTFail("expected success") }
+        XCTAssertEqual(parsed.rows.count, 1)
     }
 
     func testParseWeights_headerOnly_returnsEmptyRows() {
@@ -604,6 +617,177 @@ final class CSVImporterTests: XCTestCase {
         // Both rows had different original sources (.manual, .ocr) —
         // persistence must rewrite both to .imported.
         XCTAssertEqual(scans.allSatisfy { $0.source == ScanSource.imported.rawValue }, true)
+    }
+
+    // MARK: - Flexible header format (role-based column mapping)
+    //
+    // The importer accepts any header shape it can resolve to the
+    // required roles. These tests exercise the most common real-world
+    // variations: slash-separated dates, split date+time columns, unit
+    // encoded in the header, and synonym-mapped column names.
+
+    func testFlexible_slashDatesAndSplitTime_detectsAsWeights() {
+        let csv = "Date,Time,Weight (lb),Note\n\"5/26/21\",\"00:54:04\",\"184.4\",\"\""
+        XCTAssertEqual(CSVFormat.detect(from: csv), .weights,
+                       "a file with date+weight columns must resolve to .weights")
+    }
+
+    func testFlexible_slashDatesAndSplitTime_parsesRow() {
+        let csv = """
+        Date,Time,Weight (lb),Note
+        "5/26/21","00:54:04","184.4",""
+        """
+        let parsed = try! CSVImporter.parseWeights(csv).get()
+        XCTAssertEqual(parsed.rows.count, 1)
+        XCTAssertEqual(parsed.rows[0].weight, 184.4)
+        XCTAssertEqual(parsed.rows[0].unit, "lb",
+                       "unit resolved from the parenthesized header hint 'Weight (lb)'")
+        XCTAssertNil(parsed.rows[0].notes, "empty quoted note becomes nil")
+
+        // Confirm 2-digit year anchors to 2000s, not 1900s.
+        let cal = Calendar(identifier: .gregorian)
+        let comps = cal.dateComponents([.year, .month, .day], from: parsed.rows[0].date)
+        XCTAssertEqual(comps.year, 2021)
+        XCTAssertEqual(comps.month, 5)
+        XCTAssertEqual(comps.day, 26)
+    }
+
+    func testFlexible_unitFromHeaderHint_overridesDefault() {
+        // Header says `Weight (kg)` — unit column is absent, but the hint
+        // must take priority over the defaultUnit fallback.
+        let csv = """
+        Date,Weight (kg)
+        2026-04-15,80.5
+        """
+        let parsed = try! CSVImporter.parseWeights(csv, defaultUnit: "lb").get()
+        XCTAssertEqual(parsed.rows[0].unit, "kg")
+    }
+
+    func testFlexible_unitFromExplicitColumn_overridesHeaderHint() {
+        // If both the column and the header disagree, the column wins.
+        // This matches RFC-style "most specific" resolution.
+        let csv = """
+        Date,Weight (lb),Unit
+        2026-04-15,180.0,kg
+        """
+        let parsed = try! CSVImporter.parseWeights(csv).get()
+        XCTAssertEqual(parsed.rows[0].unit, "kg",
+                       "explicit Unit column must override the '(lb)' header hint")
+    }
+
+    func testFlexible_unitFallsBackToDefault_whenNothingIdentifiesIt() {
+        let csv = """
+        Date,Weight
+        2026-04-15,180.0
+        """
+        let parsedLb = try! CSVImporter.parseWeights(csv, defaultUnit: "lb").get()
+        XCTAssertEqual(parsedLb.rows[0].unit, "lb")
+
+        let parsedKg = try! CSVImporter.parseWeights(csv, defaultUnit: "kg").get()
+        XCTAssertEqual(parsedKg.rows[0].unit, "kg")
+    }
+
+    func testFlexible_parseAnyDispatchesToWeights() {
+        let csv = """
+        Date,Time,Weight (lb),Note
+        "4/22/26","07:14:27","199.6",""
+        """
+        let result = CSVImporter.parseAny(csv)
+        guard case .success(let parsed) = result else { return XCTFail("expected success") }
+        XCTAssertEqual(parsed.format, .weights)
+        XCTAssertEqual(parsed.rowCount, 1)
+    }
+
+    func testFlexible_importsThroughSameWeightsPersistencePath() async {
+        let csv = """
+        Date,Time,Weight (lb),Note
+        "5/26/21","00:54:04","184.4",""
+        "4/22/26","07:14:27","199.6",""
+        """
+        let parsed = try! CSVImporter.parseAny(csv).get()
+        let outcome = CSVImporter.importAny(parsed, context: context, conflictStrategy: .skip)
+        XCTAssertEqual(outcome.inserted, 2)
+
+        let stored = try! context.fetch(FetchDescriptor<WeightEntry>())
+        XCTAssertEqual(stored.count, 2)
+        XCTAssertTrue(stored.allSatisfy { $0.unit == "lb" })
+
+        // HK mirror fires for every imported row, same as Baseline's own format.
+        await spy.waitForCalls(2)
+        let saves = await spy.calls.filter {
+            if case .saveWeight = $0 { return true } else { return false }
+        }
+        XCTAssertEqual(saves.count, 2)
+    }
+
+    func testFlexible_multipleRowsSameDay_skipKeepsFirst() {
+        let csv = """
+        Date,Time,Weight (lb),Note
+        "5/26/21","00:54:04","184.4",""
+        "5/26/21","09:49:24","183.3",""
+        """
+        let parsed = try! CSVImporter.parseWeights(csv).get()
+        XCTAssertEqual(parsed.rows.count, 2)
+
+        let outcome = CSVImporter.importWeights(parsed.rows, context: context, conflictStrategy: .skip)
+        XCTAssertEqual(outcome.inserted, 1)
+        XCTAssertEqual(outcome.skipped, 1)
+
+        let stored = try! context.fetch(FetchDescriptor<WeightEntry>())
+        XCTAssertEqual(stored.count, 1)
+        XCTAssertEqual(stored[0].weight, 184.4, "first row wins on .skip")
+    }
+
+    func testFlexible_multipleRowsSameDay_overwriteKeepsLast() {
+        let csv = """
+        Date,Time,Weight (lb),Note
+        "5/26/21","00:54:04","184.4",""
+        "5/26/21","09:49:24","183.3",""
+        """
+        let parsed = try! CSVImporter.parseWeights(csv).get()
+        let outcome = CSVImporter.importWeights(parsed.rows, context: context, conflictStrategy: .overwrite)
+        XCTAssertEqual(outcome.overwritten, 1)
+        XCTAssertEqual(outcome.inserted, 1)
+
+        let stored = try! context.fetch(FetchDescriptor<WeightEntry>())
+        XCTAssertEqual(stored.count, 1)
+        XCTAssertEqual(stored[0].weight, 183.3, "last row wins on .overwrite")
+    }
+
+    func testFixture_slashDatesAndSplitTime_parsesRealExportSlice() {
+        // Fixture captures the shape: "M/D/YY" dates, split HH:mm:ss
+        // time column, unit in the header — a common third-party export.
+        let csv = loadFixture("weights-slash-dates-split-time")
+        XCTAssertEqual(CSVFormat.detect(from: csv), .weights)
+        let parsed = try! CSVImporter.parseWeights(csv).get()
+        XCTAssertEqual(parsed.rows.count, 17)
+        XCTAssertEqual(parsed.issues.count, 0)
+        XCTAssertEqual(parsed.rows.first?.weight, 184.4)
+        XCTAssertEqual(parsed.rows.last?.weight, 199.6)
+        XCTAssertTrue(parsed.rows.allSatisfy { $0.unit == "lb" })
+    }
+
+    // MARK: - Length unit flexibility (measurements)
+
+    func testFlexible_measurementsInInches_convertsToCm() {
+        // Header hint `Value (in)` should trigger in→cm conversion.
+        let csv = """
+        Date,Type,Value (in)
+        2026-04-15,waist,33.27
+        """
+        let parsed = try! CSVImporter.parseMeasurements(csv).get()
+        XCTAssertEqual(parsed.rows.count, 1)
+        // 33.27 in * 2.54 = 84.5058 cm
+        XCTAssertEqual(parsed.rows[0].valueCm, 84.5058, accuracy: 0.0001)
+    }
+
+    func testFlexible_measurementsInCm_passesThrough() {
+        let csv = """
+        Date,Type,Value (cm)
+        2026-04-15,waist,84.5
+        """
+        let parsed = try! CSVImporter.parseMeasurements(csv).get()
+        XCTAssertEqual(parsed.rows[0].valueCm, 84.5)
     }
 
     func testImportScans_overwriteClearsStaleHKSamples() async {

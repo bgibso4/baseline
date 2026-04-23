@@ -969,43 +969,113 @@ struct ImportCSVView: View {
 
         switch result {
         case .failure(let err):
+            Log.data.error("CSV import: fileImporter failed", err)
             errorMessage = "Couldn't open the file: \(err.localizedDescription)"
             return
+
         case .success(let urls):
-            guard let url = urls.first else { return }
-            // fileImporter returns a security-scoped URL. We must bracket
-            // every read with start/stop calls to keep the sandbox happy.
+            guard let url = urls.first else {
+                Log.data.warning("CSV import: fileImporter returned no URL")
+                return
+            }
+            Log.data.info("CSV import: picked file \(url.lastPathComponent)")
+
+            // fileImporter returns a security-scoped URL. Bracket every
+            // read with start/stop calls to keep the sandbox happy.
             let scoped = url.startAccessingSecurityScopedResource()
             defer {
                 if scoped { url.stopAccessingSecurityScopedResource() }
             }
-            guard let data = try? Data(contentsOf: url),
-                  let csv = String(data: data, encoding: .utf8) else {
-                errorMessage = "The file is empty or not valid UTF-8 text."
+
+            // iCloud Drive files may not be downloaded locally yet — nudge
+            // the coordinator to materialize the file before we try to read.
+            if FileManager.default.isUbiquitousItem(at: url) {
+                try? FileManager.default.startDownloadingUbiquitousItem(at: url)
+            }
+
+            let data: Data
+            do {
+                data = try Data(contentsOf: url, options: [.uncached])
+            } catch {
+                Log.data.error("CSV import: failed to read file", error)
+                errorMessage = "Couldn't read the file. \(error.localizedDescription)"
                 return
             }
+            Log.data.info("CSV import: read \(data.count) bytes")
+
+            guard let csv = String(data: data, encoding: .utf8) else {
+                Log.data.error("CSV import: file is not valid UTF-8")
+                errorMessage = "The file isn't valid UTF-8 text. Try re-exporting."
+                return
+            }
+
             parseCSV(csv)
         }
     }
 
     private func parseCSV(_ csv: String) {
+        let byteCount = csv.lengthOfBytes(using: .utf8)
+        let lineCount = csv.reduce(into: 0) { count, ch in
+            if ch == "\n" { count += 1 }
+        }
+        Log.data.info("CSV import: parsing \(byteCount) bytes, ~\(lineCount) lines")
+
+        // Dump the raw header + detected format so we can diagnose a
+        // format-detection failure without guessing.
+        let firstLine = csv.split(separator: "\n", maxSplits: 1).first.map(String.init) ?? ""
+        Log.data.info("CSV import: header raw='\(firstLine.prefix(200))'")
+        if let detected = CSVFormat.detect(from: csv) {
+            Log.data.info("CSV import: detected format=\(detected.rawValue)")
+        } else {
+            Log.data.warning("CSV import: no format detected")
+        }
+
         switch CSVImporter.parseAny(csv) {
         case .success(let result):
             parsed = result
+            Log.data.info("CSV import: parsed \(result.rowCount) rows, \(result.issues.count) issues, format=\(result.format.rawValue)")
+            for issue in result.issues.prefix(5) {
+                Log.data.warning("CSV import: line \(issue.line): \(issue.reason)")
+            }
+
         case .failure(.unknownFormat):
-            errorMessage = "This file's header doesn't match any Baseline format. Check that it matches the CSVs from Export."
+            Log.data.error("CSV import: unknown format for header '\(firstLine.prefix(200))'")
+            errorMessage = "This file's header doesn't match any recognised format."
             parsed = nil
-        case .failure(.parseFailed(let err)):
-            errorMessage = "Parse failed: \(err)"
+
+        case .failure(.parseFailed(.emptyFile)):
+            Log.data.error("CSV import: parse reports empty file")
+            errorMessage = "The file appears to be empty."
+            parsed = nil
+
+        case .failure(.parseFailed(.missingRequiredColumns(let missing))):
+            Log.data.error("CSV import: missing required columns: \(missing.joined(separator: ", "))")
+            errorMessage = "Missing required column(s): \(missing.joined(separator: ", "))."
             parsed = nil
         }
     }
 
     private func runImport() {
-        guard let parsed else { return }
-        outcome = CSVImporter.importAny(parsed, context: modelContext, conflictStrategy: conflictStrategy)
+        guard let parsed else {
+            Log.data.warning("CSV import: runImport called with nil parsed state")
+            return
+        }
+        Log.data.info("CSV import: starting import, rows=\(parsed.rowCount), strategy=\(conflictStrategyName)")
+
+        let result = CSVImporter.importAny(parsed, context: modelContext, conflictStrategy: conflictStrategy)
+        outcome = result
+
+        Log.data.info("CSV import: done, inserted=\(result.inserted) overwritten=\(result.overwritten) skipped=\(result.skipped) failed=\(result.failed)")
+
         // Clear the preview so the user can't double-import the same rows.
         self.parsed = nil
+    }
+
+    private var conflictStrategyName: String {
+        switch conflictStrategy {
+        case .skip: return "skip"
+        case .overwrite: return "overwrite"
+        }
     }
 }
 

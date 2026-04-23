@@ -43,6 +43,7 @@
 		C3A008C3A008C3A008C3A008 /* weights-quoted-notes.csv in Resources */ = {isa = PBXBuildFile; fileRef = C3A007C3A007C3A007C3A007 /* weights-quoted-notes.csv */; };
 		C3A010C3A010C3A010C3A010 /* measurements-clean.csv in Resources */ = {isa = PBXBuildFile; fileRef = C3A009C3A009C3A009C3A009 /* measurements-clean.csv */; };
 		C3A012C3A012C3A012C3A012 /* scans-clean.csv in Resources */ = {isa = PBXBuildFile; fileRef = C3A011C3A011C3A011C3A011 /* scans-clean.csv */; };
+		C3A020C3A020C3A020C3A020 /* weights-slash-dates-split-time.csv in Resources */ = {isa = PBXBuildFile; fileRef = C3A019C3A019C3A019C3A019 /* weights-slash-dates-split-time.csv */; };
 		3A26E7683F4A65D4A9240FE8 /* ScanPayloads.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6DF459A44A46B33902867DBF /* ScanPayloads.swift */; };
 		3C7C5C37D6A9222757E91364 /* testBodyView_DarkMode_WithData.1.png in Resources */ = {isa = PBXBuildFile; fileRef = 9CC95090F8F39C9959C8DFAD /* testBodyView_DarkMode_WithData.1.png */; };
 		3E91E4B24AC961ADA451AEC8 /* ScanEntryViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7163A3D21EC88D92F54DF5C7 /* ScanEntryViewModel.swift */; };
@@ -273,6 +274,7 @@
 		C3A007C3A007C3A007C3A007 /* weights-quoted-notes.csv */ = {isa = PBXFileReference; lastKnownFileType = text; path = "weights-quoted-notes.csv"; sourceTree = "<group>"; };
 		C3A009C3A009C3A009C3A009 /* measurements-clean.csv */ = {isa = PBXFileReference; lastKnownFileType = text; path = "measurements-clean.csv"; sourceTree = "<group>"; };
 		C3A011C3A011C3A011C3A011 /* scans-clean.csv */ = {isa = PBXFileReference; lastKnownFileType = text; path = "scans-clean.csv"; sourceTree = "<group>"; };
+		C3A019C3A019C3A019C3A019 /* weights-slash-dates-split-time.csv */ = {isa = PBXFileReference; lastKnownFileType = text; path = "weights-slash-dates-split-time.csv"; sourceTree = "<group>"; };
 		E22A1EED058DA9647318A9C3 /* Haptics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Haptics.swift; sourceTree = "<group>"; };
 		E332C18AA2C4ABD37FADD6A6 /* OutboundMirrorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OutboundMirrorTests.swift; sourceTree = "<group>"; };
 		E3E8D4A6EF749D136743E261 /* WeightWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeightWidget.swift; sourceTree = "<group>"; };
@@ -373,6 +375,7 @@
 			children = (
 				C3A009C3A009C3A009C3A009 /* measurements-clean.csv */,
 				C3A011C3A011C3A011C3A011 /* scans-clean.csv */,
+				C3A019C3A019C3A019C3A019 /* weights-slash-dates-split-time.csv */,
 				C3A003C3A003C3A003C3A003 /* weights-bom.csv */,
 				C3A001C3A001C3A001C3A001 /* weights-clean.csv */,
 				C3A005C3A005C3A005C3A005 /* weights-crlf.csv */,
@@ -843,6 +846,7 @@
 				C3A008C3A008C3A008C3A008 /* weights-quoted-notes.csv in Resources */,
 				C3A010C3A010C3A010C3A010 /* measurements-clean.csv in Resources */,
 				C3A012C3A012C3A012C3A012 /* scans-clean.csv in Resources */,
+				C3A020C3A020C3A020C3A020 /* weights-slash-dates-split-time.csv in Resources */,
 				D1AD95D006F07C3D3B5BD3B6 /* testBodyView_DarkMode_EmptyState.1.png in Resources */,
 				3C7C5C37D6A9222757E91364 /* testBodyView_DarkMode_WithData.1.png in Resources */,
 				E44F4F2EA294750C5F86D8A2 /* testHistoryView_DarkMode_iPhone13Pro.1.png in Resources */,
