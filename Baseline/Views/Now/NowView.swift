@@ -158,7 +158,6 @@ struct NowView: View {
                 }
             }
             .frame(width: 290, height: 248)
-            .animation(.easeInOut(duration: 0.4), value: arcFraction)
 
             rangeToggle
         }

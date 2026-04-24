@@ -17,6 +17,13 @@ struct MetricPickerSheet: View {
     private let sheetBg = Color(red: 28/255, green: 28/255, blue: 34/255)
     private let secondary = Color(hex: "B89968") // --secondary from design tokens (dusty secondary)
 
+    /// Drives a content-level lift-in when the sheet presents. The system
+    /// sheet chrome handles the card slide-up; this adds a layered spring
+    /// on the inner content so the picker reads as "settling into place"
+    /// rather than arriving fully-formed.
+    @State private var contentPresented: Bool = false
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
     var body: some View {
         VStack(spacing: 0) {
             sheetHandle
@@ -52,6 +59,18 @@ struct MetricPickerSheet: View {
             }
         }
         .background(sheetBg)
+        .opacity(contentPresented ? 1 : 0)
+        .scaleEffect(contentPresented ? 1 : 0.96, anchor: .top)
+        .offset(y: contentPresented ? 0 : 12)
+        .onAppear {
+            if reduceMotion {
+                contentPresented = true
+                return
+            }
+            withAnimation(.spring(duration: 0.55, bounce: 0.22).delay(0.08)) {
+                contentPresented = true
+            }
+        }
     }
 
     // MARK: - Drag handle

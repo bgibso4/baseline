@@ -29,6 +29,13 @@ struct BodyView: View {
         self._vm = State(initialValue: viewModel)
     }
 
+    /// Seed `@State` with a preloaded VM without marking it as
+    /// test-injected. See `TrendsView.init(preloadedVM:)` for rationale.
+    init(preloadedVM: BodyViewModel?) {
+        self.injectedVM = nil
+        self._vm = State(initialValue: preloadedVM)
+    }
+
     // MARK: - Grid
 
     private let tileColumns = [
@@ -66,7 +73,8 @@ struct BodyView: View {
         .onAppear {
             guard injectedVM == nil else { return }
             if vm == nil {
-                vm = BodyViewModel(modelContext: modelContext)
+                vm = (appState?.preloadedBodyVM as? BodyViewModel)
+                    ?? BodyViewModel(modelContext: modelContext)
             }
             vm?.refresh()
         }

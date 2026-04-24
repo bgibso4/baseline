@@ -76,6 +76,15 @@ struct TrendsView: View {
     @State private var availableMetrics: [TrendMetric] = TrendMetric.allCases
     @State private var showFullscreen = false
 
+    /// 0 → 1 reveal for the main chart's draw-on animation. Drives a
+    /// left-to-right mask on the plot area (axis stays visible). Reset
+    /// and re-animated on first appear and on metric/range change so the
+    /// user sees each new slice of data actually draw itself, rather
+    /// than popping in.
+    @State private var chartRevealProgress: Double = 0
+
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
     /// Synchronous VM injection (snapshot / unit tests).
     private let injectedVM: TrendsViewModel?
     private let trendsTip = TrendsTip()
@@ -83,6 +92,18 @@ struct TrendsView: View {
     init(viewModel: TrendsViewModel? = nil) {
         self.injectedVM = viewModel
         self._vm = State(initialValue: viewModel)
+    }
+
+    /// Seed the view's `@State` with a preloaded VM without marking it
+    /// as "test-injected." Used by MainTabView at app launch so the first
+    /// body render already has data — avoids the empty→populated reflow
+    /// that was visible mid-tab-switch. Unlike `init(viewModel:)`, this
+    /// does NOT set `injectedVM`, so the normal onAppear path (refresh,
+    /// metric routing, availableMetrics, showSetGoalOnTrendsAppear) still
+    /// runs.
+    init(preloadedVM: TrendsViewModel?) {
+        self.injectedVM = nil
+        self._vm = State(initialValue: preloadedVM)
     }
 
     var body: some View {
@@ -172,10 +193,14 @@ struct TrendsView: View {
             .onAppear {
                 guard injectedVM == nil else { return }
                 if vm == nil {
-                    vm = TrendsViewModel(modelContext: modelContext)
+                    // Prefer MainTabView's preloaded VM so the first render
+                    // already has data (no layout reflow mid tab-switch).
+                    vm = (appState?.preloadedTrendsVM as? TrendsViewModel)
+                        ?? TrendsViewModel(modelContext: modelContext)
                 }
                 if goalVM == nil {
-                    goalVM = GoalViewModel(modelContext: modelContext)
+                    goalVM = (appState?.preloadedGoalVM as? GoalViewModel)
+                        ?? GoalViewModel(modelContext: modelContext)
                 }
                 // Pick up metric requested by another tab (e.g. Body → Trends)
                 if let metricName = appState?.trendMetric,
@@ -676,6 +701,38 @@ struct TrendsView: View {
             }
         }
         .chartYScale(domain: dualAxis ? 0.0...1.0 : (primaryMin)...(primaryMax))
+        .chartPlotStyle { plotArea in
+            plotArea
+                .mask(alignment: .leading) {
+                    // Rectangle's frame(width:) is animatable; LinearGradient
+                    // stops aren't. So the reveal edge is driven by the
+                    // rectangle, and a gradient strip rides its trailing
+                    // edge to soften the cut into a "pencil tip." The strip's
+                    // opacity tapers to 0 near the end so the final rendered
+                    // state is fully crisp (no residual faded band).
+                    GeometryReader { geo in
+                        let revealW = geo.size.width * chartRevealProgress
+                        // Fade band width as fraction of chart width. 0.20
+                        // is very visible so the soft edge is obvious while
+                        // tuning; drop toward 0.06 once it reads right.
+                        let fadeW = geo.size.width * 0.20
+                        let fadeOpacity = 1 - max(0, (chartRevealProgress - 0.80) / 0.20)
+                        Rectangle()
+                            .fill(.black)
+                            .frame(width: revealW)
+                            .overlay(alignment: .trailing) {
+                                LinearGradient(
+                                    colors: [.black, .clear],
+                                    startPoint: .leading,
+                                    endPoint: .trailing
+                                )
+                                .frame(width: fadeW)
+                                .opacity(fadeOpacity)
+                                .allowsHitTesting(false)
+                            }
+                    }
+                }
+        }
         .frame(height: 280)
         .overlay(alignment: .topTrailing) {
             expandStub
@@ -683,7 +740,36 @@ struct TrendsView: View {
         }
         .accessibilityElement(children: .ignore)
         .accessibilityLabel("\(selectedMetric.displayName) trend chart with \(points.count) data points")
+        // Suppress Charts' built-in morph between datasets. Without this,
+        // switching from 30 → 180 points produced a chaotic flash of
+        // interpolated lines as the two LineMarks tried to tween into
+        // each other. Scoped to these two values, so our mask reveal
+        // (driven by chartRevealProgress) is unaffected.
+        .animation(nil, value: vm?.timeRange)
+        .animation(nil, value: vm?.selectedMetric)
+        .onAppear { triggerChartReveal() }
+        .onChange(of: vm?.timeRange) { _, _ in triggerChartReveal() }
+        .onChange(of: vm?.selectedMetric) { _, _ in triggerChartReveal() }
     }
+
+    /// Reset `chartRevealProgress` and animate it to 1 so the plot area
+    /// draws in from left to right. Runs on first appear and whenever the
+    /// user swaps metric or time range — those are the moments where the
+    /// chart shows a different dataset and the reveal feels intentional,
+    /// not noisy.
+    private func triggerChartReveal() {
+        if reduceMotion {
+            chartRevealProgress = 1
+            return
+        }
+        chartRevealProgress = 0
+        DispatchQueue.main.async {
+            withAnimation(.easeOut(duration: 1.0)) {
+                chartRevealProgress = 1
+            }
+        }
+    }
+
 
     private var expandStub: some View {
         Button {

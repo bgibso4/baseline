@@ -16,4 +16,17 @@ class AppState {
     /// tapping "Set New Goal" actually lands the user on the goal
     /// creation surface instead of silently dismissing.
     var showSetGoalOnTrendsAppear: Bool = false
+
+    // MARK: - Preloaded view models
+    //
+    // Created eagerly by MainTabView at app launch so the first-time tab
+    // switch doesn't trigger a synchronous "create VM + refresh" reflow
+    // mid-cross-fade. Without preloading, TrendsView.onAppear fires during
+    // the tab transition, the VM comes in, the layout reflows, and the
+    // user sees the goal card + chart text jumping positions during the
+    // fade. Preloading makes first render look identical to subsequent
+    // renders.
+    var preloadedTrendsVM: AnyObject?
+    var preloadedGoalVM: AnyObject?
+    var preloadedBodyVM: AnyObject?
 }

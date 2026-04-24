@@ -294,9 +294,7 @@ struct ScanEntryFlow: View {
                 Color.black.opacity(0.6)
                     .ignoresSafeArea()
                 VStack(spacing: 16) {
-                    ProgressView()
-                        .scaleEffect(1.5)
-                        .tint(CadreColors.accent)
+                    ProcessingIndicator(size: 56, lineWidth: 5)
                     Text("Reading scan...")
                         .font(.system(size: 14, weight: .semibold))
                         .foregroundStyle(CadreColors.textPrimary)

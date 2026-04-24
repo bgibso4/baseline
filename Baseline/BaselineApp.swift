@@ -76,9 +76,24 @@ struct BaselineApp: App {
         let outboundMirror: OutboundMirror = NoOpOutboundMirror()
         self.mirror = outboundMirror
         SyncHelper.mirror = outboundMirror
+
+        // Preload tab view models synchronously during app init, while
+        // we already have the ModelContainer in scope. MainTabView reads
+        // these off AppState and passes them into each tab via the
+        // `viewModel:` initializer, so the tab's @State is populated
+        // BEFORE its first body eval — no "render empty, then reflow
+        // to populated" flash mid tab-switch cross-fade.
+        let context = modelContainer.mainContext
+        let state = AppState()
+        let trendsVM = TrendsViewModel(modelContext: context)
+        trendsVM.refresh()
+        state.preloadedTrendsVM = trendsVM
+        state.preloadedGoalVM = GoalViewModel(modelContext: context)
+        state.preloadedBodyVM = BodyViewModel(modelContext: context)
+        _appState = State(initialValue: state)
     }
 
-    @State private var appState = AppState()
+    @State private var appState: AppState
 
     var body: some Scene {
         WindowGroup {
