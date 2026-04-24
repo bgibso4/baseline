@@ -13,6 +13,7 @@ import SwiftData
 ///   - Empty state: "No entries yet" centered, muted
 struct HistoryView: View {
     @Environment(\.modelContext) private var modelContext
+    @Environment(\.dismiss) private var dismiss
     @State private var vm: HistoryViewModel?
     @State private var editingEntry: WeightEntry?
 
@@ -134,9 +135,13 @@ struct HistoryView: View {
     private var emptyState: some View {
         VStack {
             Spacer()
-            Text("No entries yet")
-                .font(CadreTypography.historyEmpty)
-                .foregroundStyle(CadreColors.textSecondary)
+            EmptyStateCard(
+                systemImage: "list.bullet.rectangle",
+                title: "No entries yet",
+                message: "Log your first weigh-in to start your history.",
+                ctaLabel: "Log a Weigh-In",
+                ctaAction: { dismiss() }
+            )
             Spacer()
         }
         .frame(maxWidth: .infinity)

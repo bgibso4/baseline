@@ -930,28 +930,41 @@ struct TrendsView: View {
 
     // MARK: - Empty state
 
+    /// Tailors the CTA to the selected metric — weight routes to the Now
+    /// tab (fastest path), measurements route to Body (where the log sheet
+    /// lives), and body-comp metrics prompt for a scan.
     private var emptyStateBlock: some View {
-        VStack(spacing: 12) {
-            ZStack {
-                RoundedRectangle(cornerRadius: 12)
-                    .fill(CadreColors.cardElevated)
-                    .frame(width: 42, height: 42)
-                Image(systemName: selectedMetric.icon)
-                    .font(.system(size: 20, weight: .semibold))
-                    .foregroundStyle(CadreColors.textSecondary)
+        let (message, ctaLabel, ctaAction): (String, String, () -> Void) = {
+            switch selectedMetric.group {
+            case .core where selectedMetric == .weight:
+                return (
+                    "Log a weigh-in to start building your trend.",
+                    "Log Weigh-In",
+                    { appState?.selectedTab = .now }
+                )
+            case .measurements:
+                return (
+                    "Log a measurement on the Body tab to start tracking it here.",
+                    "Go to Body",
+                    { appState?.selectedTab = .body }
+                )
+            default:
+                return (
+                    "Add an InBody scan on the Body tab to start tracking this metric.",
+                    "Go to Body",
+                    { appState?.selectedTab = .body }
+                )
             }
-            Text("No data yet")
-                .font(CadreTypography.trendsEmptyTitle)
-                .tracking(-0.1)
-                .foregroundStyle(CadreColors.textPrimary)
-            Text("Log an entry to start building your trend.")
-                .font(CadreTypography.trendsEmptyBody)
-                .foregroundStyle(CadreColors.textTertiary)
-                .multilineTextAlignment(.center)
-                .frame(maxWidth: 220)
-        }
-        .frame(maxWidth: .infinity)
-        .padding(.top, 80)
+        }()
+
+        return EmptyStateCard(
+            systemImage: selectedMetric.icon,
+            title: "No data yet",
+            message: message,
+            ctaLabel: ctaLabel,
+            ctaAction: ctaAction
+        )
+        .padding(.top, 60)
     }
 
     // MARK: - Fullscreen chart (landscape two-column layout)

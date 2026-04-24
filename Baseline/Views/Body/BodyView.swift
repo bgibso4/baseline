@@ -22,7 +22,6 @@ struct BodyView: View {
     @State private var vm: BodyViewModel?
     @State private var showLogMeasurement = false
     @State private var showScanEntry = false
-    private let scanTip = ScanTip()
 
     init(viewModel: BodyViewModel? = nil) {
         self.injectedVM = viewModel
@@ -50,9 +49,6 @@ struct BodyView: View {
 
                 ScrollView {
                     VStack(spacing: 0) {
-                        TipView(scanTip)
-                            .padding(.horizontal, CadreSpacing.sheetHorizontal)
-                            .padding(.top, 8)
                         bodyCompositionSection
                         scanHistoryCard
                             .padding(.horizontal, CadreSpacing.sheetHorizontal)
@@ -142,6 +138,13 @@ struct BodyView: View {
                 }
                 .padding(.horizontal, CadreSpacing.sheetHorizontal)
                 .transition(.opacity)
+            } else {
+                EmptyStateCard(
+                    systemImage: "doc.text.magnifyingglass",
+                    title: "No scans yet",
+                    message: "Capture an InBody printout to see body fat, muscle, BMR, and more."
+                )
+                .padding(.horizontal, CadreSpacing.sheetHorizontal)
             }
         }
         .animation(.easeIn(duration: 0.25), value: bodyCompTiles?.count)
@@ -170,6 +173,13 @@ struct BodyView: View {
                         )
                     }
                 }
+                .padding(.horizontal, CadreSpacing.sheetHorizontal)
+            } else {
+                EmptyStateCard(
+                    systemImage: "ruler",
+                    title: "No measurements yet",
+                    message: "Log waist, chest, and other tape measurements to track them here."
+                )
                 .padding(.horizontal, CadreSpacing.sheetHorizontal)
             }
         }

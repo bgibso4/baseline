@@ -13,6 +13,8 @@ struct ScanHistoryView: View {
     let onDelete: (Scan) -> Void
     let decodedPayload: (Scan) -> ScanContent?
 
+    @State private var showScanEntry = false
+
     var body: some View {
         ZStack {
             GradientBackground(center: .top)
@@ -41,6 +43,9 @@ struct ScanHistoryView: View {
         }
         .navigationTitle("Scans")
         .navigationBarTitleDisplayMode(.inline)
+        .fullScreenCover(isPresented: $showScanEntry) {
+            ScanEntryFlow()
+        }
     }
 
     // MARK: - Row
@@ -119,13 +124,17 @@ struct ScanHistoryView: View {
     // MARK: - Empty
 
     private var emptyState: some View {
-        VStack(spacing: 12) {
-            Image(systemName: "doc.text.magnifyingglass")
-                .font(.system(size: 36, weight: .light))
-                .foregroundStyle(CadreColors.textTertiary)
-            Text("No scans yet")
-                .font(.system(size: 13, weight: .semibold))
-                .foregroundStyle(CadreColors.textTertiary)
+        VStack {
+            Spacer()
+            EmptyStateCard(
+                systemImage: "doc.text.magnifyingglass",
+                title: "No scans yet",
+                message: "Capture your first InBody printout to track body composition over time.",
+                ctaLabel: "Add a Scan",
+                ctaAction: { showScanEntry = true }
+            )
+            Spacer()
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }

@@ -35,14 +35,14 @@ struct ScanDetailView: View {
                     .padding(.bottom, CadreSpacing.xl)
                 }
             } else {
-                VStack(spacing: 12) {
-                    Image(systemName: "exclamationmark.triangle")
-                        .font(.system(size: 36, weight: .light))
-                        .foregroundStyle(CadreColors.textTertiary)
-                    Text("Unable to decode scan")
-                        .font(.system(size: 13, weight: .semibold))
-                        .foregroundStyle(CadreColors.textTertiary)
-                }
+                EmptyStateCard(
+                    systemImage: "exclamationmark.triangle",
+                    title: "Scan data unreadable",
+                    message: "This scan was saved with an older format we can't display. Delete it and capture the printout again to restore the data.",
+                    ctaLabel: "Delete Scan",
+                    ctaAction: { showDeleteConfirm = true },
+                    iconTint: CadreColors.danger
+                )
             }
         }
         .navigationTitle(scanTitle)

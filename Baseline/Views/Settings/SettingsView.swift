@@ -1,5 +1,7 @@
 import SwiftUI
 import SwiftData
+import HealthKit
+import UIKit
 
 /// Settings screen — 7 grouped sections matching `settings-v1-2026-04-05.html`.
 ///
@@ -10,6 +12,7 @@ struct SettingsView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var vm: SettingsViewModel
     @State private var showDeleteConfirmation = false
+    @State private var healthKitStatus: HKAuthorizationStatus = .notDetermined
     #if DEBUG
     @State private var showLoadConfirm = false
     @State private var showClearConfirm = false
@@ -29,6 +32,7 @@ struct SettingsView: View {
                     unitsSection
                     appearanceSection
                     dataSection
+                    healthSection
                     aboutSection
                     resetSection
                     #if DEBUG
@@ -87,6 +91,36 @@ struct SettingsView: View {
             Text("This will delete all weight entries, scans, and measurements.")
         }
         #endif
+        .onAppear(perform: refreshHealthKitStatus)
+    }
+
+    // MARK: - HealthKit Status
+
+    /// Query the write-auth status for a representative type we actually save
+    /// (bodyMass). HealthKit deliberately won't tell you *read* status, but
+    /// write status is accurate and mirrors the user's consent.
+    private func refreshHealthKitStatus() {
+        guard HKHealthStore.isHealthDataAvailable() else {
+            healthKitStatus = .sharingDenied // treat as unavailable for the UI
+            return
+        }
+        healthKitStatus = HKHealthStore().authorizationStatus(for: HKQuantityType(.bodyMass))
+    }
+
+    private func handleHealthRowTap() {
+        switch healthKitStatus {
+        case .notDetermined:
+            Task {
+                await HealthKitManager.requestAuthorizationIfNeeded()
+                await MainActor.run { refreshHealthKitStatus() }
+            }
+        case .sharingDenied:
+            if let url = URL(string: UIApplication.openSettingsURLString) {
+                UIApplication.shared.open(url)
+            }
+        default:
+            break
+        }
     }
 
     // MARK: - Profile Section
@@ -225,6 +259,95 @@ struct SettingsView: View {
                     style: .action
                 )
             }
+        }
+    }
+
+    // MARK: - Health Section
+
+    @ViewBuilder
+    private var healthSection: some View {
+        if HKHealthStore.isHealthDataAvailable() {
+            SettingsSectionView(title: "HEALTH") {
+                Button(action: handleHealthRowTap) {
+                    HStack(spacing: 14) {
+                        SettingsRowIcon(
+                            systemName: healthKitIcon,
+                            tint: healthKitIconTint
+                        )
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Apple Health")
+                                .font(.system(size: 14, weight: .medium))
+                                .foregroundStyle(CadreColors.textPrimary)
+                                .tracking(-0.1)
+                            Text(healthKitSubtitle)
+                                .font(.system(size: 11, weight: .medium))
+                                .foregroundStyle(CadreColors.textTertiary)
+                        }
+                        Spacer()
+                        Text(healthKitStatusLabel)
+                            .font(.system(size: 10, weight: .bold))
+                            .textCase(.uppercase)
+                            .tracking(0.4)
+                            .foregroundStyle(healthKitStatusColor)
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 3)
+                            .background(
+                                healthKitStatusColor.opacity(0.12),
+                                in: RoundedRectangle(cornerRadius: 5)
+                            )
+                        if healthKitStatus != .sharingAuthorized {
+                            Image(systemName: "chevron.right")
+                                .font(.system(size: 12, weight: .semibold))
+                                .foregroundStyle(CadreColors.textTertiary)
+                        }
+                    }
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 14)
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .disabled(healthKitStatus == .sharingAuthorized)
+            }
+        }
+    }
+
+    private var healthKitIcon: String {
+        switch healthKitStatus {
+        case .sharingAuthorized: return "heart.fill"
+        case .sharingDenied: return "heart.slash"
+        default: return "heart"
+        }
+    }
+
+    private var healthKitIconTint: SettingsIconTint {
+        switch healthKitStatus {
+        case .sharingAuthorized: return .success
+        case .sharingDenied: return .danger
+        default: return .accent
+        }
+    }
+
+    private var healthKitStatusLabel: String {
+        switch healthKitStatus {
+        case .sharingAuthorized: return "Connected"
+        case .sharingDenied: return "Denied"
+        default: return "Not set"
+        }
+    }
+
+    private var healthKitStatusColor: Color {
+        switch healthKitStatus {
+        case .sharingAuthorized: return CadreColors.success
+        case .sharingDenied: return CadreColors.danger
+        default: return CadreColors.textSecondary
+        }
+    }
+
+    private var healthKitSubtitle: String {
+        switch healthKitStatus {
+        case .sharingAuthorized: return "Baseline is syncing to Apple Health."
+        case .sharingDenied: return "Tap to enable in Settings."
+        default: return "Tap to allow Baseline to write your metrics."
         }
     }
 

@@ -83,6 +83,7 @@
 		8A6C14E968F3488B503E757A /* SettingsViewSnapshotTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A302A68AB0914998FB21EF79 /* SettingsViewSnapshotTests.swift */; };
 		905B4B275BC4613C047A33A6 /* SparklineView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1F7BB657D83894D1E5B4400 /* SparklineView.swift */; };
 		1A2B3C4D5E6F7890ABCDEF01 /* ProcessingIndicator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FEDCBA9876543210FEDCBA9 /* ProcessingIndicator.swift */; };
+		2B3C4D5E6F7890ABCDEF0123 /* EmptyStateCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1FEDCBA9876543210FEDCB11 /* EmptyStateCard.swift */; };
 		90A6AE6C1B21C9219AD0C300 /* CSVExporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A9983801F2F087AB7948B5C /* CSVExporter.swift */; };
 		C2F206C2F206C2F206C2F206 /* CSVImporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2F205C2F205C2F205C2F205 /* CSVImporter.swift */; };
 		C2F208C2F208C2F208C2F208 /* CSVImporterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2F207C2F207C2F207C2F207 /* CSVImporterTests.swift */; };
@@ -241,6 +242,7 @@
 		9D4F5BD3681AD8577A6A3B0C /* CadreTokens.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CadreTokens.swift; sourceTree = "<group>"; };
 		A1F7BB657D83894D1E5B4400 /* SparklineView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SparklineView.swift; sourceTree = "<group>"; };
 		0FEDCBA9876543210FEDCBA9 /* ProcessingIndicator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProcessingIndicator.swift; sourceTree = "<group>"; };
+		1FEDCBA9876543210FEDCB11 /* EmptyStateCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmptyStateCard.swift; sourceTree = "<group>"; };
 		A274239D844A8E6B1DA7FBC5 /* LogMeasurementSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogMeasurementSheet.swift; sourceTree = "<group>"; };
 		A302A68AB0914998FB21EF79 /* SettingsViewSnapshotTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsViewSnapshotTests.swift; sourceTree = "<group>"; };
 		A472F5E582548C05BBD1A751 /* HistoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryView.swift; sourceTree = "<group>"; };
@@ -549,6 +551,7 @@
 				F48EFFC280B6AF1B4D90AADE /* MetricTile.swift */,
 				A1F7BB657D83894D1E5B4400 /* SparklineView.swift */,
 				0FEDCBA9876543210FEDCBA9 /* ProcessingIndicator.swift */,
+				1FEDCBA9876543210FEDCB11 /* EmptyStateCard.swift */,
 			);
 			path = Components;
 			sourceTree = "<group>";
@@ -962,6 +965,7 @@
 				21BB0A4DAE9AC51C0987DC67 /* SettingsViewModel.swift in Sources */,
 				905B4B275BC4613C047A33A6 /* SparklineView.swift in Sources */,
 				1A2B3C4D5E6F7890ABCDEF01 /* ProcessingIndicator.swift in Sources */,
+				2B3C4D5E6F7890ABCDEF0123 /* EmptyStateCard.swift in Sources */,
 				C10684A3EC9B98187CDBA383 /* SyncHelper.swift in Sources */,
 				B75C84191E094A7A6442247B /* SyncState.swift in Sources */,
 				1D2B86EC0CD2F6E04169B12A /* TestDataSeeder.swift in Sources */,
