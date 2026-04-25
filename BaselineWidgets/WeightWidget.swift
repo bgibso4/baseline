@@ -81,7 +81,7 @@ struct WeightWidgetSmallView: View {
     let entry: WeightTimelineEntry
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
+        VStack(alignment: .leading, spacing: 8) {
             // Top label row
             HStack(spacing: 5) {
                 Circle()
@@ -94,34 +94,34 @@ struct WeightWidgetSmallView: View {
                     .foregroundStyle(widgetTextTertiary)
             }
 
-            Spacer()
-
             // Hero weight
             if let weight = entry.currentWeight {
-                HStack(alignment: .firstTextBaseline, spacing: 3) {
-                    Text(UnitConversion.formatWeight(weight, unit: entry.unit))
-                        .font(.system(size: 42, weight: .bold))
-                        .tracking(-1.1)
-                        .foregroundStyle(widgetTextPrimary)
-                        .lineLimit(1)
-                        .minimumScaleFactor(0.6)
-                    Text(entry.unit)
-                        .font(.system(size: 12, weight: .medium))
-                        .foregroundStyle(widgetTextSecondary)
-                }
+                VStack(alignment: .leading, spacing: 4) {
+                    HStack(alignment: .firstTextBaseline, spacing: 3) {
+                        Text(UnitConversion.formatWeight(weight, unit: entry.unit))
+                            .font(.system(size: 42, weight: .bold))
+                            .tracking(-1.1)
+                            .foregroundStyle(widgetTextPrimary)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.6)
+                        Text(entry.unit)
+                            .font(.system(size: 12, weight: .medium))
+                            .foregroundStyle(widgetTextSecondary)
+                    }
 
-                // Delta
-                if let delta = computedDelta {
-                    Text(deltaString(delta))
-                        .font(.system(size: 11, weight: .semibold))
-                        .foregroundStyle(widgetAccent)
-                        .padding(.top, 4)
+                    if let delta = computedDelta {
+                        Text(deltaString(delta))
+                            .font(.system(size: 11, weight: .semibold))
+                            .foregroundStyle(widgetAccent)
+                    }
                 }
             } else {
                 Text("No data")
                     .font(.system(size: 15, weight: .medium))
                     .foregroundStyle(widgetTextTertiary)
             }
+
+            Spacer(minLength: 0)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .containerBackground(widgetBg, for: .widget)
@@ -146,7 +146,7 @@ struct WeightWidgetMediumView: View {
 
     var body: some View {
         HStack(spacing: 18) {
-            VStack(alignment: .leading, spacing: 0) {
+            VStack(alignment: .leading, spacing: 8) {
                 // Top label row
                 HStack(spacing: 5) {
                     Circle()
@@ -163,33 +163,34 @@ struct WeightWidgetMediumView: View {
                         .foregroundStyle(widgetTextTertiary)
                 }
 
-                Spacer()
-
                 // Hero weight
                 if let weight = entry.currentWeight {
-                    HStack(alignment: .firstTextBaseline, spacing: 4) {
-                        Text(UnitConversion.formatWeight(weight, unit: entry.unit))
-                            .font(.system(size: 48, weight: .bold))
-                            .tracking(-1.3)
-                            .foregroundStyle(widgetTextPrimary)
-                            .lineLimit(1)
-                            .minimumScaleFactor(0.6)
-                        Text(entry.unit)
-                            .font(.system(size: 14, weight: .medium))
-                            .foregroundStyle(widgetTextSecondary)
-                    }
+                    VStack(alignment: .leading, spacing: 4) {
+                        HStack(alignment: .firstTextBaseline, spacing: 4) {
+                            Text(UnitConversion.formatWeight(weight, unit: entry.unit))
+                                .font(.system(size: 48, weight: .bold))
+                                .tracking(-1.3)
+                                .foregroundStyle(widgetTextPrimary)
+                                .lineLimit(1)
+                                .minimumScaleFactor(0.6)
+                            Text(entry.unit)
+                                .font(.system(size: 14, weight: .medium))
+                                .foregroundStyle(widgetTextSecondary)
+                        }
 
-                    if let delta = computedDelta {
-                        Text(compactDeltaString(delta))
-                            .font(.system(size: 11, weight: .semibold))
-                            .foregroundStyle(widgetAccent)
-                            .padding(.top, 4)
+                        if let delta = computedDelta {
+                            Text(compactDeltaString(delta))
+                                .font(.system(size: 11, weight: .semibold))
+                                .foregroundStyle(widgetAccent)
+                        }
                     }
                 } else {
                     Text("No data yet")
                         .font(.system(size: 15, weight: .medium))
                         .foregroundStyle(widgetTextTertiary)
                 }
+
+                Spacer(minLength: 0)
             }
 
             // Sparkline placeholder area

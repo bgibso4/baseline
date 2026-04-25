@@ -38,7 +38,7 @@ struct WeightRectangularView: View {
     let entry: WeightTimelineEntry
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
+        VStack(alignment: .leading, spacing: 6) {
             // Top row: dot + label
             HStack(spacing: 5) {
                 Circle()
@@ -50,8 +50,6 @@ struct WeightRectangularView: View {
                     .tracking(0.5)
                     .opacity(0.75)
             }
-
-            Spacer()
 
             // Main row: weight + delta
             HStack(alignment: .firstTextBaseline, spacing: 8) {
@@ -77,6 +75,8 @@ struct WeightRectangularView: View {
                         .opacity(0.6)
                 }
             }
+
+            Spacer(minLength: 0)
         }
         .containerBackground(.fill.tertiary, for: .widget)
     }
