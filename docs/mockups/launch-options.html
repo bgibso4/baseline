@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Baseline — Launch options A/B/C</title>
+<style>
+  :root {
+    --bg: #0B0B0E;
+    --bg-grad: #111520;
+    --card: #17171B;
+    --card-elevated: #1F1F24;
+    --accent: #6B7B94;
+    --accent-fill: #6B7B94;
+    --text-primary: #F2F3F5;
+    --text-secondary: #797B83;
+    --text-tertiary: #7A7D86;
+    --divider: #2A2A30;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font: 14px/1.5 -apple-system, system-ui, sans-serif;
+    background: #0a0a0c;
+    color: var(--text-primary);
+    padding: 40px 24px 80px;
+  }
+  h1 {
+    margin: 0 0 8px;
+    font-size: 24px;
+    letter-spacing: -0.4px;
+  }
+  .lede {
+    color: var(--text-secondary);
+    margin: 0 0 40px;
+    max-width: 760px;
+  }
+  .stage {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 32px;
+    max-width: 1280px;
+    margin: 0 auto;
+  }
+  .col {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+  }
+  .label h2 {
+    margin: 0 0 6px;
+    font-size: 12px;
+    letter-spacing: 0.6px;
+    text-transform: uppercase;
+    color: var(--accent);
+    text-align: center;
+  }
+  .label .name {
+    font-size: 16px;
+    font-weight: 600;
+    text-align: center;
+    margin-bottom: 4px;
+  }
+  .label .desc {
+    color: var(--text-secondary);
+    font-size: 12px;
+    line-height: 1.5;
+    max-width: 280px;
+    text-align: center;
+  }
+  .label .timing {
+    color: var(--text-tertiary);
+    font-size: 10px;
+    margin-top: 6px;
+    letter-spacing: 0.4px;
+  }
+
+  /* iPhone frame */
+  .phone {
+    width: 280px;
+    height: 605px;
+    border-radius: 46px;
+    background: #000;
+    padding: 11px;
+    box-shadow: 0 0 0 2px #1a1a1f, 0 24px 48px rgba(0,0,0,0.55);
+    position: relative;
+  }
+  .screen {
+    width: 100%;
+    height: 100%;
+    border-radius: 36px;
+    overflow: hidden;
+    position: relative;
+    background: radial-gradient(ellipse 100% 60% at 50% 10%, var(--bg-grad), var(--bg));
+  }
+  .island {
+    position: absolute;
+    top: 11px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 84px;
+    height: 24px;
+    background: #000;
+    border-radius: 12px;
+    z-index: 5;
+  }
+
+  /* Splash icon — shared composition matching real AppIcon */
+  .splash-stage {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2;
+    transition: opacity 0.5s ease;
+  }
+  .splash-stage.gone { opacity: 0; pointer-events: none; }
+
+  /* The brand mark — drawn via canvas */
+  canvas.mark {
+    width: 180px;
+    height: 180px;
+    border-radius: 36px;
+    background: var(--bg);
+  }
+
+  /* Now-tab preview */
+  .now-preview {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    transition: opacity 0.5s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    color: var(--text-primary);
+    padding: 80px 24px 0;
+  }
+  .now-preview.visible { opacity: 1; }
+  .gauge-wrap {
+    width: 220px;
+    height: 175px;
+    position: relative;
+    margin-bottom: 12px;
+  }
+  .gauge-wrap svg { width: 100%; height: 100%; overflow: visible; }
+  .gauge-wrap .track {
+    fill: none;
+    stroke: var(--divider);
+    stroke-width: 5;
+    stroke-linecap: round;
+  }
+  .gauge-wrap .progress {
+    fill: none;
+    stroke: var(--accent);
+    stroke-width: 5;
+    stroke-linecap: round;
+    stroke-dasharray: 380;
+    stroke-dashoffset: 380;
+    transition: stroke-dashoffset 1.2s cubic-bezier(.2,.8,.2,1);
+  }
+  .gauge-wrap .dot {
+    fill: var(--accent);
+    transform-origin: 110px 110px;
+    opacity: 0;
+    transition: opacity 0.3s ease 0.9s;
+  }
+  .now-preview.visible .progress { stroke-dashoffset: 95; }
+  .now-preview.visible .dot { opacity: 1; }
+  .weight-row {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -36%);
+    text-align: center;
+  }
+  .weight-num {
+    font-size: 44px;
+    font-weight: 700;
+    letter-spacing: -1.2px;
+    line-height: 1;
+  }
+  .weight-num .unit {
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    margin-left: 4px;
+  }
+  .today {
+    color: var(--text-secondary);
+    font-size: 11px;
+    margin-top: 4px;
+  }
+  .toggle {
+    margin-top: 8px;
+    display: flex;
+    gap: 4px;
+    background: var(--card-elevated);
+    padding: 3px;
+    border-radius: 7px;
+    font-size: 11px;
+    color: var(--text-secondary);
+  }
+  .toggle .opt {
+    padding: 3px 9px;
+  }
+  .toggle .opt.active {
+    background: var(--accent);
+    color: white;
+    border-radius: 5px;
+  }
+
+  /* Option C: morphing icon overlay */
+  .morph-icon {
+    position: absolute;
+    width: 180px;
+    height: 180px;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    transition: transform 1.0s cubic-bezier(.5,.0,.2,1), opacity 0.4s ease 0.6s;
+    z-index: 4;
+    pointer-events: none;
+  }
+  .morph-icon canvas { width: 100%; height: 100%; border-radius: 36px; }
+
+  .toolbar {
+    text-align: center;
+    margin-top: 40px;
+  }
+  button {
+    background: var(--card-elevated);
+    color: var(--text-primary);
+    border: 1px solid var(--divider);
+    border-radius: 10px;
+    padding: 10px 20px;
+    cursor: pointer;
+    font: 13px/1 inherit;
+    margin: 0 6px;
+  }
+  button:hover { background: var(--accent); border-color: var(--accent); color: white; }
+  .meta {
+    color: var(--text-tertiary);
+    font-size: 11px;
+    margin-top: 12px;
+  }
+
+  /* Option B beat keyframe applied to a transform on the canvas */
+  .beat {
+    animation: heartbeat 700ms cubic-bezier(.2,.7,.3,1) 1;
+  }
+  @keyframes heartbeat {
+    0%   { transform: scaleY(1); }
+    18%  { transform: scaleY(0.55); } /* compress */
+    32%  { transform: scaleY(1.18); } /* rebound */
+    55%  { transform: scaleY(0.94); }
+    100% { transform: scaleY(1); }
+  }
+</style>
+</head>
+<body>
+
+<h1>Launch options — A, B, C</h1>
+<p class="lede">
+  Three paths from app icon tap → live UI. All three start with an identical static splash
+  (matching the home-screen icon the user just tapped) so the OS→Swift handoff has zero pop.
+  They diverge in what — if anything — happens between the splash and Now.
+</p>
+
+<div class="stage">
+
+  <!-- Option A: no launch animation -->
+  <div class="col">
+    <div class="label">
+      <h2>Option A · Recommended</h2>
+      <div class="name">Skip the launch animation</div>
+      <div class="desc">Splash crossfades straight to Now. The gauge's existing draw-on becomes the brand reveal.</div>
+      <div class="timing">~600 ms total · zero new code</div>
+    </div>
+    <div class="phone">
+      <div class="island"></div>
+      <div class="screen" data-option="a">
+        <div class="splash-stage"><canvas class="mark" width="180" height="180"></canvas></div>
+        <div class="now-preview"><svg viewBox="0 0 220 175">
+          <path class="track" d="M 14 120 A 96 96 0 1 1 206 120"/>
+          <path class="progress" d="M 14 120 A 96 96 0 1 1 206 120"/>
+          <circle class="dot" cx="14" cy="120" r="6"/>
+        </svg>
+          <div class="weight-row">
+            <div class="weight-num">197.4<span class="unit">lb</span></div>
+            <div class="today">Today</div>
+          </div>
+          <div class="toggle">
+            <span class="opt active">30D</span>
+            <span class="opt">90D</span>
+            <span class="opt">All</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Option B: heartbeat pulse -->
+  <div class="col">
+    <div class="label">
+      <h2>Option B</h2>
+      <div class="name">Heartbeat pulse</div>
+      <div class="desc">Splash holds → EKG peak compresses + rebounds once → crossfade. One beat, then live.</div>
+      <div class="timing">~1200 ms total · ~30 lines of SwiftUI</div>
+    </div>
+    <div class="phone">
+      <div class="island"></div>
+      <div class="screen" data-option="b">
+        <div class="splash-stage"><canvas class="mark" width="180" height="180"></canvas></div>
+        <div class="now-preview"><svg viewBox="0 0 220 175">
+          <path class="track" d="M 14 120 A 96 96 0 1 1 206 120"/>
+          <path class="progress" d="M 14 120 A 96 96 0 1 1 206 120"/>
+          <circle class="dot" cx="14" cy="120" r="6"/>
+        </svg>
+          <div class="weight-row">
+            <div class="weight-num">197.4<span class="unit">lb</span></div>
+            <div class="today">Today</div>
+          </div>
+          <div class="toggle">
+            <span class="opt active">30D</span>
+            <span class="opt">90D</span>
+            <span class="opt">All</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Option C: morph to gauge -->
+  <div class="col">
+    <div class="label">
+      <h2>Option C · Ambitious</h2>
+      <div class="name">Morph to gauge</div>
+      <div class="desc">Icon scales down + slides into the gauge dot's start position as the arc sweeps in.</div>
+      <div class="timing">~1500 ms total · careful tuning needed</div>
+    </div>
+    <div class="phone">
+      <div class="island"></div>
+      <div class="screen" data-option="c">
+        <div class="splash-stage"><canvas class="mark" width="180" height="180"></canvas></div>
+        <div class="now-preview"><svg viewBox="0 0 220 175">
+          <path class="track" d="M 14 120 A 96 96 0 1 1 206 120"/>
+          <path class="progress" d="M 14 120 A 96 96 0 1 1 206 120"/>
+          <circle class="dot" cx="14" cy="120" r="6"/>
+        </svg>
+          <div class="weight-row">
+            <div class="weight-num">197.4<span class="unit">lb</span></div>
+            <div class="today">Today</div>
+          </div>
+          <div class="toggle">
+            <span class="opt active">30D</span>
+            <span class="opt">90D</span>
+            <span class="opt">All</span>
+          </div>
+        </div>
+        <div class="morph-icon"><canvas class="mark" width="180" height="180"></canvas></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="toolbar">
+  <button onclick="play('a')">Replay A</button>
+  <button onclick="play('b')">Replay B</button>
+  <button onclick="play('c')">Replay C</button>
+  <button onclick="playAll()">Replay all</button>
+  <div class="meta">Each starts on the splash → triggers its handoff → ends on Now.</div>
+</div>
+
+<script>
+// ─── Brand mark drawing — matches real AppIcon: EKG line + blue area fill on charcoal ───
+function drawMark(canvas) {
+  const ctx = canvas.getContext('2d');
+  const w = canvas.width, h = canvas.height;
+  ctx.clearRect(0, 0, w, h);
+
+  // Background already set via CSS, but draw rounded clipped charcoal as base for safety
+  ctx.fillStyle = '#0B0B0E';
+  ctx.fillRect(0, 0, w, h);
+
+  // EKG points scaled into the icon
+  const padX = 0.10;
+  const baseY = h * 0.58;
+  const sx = w * padX;
+  const ex = w * (1 - padX);
+  const range = ex - sx;
+  const peakUp = h * 0.18;
+  const peakDown = h * 0.14;
+  const recover = h * 0.10;
+
+  const pts = [
+    { x: sx,                y: baseY },
+    { x: sx + range * 0.30, y: baseY },
+    { x: sx + range * 0.37, y: baseY },
+    { x: sx + range * 0.42, y: baseY - peakUp },
+    { x: sx + range * 0.48, y: baseY + peakDown },
+    { x: sx + range * 0.53, y: baseY - recover },
+    { x: sx + range * 0.58, y: baseY },
+    { x: sx + range * 0.65, y: baseY },
+    { x: ex,                y: baseY },
+  ];
+
+  // Area fill (under the EKG line) — accent gradient fading to nothing at bottom
+  const grad = ctx.createLinearGradient(0, baseY - peakUp, 0, h);
+  grad.addColorStop(0, 'rgba(107, 123, 148, 0.55)');
+  grad.addColorStop(1, 'rgba(107, 123, 148, 0.04)');
+  ctx.fillStyle = grad;
+  ctx.beginPath();
+  ctx.moveTo(pts[0].x, h);
+  pts.forEach(p => ctx.lineTo(p.x, p.y));
+  ctx.lineTo(pts[pts.length - 1].x, h);
+  ctx.closePath();
+  ctx.fill();
+
+  // EKG line on top
+  ctx.strokeStyle = '#A8B5C8';
+  ctx.lineWidth = 5;
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+  ctx.beginPath();
+  ctx.moveTo(pts[0].x, pts[0].y);
+  for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i].x, pts[i].y);
+  ctx.stroke();
+}
+
+// Init all canvases
+document.querySelectorAll('canvas.mark').forEach(drawMark);
+
+// ─── Animation drivers ───
+function reset(option) {
+  const screen = document.querySelector(`.screen[data-option="${option}"]`);
+  screen.querySelector('.splash-stage').classList.remove('gone');
+  screen.querySelector('.now-preview').classList.remove('visible');
+  const morph = screen.querySelector('.morph-icon');
+  if (morph) {
+    morph.style.transform = 'translate(-50%, -50%) scale(1)';
+    morph.style.opacity = '1';
+  }
+  const splashCanvas = screen.querySelector('.splash-stage canvas');
+  splashCanvas.classList.remove('beat');
+  // Force reflow so re-adding class re-triggers animation
+  void splashCanvas.offsetWidth;
+}
+
+function play(option) {
+  reset(option);
+  const screen = document.querySelector(`.screen[data-option="${option}"]`);
+  const splash = screen.querySelector('.splash-stage');
+  const preview = screen.querySelector('.now-preview');
+  const splashCanvas = screen.querySelector('.splash-stage canvas');
+
+  if (option === 'a') {
+    // 200ms hold → crossfade to preview
+    setTimeout(() => {
+      splash.classList.add('gone');
+      preview.classList.add('visible');
+    }, 200);
+  } else if (option === 'b') {
+    // 100ms hold → heartbeat → 200ms gap → crossfade to preview
+    setTimeout(() => splashCanvas.classList.add('beat'), 100);
+    setTimeout(() => {
+      splash.classList.add('gone');
+      preview.classList.add('visible');
+    }, 1000);
+  } else if (option === 'c') {
+    // 100ms hold → morph: shrink + translate icon to gauge dot start position
+    // while Now preview fades in underneath
+    const morph = screen.querySelector('.morph-icon');
+    setTimeout(() => {
+      // Make the splash-stage transparent immediately; morph icon takes over
+      splash.classList.add('gone');
+      preview.classList.add('visible');
+      // Translate icon to top-left of the gauge arc (where the dot starts on the SVG)
+      // Gauge container is 220×175, dot starts at (14, 120) in viewBox.
+      // Convert to phone-screen coords: gauge container is centered horizontally,
+      // top: 80px + ~40px header offset. Approximate translate to land on dot.
+      morph.style.transform = 'translate(-130px, -180px) scale(0.07)';
+      morph.style.opacity = '0';
+    }, 100);
+  }
+}
+
+function playAll() { ['a','b','c'].forEach(play); }
+
+// Auto-play once on load
+window.addEventListener('load', () => {
+  setTimeout(playAll, 400);
+});
+</script>
+
+</body>
+</html>
