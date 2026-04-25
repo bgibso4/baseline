@@ -10,8 +10,8 @@ options:
 settings:
   base:
     SWIFT_VERSION: "5.9"
-    MARKETING_VERSION: "1.0.0"
-    CURRENT_PROJECT_VERSION: 2
+    MARKETING_VERSION: "0.0.1"
+    CURRENT_PROJECT_VERSION: 3
 
 packages:
   SnapshotTesting:
@@ -40,6 +40,9 @@ targets:
     info:
       path: Baseline/Info.plist
       properties:
+        CFBundleDisplayName: "Baseline"
+        CFBundleShortVersionString: "$(MARKETING_VERSION)"
+        CFBundleVersion: "$(CURRENT_PROJECT_VERSION)"
         UILaunchScreen: {}
         UIBackgroundModes:
           - remote-notification
@@ -56,6 +59,10 @@ targets:
         PRODUCT_BUNDLE_IDENTIFIER: com.cadre.baseline
         CODE_SIGN_ENTITLEMENTS: Baseline/Baseline.entitlements
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        # iPhone only — iPad support tracked as future work (#54).
+        # Avoids the iPad multitasking requirement of all four
+        # UISupportedInterfaceOrientations including PortraitUpsideDown.
+        TARGETED_DEVICE_FAMILY: "1"
     entitlements:
       path: Baseline/Baseline.entitlements
       properties:
@@ -90,6 +97,9 @@ targets:
     info:
       path: BaselineWidgets/Info.plist
       properties:
+        CFBundleDisplayName: "Baseline Widgets"
+        CFBundleShortVersionString: "$(MARKETING_VERSION)"
+        CFBundleVersion: "$(CURRENT_PROJECT_VERSION)"
         NSExtension:
           NSExtensionPointIdentifier: com.apple.widgetkit-extension
     sources:
@@ -101,6 +111,8 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.cadre.baseline.widgets
         GENERATE_INFOPLIST_FILE: NO
+        # Match main app target — iPhone only for v1.0
+        TARGETED_DEVICE_FAMILY: "1"
     entitlements:
       path: BaselineWidgets/BaselineWidgets.entitlements
       properties:
