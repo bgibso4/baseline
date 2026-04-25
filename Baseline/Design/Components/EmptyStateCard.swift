@@ -23,19 +23,19 @@ struct EmptyStateCard: View {
                     .fill(CadreColors.cardElevated)
                     .frame(width: 52, height: 52)
                 Image(systemName: systemImage)
-                    .font(.system(size: 22, weight: .medium))
+                    .font(CadreTypography.scaled(size: 22, weight: .medium))
                     .foregroundStyle(iconTint)
             }
 
             VStack(spacing: 6) {
                 Text(title)
-                    .font(.system(size: 15, weight: .semibold))
+                    .font(CadreTypography.scaled(size: 15, weight: .semibold))
                     .tracking(-0.1)
                     .foregroundStyle(CadreColors.textPrimary)
                     .multilineTextAlignment(.center)
 
                 Text(message)
-                    .font(.system(size: 12, weight: .medium))
+                    .font(CadreTypography.scaled(size: 12, weight: .medium))
                     .foregroundStyle(CadreColors.textTertiary)
                     .multilineTextAlignment(.center)
                     .frame(maxWidth: 260)
@@ -45,7 +45,7 @@ struct EmptyStateCard: View {
             if let ctaLabel, let ctaAction {
                 Button(action: ctaAction) {
                     Text(ctaLabel)
-                        .font(.system(size: 13, weight: .semibold))
+                        .font(CadreTypography.scaled(size: 13, weight: .semibold))
                         .tracking(0.2)
                         .foregroundStyle(.white)
                         .padding(.horizontal, 18)

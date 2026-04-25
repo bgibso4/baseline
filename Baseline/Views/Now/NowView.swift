@@ -63,6 +63,7 @@ struct NowView: View {
                             .foregroundStyle(CadreColors.textSecondary)
                     }
                     .buttonStyle(.plain)
+                    .accessibilityLabel("Settings")
                 }
                 ToolbarItem(placement: .topBarTrailing) {
                     Button { showHistory = true } label: {
@@ -71,6 +72,7 @@ struct NowView: View {
                             .foregroundStyle(CadreColors.textSecondary)
                     }
                     .buttonStyle(.plain)
+                    .accessibilityLabel("History")
                 }
             }
             .toolbarBackgroundVisibility(.hidden, for: .navigationBar)

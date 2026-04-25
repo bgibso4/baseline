@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 // MARK: - Colors
 // Values are placeholders — refined during high-fidelity mockup phase.
@@ -13,7 +14,11 @@ enum CadreColors {
     // Text — locked neutrals
     static let textPrimary = Color(hex: "F2F3F5")
     static let textSecondary = Color(hex: "797B83")
-    static let textTertiary = Color(hex: "494B52")
+    /// Lifted from #494B52 (~2.1:1) to #7A7D86 (~3.5:1) so AA-Large /
+    /// non-text-UI elements clear WCAG AA on the charcoal bg. Used for
+    /// uppercase tile labels, metadata, and de-emphasized rows where
+    /// the user still needs to be able to read it.
+    static let textTertiary = Color(hex: "7A7D86")
 
     // Glass card — translucent version of card for use over gradients
     static let cardGlass = Color(hex: "17171B").opacity(0.75)
@@ -76,14 +81,77 @@ enum CadreTypography {
     /// Scaled font: uses the given base size but scales with Dynamic Type
     /// relative to the specified text style. Hero/display sizes cap at
     /// `.accessibility1` to prevent layout breakage.
-    private static func scaled(
+    /// Build a Dynamic-Type-respecting system font at a precise size.
+    ///
+    /// SwiftUI's public `Font.system(size:weight:design:)` returns a fixed
+    /// font that ignores Dynamic Type — and there's no public overload
+    /// that takes `relativeTo:`. This helper bridges through
+    /// `UIFontMetrics` so the result scales correctly. Prefer this over
+    /// `.font(.system(size:weight:))` anywhere user-readable text is
+    /// shown at a non-semantic size.
+    static func scaled(
         size: CGFloat,
         weight: Font.Weight,
         design: Font.Design = .default,
         relativeTo style: Font.TextStyle = .body
     ) -> Font {
-        .system(size: size, weight: weight, design: design)
-            .leading(.tight)
+        // SwiftUI's `Font.system(size:weight:design:)` returns a *fixed*
+        // point-size font that doesn't scale with Dynamic Type, and the
+        // public Font API has no `system(size:relativeTo:)` overload.
+        // To honor `relativeTo:` for system fonts, build a UIFont with
+        // the desired weight/design, run it through UIFontMetrics for
+        // the matching text style, and bridge back to SwiftUI Font.
+        let baseFont = uiFont(size: size, weight: weight, design: design)
+        let scaled = UIFontMetrics(forTextStyle: uiTextStyle(style)).scaledFont(for: baseFont)
+        return Font(scaled).leading(.tight)
+    }
+
+    private static func uiFont(size: CGFloat, weight: Font.Weight, design: Font.Design) -> UIFont {
+        let uiWeight: UIFont.Weight = {
+            switch weight {
+            case .ultraLight: return .ultraLight
+            case .thin: return .thin
+            case .light: return .light
+            case .regular: return .regular
+            case .medium: return .medium
+            case .semibold: return .semibold
+            case .bold: return .bold
+            case .heavy: return .heavy
+            case .black: return .black
+            default: return .regular
+            }
+        }()
+        let base = UIFont.systemFont(ofSize: size, weight: uiWeight)
+        guard design != .default else { return base }
+        let designSystem: UIFontDescriptor.SystemDesign = {
+            switch design {
+            case .rounded: return .rounded
+            case .serif: return .serif
+            case .monospaced: return .monospaced
+            default: return .default
+            }
+        }()
+        if let descriptor = base.fontDescriptor.withDesign(designSystem) {
+            return UIFont(descriptor: descriptor, size: size)
+        }
+        return base
+    }
+
+    private static func uiTextStyle(_ style: Font.TextStyle) -> UIFont.TextStyle {
+        switch style {
+        case .largeTitle: return .largeTitle
+        case .title: return .title1
+        case .title2: return .title2
+        case .title3: return .title3
+        case .headline: return .headline
+        case .subheadline: return .subheadline
+        case .body: return .body
+        case .callout: return .callout
+        case .footnote: return .footnote
+        case .caption: return .caption1
+        case .caption2: return .caption2
+        @unknown default: return .body
+        }
     }
 
     // MARK: Semantic aliases (backwards compat)

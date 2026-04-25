@@ -92,15 +92,15 @@ struct MetricPickerSheet: View {
                     .fill(CadreColors.cardElevated)
                     .frame(width: 26, height: 26)
                 Image(systemName: "arrow.triangle.swap")
-                    .font(.system(size: 12, weight: .semibold))
+                    .font(CadreTypography.scaled(size: 12, weight: .semibold))
                     .foregroundStyle(CadreColors.textSecondary)
             }
             VStack(alignment: .leading, spacing: 1) {
                 Text("Compare")
-                    .font(.system(size: 14, weight: .medium))
+                    .font(CadreTypography.scaled(size: 14, weight: .medium))
                     .foregroundStyle(CadreColors.textPrimary)
                 Text(compareEnabled ? "Primary is locked \u{2014} tap others to compare" : "Overlay a second metric")
-                    .font(.system(size: 10))
+                    .font(CadreTypography.scaled(size: 10, weight: .regular))
                     .foregroundStyle(CadreColors.textTertiary)
             }
             Spacer()
@@ -142,22 +142,22 @@ struct MetricPickerSheet: View {
                               : CadreColors.cardElevated)
                         .frame(width: 26, height: 26)
                     Image(systemName: metric.icon)
-                        .font(.system(size: 12, weight: .semibold))
+                        .font(CadreTypography.scaled(size: 12, weight: .semibold))
                         .foregroundStyle(isPrimary ? CadreColors.accent
                                          : isSecondary ? secondary
                                          : CadreColors.textSecondary)
                 }
                 Text(metric.displayName)
-                    .font(.system(size: 14, weight: .medium))
+                    .font(CadreTypography.scaled(size: 14, weight: .medium))
                     .foregroundStyle(CadreColors.textPrimary)
                 Spacer()
                 if isPrimary {
                     Image(systemName: "checkmark")
-                        .font(.system(size: 14, weight: .semibold))
+                        .font(CadreTypography.scaled(size: 14, weight: .semibold))
                         .foregroundStyle(CadreColors.accent)
                 } else if isSecondary {
                     Image(systemName: "checkmark")
-                        .font(.system(size: 14, weight: .semibold))
+                        .font(CadreTypography.scaled(size: 14, weight: .semibold))
                         .foregroundStyle(secondary)
                 }
             }
@@ -182,7 +182,7 @@ struct MetricPickerSheet: View {
     private func sectionLabel(_ title: String) -> some View {
         HStack {
             Text(title.uppercased())
-                .font(.system(size: 10, weight: .semibold))
+                .font(CadreTypography.scaled(size: 10, weight: .semibold))
                 .tracking(0.5)
                 .foregroundStyle(CadreColors.textTertiary)
             Spacer()
@@ -206,16 +206,16 @@ struct MetricPickerSheet: View {
         } label: {
             HStack(spacing: 10) {
                 Image(systemName: icon)
-                    .font(.system(size: 12))
+                    .font(CadreTypography.scaled(size: 12, weight: .regular))
                     .foregroundStyle(isActive ? secondary : CadreColors.textSecondary)
                     .frame(width: 26)
                 Text(period.rawValue)
-                    .font(.system(size: 14, weight: .medium))
+                    .font(CadreTypography.scaled(size: 14, weight: .medium))
                     .foregroundStyle(CadreColors.textPrimary)
                 Spacer()
                 if isActive {
                     Image(systemName: "checkmark")
-                        .font(.system(size: 14, weight: .semibold))
+                        .font(CadreTypography.scaled(size: 14, weight: .semibold))
                         .foregroundStyle(secondary)
                 }
             }
@@ -234,15 +234,15 @@ struct MetricPickerSheet: View {
     private var programRow: some View {
         HStack(spacing: 10) {
             Image(systemName: "flag")
-                .font(.system(size: 12))
+                .font(CadreTypography.scaled(size: 12, weight: .regular))
                 .foregroundStyle(CadreColors.textTertiary)
                 .frame(width: 26)
             Text("Apex phases")
-                .font(.system(size: 14, weight: .medium))
+                .font(CadreTypography.scaled(size: 14, weight: .medium))
                 .foregroundStyle(CadreColors.textTertiary)
             Spacer()
             Text("Soon")
-                .font(.system(size: 10, weight: .medium))
+                .font(CadreTypography.scaled(size: 10, weight: .medium))
                 .foregroundStyle(CadreColors.textTertiary)
                 .padding(.horizontal, 8)
                 .padding(.vertical, 3)

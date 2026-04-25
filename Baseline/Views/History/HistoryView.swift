@@ -121,7 +121,7 @@ struct HistoryView: View {
                     }
                 } header: {
                     Text(group.key.uppercased())
-                        .font(.system(size: 11, weight: .semibold))
+                        .font(CadreTypography.scaled(size: 11, weight: .semibold))
                         .tracking(0.5)
                         .foregroundStyle(CadreColors.textTertiary)
                         .listRowInsets(EdgeInsets(top: 16, leading: 4, bottom: 8, trailing: 0))
@@ -200,11 +200,11 @@ private struct HistoryRow: View {
                 // Date + optional time on the left
                 VStack(alignment: .leading, spacing: 3) {
                     Text(dateLabel)
-                        .font(.system(size: 14, weight: .semibold))
+                        .font(CadreTypography.scaled(size: 14, weight: .semibold))
                         .foregroundStyle(CadreColors.textPrimary)
                     if showTime {
                         Text(timeLabel)
-                            .font(.system(size: 12, weight: .medium))
+                            .font(CadreTypography.scaled(size: 12, weight: .medium))
                             .foregroundStyle(CadreColors.textTertiary)
                     }
                 }
@@ -214,17 +214,17 @@ private struct HistoryRow: View {
                 // Weight — big and bold on the right
                 HStack(alignment: .firstTextBaseline, spacing: 4) {
                     Text(UnitConversion.formatWeight(displayWeight, unit: displayUnit))
-                        .font(.system(size: 24, weight: .bold))
+                        .font(CadreTypography.scaled(size: 24, weight: .bold))
                         .foregroundStyle(CadreColors.textPrimary)
                     Text(displayUnit.uppercased())
-                        .font(.system(size: 11, weight: .semibold))
+                        .font(CadreTypography.scaled(size: 11, weight: .semibold))
                         .foregroundStyle(CadreColors.textTertiary)
                 }
 
                 // Delta badge
                 if let delta {
                     Text(UnitConversion.formatDelta(delta))
-                        .font(.system(size: 12, weight: .semibold))
+                        .font(CadreTypography.scaled(size: 12, weight: .semibold))
                         .foregroundStyle(deltaColor(delta))
                         .padding(.leading, 10)
                 }
@@ -233,7 +233,7 @@ private struct HistoryRow: View {
             // Notes caption below (if present)
             if let notes = entry.notes, !notes.isEmpty {
                 Text(notes)
-                    .font(.system(size: 11, weight: .regular))
+                    .font(CadreTypography.scaled(size: 11, weight: .regular))
                     .foregroundStyle(CadreColors.textTertiary)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(.top, 6)
@@ -332,7 +332,7 @@ private struct EditEntrySheet: View {
                                 Text(DateFormatting.fullDate(selectedDate))
                                     .foregroundStyle(CadreColors.textPrimary)
                                 Image(systemName: "chevron.down")
-                                    .font(.system(size: 9, weight: .bold))
+                                    .font(CadreTypography.scaled(size: 9, weight: .bold))
                                     .foregroundStyle(CadreColors.textTertiary)
                             }
                         }

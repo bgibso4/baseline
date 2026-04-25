@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 struct GoalReachedOverlay: View {
     let targetValue: Double
@@ -12,35 +13,38 @@ struct GoalReachedOverlay: View {
         ZStack {
             Color.black.opacity(0.6)
                 .ignoresSafeArea()
+                .accessibilityHidden(true)
 
             VStack(spacing: 0) {
                 // Emoji
                 Text("🎯")
-                    .font(.system(size: 48))
+                    .font(CadreTypography.scaled(size: 48, weight: .regular))
                     .padding(.bottom, 12)
+                    .accessibilityHidden(true)
 
                 // Title
                 Text("Goal Reached!")
-                    .font(.system(size: 22, weight: .bold))
+                    .font(CadreTypography.scaled(size: 22, weight: .bold))
                     .foregroundStyle(CadreColors.textPrimary)
                     .padding(.bottom, 8)
+                    .accessibilityAddTraits(.isHeader)
 
                 // Target
                 Text("Target: \(formatValue(targetValue)) \(unit)")
-                    .font(.system(size: 15, weight: .medium))
+                    .font(CadreTypography.scaled(size: 15, weight: .medium))
                     .foregroundStyle(CadreColors.accent)
                     .padding(.bottom, 4)
 
                 // Started at
                 Text("Started at \(formatValue(startValue)) \(unit) on \(formattedDate(startDate))")
-                    .font(.system(size: 13))
+                    .font(CadreTypography.scaled(size: 13, weight: .regular))
                     .foregroundStyle(CadreColors.textSecondary)
                     .padding(.bottom, 28)
 
                 // Set New Goal button
                 Button(action: onNewGoal) {
                     Text("Set New Goal")
-                        .font(.system(size: 16, weight: .semibold))
+                        .font(CadreTypography.scaled(size: 16, weight: .semibold))
                         .foregroundStyle(.white)
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 14)
@@ -53,7 +57,7 @@ struct GoalReachedOverlay: View {
                 // Dismiss link
                 Button(action: onDismiss) {
                     Text("Dismiss")
-                        .font(.system(size: 15))
+                        .font(CadreTypography.scaled(size: 15, weight: .regular))
                         .foregroundStyle(CadreColors.textSecondary)
                 }
                 .buttonStyle(.plain)
@@ -63,6 +67,14 @@ struct GoalReachedOverlay: View {
             .clipShape(RoundedRectangle(cornerRadius: 20))
             .overlay(RoundedRectangle(cornerRadius: 20).stroke(CadreColors.divider, lineWidth: 1))
             .padding(.horizontal, 28)
+        }
+        // VoiceOver: announce arrival on appear so users hear the
+        // celebration without having to manually explore the screen.
+        .onAppear {
+            UIAccessibility.post(
+                notification: .announcement,
+                argument: "Goal reached. Target \(formatValue(targetValue)) \(unit)."
+            )
         }
     }
 

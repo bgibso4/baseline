@@ -47,7 +47,7 @@ struct SettingsView: View {
         .toolbar {
             ToolbarItem(placement: .principal) {
                 Text("Settings")
-                    .font(.custom("Exo 2", size: 17).weight(.bold))
+                    .font(.custom("Exo 2", size: 17, relativeTo: .headline).weight(.bold))
                     .foregroundStyle(CadreColors.textPrimary)
                     .tracking(-0.2)
             }

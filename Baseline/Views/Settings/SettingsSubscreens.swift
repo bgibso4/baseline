@@ -19,7 +19,7 @@ struct NameEditView: View {
                 // Text input card with accent border
                 HStack {
                     TextField("", text: $draft)
-                        .font(.custom("Exo 2", size: 18).weight(.semibold))
+                        .font(.custom("Exo 2", size: 18, relativeTo: .headline).weight(.semibold))
                         .foregroundStyle(CadreColors.textPrimary)
                         .tint(CadreColors.accent)
                         .autocorrectionDisabled()
@@ -71,7 +71,7 @@ struct NameEditView: View {
             }
             ToolbarItem(placement: .principal) {
                 Text("Name")
-                    .font(.custom("Exo 2", size: 16).weight(.bold))
+                    .font(.custom("Exo 2", size: 16, relativeTo: .headline).weight(.bold))
                     .foregroundStyle(CadreColors.textPrimary)
                     .tracking(-0.2)
             }
@@ -173,7 +173,7 @@ struct HeightPickerView: View {
             }
             ToolbarItem(placement: .principal) {
                 Text("Height")
-                    .font(.custom("Exo 2", size: 16).weight(.bold))
+                    .font(.custom("Exo 2", size: 16, relativeTo: .headline).weight(.bold))
                     .foregroundStyle(CadreColors.textPrimary)
                     .tracking(-0.2)
             }
@@ -241,7 +241,7 @@ struct BirthdayPickerView: View {
                         .textCase(.uppercase)
                     Spacer()
                     Text("\(computedAge) years")
-                        .font(.custom("Exo 2", size: 20).weight(.bold))
+                        .font(.custom("Exo 2", size: 20, relativeTo: .title3).weight(.bold))
                         .foregroundStyle(CadreColors.textPrimary)
                         .tracking(-0.2)
                 }
@@ -264,7 +264,7 @@ struct BirthdayPickerView: View {
             }
             ToolbarItem(placement: .principal) {
                 Text("Birthday")
-                    .font(.custom("Exo 2", size: 16).weight(.bold))
+                    .font(.custom("Exo 2", size: 16, relativeTo: .headline).weight(.bold))
                     .foregroundStyle(CadreColors.textPrimary)
                     .tracking(-0.2)
             }
@@ -339,7 +339,7 @@ struct GenderPickerView: View {
         .toolbar {
             ToolbarItem(placement: .principal) {
                 Text("Gender")
-                    .font(.custom("Exo 2", size: 17).weight(.bold))
+                    .font(.custom("Exo 2", size: 17, relativeTo: .headline).weight(.bold))
                     .foregroundStyle(CadreColors.textPrimary)
                     .tracking(-0.2)
             }
@@ -405,7 +405,7 @@ struct ThemePickerView: View {
         .toolbar {
             ToolbarItem(placement: .principal) {
                 Text("Theme")
-                    .font(.custom("Exo 2", size: 17).weight(.bold))
+                    .font(.custom("Exo 2", size: 17, relativeTo: .headline).weight(.bold))
                     .foregroundStyle(CadreColors.textPrimary)
                     .tracking(-0.2)
             }
@@ -502,7 +502,7 @@ struct CadreSyncView: View {
                             .font(.system(size: 14, weight: .medium))
                             .foregroundStyle(CadreColors.accent)
                         Text("Test connection")
-                            .font(.custom("Exo 2", size: 14).weight(.semibold))
+                            .font(.custom("Exo 2", size: 14, relativeTo: .body).weight(.semibold))
                             .foregroundStyle(CadreColors.textPrimary)
                     }
                     .frame(maxWidth: .infinity)
@@ -529,7 +529,7 @@ struct CadreSyncView: View {
         .toolbar {
             ToolbarItem(placement: .principal) {
                 Text("Cadre Sync")
-                    .font(.custom("Exo 2", size: 17).weight(.bold))
+                    .font(.custom("Exo 2", size: 17, relativeTo: .headline).weight(.bold))
                     .foregroundStyle(CadreColors.textPrimary)
                     .tracking(-0.2)
             }
@@ -621,7 +621,7 @@ struct ExportCSVView: View {
                             Image(systemName: "square.and.arrow.up")
                                 .font(.system(size: 14, weight: .medium))
                             Text("Export \(exportItems.count) file\(exportItems.count == 1 ? "" : "s")")
-                                .font(.custom("Exo 2", size: 14).weight(.semibold))
+                                .font(.custom("Exo 2", size: 14, relativeTo: .body).weight(.semibold))
                         }
                         .foregroundStyle(CadreColors.bg)
                         .frame(maxWidth: .infinity)
@@ -639,7 +639,7 @@ struct ExportCSVView: View {
         .toolbar {
             ToolbarItem(placement: .principal) {
                 Text("Export")
-                    .font(.custom("Exo 2", size: 17).weight(.bold))
+                    .font(.custom("Exo 2", size: 17, relativeTo: .headline).weight(.bold))
                     .foregroundStyle(CadreColors.textPrimary)
                     .tracking(-0.2)
             }
@@ -1102,7 +1102,7 @@ struct AboutCadreView: View {
                     // Hero: logo + name + desc
                     VStack(spacing: 0) {
                         Text("C")
-                            .font(.custom("Exo 2", size: 36).weight(.heavy))
+                            .font(.custom("Exo 2", size: 36, relativeTo: .largeTitle).weight(.heavy))
                             .foregroundStyle(CadreColors.accent)
                             .tracking(-1)
                             .frame(width: 72, height: 72)
@@ -1117,7 +1117,7 @@ struct AboutCadreView: View {
                             .padding(.bottom, 16)
 
                         Text("Cadre")
-                            .font(.custom("Exo 2", size: 22).weight(.heavy))
+                            .font(.custom("Exo 2", size: 22, relativeTo: .title2).weight(.heavy))
                             .foregroundStyle(CadreColors.textPrimary)
                             .tracking(-0.4)
 
@@ -1150,7 +1150,7 @@ struct AboutCadreView: View {
         .toolbar {
             ToolbarItem(placement: .principal) {
                 Text("About Cadre")
-                    .font(.custom("Exo 2", size: 17).weight(.bold))
+                    .font(.custom("Exo 2", size: 17, relativeTo: .headline).weight(.bold))
                     .foregroundStyle(CadreColors.textPrimary)
                     .tracking(-0.2)
             }
@@ -1170,7 +1170,7 @@ struct AboutCadreView: View {
     ) -> some View {
         HStack(spacing: 12) {
             Text(letter)
-                .font(.custom("Exo 2", size: 18).weight(.heavy))
+                .font(.custom("Exo 2", size: 18, relativeTo: .headline).weight(.heavy))
                 .foregroundStyle(color)
                 .tracking(-0.3)
                 .frame(width: 36, height: 36)
