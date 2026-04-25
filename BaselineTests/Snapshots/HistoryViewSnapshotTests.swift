@@ -23,7 +23,6 @@ final class HistoryViewSnapshotTests: XCTestCase {
 
     @MainActor
     func testHistoryView_DarkMode_iPhone13Pro() throws {
-        try XCTSkipIf(true, "Disabled pre-beta while UI iterates — re-enable per issue #10")
         let container = makeContainer()
         seedFiveEntries(into: container.mainContext)
 

@@ -18,7 +18,6 @@ final class WeighInSheetSnapshotTests: XCTestCase {
 
     @MainActor
     func testWeighInSheet_DarkMode_Default() throws {
-        try XCTSkipIf(true, "Disabled pre-beta while UI iterates — re-enable per issue #10")
         let container = makeContainer()
         let vm = WeighInViewModel(
             modelContext: container.mainContext,

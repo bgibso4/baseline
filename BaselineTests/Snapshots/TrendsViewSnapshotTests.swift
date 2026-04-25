@@ -21,7 +21,6 @@ final class TrendsViewSnapshotTests: XCTestCase {
 
     @MainActor
     func testTrendsView_DarkMode_DefaultMonth() throws {
-        try XCTSkipIf(true, "Disabled pre-beta while UI iterates — re-enable per issue #10")
         let container = makeContainer()
         seedThirtyDays(into: container.mainContext)
 
@@ -46,7 +45,6 @@ final class TrendsViewSnapshotTests: XCTestCase {
 
     @MainActor
     func testTrendsView_DarkMode_EmptyState() throws {
-        try XCTSkipIf(true, "Disabled pre-beta while UI iterates — re-enable per issue #10")
         let container = makeContainer()
 
         let vm = TrendsViewModel(modelContext: container.mainContext)

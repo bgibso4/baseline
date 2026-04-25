@@ -28,7 +28,6 @@ final class NowViewSnapshotTests: XCTestCase {
 
     @MainActor
     func testNowView_DarkMode_iPhone13Pro() throws {
-        try XCTSkipIf(true, "Disabled pre-beta while UI iterates — re-enable per issue #10")
         let container = makeContainer()
         seedFourteenDays(into: container.mainContext)
 

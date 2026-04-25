@@ -21,7 +21,6 @@ final class SettingsViewSnapshotTests: XCTestCase {
 
     @MainActor
     func testSettingsView_DarkMode() throws {
-        try XCTSkipIf(true, "Disabled pre-beta while UI iterates — re-enable per issue #10")
         let container = makeContainer()
         seedSampleData(into: container.mainContext)
 
