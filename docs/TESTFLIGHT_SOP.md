@@ -46,31 +46,62 @@ xcodebuild -project Baseline.xcodeproj -scheme Baseline \
 
 If the build fails locally it will fail in archive. Fix first.
 
-### Step 2 — Bump build number
+### Step 2 — Bump version numbers
 
-Edit `project.yml`:
+iOS apps have two version fields. Don't conflate them.
+
+| Field | Plist key | Purpose | When to bump |
+|-------|-----------|---------|--------------|
+| `MARKETING_VERSION` | `CFBundleShortVersionString` | Tester/user-facing version (e.g. `1.0.1`, `1.1`, `2.0`) | **Only** when the release is meaningful enough for testers to notice |
+| `CURRENT_PROJECT_VERSION` | `CFBundleVersion` | ASC build disambiguator (monotonic integer: 1, 2, 3, 4…) | **Every TestFlight upload, no exceptions** |
+
+#### Versioning scheme (Baseline)
+
+**Marketing version** — semantic versioning. `MAJOR.MINOR.PATCH`:
+- `1.0.0` → `1.0.1` for bug-fix releases (no new features)
+- `1.0.0` → `1.1.0` for releases that add features
+- `1.0.0` → `2.0.0` for major reworks (UI overhaul, paradigm shift)
+
+**Build number** — simple monotonic integer. Climbs forever, never resets, doesn't depend on marketing version.
+
+#### Worked example
+
+| Upload | Marketing | Build | What happened |
+|--------|-----------|-------|---------------|
+| 1st | `1.0.0` | 2 | First internal TestFlight |
+| 2nd | `1.0.0` | 3 | Same release, fixed a bug found in testing |
+| 3rd | `1.0.0` | 4 | Same release, polish pass |
+| 4th | `1.0.1` | 5 | First public bug-fix release |
+| 5th | `1.1.0` | 6 | Added a new feature |
+| 6th | `1.1.0` | 7 | Hotfix to the new feature |
+
+Build number always increments by 1. Marketing version changes only when the release is semver-meaningful.
+
+#### What to edit
 
 ```yaml
+# project.yml
 settings:
   base:
-    MARKETING_VERSION: "1.0.0"     # ← bump only on user-visible feature/bug release
-    CURRENT_PROJECT_VERSION: 2     # ← ALWAYS bump this for every TestFlight upload
+    MARKETING_VERSION: "1.0.0"     # change only on semver-meaningful release
+    CURRENT_PROJECT_VERSION: 2     # always +1 from previous upload
 ```
 
-Rules:
-- `CURRENT_PROJECT_VERSION` (build number) **must increase** every upload. ASC rejects duplicates.
-- `MARKETING_VERSION` (e.g. `1.0.0`) only changes for releases tester-meaningful enough to talk about. Multiple TestFlight builds can share one marketing version.
+After editing, regenerate the Xcode project and commit:
 
-After editing, regenerate the Xcode project:
 ```bash
 xcodegen
+git add project.yml Baseline.xcodeproj
+git commit -m "chore(release): bump to <marketing> (<build>) for TestFlight"
+# e.g. "chore(release): bump to 1.0.0 (2) for TestFlight"
 ```
 
-Commit the bump:
-```bash
-git add project.yml Baseline.xcodeproj
-git commit -m "chore(release): bump build to <N> for TestFlight"
-```
+#### Rules and gotchas
+
+- `CURRENT_PROJECT_VERSION` **must increase** every upload. ASC rejects duplicates, even after a build expires.
+- Apple lets `CURRENT_PROJECT_VERSION` reset when marketing version changes — **don't.** Keeping it monotonic across the app's lifetime avoids surprise collisions.
+- Multiple TestFlight builds can share one marketing version. Common pattern: keep marketing at `1.0.0` through a series of TestFlight builds, only bump to `1.0.1` / `1.1.0` when you go to a public App Store release or a tester-visible feature jump.
+- Don't change marketing version for trivial fixes during a TestFlight cycle — testers will see the version flip back and forth, which is confusing.
 
 ### Step 3 — Archive
 
@@ -116,14 +147,13 @@ This makes it easy to check out the exact code testers had if they hit a bug.
 
 ---
 
-## Quick reference: what each version field means
+## Quick reference: version fields
 
-| Field | Plist key | Purpose | When to bump |
-|-------|-----------|---------|--------------|
-| Marketing version | `CFBundleShortVersionString` | What testers see (e.g. "1.0.0") | When the release is a meaningful step forward |
-| Build number | `CFBundleVersion` | What ASC uses to disambiguate uploads | **Every** TestFlight upload, no exceptions |
+ASC display: `1.0.0 (5)` means marketing version `1.0.0`, build number `5`.
 
-ASC display: `1.0.0 (5)` means marketing version 1.0.0, build 5.
+See **Step 2** above for the full versioning scheme. TL;DR:
+- Marketing version: semver (`1.0.0` → `1.0.1` / `1.1.0` / `2.0.0`), bump only on tester-meaningful releases
+- Build number: monotonic integer, always +1 every upload, never resets
 
 ---
 
@@ -159,9 +189,10 @@ At that point, reopen issues #39 (privacy policy) and #43 (TestFlight expanded s
 git pull && xcodebuild -project Baseline.xcodeproj -scheme Baseline \
   -destination 'generic/platform=iOS Simulator' build | tail -5
 
-# 2. Bump CURRENT_PROJECT_VERSION in project.yml, regenerate, commit
+# 2. Edit project.yml: bump CURRENT_PROJECT_VERSION (always +1).
+#    Bump MARKETING_VERSION only on semver-meaningful release.
 xcodegen && git add project.yml Baseline.xcodeproj && \
-  git commit -m "chore(release): bump build to <N>"
+  git commit -m "chore(release): bump to <marketing> (<build>) for TestFlight"
 
 # 3. Xcode → Any iOS Device → Product → Archive
 # 4. Organizer → Distribute App → TestFlight & App Store → Upload
