@@ -202,10 +202,13 @@ struct TrendsView: View {
                     goalVM = (appState?.preloadedGoalVM as? GoalViewModel)
                         ?? GoalViewModel(modelContext: modelContext)
                 }
-                // Pick up metric requested by another tab (e.g. Body → Trends)
+                // Pick up one-shot metric request from another tab (e.g. Body → Trends).
+                // Clear after consuming so returning to Trends later preserves the
+                // user's in-tab selection.
                 if let metricName = appState?.trendMetric,
                    let metric = TrendMetric(rawValue: metricName) {
                     vm?.selectedMetric = metric
+                    appState?.trendMetric = nil
                 }
                 vm?.refresh()
                 availableMetrics = vm?.computeAvailableMetrics() ?? TrendMetric.allCases
@@ -225,6 +228,7 @@ struct TrendsView: View {
                 if let newValue, let metric = TrendMetric(rawValue: newValue) {
                     vm?.selectedMetric = metric
                     vm?.refresh()
+                    appState?.trendMetric = nil
                 }
             }
             .onChange(of: secondaryMetric) { _, newValue in
