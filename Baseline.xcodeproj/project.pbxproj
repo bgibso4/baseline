@@ -182,7 +182,7 @@
 		23809CFB7BDC7E7988734AE1 /* CrossFieldValidator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CrossFieldValidator.swift; sourceTree = "<group>"; };
 		259F301EF2210DEFF2801026 /* testNowView_DarkMode_iPhone13Pro.1.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = testNowView_DarkMode_iPhone13Pro.1.png; sourceTree = "<group>"; };
 		29BEDC0D79358B9B15F3738D /* BodyViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BodyViewModelTests.swift; sourceTree = "<group>"; };
-		2AE1DD4780965A013E7F0380 /* weights-quoted-notes.csv */ = {isa = PBXFileReference; path = "weights-quoted-notes.csv"; sourceTree = "<group>"; };
+		2AE1DD4780965A013E7F0380 /* weights-quoted-notes.csv */ = {isa = PBXFileReference; lastKnownFileType = text; path = "weights-quoted-notes.csv"; sourceTree = "<group>"; };
 		2B794C4FCDC3253893C365AB /* HistoryViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryViewModelTests.swift; sourceTree = "<group>"; };
 		2BB58E9F38A99C7C4D86D8DF /* Measurement.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Measurement.swift; sourceTree = "<group>"; };
 		2DD62082CE52C25DD0DC3AA5 /* NowViewSnapshotTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NowViewSnapshotTests.swift; sourceTree = "<group>"; };
@@ -191,7 +191,7 @@
 		312ECD390BFC532EC10D9819 /* WeightEntry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeightEntry.swift; sourceTree = "<group>"; };
 		32B28DC15F13A362B58FD326 /* HealthKitManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthKitManager.swift; sourceTree = "<group>"; };
 		33EA9A555C61700BA6F94BE2 /* testScanEntry_ReviewForm_WithLowConfidence.1.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = testScanEntry_ReviewForm_WithLowConfidence.1.png; sourceTree = "<group>"; };
-		3899BC53498DFB1744651ADA /* measurements-clean.csv */ = {isa = PBXFileReference; path = "measurements-clean.csv"; sourceTree = "<group>"; };
+		3899BC53498DFB1744651ADA /* measurements-clean.csv */ = {isa = PBXFileReference; lastKnownFileType = text; path = "measurements-clean.csv"; sourceTree = "<group>"; };
 		3A9983801F2F087AB7948B5C /* CSVExporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CSVExporter.swift; sourceTree = "<group>"; };
 		3FC6E3A8780E8E70B0CF897B /* testBodyView_DarkMode_EmptyState.1.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = testBodyView_DarkMode_EmptyState.1.png; sourceTree = "<group>"; };
 		3FFC7E5904AEB1F7A6957D2D /* TrendsViewSnapshotTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrendsViewSnapshotTests.swift; sourceTree = "<group>"; };
@@ -211,7 +211,7 @@
 		62D00EE3E15355487C97323A /* HistoryViewSnapshotTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryViewSnapshotTests.swift; sourceTree = "<group>"; };
 		62E0D24F3CB2F0A200FAAD19 /* testSettingsView_DarkMode.1.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = testSettingsView_DarkMode.1.png; sourceTree = "<group>"; };
 		68553E59F2B6033D1954BE5D /* TrendsViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrendsViewModelTests.swift; sourceTree = "<group>"; };
-		6BD2FDC4B9782A0EA46D1B9D /* weights-crlf.csv */ = {isa = PBXFileReference; path = "weights-crlf.csv"; sourceTree = "<group>"; };
+		6BD2FDC4B9782A0EA46D1B9D /* weights-crlf.csv */ = {isa = PBXFileReference; lastKnownFileType = text; path = "weights-crlf.csv"; sourceTree = "<group>"; };
 		6C0783D23B036F0A996BD1E7 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		6CA4DFDD50AB3412413C94F1 /* Log.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Log.swift; sourceTree = "<group>"; };
 		6DF459A44A46B33902867DBF /* ScanPayloads.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScanPayloads.swift; sourceTree = "<group>"; };
@@ -235,9 +235,9 @@
 		8BB76F1D79684AF702D68282 /* CloudKitSyncMonitorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudKitSyncMonitorTests.swift; sourceTree = "<group>"; };
 		8F76CA414AF7805F2B73F420 /* BaselineTips.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BaselineTips.swift; sourceTree = "<group>"; };
 		90026F3A1D7167909BB75A33 /* DateFormatting.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DateFormatting.swift; sourceTree = "<group>"; };
-		910C5BA0328805F41A900069 /* weights-bom.csv */ = {isa = PBXFileReference; path = "weights-bom.csv"; sourceTree = "<group>"; };
+		910C5BA0328805F41A900069 /* weights-bom.csv */ = {isa = PBXFileReference; lastKnownFileType = text; path = "weights-bom.csv"; sourceTree = "<group>"; };
 		91169E132AC487FA9F6C19B0 /* InBodyParseResult.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InBodyParseResult.swift; sourceTree = "<group>"; };
-		917EC6C734FA7FDEF274FFAD /* Baseline.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = Baseline.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		917EC6C734FA7FDEF274FFAD /* Baseline.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Baseline.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		9B617A136820EEC4C39AAFEA /* OutboundMirror.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OutboundMirror.swift; sourceTree = "<group>"; };
 		9C6AD6BD0E4C0E7611107212 /* EmptyStateCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmptyStateCard.swift; sourceTree = "<group>"; };
 		9C6E3FC3B8CEA3502EDE634C /* GoalTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GoalTests.swift; sourceTree = "<group>"; };
@@ -247,13 +247,13 @@
 		A274239D844A8E6B1DA7FBC5 /* LogMeasurementSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogMeasurementSheet.swift; sourceTree = "<group>"; };
 		A302A68AB0914998FB21EF79 /* SettingsViewSnapshotTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsViewSnapshotTests.swift; sourceTree = "<group>"; };
 		A472F5E582548C05BBD1A751 /* HistoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryView.swift; sourceTree = "<group>"; };
-		A6169C14DE8D24B188CF7762 /* scans-clean.csv */ = {isa = PBXFileReference; path = "scans-clean.csv"; sourceTree = "<group>"; };
+		A6169C14DE8D24B188CF7762 /* scans-clean.csv */ = {isa = PBXFileReference; lastKnownFileType = text; path = "scans-clean.csv"; sourceTree = "<group>"; };
 		A6C5F86354C722884254D09A /* BaselineTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = BaselineTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		A777911A4E98904254416624 /* SettingsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsViewModel.swift; sourceTree = "<group>"; };
 		AB289EC0E5CC9756E1B62116 /* UnitConversionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UnitConversionTests.swift; sourceTree = "<group>"; };
 		AB8EB95FB6A8252C1B9C10A5 /* CrossFieldValidatorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CrossFieldValidatorTests.swift; sourceTree = "<group>"; };
-		ACDA43306F3BC25054A85ABE /* weights-slash-dates-split-time.csv */ = {isa = PBXFileReference; path = "weights-slash-dates-split-time.csv"; sourceTree = "<group>"; };
-		ADD0CE59E47B8DDC91E8808A /* weights-clean.csv */ = {isa = PBXFileReference; path = "weights-clean.csv"; sourceTree = "<group>"; };
+		ACDA43306F3BC25054A85ABE /* weights-slash-dates-split-time.csv */ = {isa = PBXFileReference; lastKnownFileType = text; path = "weights-slash-dates-split-time.csv"; sourceTree = "<group>"; };
+		ADD0CE59E47B8DDC91E8808A /* weights-clean.csv */ = {isa = PBXFileReference; lastKnownFileType = text; path = "weights-clean.csv"; sourceTree = "<group>"; };
 		AE6D9B28D405938F17E0CB25 /* GoalCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GoalCard.swift; sourceTree = "<group>"; };
 		AF80BCC433C58498F1AA4488 /* APIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIClient.swift; sourceTree = "<group>"; };
 		B0811FC6CD17EB2AEBCECB45 /* WeighInViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeighInViewModel.swift; sourceTree = "<group>"; };
@@ -273,8 +273,8 @@
 		CFA72CFB4378804B6796576B /* clean.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = clean.jpg; sourceTree = "<group>"; };
 		D02782E48D9542687519EF82 /* HistoryViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryViewModel.swift; sourceTree = "<group>"; };
 		D2121B6D4BDACF68F0B99C30 /* ScanTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScanTests.swift; sourceTree = "<group>"; };
-		D25FD52DA7EFC4286FE7A191 /* BaselineWidgets.appex */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = "wrapper.app-extension"; path = BaselineWidgets.appex; sourceTree = BUILT_PRODUCTS_DIR; };
-		D2EB71FC82094D506CFDCC73 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		D25FD52DA7EFC4286FE7A191 /* BaselineWidgets.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = BaselineWidgets.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		D2EB71FC82094D506CFDCC73 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		DA714D5002EBF0AEE77EE339 /* CloudflareOutboundMirror.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudflareOutboundMirror.swift; sourceTree = "<group>"; };
 		DFD8816E90F91D28A05AA943 /* InBodyDocumentParserTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InBodyDocumentParserTests.swift; sourceTree = "<group>"; };
 		E22A1EED058DA9647318A9C3 /* Haptics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Haptics.swift; sourceTree = "<group>"; };
@@ -805,8 +805,6 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = YES;
 				LastUpgradeCheck = 1600;
-				TargetAttributes = {
-				};
 			};
 			buildConfigurationList = DEC0D2E01D9C2DEEE50E4CE0 /* Build configuration list for PBXProject "Baseline" */;
 			developmentRegion = en;
@@ -1014,6 +1012,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = BaselineWidgets/BaselineWidgets.entitlements;
+				DEVELOPMENT_TEAM = W6S6K84XVM;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = BaselineWidgets/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -1031,6 +1030,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = BaselineWidgets/BaselineWidgets.entitlements;
+				DEVELOPMENT_TEAM = W6S6K84XVM;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = BaselineWidgets/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -1207,6 +1207,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = Baseline/Baseline.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
+				DEVELOPMENT_TEAM = W6S6K84XVM;
 				INFOPLIST_FILE = Baseline/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -1224,6 +1225,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = Baseline/Baseline.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
+				DEVELOPMENT_TEAM = W6S6K84XVM;
 				INFOPLIST_FILE = Baseline/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
