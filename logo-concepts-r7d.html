@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Baseline — Round 7d: Clean Text + EKG Underline</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #0a0a0a;
+    color: #fff;
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
+    min-height: 100vh;
+    padding: 40px 20px;
+  }
+  h1 { text-align: center; font-size: 14px; letter-spacing: 4px; text-transform: uppercase; color: #666; margin-bottom: 10px; }
+  .subtitle { text-align: center; font-size: 12px; color: #444; margin-bottom: 60px; line-height: 1.6; }
+  .section { max-width: 1100px; margin: 0 auto 60px; }
+  .section h2 { font-size: 13px; letter-spacing: 3px; text-transform: uppercase; color: #e0e0e0; margin-bottom: 4px; }
+  .section p.desc { font-size: 12px; color: #555; margin-bottom: 20px; line-height: 1.5; }
+  .row { display: flex; gap: 20px; flex-wrap: wrap; align-items: flex-start; margin-bottom: 16px; }
+  .card {
+    background: #141414; border-radius: 16px; padding: 30px; text-align: center;
+    border: 1px solid #222; flex: 1; min-width: 280px;
+  }
+  .card.wide { min-width: 100%; }
+  .card h3 { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: #888; margin-bottom: 16px; }
+  canvas { display: block; margin: 0 auto; }
+  .icon-row { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
+  .icon-wrap { text-align: center; }
+  .icon-frame {
+    width: 60px; height: 60px; border-radius: 13px;
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 6px; border: 1px solid #333; background: #1A1A1E;
+  }
+  .icon-frame.lg { width: 120px; height: 120px; border-radius: 26px; }
+  .icon-label { font-size: 10px; color: #555; }
+</style>
+</head>
+<body>
+
+<h1>Round 7d — Clean Text + EKG Underline</h1>
+<div class="subtitle">
+  Clean readable text. The 'a' is replaced by the EKG spike.<br>
+  The underline dips below 'se' and bumps at 'l' — EKG rhythm in the line, not the letters.
+</div>
+
+<!-- A: lowercase, EKG underline -->
+<div class="section">
+  <h2>A. Lowercase — EKG Underline</h2>
+  <p class="desc">"baseline" — 'a' replaced by spike, underline dips under 'se', bumps at 'l'. All other letters clean.</p>
+  <div class="row"><div class="card wide"><canvas id="a-lg" width="900" height="240"></canvas></div></div>
+  <div class="row"><div class="card"><h3>Icons</h3>
+    <div class="icon-row">
+      <div class="icon-wrap"><div class="icon-frame lg"><canvas id="a-icon-lg" width="120" height="120"></canvas></div><div class="icon-label">120px</div></div>
+      <div class="icon-wrap"><div class="icon-frame"><canvas id="a-icon-sm" width="60" height="60"></canvas></div><div class="icon-label">60px</div></div>
+    </div>
+  </div></div>
+</div>
+
+<!-- B: Capital B, EKG underline -->
+<div class="section">
+  <h2>B. Capital B — EKG Underline</h2>
+  <p class="desc">"Baseline" — same treatment, capital B.</p>
+  <div class="row"><div class="card wide"><canvas id="b-lg" width="900" height="240"></canvas></div></div>
+  <div class="row"><div class="card"><h3>Icons</h3>
+    <div class="icon-row">
+      <div class="icon-wrap"><div class="icon-frame lg"><canvas id="b-icon-lg" width="120" height="120"></canvas></div><div class="icon-label">120px</div></div>
+      <div class="icon-wrap"><div class="icon-frame"><canvas id="b-icon-sm" width="60" height="60"></canvas></div><div class="icon-label">60px</div></div>
+    </div>
+  </div></div>
+</div>
+
+<!-- C: lowercase, deeper dip -->
+<div class="section">
+  <h2>C. Lowercase — Deeper Dip</h2>
+  <p class="desc">Same as A but the dip is more pronounced — more dramatic EKG feel.</p>
+  <div class="row"><div class="card wide"><canvas id="c-lg" width="900" height="260"></canvas></div></div>
+  <div class="row"><div class="card"><h3>Icons</h3>
+    <div class="icon-row">
+      <div class="icon-wrap"><div class="icon-frame lg"><canvas id="c-icon-lg" width="120" height="120"></canvas></div><div class="icon-label">120px</div></div>
+      <div class="icon-wrap"><div class="icon-frame"><canvas id="c-icon-sm" width="60" height="60"></canvas></div><div class="icon-label">60px</div></div>
+    </div>
+  </div></div>
+</div>
+
+<!-- D: lowercase, dip centered under 'e' only (tighter) -->
+<div class="section">
+  <h2>D. Lowercase — Tighter Dip (just under 'e')</h2>
+  <p class="desc">The dip is shorter and sits under just 'e', bump at 'l'. More compact rhythm.</p>
+  <div class="row"><div class="card wide"><canvas id="d-lg" width="900" height="240"></canvas></div></div>
+  <div class="row"><div class="card"><h3>Icons</h3>
+    <div class="icon-row">
+      <div class="icon-wrap"><div class="icon-frame lg"><canvas id="d-icon-lg" width="120" height="120"></canvas></div><div class="icon-label">120px</div></div>
+      <div class="icon-wrap"><div class="icon-frame"><canvas id="d-icon-sm" width="60" height="60"></canvas></div><div class="icon-label">60px</div></div>
+    </div>
+  </div></div>
+</div>
+
+<!-- E: Capital B, accent blue spike -->
+<div class="section">
+  <h2>E. Capital B — Blue Accent Spike</h2>
+  <p class="desc">"Baseline" — the spike (a) is in your accent blue (#6B7B94), rest white.</p>
+  <div class="row"><div class="card wide"><canvas id="e-lg" width="900" height="240"></canvas></div></div>
+  <div class="row"><div class="card"><h3>Icons</h3>
+    <div class="icon-row">
+      <div class="icon-wrap"><div class="icon-frame lg"><canvas id="e-icon-lg" width="120" height="120"></canvas></div><div class="icon-label">120px</div></div>
+      <div class="icon-wrap"><div class="icon-frame"><canvas id="e-icon-sm" width="60" height="60"></canvas></div><div class="icon-label">60px</div></div>
+    </div>
+  </div></div>
+</div>
+
+<!-- Comparison -->
+<div class="section">
+  <h2>All at Icon Size</h2>
+  <div class="row"><div class="card wide">
+    <div class="icon-row">
+      <div class="icon-wrap"><div class="icon-frame"><canvas id="cmp-a" width="60" height="60"></canvas></div><div class="icon-label">A. lower</div></div>
+      <div class="icon-wrap"><div class="icon-frame"><canvas id="cmp-b" width="60" height="60"></canvas></div><div class="icon-label">B. Cap B</div></div>
+      <div class="icon-wrap"><div class="icon-frame"><canvas id="cmp-c" width="60" height="60"></canvas></div><div class="icon-label">C. deep</div></div>
+      <div class="icon-wrap"><div class="icon-frame"><canvas id="cmp-d" width="60" height="60"></canvas></div><div class="icon-label">D. tight</div></div>
+      <div class="icon-wrap"><div class="icon-frame"><canvas id="cmp-e" width="60" height="60"></canvas></div><div class="icon-label">E. blue</div></div>
+      <div class="icon-wrap"><div class="icon-frame" style="border-color:#444"><canvas id="cmp-apex" width="60" height="60"></canvas></div><div class="icon-label">Apex ref</div></div>
+    </div>
+  </div></div>
+</div>
+
+<script>
+function C(id) {
+  const c = document.getElementById(id);
+  if (!c) return null;
+  return { c, x: c.getContext('2d'), w: c.width, h: c.height };
+}
+function bgFill(ctx, w, h) { ctx.fillStyle = '#1A1A1E'; ctx.fillRect(0, 0, w, h); }
+function strokePts(ctx, pts, lw, color, alpha) {
+  ctx.save(); ctx.globalAlpha = alpha||1; ctx.strokeStyle = color||'#fff';
+  ctx.lineWidth = lw; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+  ctx.beginPath(); ctx.moveTo(pts[0][0], pts[0][1]);
+  for (let i=1; i<pts.length; i++) ctx.lineTo(pts[i][0], pts[i][1]);
+  ctx.stroke(); ctx.restore();
+}
+
+function drawWordmark(id, opts) {
+  const r = C(id); if(!r) return;
+  const {x: ctx, w, h} = r;
+  const {
+    text = 'baseline',
+    hasBg = false,
+    isIcon = false,
+    lineLw = 3.5,
+    dipDepthMult = 0.30,  // how deep the dip goes below text
+    dipWidth = 'normal',  // 'normal' = under se, 'tight' = just e
+    spikeColor = '#fff',
+    lineColor = '#fff',
+  } = opts;
+
+  if (hasBg) bgFill(ctx, w, h);
+
+  // Icon mode: extracted EKG mark
+  if (isIcon) {
+    const by = h * 0.55;
+    const lw = Math.max(1.5, w * 0.035);
+    const pts = [
+      [w*0.04, by],
+      [w*0.18, by],
+      // spike (a)
+      [w*0.30, by - h*0.40],
+      [w*0.40, by],
+      // dip (under se)
+      [w*0.50, by + h*0.24],
+      // bump (l)
+      [w*0.60, by - h*0.14],
+      [w*0.68, by],
+      [w*0.82, by],
+      [w*0.96, by],
+    ];
+    strokePts(ctx, pts, lw, '#fff', 1);
+    return;
+  }
+
+  // Measure text
+  const fontSize = h * 0.30;
+  const font = `600 ${fontSize}px "SF Pro Display", -apple-system, sans-serif`;
+  ctx.font = font;
+
+  const chars = text.split('');
+  const charWidths = chars.map(ch => ctx.measureText(ch).width);
+  const totalW = charWidths.reduce((a,b) => a+b, 0);
+  const sx = (w - totalW) / 2;
+  const textBaseline = h * 0.48;
+  const lineY = textBaseline + fontSize * 0.06;
+
+  // Char positions
+  const cxs = [];
+  let xx = sx;
+  for (let i = 0; i < chars.length; i++) { cxs.push(xx); xx += charWidths[i]; }
+  const endX = xx;
+  const lineExt = w * 0.05;
+
+  // Find key character indices
+  const aIdx = text.toLowerCase().indexOf('a');       // a = spike
+  const sIdx = text.toLowerCase().indexOf('s');       // s = start of dip area
+  const eIdx = text.toLowerCase().indexOf('e');       // first e = dip center
+  const lIdx = text.toLowerCase().indexOf('l');       // l = recovery bump
+
+  // Character midpoints
+  const aMid = cxs[aIdx] + charWidths[aIdx] / 2;
+  const sMid = cxs[sIdx] + charWidths[sIdx] / 2;
+  const eMid = cxs[eIdx] + charWidths[eIdx] / 2;
+  const lMid = cxs[lIdx] + charWidths[lIdx] / 2;
+
+  // Draw all text except 'a'
+  ctx.save();
+  ctx.fillStyle = '#fff';
+  ctx.font = font;
+  ctx.textBaseline = 'alphabetic';
+  for (let i = 0; i < chars.length; i++) {
+    if (i === aIdx) continue;
+    ctx.fillText(chars[i], cxs[i], textBaseline);
+  }
+  ctx.restore();
+
+  // Build EKG line
+  const peakH = fontSize * 1.15;
+  const peakW = charWidths[aIdx] * 0.45;
+  const dipDepth = fontSize * dipDepthMult;
+  const bumpH = fontSize * 0.22;
+
+  let dipCenterX, dipStartX, dipEndX;
+  if (dipWidth === 'tight') {
+    dipCenterX = eMid;
+    dipStartX = cxs[eIdx] - charWidths[eIdx] * 0.2;
+    dipEndX = cxs[eIdx] + charWidths[eIdx] * 1.2;
+  } else {
+    dipCenterX = (sMid + eMid) / 2;
+    dipStartX = cxs[sIdx] - charWidths[sIdx] * 0.1;
+    dipEndX = cxs[eIdx] + charWidths[eIdx] * 1.0;
+  }
+
+  const pts = [
+    // flat entry
+    [sx - lineExt, lineY],
+    // approach spike
+    [aMid - peakW * 1.5, lineY],
+    // A SPIKE
+    [aMid, lineY - peakH],
+    // come back down
+    [aMid + peakW * 1.5, lineY],
+    // flat between spike and dip
+    [dipStartX, lineY],
+    // DIP under se
+    [dipCenterX, lineY + dipDepth],
+    // come back up
+    [dipEndX, lineY],
+    // BUMP at l
+    [lMid, lineY - bumpH],
+    // settle back
+    [lMid + charWidths[lIdx] * 1.0, lineY],
+    // flat exit
+    [endX + lineExt, lineY],
+  ];
+
+  // Draw the line — optionally with colored spike section
+  if (spikeColor !== lineColor) {
+    // Draw line in two passes: line color for everything, then spike color overlay
+    strokePts(ctx, pts, lineLw, lineColor, 1);
+    // Overdraw spike section in accent color
+    const spikePts = [
+      [aMid - peakW * 1.5, lineY],
+      [aMid, lineY - peakH],
+      [aMid + peakW * 1.5, lineY],
+    ];
+    strokePts(ctx, spikePts, lineLw, spikeColor, 1);
+  } else {
+    strokePts(ctx, pts, lineLw, lineColor, 1);
+  }
+}
+
+// A: lowercase
+drawWordmark('a-lg', { text: 'baseline' });
+drawWordmark('a-icon-lg', { text: 'baseline', hasBg: true, isIcon: true });
+drawWordmark('a-icon-sm', { text: 'baseline', hasBg: true, isIcon: true });
+
+// B: Capital B
+drawWordmark('b-lg', { text: 'Baseline' });
+drawWordmark('b-icon-lg', { text: 'Baseline', hasBg: true, isIcon: true });
+drawWordmark('b-icon-sm', { text: 'Baseline', hasBg: true, isIcon: true });
+
+// C: deeper dip
+drawWordmark('c-lg', { text: 'baseline', dipDepthMult: 0.50 });
+drawWordmark('c-icon-lg', { text: 'baseline', hasBg: true, isIcon: true });
+drawWordmark('c-icon-sm', { text: 'baseline', hasBg: true, isIcon: true });
+
+// D: tight dip (just under e)
+drawWordmark('d-lg', { text: 'baseline', dipWidth: 'tight' });
+drawWordmark('d-icon-lg', { text: 'baseline', hasBg: true, isIcon: true });
+drawWordmark('d-icon-sm', { text: 'baseline', hasBg: true, isIcon: true });
+
+// E: blue accent spike
+drawWordmark('e-lg', { text: 'Baseline', spikeColor: '#6B7B94', lineColor: '#fff' });
+drawWordmark('e-icon-lg', { text: 'Baseline', hasBg: true, isIcon: true });
+drawWordmark('e-icon-sm', { text: 'Baseline', hasBg: true, isIcon: true });
+
+// Comparison
+drawWordmark('cmp-a', { hasBg: true, isIcon: true });
+drawWordmark('cmp-b', { hasBg: true, isIcon: true });
+drawWordmark('cmp-c', { hasBg: true, isIcon: true });
+drawWordmark('cmp-d', { hasBg: true, isIcon: true });
+drawWordmark('cmp-e', { hasBg: true, isIcon: true });
+
+// Apex ref
+{
+  const r = C('cmp-apex');
+  if(r) {
+    const {x,w,h} = r;
+    bgFill(x, w, h);
+    const cx2=w/2, peakY=h*0.2, baseY=h*0.75;
+    [[w*0.33,1],[w*0.25,0.5],[w*0.17,0.25]].forEach(([spread, alpha]) => {
+      const off = (w*0.33 - spread)*0.4;
+      strokePts(x, [[cx2-spread, baseY], [cx2, peakY+off], [cx2+spread, baseY]], 2.5, '#fff', alpha);
+    });
+  }
+}
+</script>
+
+</body>
+</html>

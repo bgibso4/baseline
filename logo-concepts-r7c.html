@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Baseline — Round 7c: Script EKG Wordmark</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #0a0a0a;
+    color: #fff;
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
+    min-height: 100vh;
+    padding: 40px 20px;
+  }
+  h1 { text-align: center; font-size: 14px; letter-spacing: 4px; text-transform: uppercase; color: #666; margin-bottom: 10px; }
+  .subtitle { text-align: center; font-size: 12px; color: #444; margin-bottom: 60px; line-height: 1.6; }
+  .section { max-width: 1100px; margin: 0 auto 60px; }
+  .section h2 { font-size: 13px; letter-spacing: 3px; text-transform: uppercase; color: #e0e0e0; margin-bottom: 4px; }
+  .section p.desc { font-size: 12px; color: #555; margin-bottom: 20px; line-height: 1.5; }
+  .row { display: flex; gap: 20px; flex-wrap: wrap; align-items: flex-start; margin-bottom: 16px; }
+  .card {
+    background: #141414; border-radius: 16px; padding: 30px; text-align: center;
+    border: 1px solid #222; flex: 1; min-width: 280px;
+  }
+  .card.wide { min-width: 100%; }
+  .card h3 { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: #888; margin-bottom: 16px; }
+  canvas { display: block; margin: 0 auto; }
+  .icon-row { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
+  .icon-wrap { text-align: center; }
+  .icon-frame {
+    width: 60px; height: 60px; border-radius: 13px;
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 6px; border: 1px solid #333; background: #1A1A1E;
+  }
+  .icon-frame.lg { width: 120px; height: 120px; border-radius: 26px; }
+  .icon-label { font-size: 10px; color: #555; }
+</style>
+</head>
+<body>
+
+<h1>Round 7c — Script EKG Wordmark</h1>
+<div class="subtitle">
+  The entire word "baseline" as one continuous stroke.<br>
+  The EKG rhythm IS the letterforms — spike='a', dip flows into letters, recovery bump = 'l' or 'n'.
+</div>
+
+<!-- 1: Continuous script — a=spike, e=dip, l=recovery -->
+<div class="section">
+  <h2>1. Continuous Script — a=spike, first e=dip, l=recovery</h2>
+  <p class="desc">One unbroken line. Flat approach → 'b' → sharp 'a' spike → 's' → 'e' dips down → 'l' rises as recovery → 'i' → 'n' → 'e' → flat exit.</p>
+  <div class="row">
+    <div class="card wide"><canvas id="s1-lg" width="900" height="260"></canvas></div>
+  </div>
+  <div class="row">
+    <div class="card"><h3>Icons (extracted mark)</h3>
+      <div class="icon-row">
+        <div class="icon-wrap"><div class="icon-frame lg"><canvas id="s1-icon-lg" width="120" height="120"></canvas></div><div class="icon-label">120px</div></div>
+        <div class="icon-wrap"><div class="icon-frame"><canvas id="s1-icon-sm" width="60" height="60"></canvas></div><div class="icon-label">60px</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 2: Block letters + weaving line -->
+<div class="section">
+  <h2>2. Block Letters + Weaving EKG</h2>
+  <p class="desc">Clean sans-serif "baseline" text with the EKG line weaving through — spike up through the 'a', dip below the 's', recovery bump through the 'l'.</p>
+  <div class="row">
+    <div class="card wide"><canvas id="s2-lg" width="900" height="260"></canvas></div>
+  </div>
+  <div class="row">
+    <div class="card"><h3>Icons</h3>
+      <div class="icon-row">
+        <div class="icon-wrap"><div class="icon-frame lg"><canvas id="s2-icon-lg" width="120" height="120"></canvas></div><div class="icon-label">120px</div></div>
+        <div class="icon-wrap"><div class="icon-frame"><canvas id="s2-icon-sm" width="60" height="60"></canvas></div><div class="icon-label">60px</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 3: Continuous script — a=spike, s=dip, n=recovery bump -->
+<div class="section">
+  <h2>3. Script — a=spike, s=dip, n=recovery bump</h2>
+  <p class="desc">Alternative mapping. The 'n' hump becomes the recovery bump, keeping the EKG rhythm tighter.</p>
+  <div class="row">
+    <div class="card wide"><canvas id="s3-lg" width="900" height="260"></canvas></div>
+  </div>
+  <div class="row">
+    <div class="card"><h3>Icons</h3>
+      <div class="icon-row">
+        <div class="icon-wrap"><div class="icon-frame lg"><canvas id="s3-icon-lg" width="120" height="120"></canvas></div><div class="icon-label">120px</div></div>
+        <div class="icon-wrap"><div class="icon-frame"><canvas id="s3-icon-sm" width="60" height="60"></canvas></div><div class="icon-label">60px</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 4: Minimal — just the "aseli" section as continuous EKG-letter hybrid -->
+<div class="section">
+  <h2>4. Extracted Core — Just "aseli" as EKG</h2>
+  <p class="desc">The middle section of the word where the EKG happens, isolated as a mark. Flat → a(spike) → se(dip) → li(bump) → flat.</p>
+  <div class="row">
+    <div class="card wide"><canvas id="s4-lg" width="700" height="220"></canvas></div>
+  </div>
+  <div class="row">
+    <div class="card"><h3>Icons</h3>
+      <div class="icon-row">
+        <div class="icon-wrap"><div class="icon-frame lg"><canvas id="s4-icon-lg" width="120" height="120"></canvas></div><div class="icon-label">120px</div></div>
+        <div class="icon-wrap"><div class="icon-frame"><canvas id="s4-icon-sm" width="60" height="60"></canvas></div><div class="icon-label">60px</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 5: block text with A replaced, underline has dip at 'e' and bump at 'l' -->
+<div class="section">
+  <h2>5. Block Text — A=spike, Underline Dips at 'e', Bumps at 'l'</h2>
+  <p class="desc">Clean sans text with 'a' replaced by spike. The underline isn't flat — it dips below 'se' and bumps up at 'l'. EKG rhythm without overlapping text.</p>
+  <div class="row">
+    <div class="card wide"><canvas id="s5-lg" width="900" height="260"></canvas></div>
+  </div>
+  <div class="row">
+    <div class="card wide"><canvas id="s5b-lg" width="900" height="260"></canvas></div>
+  </div>
+  <div class="row">
+    <div class="card"><h3>Icons</h3>
+      <div class="icon-row">
+        <div class="icon-wrap"><div class="icon-frame lg"><canvas id="s5-icon-lg" width="120" height="120"></canvas></div><div class="icon-label">120px</div></div>
+        <div class="icon-wrap"><div class="icon-frame"><canvas id="s5-icon-sm" width="60" height="60"></canvas></div><div class="icon-label">60px</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Comparison -->
+<div class="section">
+  <h2>All at Icon Size</h2>
+  <div class="row">
+    <div class="card wide">
+      <div class="icon-row">
+        <div class="icon-wrap"><div class="icon-frame"><canvas id="cmp-1" width="60" height="60"></canvas></div><div class="icon-label">1. Script</div></div>
+        <div class="icon-wrap"><div class="icon-frame"><canvas id="cmp-2" width="60" height="60"></canvas></div><div class="icon-label">2. Weave</div></div>
+        <div class="icon-wrap"><div class="icon-frame"><canvas id="cmp-3" width="60" height="60"></canvas></div><div class="icon-label">3. Alt script</div></div>
+        <div class="icon-wrap"><div class="icon-frame"><canvas id="cmp-4" width="60" height="60"></canvas></div><div class="icon-label">4. Core</div></div>
+        <div class="icon-wrap"><div class="icon-frame"><canvas id="cmp-5" width="60" height="60"></canvas></div><div class="icon-label">5. Block+dip</div></div>
+        <div class="icon-wrap"><div class="icon-frame" style="border-color:#444"><canvas id="cmp-apex" width="60" height="60"></canvas></div><div class="icon-label">Apex ref</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function C(id) {
+  const c = document.getElementById(id);
+  if (!c) return null;
+  return { c, x: c.getContext('2d'), w: c.width, h: c.height };
+}
+function bgFill(x, w, h) { x.fillStyle = '#1A1A1E'; x.fillRect(0, 0, w, h); }
+
+function drawSmooth(x, pts, lw, color, alpha) {
+  x.save();
+  x.globalAlpha = alpha || 1;
+  x.strokeStyle = color || '#fff';
+  x.lineWidth = lw;
+  x.lineCap = 'round';
+  x.lineJoin = 'round';
+  x.beginPath();
+  x.moveTo(pts[0][0], pts[0][1]);
+
+  // Catmull-rom-ish smooth curves through points
+  for (let i = 0; i < pts.length - 1; i++) {
+    if (i === 0 || i === pts.length - 2) {
+      // First and last segments: straight or simple quadratic
+      const mx = (pts[i][0] + pts[i+1][0]) / 2;
+      const my = (pts[i][1] + pts[i+1][1]) / 2;
+      x.lineTo(pts[i+1][0], pts[i+1][1]);
+    } else {
+      // Use control points for smooth curve
+      const cpx = pts[i][0];
+      const cpy = pts[i][1];
+      const endx = (pts[i][0] + pts[i+1][0]) / 2;
+      const endy = (pts[i][1] + pts[i+1][1]) / 2;
+      x.quadraticCurveTo(cpx, cpy, endx, endy);
+    }
+  }
+  // Final point
+  x.lineTo(pts[pts.length-1][0], pts[pts.length-1][1]);
+  x.stroke();
+  x.restore();
+}
+
+function drawSharp(x, pts, lw, color, alpha) {
+  x.save();
+  x.globalAlpha = alpha || 1;
+  x.strokeStyle = color || '#fff';
+  x.lineWidth = lw;
+  x.lineCap = 'round';
+  x.lineJoin = 'round';
+  x.beginPath();
+  x.moveTo(pts[0][0], pts[0][1]);
+  for (let i = 1; i < pts.length; i++) x.lineTo(pts[i][0], pts[i][1]);
+  x.stroke();
+  x.restore();
+}
+
+// ============================================================
+// 1. Continuous script: b → a(spike) → s → e(dip) → l(recovery) → i → n → e → flat
+// ============================================================
+function drawScript1(id, opts={}) {
+  const r = C(id); if(!r) return;
+  const {x, w, h} = r;
+  const {hasBg=false, lw=3.5, isIcon=false} = opts;
+  if(hasBg) bgFill(x, w, h);
+
+  if (isIcon) {
+    // Extracted: flat → spike → dip → bump → flat
+    const by = h*0.55;
+    const _lw = Math.max(1.5, w*0.035);
+    const pts = [
+      [w*0.04, by],
+      [w*0.15, by],
+      // spike (a)
+      [w*0.28, by - h*0.38],
+      // down through s
+      [w*0.40, by + h*0.05],
+      // dip (e)
+      [w*0.50, by + h*0.28],
+      // recovery (l)
+      [w*0.60, by - h*0.18],
+      // settle
+      [w*0.72, by],
+      [w*0.85, by],
+      [w*0.96, by],
+    ];
+    drawSharp(x, pts, _lw, '#fff', 1);
+    return;
+  }
+
+  const by = h * 0.55; // baseline Y
+  const topLine = by - h*0.30; // top of lowercase letters
+  const ascender = by - h*0.48; // ascender height (b, l)
+  const descArea = by + h*0.22; // area below baseline for dips
+
+  //  b       a(SPIKE)  s        e(DIP)    l(UP)    i      n        e       →
+  const pts = [
+    // flat entry
+    [w*0.04, by],
+    [w*0.08, by],
+    // 'b' — slight rise for ascender
+    [w*0.10, by],
+    [w*0.11, ascender + h*0.05],
+    [w*0.13, ascender],
+    [w*0.14, topLine],
+    [w*0.155, by + h*0.02],
+    [w*0.17, topLine],
+    [w*0.185, by],
+    // 'a' — THE SPIKE
+    [w*0.21, by],
+    [w*0.25, ascender - h*0.15], // sharp peak
+    [w*0.29, by],
+    // 's' — gentle curve
+    [w*0.31, topLine + h*0.04],
+    [w*0.33, by - h*0.08],
+    [w*0.35, by + h*0.02],
+    // 'e' — THE DIP
+    [w*0.38, by],
+    [w*0.41, descArea + h*0.05], // dip below baseline
+    [w*0.44, descArea],
+    [w*0.47, by],
+    // 'l' — RECOVERY BUMP (ascender)
+    [w*0.49, by],
+    [w*0.51, ascender + h*0.02], // rises up
+    [w*0.53, by],
+    // 'i'
+    [w*0.55, topLine + h*0.02],
+    [w*0.57, by],
+    // 'n'
+    [w*0.59, topLine],
+    [w*0.61, topLine + h*0.02],
+    [w*0.63, by],
+    // 'e'
+    [w*0.65, topLine + h*0.04],
+    [w*0.67, by - h*0.05],
+    [w*0.69, by],
+    // flat exit
+    [w*0.75, by],
+    [w*0.96, by],
+  ];
+
+  drawSmooth(x, pts, lw, '#fff', 1);
+
+  // 'i' dot
+  x.save();
+  x.fillStyle = '#fff';
+  x.beginPath();
+  x.arc(w*0.56, topLine - h*0.06, lw*0.8, 0, Math.PI*2);
+  x.fill();
+  x.restore();
+}
+
+drawScript1('s1-lg', {lw: 4});
+drawScript1('s1-icon-lg', {hasBg:true, isIcon:true});
+drawScript1('s1-icon-sm', {hasBg:true, isIcon:true});
+
+// ============================================================
+// 2. Block letters + weaving EKG line
+// ============================================================
+function drawWeave(id, opts={}) {
+  const r = C(id); if(!r) return;
+  const {x:ctx, w, h} = r;
+  const {hasBg=false, lw=3, isIcon=false} = opts;
+  if(hasBg) bgFill(ctx, w, h);
+
+  if (isIcon) {
+    // Same extracted mark as #1
+    const by = h*0.55;
+    const _lw = Math.max(1.5, w*0.035);
+    const pts = [
+      [w*0.04, by], [w*0.15, by],
+      [w*0.30, by - h*0.38],
+      [w*0.42, by + h*0.02],
+      [w*0.52, by + h*0.25],
+      [w*0.62, by - h*0.16],
+      [w*0.72, by], [w*0.85, by], [w*0.96, by],
+    ];
+    drawSharp(ctx, pts, _lw, '#fff', 1);
+    return;
+  }
+
+  const fontSize = h * 0.30;
+  const font = `500 ${fontSize}px "SF Pro Display", -apple-system, sans-serif`;
+  ctx.font = font;
+
+  const text = 'baseline';
+  const chars = text.split('');
+  const charWidths = chars.map(ch => ctx.measureText(ch).width);
+  const totalW = charWidths.reduce((a,b) => a+b, 0);
+  const sx = (w - totalW) / 2;
+  const textBaseline = h * 0.56;
+
+  // Char positions
+  const cxs = [];
+  let xx = sx;
+  for (let i = 0; i < chars.length; i++) { cxs.push(xx); xx += charWidths[i]; }
+
+  // Draw text in low opacity
+  ctx.save();
+  ctx.fillStyle = '#fff';
+  ctx.globalAlpha = 0.25;
+  ctx.font = font;
+  ctx.textBaseline = 'alphabetic';
+  for (let i = 0; i < chars.length; i++) {
+    ctx.fillText(chars[i], cxs[i], textBaseline);
+  }
+  ctx.restore();
+
+  // EKG weaving through
+  const lineY = textBaseline - fontSize * 0.35; // middle of text
+  const aIdx = 1; // 'a'
+  const aMid = cxs[aIdx] + charWidths[aIdx]/2;
+  const eIdx = 3; // first 'e'
+  const eMid = cxs[eIdx] + charWidths[eIdx]/2;
+  const lIdx = 4; // 'l'
+  const lMid = cxs[lIdx] + charWidths[lIdx]/2;
+
+  const pts = [
+    [sx - w*0.04, lineY],
+    [aMid - charWidths[aIdx]*0.8, lineY],
+    // spike through 'a'
+    [aMid, lineY - fontSize*0.9],
+    [aMid + charWidths[aIdx]*0.6, lineY],
+    // approach dip
+    [eMid - charWidths[eIdx]*0.5, lineY],
+    // dip through 'e'
+    [eMid, lineY + fontSize*0.55],
+    [eMid + charWidths[eIdx]*0.5, lineY],
+    // recovery through 'l'
+    [lMid, lineY - fontSize*0.45],
+    [lMid + charWidths[lIdx]*0.8, lineY],
+    // flat out
+    [xx + w*0.04, lineY],
+  ];
+
+  drawSharp(ctx, pts, lw, '#fff', 1);
+}
+
+drawWeave('s2-lg', {lw: 3.5});
+drawWeave('s2-icon-lg', {hasBg:true, isIcon:true});
+drawWeave('s2-icon-sm', {hasBg:true, isIcon:true});
+
+// ============================================================
+// 3. Script alt: a=spike, s=dip, n=recovery
+// ============================================================
+function drawScript3(id, opts={}) {
+  const r = C(id); if(!r) return;
+  const {x, w, h} = r;
+  const {hasBg=false, lw=3.5, isIcon=false} = opts;
+  if(hasBg) bgFill(x, w, h);
+
+  if (isIcon) {
+    const by = h*0.55;
+    const _lw = Math.max(1.5, w*0.035);
+    // spike → quick dip → flat → bump → flat
+    const pts = [
+      [w*0.04, by], [w*0.15, by],
+      [w*0.28, by - h*0.38], // spike (a)
+      [w*0.36, by + h*0.22], // dip (s)
+      [w*0.44, by],
+      [w*0.54, by],
+      [w*0.64, by - h*0.15], // bump (n)
+      [w*0.74, by],
+      [w*0.96, by],
+    ];
+    drawSharp(x, pts, _lw, '#fff', 1);
+    return;
+  }
+
+  const by = h*0.55;
+  const topLine = by - h*0.30;
+  const ascender = by - h*0.48;
+
+  const pts = [
+    [w*0.04, by], [w*0.08, by],
+    // b
+    [w*0.10, by], [w*0.11, ascender+h*0.05], [w*0.13, ascender],
+    [w*0.14, topLine], [w*0.155, by+h*0.02], [w*0.17, topLine], [w*0.185, by],
+    // a — SPIKE
+    [w*0.21, by], [w*0.25, ascender-h*0.15], [w*0.29, by],
+    // s — DIP
+    [w*0.31, by], [w*0.34, by+h*0.18], [w*0.37, by],
+    // e
+    [w*0.39, topLine+h*0.04], [w*0.41, by-h*0.05], [w*0.43, by],
+    // l
+    [w*0.45, ascender+h*0.04], [w*0.47, by],
+    // i
+    [w*0.49, topLine+h*0.02], [w*0.51, by],
+    // n — RECOVERY BUMP
+    [w*0.53, by], [w*0.56, topLine-h*0.02], [w*0.58, topLine+h*0.02], [w*0.60, by],
+    // e
+    [w*0.62, topLine+h*0.04], [w*0.64, by-h*0.05], [w*0.66, by],
+    // flat exit
+    [w*0.72, by], [w*0.96, by],
+  ];
+
+  drawSmooth(x, pts, lw, '#fff', 1);
+
+  // i dot
+  x.save(); x.fillStyle='#fff'; x.beginPath();
+  x.arc(w*0.50, topLine-h*0.06, lw*0.8, 0, Math.PI*2);
+  x.fill(); x.restore();
+}
+
+drawScript3('s3-lg', {lw: 4});
+drawScript3('s3-icon-lg', {hasBg:true, isIcon:true});
+drawScript3('s3-icon-sm', {hasBg:true, isIcon:true});
+
+// ============================================================
+// 4. Extracted core — just the EKG-letter section
+// ============================================================
+function drawCore(id, opts={}) {
+  const r = C(id); if(!r) return;
+  const {x, w, h} = r;
+  const {hasBg=false, lw=4, isIcon=false} = opts;
+  if(hasBg) bgFill(x, w, h);
+
+  const by = h * 0.55;
+  const _lw = isIcon ? Math.max(1.5, w*0.035) : lw;
+
+  // Clean EKG that reads as letter shapes
+  // flat → a(spike) → se(dip) → l(rise) → flat
+  const pts = [
+    [w*0.04, by],
+    [w*0.12, by],
+    // 'a' spike
+    [w*0.24, by - h*0.40],
+    // 's' transition
+    [w*0.34, by + h*0.03],
+    // 'e' dip
+    [w*0.44, by + h*0.28],
+    // 'l' recovery
+    [w*0.56, by - h*0.20],
+    // 'i' settle
+    [w*0.64, by],
+    [w*0.76, by],
+    [w*0.96, by],
+  ];
+
+  drawSharp(x, pts, _lw, '#fff', 1);
+}
+
+drawCore('s4-lg', {lw: 5});
+drawCore('s4-icon-lg', {hasBg:true, isIcon:true});
+drawCore('s4-icon-sm', {hasBg:true, isIcon:true});
+
+// ============================================================
+// 5. Block text — A=spike, underline has EKG dip at 'se' and bump at 'l'
+// ============================================================
+function drawBlockEkg(id, opts={}) {
+  const r = C(id); if(!r) return;
+  const {x:ctx, w, h} = r;
+  const {hasBg=false, lw=3, isIcon=false, capB=false} = opts;
+  if(hasBg) bgFill(ctx, w, h);
+
+  if (isIcon) {
+    // Extracted mark
+    const by = h*0.55;
+    const _lw = Math.max(1.5, w*0.035);
+    const pts = [
+      [w*0.04, by], [w*0.15, by],
+      [w*0.30, by - h*0.40],
+      [w*0.38, by],
+      [w*0.48, by + h*0.22],
+      [w*0.58, by - h*0.14],
+      [w*0.68, by],
+      [w*0.85, by], [w*0.96, by],
+    ];
+    drawSharp(ctx, pts, _lw, '#fff', 1);
+    return;
+  }
+
+  const text = capB ? 'Baseline' : 'baseline';
+  const fontSize = h * 0.28;
+  const font = `600 ${fontSize}px "SF Pro Display", -apple-system, sans-serif`;
+  ctx.font = font;
+
+  const chars = text.split('');
+  const charWidths = chars.map(ch => ctx.measureText(ch).width);
+  const totalW = charWidths.reduce((a,b) => a+b, 0);
+  const sx = (w - totalW) / 2;
+  const textBaseline = h * 0.50;
+  const lineY = textBaseline + fontSize * 0.06; // kissing the bottom
+
+  const cxs = [];
+  let xx = sx;
+  for (let i = 0; i < chars.length; i++) { cxs.push(xx); xx += charWidths[i]; }
+  const endX = xx;
+
+  // Draw all chars except 'a' (index 1 for lowercase, index 1 for "Baseline")
+  const aIdx = text.toLowerCase().indexOf('a');
+  ctx.save();
+  ctx.fillStyle = '#fff';
+  ctx.font = font;
+  ctx.textBaseline = 'alphabetic';
+  for (let i = 0; i < chars.length; i++) {
+    if (i === aIdx) continue;
+    ctx.fillText(chars[i], cxs[i], textBaseline);
+  }
+  ctx.restore();
+
+  // EKG line: flat → spike at 'a' → flat → dip below 'se' → bump at 'l' → flat
+  const aMid = cxs[aIdx] + charWidths[aIdx]/2;
+  const peakW = charWidths[aIdx] * 0.4;
+  const peakH = fontSize * 1.05;
+
+  // s and e positions
+  const sIdx = text.toLowerCase().indexOf('s');
+  const eIdx = text.toLowerCase().indexOf('e');
+  const seMid = (cxs[sIdx] + cxs[eIdx] + charWidths[eIdx]) / 2;
+  const dipDepth = fontSize * 0.35;
+
+  // l position
+  const lIdx = text.toLowerCase().indexOf('l');
+  const lMid = cxs[lIdx] + charWidths[lIdx]/2;
+  const bumpH = fontSize * 0.25;
+
+  const lineExt = w * 0.04;
+  const pts = [
+    [sx - lineExt, lineY],
+    [aMid - peakW*1.5, lineY],
+    // A spike
+    [aMid, lineY - peakH],
+    [aMid + peakW*1.5, lineY],
+    // approach dip
+    [seMid - charWidths[sIdx]*1.2, lineY],
+    // dip under 'se'
+    [seMid, lineY + dipDepth],
+    // transition to bump
+    [lMid - charWidths[lIdx]*0.5, lineY],
+    // bump at 'l'
+    [lMid, lineY - bumpH],
+    // settle
+    [lMid + charWidths[lIdx]*1.2, lineY],
+    [endX + lineExt, lineY],
+  ];
+
+  drawSharp(ctx, pts, lw, '#fff', 1);
+}
+
+drawBlockEkg('s5-lg', {lw: 3.5});
+drawBlockEkg('s5b-lg', {lw: 3.5, capB: true});
+drawBlockEkg('s5-icon-lg', {hasBg:true, isIcon:true});
+drawBlockEkg('s5-icon-sm', {hasBg:true, isIcon:true});
+
+// ============================================================
+// Comparison
+// ============================================================
+drawScript1('cmp-1', {hasBg:true, isIcon:true});
+drawWeave('cmp-2', {hasBg:true, isIcon:true});
+drawScript3('cmp-3', {hasBg:true, isIcon:true});
+drawCore('cmp-4', {hasBg:true, isIcon:true});
+drawBlockEkg('cmp-5', {hasBg:true, isIcon:true});
+
+// Apex ref
+{
+  const r = C('cmp-apex');
+  if(r) {
+    const {x,w,h} = r;
+    bgFill(x, w, h);
+    const cx2=w/2, peakY=h*0.2, baseY=h*0.75;
+    [[w*0.33,1],[w*0.25,0.5],[w*0.17,0.25]].forEach(([spread, alpha]) => {
+      const off = (w*0.33 - spread)*0.4;
+      drawSharp(x, [[cx2-spread, baseY], [cx2, peakY+off], [cx2+spread, baseY]], 2.5, '#fff', alpha);
+    });
+  }
+}
+</script>
+
+</body>
+</html>

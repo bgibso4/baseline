@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Baseline — Round 8: EKG Icon Treatments</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #0a0a0a;
+    color: #fff;
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
+    min-height: 100vh;
+    padding: 40px 20px;
+  }
+  h1 { text-align: center; font-size: 14px; letter-spacing: 4px; text-transform: uppercase; color: #666; margin-bottom: 10px; }
+  .subtitle { text-align: center; font-size: 12px; color: #444; margin-bottom: 60px; }
+  .section { max-width: 1100px; margin: 0 auto 60px; }
+  .section h2 { font-size: 13px; letter-spacing: 3px; text-transform: uppercase; color: #e0e0e0; margin-bottom: 4px; }
+  .section p.desc { font-size: 12px; color: #555; margin-bottom: 20px; line-height: 1.5; }
+  .row { display: flex; gap: 20px; flex-wrap: wrap; align-items: flex-start; margin-bottom: 16px; }
+  .card {
+    background: #141414; border-radius: 16px; padding: 30px; text-align: center;
+    border: 1px solid #222; flex: 1; min-width: 260px;
+  }
+  .card.wide { min-width: 100%; }
+  .card h3 { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: #888; margin-bottom: 16px; }
+  canvas { display: block; margin: 0 auto; }
+  .icon-row { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
+  .icon-wrap { text-align: center; }
+  .icon-frame {
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 6px; border: 1px solid #333;
+  }
+  .i60 { width: 60px; height: 60px; border-radius: 13px; }
+  .i120 { width: 120px; height: 120px; border-radius: 26px; }
+  .icon-label { font-size: 10px; color: #555; }
+</style>
+</head>
+<body>
+
+<h1>Round 8 — Making the EKG Icon Pop</h1>
+<div class="subtitle">Same EKG mark. Different treatments to give it more presence at icon size.</div>
+
+<!-- 1. Gradient line -->
+<div class="section">
+  <h2>1. Gradient Stroke</h2>
+  <p class="desc">EKG line fades from accent blue to white. Adds depth without adding elements.</p>
+  <div class="row">
+    <div class="card"><h3>Large</h3><canvas id="grad-lg" width="500" height="180"></canvas></div>
+    <div class="card"><h3>Icons</h3>
+      <div class="icon-row">
+        <div class="icon-wrap"><div class="icon-frame i120" style="background:#1A1A1E"><canvas id="grad-i120" width="120" height="120"></canvas></div><div class="icon-label">120</div></div>
+        <div class="icon-wrap"><div class="icon-frame i60" style="background:#1A1A1E"><canvas id="grad-i60" width="60" height="60"></canvas></div><div class="icon-label">60</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 2. Rounded rect container -->
+<div class="section">
+  <h2>2. Contained in Rounded Rect</h2>
+  <p class="desc">EKG inside a subtle bordered container. Frames the mark, gives it structure.</p>
+  <div class="row">
+    <div class="card"><h3>Icons</h3>
+      <div class="icon-row">
+        <div class="icon-wrap"><div class="icon-frame i120" style="background:#1A1A1E"><canvas id="cont-i120" width="120" height="120"></canvas></div><div class="icon-label">border</div></div>
+        <div class="icon-wrap"><div class="icon-frame i60" style="background:#1A1A1E"><canvas id="cont-i60" width="60" height="60"></canvas></div><div class="icon-label">60</div></div>
+        <div class="icon-wrap"><div class="icon-frame i120" style="background:#1A1A1E"><canvas id="cont2-i120" width="120" height="120"></canvas></div><div class="icon-label">filled bg</div></div>
+        <div class="icon-wrap"><div class="icon-frame i60" style="background:#1A1A1E"><canvas id="cont2-i60" width="60" height="60"></canvas></div><div class="icon-label">60</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 3. Circle container (like Apple Health) -->
+<div class="section">
+  <h2>3. Circle Container</h2>
+  <p class="desc">EKG inside a circle. Medical/health feel. Line breaks through the circle edges.</p>
+  <div class="row">
+    <div class="card"><h3>Icons</h3>
+      <div class="icon-row">
+        <div class="icon-wrap"><div class="icon-frame i120" style="background:#1A1A1E"><canvas id="circ-i120" width="120" height="120"></canvas></div><div class="icon-label">stroke circle</div></div>
+        <div class="icon-wrap"><div class="icon-frame i60" style="background:#1A1A1E"><canvas id="circ-i60" width="60" height="60"></canvas></div><div class="icon-label">60</div></div>
+        <div class="icon-wrap"><div class="icon-frame i120" style="background:#1A1A1E"><canvas id="circ2-i120" width="120" height="120"></canvas></div><div class="icon-label">filled circle</div></div>
+        <div class="icon-wrap"><div class="icon-frame i60" style="background:#1A1A1E"><canvas id="circ2-i60" width="60" height="60"></canvas></div><div class="icon-label">60</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 4. Thicker + color background -->
+<div class="section">
+  <h2>4. Bold Stroke + Colored Backgrounds</h2>
+  <p class="desc">Much thicker line. Try different background colors instead of just charcoal.</p>
+  <div class="row">
+    <div class="card"><h3>Icons</h3>
+      <div class="icon-row">
+        <div class="icon-wrap"><div class="icon-frame i120" style="background:#1A1A1E"><canvas id="bold-dark" width="120" height="120"></canvas></div><div class="icon-label">charcoal</div></div>
+        <div class="icon-wrap"><div class="icon-frame i120" style="background:#1A1A1E"><canvas id="bold-navy" width="120" height="120"></canvas></div><div class="icon-label">navy</div></div>
+        <div class="icon-wrap"><div class="icon-frame i120" style="background:#1A1A1E"><canvas id="bold-blue" width="120" height="120"></canvas></div><div class="icon-label">accent bg</div></div>
+        <div class="icon-wrap"><div class="icon-frame i120" style="background:#1A1A1E"><canvas id="bold-black" width="120" height="120"></canvas></div><div class="icon-label">pure black</div></div>
+      </div>
+    </div>
+  </div>
+  <div class="row">
+    <div class="card"><h3>At 60px</h3>
+      <div class="icon-row">
+        <div class="icon-wrap"><div class="icon-frame i60" style="background:#1A1A1E"><canvas id="bold-dark-s" width="60" height="60"></canvas></div><div class="icon-label">charcoal</div></div>
+        <div class="icon-wrap"><div class="icon-frame i60" style="background:#1A1A1E"><canvas id="bold-navy-s" width="60" height="60"></canvas></div><div class="icon-label">navy</div></div>
+        <div class="icon-wrap"><div class="icon-frame i60" style="background:#1A1A1E"><canvas id="bold-blue-s" width="60" height="60"></canvas></div><div class="icon-label">accent bg</div></div>
+        <div class="icon-wrap"><div class="icon-frame i60" style="background:#1A1A1E"><canvas id="bold-black-s" width="60" height="60"></canvas></div><div class="icon-label">pure black</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 5. Glow effect (revisited, tuned for icon) -->
+<div class="section">
+  <h2>5. Neon Glow (Tuned for Icon)</h2>
+  <p class="desc">Subtle glow behind the line. Like a monitor in a dark room. White and blue variants.</p>
+  <div class="row">
+    <div class="card"><h3>Icons</h3>
+      <div class="icon-row">
+        <div class="icon-wrap"><div class="icon-frame i120" style="background:#0B0B0E"><canvas id="neon-w-120" width="120" height="120"></canvas></div><div class="icon-label">white glow</div></div>
+        <div class="icon-wrap"><div class="icon-frame i60" style="background:#0B0B0E"><canvas id="neon-w-60" width="60" height="60"></canvas></div><div class="icon-label">60</div></div>
+        <div class="icon-wrap"><div class="icon-frame i120" style="background:#0B0B0E"><canvas id="neon-b-120" width="120" height="120"></canvas></div><div class="icon-label">blue glow</div></div>
+        <div class="icon-wrap"><div class="icon-frame i60" style="background:#0B0B0E"><canvas id="neon-b-60" width="60" height="60"></canvas></div><div class="icon-label">60</div></div>
+        <div class="icon-wrap"><div class="icon-frame i120" style="background:#0B0B0E"><canvas id="neon-g-120" width="120" height="120"></canvas></div><div class="icon-label">green glow</div></div>
+        <div class="icon-wrap"><div class="icon-frame i60" style="background:#0B0B0E"><canvas id="neon-g-60" width="60" height="60"></canvas></div><div class="icon-label">60</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 6. EKG + subtle grid -->
+<div class="section">
+  <h2>6. EKG on Monitor Grid</h2>
+  <p class="desc">Faint grid lines behind the EKG, like an actual heart monitor printout. Adds texture and context.</p>
+  <div class="row">
+    <div class="card"><h3>Icons</h3>
+      <div class="icon-row">
+        <div class="icon-wrap"><div class="icon-frame i120" style="background:#0B0B0E"><canvas id="grid-i120" width="120" height="120"></canvas></div><div class="icon-label">120</div></div>
+        <div class="icon-wrap"><div class="icon-frame i60" style="background:#0B0B0E"><canvas id="grid-i60" width="60" height="60"></canvas></div><div class="icon-label">60</div></div>
+        <div class="icon-wrap"><div class="icon-frame i120" style="background:#0B0B0E"><canvas id="grid-green-120" width="120" height="120"></canvas></div><div class="icon-label">green monitor</div></div>
+        <div class="icon-wrap"><div class="icon-frame i60" style="background:#0B0B0E"><canvas id="grid-green-60" width="60" height="60"></canvas></div><div class="icon-label">60</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 7. Filled area under EKG -->
+<div class="section">
+  <h2>7. Area Fill Under Line</h2>
+  <p class="desc">Gradient fill from the line down. Gives the mark visual mass. Line stays crisp on top.</p>
+  <div class="row">
+    <div class="card"><h3>Icons</h3>
+      <div class="icon-row">
+        <div class="icon-wrap"><div class="icon-frame i120" style="background:#1A1A1E"><canvas id="area-w-120" width="120" height="120"></canvas></div><div class="icon-label">white fade</div></div>
+        <div class="icon-wrap"><div class="icon-frame i60" style="background:#1A1A1E"><canvas id="area-w-60" width="60" height="60"></canvas></div><div class="icon-label">60</div></div>
+        <div class="icon-wrap"><div class="icon-frame i120" style="background:#1A1A1E"><canvas id="area-b-120" width="120" height="120"></canvas></div><div class="icon-label">blue fade</div></div>
+        <div class="icon-wrap"><div class="icon-frame i60" style="background:#1A1A1E"><canvas id="area-b-60" width="60" height="60"></canvas></div><div class="icon-label">60</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Comparison -->
+<div class="section">
+  <h2>Best of Each at 60px</h2>
+  <div class="row"><div class="card wide">
+    <div class="icon-row">
+      <div class="icon-wrap"><div class="icon-frame i60" style="background:#1A1A1E"><canvas id="cmp-old" width="60" height="60"></canvas></div><div class="icon-label">Current (boring)</div></div>
+      <div class="icon-wrap"><div class="icon-frame i60" style="background:#1A1A1E"><canvas id="cmp-1" width="60" height="60"></canvas></div><div class="icon-label">1. Gradient</div></div>
+      <div class="icon-wrap"><div class="icon-frame i60" style="background:#1A1A1E"><canvas id="cmp-2" width="60" height="60"></canvas></div><div class="icon-label">2. Container</div></div>
+      <div class="icon-wrap"><div class="icon-frame i60" style="background:#1A1A1E"><canvas id="cmp-3" width="60" height="60"></canvas></div><div class="icon-label">3. Circle</div></div>
+      <div class="icon-wrap"><div class="icon-frame i60" style="background:#1A1A1E"><canvas id="cmp-4" width="60" height="60"></canvas></div><div class="icon-label">4. Bold navy</div></div>
+      <div class="icon-wrap"><div class="icon-frame i60" style="background:#0B0B0E"><canvas id="cmp-5" width="60" height="60"></canvas></div><div class="icon-label">5. Neon</div></div>
+      <div class="icon-wrap"><div class="icon-frame i60" style="background:#0B0B0E"><canvas id="cmp-6" width="60" height="60"></canvas></div><div class="icon-label">6. Grid</div></div>
+      <div class="icon-wrap"><div class="icon-frame i60" style="background:#1A1A1E"><canvas id="cmp-7" width="60" height="60"></canvas></div><div class="icon-label">7. Area fill</div></div>
+      <div class="icon-wrap"><div class="icon-frame i60" style="background:#1A1A1E;border-color:#444"><canvas id="cmp-apex" width="60" height="60"></canvas></div><div class="icon-label">Apex ref</div></div>
+    </div>
+  </div></div>
+</div>
+
+<script>
+function C(id) {
+  const c = document.getElementById(id); if(!c) return null;
+  return { c, x: c.getContext('2d'), w: c.width, h: c.height };
+}
+function ekgPts(w, h, by, pad) {
+  const sx=w*pad, ex=w*(1-pad), r=ex-sx;
+  return [[sx,by],[sx+r*0.18,by],[sx+r*0.24,by],[sx+r*0.34,by-h*0.28],
+    [sx+r*0.48,by+h*0.25],[sx+r*0.60,by-h*0.14],[sx+r*0.70,by],[sx+r*0.76,by],[ex,by]];
+}
+function strokeLine(ctx, pts, lw, color, alpha) {
+  ctx.save(); ctx.globalAlpha=alpha||1; ctx.strokeStyle=color||'#fff';
+  ctx.lineWidth=lw; ctx.lineCap='round'; ctx.lineJoin='round';
+  ctx.beginPath(); ctx.moveTo(pts[0][0],pts[0][1]);
+  for(let i=1;i<pts.length;i++) ctx.lineTo(pts[i][0],pts[i][1]);
+  ctx.stroke(); ctx.restore();
+}
+function bgFill(ctx,w,h,c) { ctx.fillStyle=c||'#1A1A1E'; ctx.fillRect(0,0,w,h); }
+
+// --- 1. Gradient stroke ---
+function drawGrad(id) {
+  const r=C(id); if(!r) return;
+  const {x:ctx,w,h}=r;
+  bgFill(ctx,w,h);
+  const pts=ekgPts(w,h,h*0.52,0.08);
+  const lw=Math.max(2, w*0.028);
+  const grad=ctx.createLinearGradient(0,0,w,0);
+  grad.addColorStop(0,'#6B7B94'); grad.addColorStop(0.4,'#ffffff'); grad.addColorStop(1,'#6B7B94');
+  ctx.save(); ctx.strokeStyle=grad; ctx.lineWidth=lw; ctx.lineCap='round'; ctx.lineJoin='round';
+  ctx.beginPath(); ctx.moveTo(pts[0][0],pts[0][1]);
+  for(let i=1;i<pts.length;i++) ctx.lineTo(pts[i][0],pts[i][1]);
+  ctx.stroke(); ctx.restore();
+}
+['grad-lg','grad-i120','grad-i60'].forEach(drawGrad);
+
+// --- 2. Rounded rect container ---
+function drawContained(id, opts={}) {
+  const r=C(id); if(!r) return;
+  const {x:ctx,w,h}=r;
+  const {filled=false}=opts;
+  bgFill(ctx,w,h);
+  const pad=w*0.12, rad=w*0.12;
+  ctx.save();
+  ctx.beginPath();
+  ctx.roundRect(pad,pad,w-pad*2,h-pad*2,rad);
+  if(filled) { ctx.fillStyle='rgba(255,255,255,0.06)'; ctx.fill(); }
+  ctx.strokeStyle='rgba(255,255,255,0.15)'; ctx.lineWidth=Math.max(1,w*0.015); ctx.stroke();
+  ctx.restore();
+  const pts=ekgPts(w,h,h*0.52,0.16);
+  strokeLine(ctx,pts,Math.max(1.5,w*0.025),'#fff',1);
+}
+drawContained('cont-i120'); drawContained('cont-i60');
+drawContained('cont2-i120',{filled:true}); drawContained('cont2-i60',{filled:true});
+
+// --- 3. Circle container ---
+function drawCircle(id, opts={}) {
+  const r=C(id); if(!r) return;
+  const {x:ctx,w,h}=r;
+  const {filled=false}=opts;
+  bgFill(ctx,w,h);
+  const cx=w/2,cy=h/2,rad=w*0.36;
+  ctx.save();
+  ctx.beginPath(); ctx.arc(cx,cy,rad,0,Math.PI*2);
+  if(filled) { ctx.fillStyle='rgba(255,255,255,0.05)'; ctx.fill(); }
+  ctx.strokeStyle='rgba(255,255,255,0.18)'; ctx.lineWidth=Math.max(1,w*0.015); ctx.stroke();
+  ctx.restore();
+  const pts=ekgPts(w,h,h*0.52,0.10);
+  strokeLine(ctx,pts,Math.max(1.5,w*0.025),'#fff',1);
+}
+drawCircle('circ-i120'); drawCircle('circ-i60');
+drawCircle('circ2-i120',{filled:true}); drawCircle('circ2-i60',{filled:true});
+
+// --- 4. Bold + colored bg ---
+function drawBold(id, bgColor) {
+  const r=C(id); if(!r) return;
+  const {x:ctx,w,h}=r;
+  bgFill(ctx,w,h,bgColor);
+  const pts=ekgPts(w,h,h*0.52,0.08);
+  strokeLine(ctx,pts,Math.max(2.5,w*0.035),'#fff',1);
+}
+drawBold('bold-dark','#1A1A1E'); drawBold('bold-navy','#141828');
+drawBold('bold-blue','#3A4A5E'); drawBold('bold-black','#000000');
+drawBold('bold-dark-s','#1A1A1E'); drawBold('bold-navy-s','#141828');
+drawBold('bold-blue-s','#3A4A5E'); drawBold('bold-black-s','#000000');
+
+// --- 5. Neon glow ---
+function drawNeon(id, glowColor) {
+  const r=C(id); if(!r) return;
+  const {x:ctx,w,h}=r;
+  bgFill(ctx,w,h,'#0B0B0E');
+  const pts=ekgPts(w,h,h*0.52,0.08);
+  const lw=Math.max(1.5,w*0.022);
+  const glowSize=Math.max(4,w*0.08);
+  for(let g=glowSize;g>0;g-=1.5) {
+    const alpha=0.02+(glowSize-g)*0.008;
+    strokeLine(ctx,pts,lw+g*2,glowColor,alpha);
+  }
+  strokeLine(ctx,pts,lw,'#fff',1);
+}
+drawNeon('neon-w-120','rgba(255,255,255,1)'); drawNeon('neon-w-60','rgba(255,255,255,1)');
+drawNeon('neon-b-120','rgba(107,123,148,1)'); drawNeon('neon-b-60','rgba(107,123,148,1)');
+drawNeon('neon-g-120','rgba(52,199,89,1)'); drawNeon('neon-g-60','rgba(52,199,89,1)');
+
+// --- 6. Grid ---
+function drawGrid(id, lineColor) {
+  const r=C(id); if(!r) return;
+  const {x:ctx,w,h}=r;
+  bgFill(ctx,w,h,'#0B0B0E');
+  const gridSize=Math.max(6,w*0.08);
+  ctx.save(); ctx.strokeStyle=lineColor==='green'?'rgba(52,199,89,0.08)':'rgba(255,255,255,0.06)';
+  ctx.lineWidth=0.5;
+  for(let x=gridSize;x<w;x+=gridSize) { ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,h); ctx.stroke(); }
+  for(let y=gridSize;y<h;y+=gridSize) { ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(w,y); ctx.stroke(); }
+  ctx.restore();
+  const pts=ekgPts(w,h,h*0.52,0.08);
+  const lw=Math.max(1.5,w*0.025);
+  const color=lineColor==='green'?'#34C759':'#fff';
+  strokeLine(ctx,pts,lw,color,1);
+}
+drawGrid('grid-i120','white'); drawGrid('grid-i60','white');
+drawGrid('grid-green-120','green'); drawGrid('grid-green-60','green');
+
+// --- 7. Area fill ---
+function drawArea(id, fillColor) {
+  const r=C(id); if(!r) return;
+  const {x:ctx,w,h}=r;
+  bgFill(ctx,w,h);
+  const pts=ekgPts(w,h,h*0.52,0.08);
+  // Fill under
+  const grad=ctx.createLinearGradient(0,h*0.2,0,h*0.85);
+  grad.addColorStop(0,fillColor==='blue'?'rgba(107,123,148,0.25)':'rgba(255,255,255,0.18)');
+  grad.addColorStop(1,'rgba(0,0,0,0)');
+  ctx.save(); ctx.fillStyle=grad;
+  ctx.beginPath(); ctx.moveTo(pts[0][0],pts[0][1]);
+  for(let i=1;i<pts.length;i++) ctx.lineTo(pts[i][0],pts[i][1]);
+  ctx.lineTo(pts[pts.length-1][0],h*0.85);
+  ctx.lineTo(pts[0][0],h*0.85);
+  ctx.closePath(); ctx.fill(); ctx.restore();
+  strokeLine(ctx,pts,Math.max(1.5,w*0.025),'#fff',1);
+}
+drawArea('area-w-120','white'); drawArea('area-w-60','white');
+drawArea('area-b-120','blue'); drawArea('area-b-60','blue');
+
+// --- Comparison ---
+function drawPlain(id) { const r=C(id);if(!r)return;const{x:ctx,w,h}=r;bgFill(ctx,w,h);strokeLine(ctx,ekgPts(w,h,h*0.52,0.08),Math.max(1.5,w*0.025),'#fff',1); }
+drawPlain('cmp-old');
+drawGrad('cmp-1');
+drawContained('cmp-2',{filled:true});
+drawCircle('cmp-3',{filled:true});
+drawBold('cmp-4','#141828');
+drawNeon('cmp-5','rgba(107,123,148,1)');
+drawGrid('cmp-6','white');
+drawArea('cmp-7','blue');
+// Apex
+{const r=C('cmp-apex');if(r){const{x,w,h}=r;bgFill(x,w,h);const cx=w/2;
+[[w*0.33,1],[w*0.25,0.5],[w*0.17,0.25]].forEach(([s,a])=>{
+strokeLine(x,[[cx-s,h*0.75],[cx,h*0.2+(w*0.33-s)*0.4],[cx+s,h*0.75]],2.5,'#fff',a);});}}
+</script>
+
+</body>
+</html>

@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Baseline — Round 9: Gemini Style Replication</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #0a0a0a; color: #fff; font-family: -apple-system, sans-serif; padding: 40px 20px; }
+  h1 { text-align: center; font-size: 14px; letter-spacing: 4px; text-transform: uppercase; color: #666; margin-bottom: 10px; }
+  .subtitle { text-align: center; font-size: 12px; color: #444; margin-bottom: 60px; }
+  .section { max-width: 1100px; margin: 0 auto 60px; }
+  .section h2 { font-size: 13px; letter-spacing: 3px; text-transform: uppercase; color: #e0e0e0; margin-bottom: 16px; }
+  .row { display: flex; gap: 24px; flex-wrap: wrap; margin-bottom: 24px; justify-content: center; }
+  .card {
+    background: #141414; border-radius: 16px; padding: 30px; text-align: center;
+    border: 1px solid #222; flex: 1; min-width: 260px;
+  }
+  .card.wide { min-width: 100%; }
+  .card h3 { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: #888; margin-bottom: 16px; }
+  canvas { display: block; margin: 0 auto; }
+  .icon-row { display: flex; gap: 20px; justify-content: center; flex-wrap: wrap; }
+  .icon-wrap { text-align: center; }
+  .icon-frame {
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 6px; border: 1px solid #333;
+  }
+  .i60 { width: 60px; height: 60px; border-radius: 13px; }
+  .i120 { width: 120px; height: 120px; border-radius: 26px; }
+  .i200 { width: 200px; height: 200px; border-radius: 40px; }
+  .i300 { width: 300px; height: 300px; border-radius: 58px; }
+  .icon-label { font-size: 10px; color: #555; }
+</style>
+</head>
+<body>
+
+<h1>Round 9 — Gemini Style Replication</h1>
+<div class="subtitle">Replicating that Gemini output: inset screen, line glow, pooled blue fill. Side by side with current fave.</div>
+
+<!-- Big comparison -->
+<div class="section">
+  <h2>Side by Side — Large</h2>
+  <div class="row">
+    <div class="card">
+      <h3>Current Favourite (R8b)</h3>
+      <canvas id="old-300" width="300" height="300"></canvas>
+    </div>
+    <div class="card">
+      <h3>Gemini Style</h3>
+      <canvas id="new-300" width="300" height="300"></canvas>
+    </div>
+  </div>
+</div>
+
+<!-- Gemini style variations -->
+<div class="section">
+  <h2>Gemini Style — Variations</h2>
+  <div class="row">
+    <div class="card">
+      <h3>Subtle glow</h3>
+      <canvas id="v1-200" width="200" height="200"></canvas>
+    </div>
+    <div class="card">
+      <h3>Stronger glow</h3>
+      <canvas id="v2-200" width="200" height="200"></canvas>
+    </div>
+    <div class="card">
+      <h3>No inset border</h3>
+      <canvas id="v3-200" width="200" height="200"></canvas>
+    </div>
+  </div>
+  <div class="row">
+    <div class="card">
+      <h3>Brighter fill pool</h3>
+      <canvas id="v4-200" width="200" height="200"></canvas>
+    </div>
+    <div class="card">
+      <h3>Tighter inset</h3>
+      <canvas id="v5-200" width="200" height="200"></canvas>
+    </div>
+    <div class="card">
+      <h3>Green monitor</h3>
+      <canvas id="v6-200" width="200" height="200"></canvas>
+    </div>
+  </div>
+</div>
+
+<!-- Icon sizes -->
+<div class="section">
+  <h2>At Icon Size</h2>
+  <div class="row">
+    <div class="card wide">
+      <div class="icon-row">
+        <div class="icon-wrap"><div class="icon-frame i120" style="background:#0a0a0a"><canvas id="old-120" width="120" height="120"></canvas></div><div class="icon-label">Current 120</div></div>
+        <div class="icon-wrap"><div class="icon-frame i60" style="background:#0a0a0a"><canvas id="old-60" width="60" height="60"></canvas></div><div class="icon-label">Current 60</div></div>
+        <div class="icon-wrap" style="width:20px"></div>
+        <div class="icon-wrap"><div class="icon-frame i120" style="background:#0a0a0a"><canvas id="new-120" width="120" height="120"></canvas></div><div class="icon-label">Gemini 120</div></div>
+        <div class="icon-wrap"><div class="icon-frame i60" style="background:#0a0a0a"><canvas id="new-60" width="60" height="60"></canvas></div><div class="icon-label">Gemini 60</div></div>
+        <div class="icon-wrap" style="width:20px"></div>
+        <div class="icon-wrap"><div class="icon-frame i120" style="background:#0a0a0a"><canvas id="strong-120" width="120" height="120"></canvas></div><div class="icon-label">Strong glow 120</div></div>
+        <div class="icon-wrap"><div class="icon-frame i60" style="background:#0a0a0a"><canvas id="strong-60" width="60" height="60"></canvas></div><div class="icon-label">Strong glow 60</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function C(id) {
+  const c = document.getElementById(id); if(!c) return null;
+  return { c, x: c.getContext('2d'), w: c.width, h: c.height };
+}
+
+function ekgPts(w, h, by, pad) {
+  const sx=w*pad, ex=w*(1-pad), r=ex-sx;
+  return [[sx,by],[sx+r*0.18,by],[sx+r*0.24,by],[sx+r*0.34,by-h*0.28],
+    [sx+r*0.48,by+h*0.25],[sx+r*0.60,by-h*0.14],[sx+r*0.70,by],[sx+r*0.76,by],[ex,by]];
+}
+
+function strokeLine(ctx, pts, lw, color, alpha) {
+  ctx.save(); ctx.globalAlpha=alpha||1; ctx.strokeStyle=color||'#fff';
+  ctx.lineWidth=lw; ctx.lineCap='round'; ctx.lineJoin='round';
+  ctx.beginPath(); ctx.moveTo(pts[0][0],pts[0][1]);
+  for(let i=1;i<pts.length;i++) ctx.lineTo(pts[i][0],pts[i][1]);
+  ctx.stroke(); ctx.restore();
+}
+
+// ============================================================
+// Current favourite: simple area fill
+// ============================================================
+function drawCurrent(id) {
+  const r = C(id); if(!r) return;
+  const {x:ctx, w, h} = r;
+  ctx.fillStyle = '#1A1A1E';
+  ctx.fillRect(0, 0, w, h);
+
+  const pts = ekgPts(w, h, h*0.50, 0.08);
+  const lw = Math.max(2, w*0.028);
+  const fillBot = h * 0.82;
+
+  // Area fill
+  const grad = ctx.createLinearGradient(0, h*0.15, 0, fillBot);
+  grad.addColorStop(0, 'rgba(107,123,148,0.40)');
+  grad.addColorStop(1, 'rgba(107,123,148,0.04)');
+  ctx.save(); ctx.fillStyle = grad;
+  ctx.beginPath(); ctx.moveTo(pts[0][0], pts[0][1]);
+  for(let i=1;i<pts.length;i++) ctx.lineTo(pts[i][0], pts[i][1]);
+  ctx.lineTo(pts[pts.length-1][0], fillBot);
+  ctx.lineTo(pts[0][0], fillBot);
+  ctx.closePath(); ctx.fill(); ctx.restore();
+
+  strokeLine(ctx, pts, lw, '#fff', 1);
+}
+
+// ============================================================
+// Gemini style: inset screen + glow + pooled fill
+// ============================================================
+function drawGemini(id, opts={}) {
+  const r = C(id); if(!r) return;
+  const {x:ctx, w, h} = r;
+  const {
+    glowIntensity = 0.6,
+    glowSize = 0.06,
+    showInset = true,
+    insetPad = 0.10,
+    fillTopAlpha = 0.08,
+    fillMidAlpha = 0.35,
+    fillBotAlpha = 0.15,
+    glowColor = [255, 255, 255],
+    fillColor = [80, 110, 140],
+    lineColor = '#ffffff',
+  } = opts;
+
+  // Background
+  ctx.fillStyle = '#1A1A1E';
+  ctx.fillRect(0, 0, w, h);
+
+  const pad = showInset ? insetPad : 0.08;
+  const pts = ekgPts(w, h, h*0.48, Math.max(pad + 0.02, 0.10));
+  const lw = Math.max(2, w*0.026);
+
+  // Inset rounded rect
+  if (showInset) {
+    const ip = w * insetPad;
+    const ir = w * 0.08;
+    // Darker inset background
+    ctx.save();
+    ctx.beginPath();
+    ctx.roundRect(ip, ip, w - ip*2, h - ip*2, ir);
+    ctx.fillStyle = 'rgba(0,0,0,0.35)';
+    ctx.fill();
+    // Border
+    ctx.strokeStyle = 'rgba(255,255,255,0.07)';
+    ctx.lineWidth = Math.max(1, w * 0.008);
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  // Pooled fill: concentrated at the bottom, radial-ish
+  const fillBot = h * 0.82;
+  const fillCenterX = w * 0.45;
+
+  // Radial-ish gradient pooling at the bottom center
+  const rgr = ctx.createRadialGradient(
+    fillCenterX, fillBot - h*0.05, w*0.02,
+    fillCenterX, fillBot - h*0.15, w*0.45
+  );
+  const fc = fillColor;
+  rgr.addColorStop(0, `rgba(${fc[0]},${fc[1]},${fc[2]},${fillMidAlpha})`);
+  rgr.addColorStop(0.6, `rgba(${fc[0]},${fc[1]},${fc[2]},${fillTopAlpha})`);
+  rgr.addColorStop(1, `rgba(${fc[0]},${fc[1]},${fc[2]},0)`);
+
+  ctx.save();
+  ctx.beginPath(); ctx.moveTo(pts[0][0], pts[0][1]);
+  for(let i=1;i<pts.length;i++) ctx.lineTo(pts[i][0], pts[i][1]);
+  ctx.lineTo(pts[pts.length-1][0], fillBot);
+  ctx.lineTo(pts[0][0], fillBot);
+  ctx.closePath();
+  ctx.fillStyle = rgr;
+  ctx.fill();
+  ctx.restore();
+
+  // Also a vertical gradient for the upper area
+  const vg = ctx.createLinearGradient(0, h*0.20, 0, fillBot);
+  vg.addColorStop(0, `rgba(${fc[0]},${fc[1]},${fc[2]},${fillTopAlpha * 0.5})`);
+  vg.addColorStop(0.5, `rgba(${fc[0]},${fc[1]},${fc[2]},${fillTopAlpha})`);
+  vg.addColorStop(1, `rgba(${fc[0]},${fc[1]},${fc[2]},${fillBotAlpha})`);
+
+  ctx.save();
+  ctx.beginPath(); ctx.moveTo(pts[0][0], pts[0][1]);
+  for(let i=1;i<pts.length;i++) ctx.lineTo(pts[i][0], pts[i][1]);
+  ctx.lineTo(pts[pts.length-1][0], fillBot);
+  ctx.lineTo(pts[0][0], fillBot);
+  ctx.closePath();
+  ctx.fillStyle = vg;
+  ctx.fill();
+  ctx.restore();
+
+  // Line glow
+  const gs = Math.max(3, w * glowSize);
+  const gc = glowColor;
+  for (let g = gs; g > 0; g -= 1) {
+    const alpha = (glowIntensity * 0.015) * ((gs - g) / gs + 0.1);
+    strokeLine(ctx, pts, lw + g*2, `rgba(${gc[0]},${gc[1]},${gc[2]},1)`, alpha);
+  }
+
+  // Core line
+  strokeLine(ctx, pts, lw, lineColor, 1);
+}
+
+// ============================================================
+// Render all
+// ============================================================
+
+// Side by side large
+drawCurrent('old-300');
+drawGemini('new-300');
+
+// Variations
+drawGemini('v1-200', { glowIntensity: 0.4, glowSize: 0.04 });
+drawGemini('v2-200', { glowIntensity: 1.0, glowSize: 0.09 });
+drawGemini('v3-200', { showInset: false });
+drawGemini('v4-200', { fillMidAlpha: 0.50, fillBotAlpha: 0.25 });
+drawGemini('v5-200', { insetPad: 0.06 });
+drawGemini('v6-200', { fillColor: [52,199,89], glowColor: [52,199,89], lineColor: '#34C759' });
+
+// Icon sizes — current
+drawCurrent('old-120');
+drawCurrent('old-60');
+
+// Icon sizes — gemini default
+drawGemini('new-120');
+drawGemini('new-60');
+
+// Icon sizes — stronger glow
+drawGemini('strong-120', { glowIntensity: 1.0, glowSize: 0.09 });
+drawGemini('strong-60', { glowIntensity: 1.0, glowSize: 0.09 });
+</script>
+
+</body>
+</html>

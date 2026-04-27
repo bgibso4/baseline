@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Baseline — Round 7b: Wordmark Refinement</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #0a0a0a;
+    color: #fff;
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
+    min-height: 100vh;
+    padding: 40px 20px;
+  }
+  h1 { text-align: center; font-size: 14px; letter-spacing: 4px; text-transform: uppercase; color: #666; margin-bottom: 10px; }
+  .subtitle { text-align: center; font-size: 12px; color: #444; margin-bottom: 60px; }
+  .section { max-width: 1100px; margin: 0 auto 60px; }
+  .section h2 { font-size: 13px; letter-spacing: 3px; text-transform: uppercase; color: #e0e0e0; margin-bottom: 4px; }
+  .section p.desc { font-size: 12px; color: #555; margin-bottom: 20px; line-height: 1.5; }
+  .row { display: flex; gap: 20px; flex-wrap: wrap; align-items: flex-start; margin-bottom: 16px; }
+  .card {
+    background: #141414; border-radius: 16px; padding: 24px; text-align: center;
+    border: 1px solid #222; flex: 1; min-width: 280px;
+  }
+  .card.wide { min-width: 100%; }
+  .card h3 { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: #888; margin-bottom: 16px; }
+  canvas { display: block; margin: 0 auto; }
+  .icon-row { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
+  .icon-wrap { text-align: center; }
+  .icon-frame {
+    width: 60px; height: 60px; border-radius: 13px;
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 6px; border: 1px solid #333; background: #1A1A1E;
+  }
+  .icon-frame.lg { width: 120px; height: 120px; border-radius: 26px; }
+  .icon-label { font-size: 10px; color: #555; }
+</style>
+</head>
+<body>
+
+<h1>Round 7b — Wordmark Refinement</h1>
+<div class="subtitle">Variations on the "bAseline" wordmark with EKG underline. Tight underline, casing variants, full EKG.</div>
+
+<!-- A: lowercase "baseline" — A peak only -->
+<div class="section">
+  <h2>A. All Lowercase — A Peak Underline</h2>
+  <p class="desc">"baseline" all lowercase. The 'a' replaced by EKG peak. Line kisses the text bottom.</p>
+  <div class="row">
+    <div class="card wide"><canvas id="a-lg" width="800" height="200"></canvas></div>
+  </div>
+  <div class="row">
+    <div class="card"><h3>Icons</h3>
+      <div class="icon-row">
+        <div class="icon-wrap"><div class="icon-frame lg"><canvas id="a-icon-lg" width="120" height="120"></canvas></div><div class="icon-label">120px</div></div>
+        <div class="icon-wrap"><div class="icon-frame"><canvas id="a-icon-sm" width="60" height="60"></canvas></div><div class="icon-label">60px</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- B: "Baseline" — only B capitalized, A peak -->
+<div class="section">
+  <h2>B. Capital B Only — A Peak Underline</h2>
+  <p class="desc">"Baseline" — capital B, lowercase rest. The 'a' is the EKG peak.</p>
+  <div class="row">
+    <div class="card wide"><canvas id="b-lg" width="800" height="200"></canvas></div>
+  </div>
+  <div class="row">
+    <div class="card"><h3>Icons</h3>
+      <div class="icon-row">
+        <div class="icon-wrap"><div class="icon-frame lg"><canvas id="b-icon-lg" width="120" height="120"></canvas></div><div class="icon-label">120px</div></div>
+        <div class="icon-wrap"><div class="icon-frame"><canvas id="b-icon-sm" width="60" height="60"></canvas></div><div class="icon-label">60px</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- C: ALL CAPS — A peak -->
+<div class="section">
+  <h2>C. All Caps — A Peak Underline</h2>
+  <p class="desc">"BASELINE" all caps. The A is the EKG spike.</p>
+  <div class="row">
+    <div class="card wide"><canvas id="c-lg" width="800" height="200"></canvas></div>
+  </div>
+  <div class="row">
+    <div class="card"><h3>Icons</h3>
+      <div class="icon-row">
+        <div class="icon-wrap"><div class="icon-frame lg"><canvas id="c-icon-lg" width="120" height="120"></canvas></div><div class="icon-label">120px</div></div>
+        <div class="icon-wrap"><div class="icon-frame"><canvas id="c-icon-sm" width="60" height="60"></canvas></div><div class="icon-label">60px</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- D: lowercase — FULL EKG underline -->
+<div class="section">
+  <h2>D. Lowercase — Full EKG Underline</h2>
+  <p class="desc">"baseline" with a full EKG heartbeat running under the entire word. The peak sits under the 'a'.</p>
+  <div class="row">
+    <div class="card wide"><canvas id="d-lg" width="800" height="220"></canvas></div>
+  </div>
+  <div class="row">
+    <div class="card"><h3>Icons</h3>
+      <div class="icon-row">
+        <div class="icon-wrap"><div class="icon-frame lg"><canvas id="d-icon-lg" width="120" height="120"></canvas></div><div class="icon-label">120px</div></div>
+        <div class="icon-wrap"><div class="icon-frame"><canvas id="d-icon-sm" width="60" height="60"></canvas></div><div class="icon-label">60px</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- E: Capital B — FULL EKG underline -->
+<div class="section">
+  <h2>E. Capital B — Full EKG Underline</h2>
+  <p class="desc">"Baseline" with full EKG heartbeat under the word.</p>
+  <div class="row">
+    <div class="card wide"><canvas id="e-lg" width="800" height="220"></canvas></div>
+  </div>
+  <div class="row">
+    <div class="card"><h3>Icons</h3>
+      <div class="icon-row">
+        <div class="icon-wrap"><div class="icon-frame lg"><canvas id="e-icon-lg" width="120" height="120"></canvas></div><div class="icon-label">120px</div></div>
+        <div class="icon-wrap"><div class="icon-frame"><canvas id="e-icon-sm" width="60" height="60"></canvas></div><div class="icon-label">60px</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- F: lowercase — Full EKG with A replaced by peak -->
+<div class="section">
+  <h2>F. Lowercase — A IS the EKG Peak + Full Pulse</h2>
+  <p class="desc">"b_seline" — the 'a' is completely replaced by the EKG spike, and the full pulse runs under everything.</p>
+  <div class="row">
+    <div class="card wide"><canvas id="f-lg" width="800" height="220"></canvas></div>
+  </div>
+  <div class="row">
+    <div class="card"><h3>Icons</h3>
+      <div class="icon-row">
+        <div class="icon-wrap"><div class="icon-frame lg"><canvas id="f-icon-lg" width="120" height="120"></canvas></div><div class="icon-label">120px</div></div>
+        <div class="icon-wrap"><div class="icon-frame"><canvas id="f-icon-sm" width="60" height="60"></canvas></div><div class="icon-label">60px</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Comparison -->
+<div class="section">
+  <h2>All at Icon Size</h2>
+  <div class="row">
+    <div class="card wide">
+      <div class="icon-row">
+        <div class="icon-wrap"><div class="icon-frame"><canvas id="cmp-a" width="60" height="60"></canvas></div><div class="icon-label">A. lower</div></div>
+        <div class="icon-wrap"><div class="icon-frame"><canvas id="cmp-b" width="60" height="60"></canvas></div><div class="icon-label">B. Cap B</div></div>
+        <div class="icon-wrap"><div class="icon-frame"><canvas id="cmp-c" width="60" height="60"></canvas></div><div class="icon-label">C. CAPS</div></div>
+        <div class="icon-wrap"><div class="icon-frame"><canvas id="cmp-d" width="60" height="60"></canvas></div><div class="icon-label">D. full EKG</div></div>
+        <div class="icon-wrap"><div class="icon-frame"><canvas id="cmp-e" width="60" height="60"></canvas></div><div class="icon-label">E. B+full</div></div>
+        <div class="icon-wrap"><div class="icon-frame"><canvas id="cmp-f" width="60" height="60"></canvas></div><div class="icon-label">F. A=peak</div></div>
+        <div class="icon-wrap"><div class="icon-frame" style="border-color:#444"><canvas id="cmp-apex" width="60" height="60"></canvas></div><div class="icon-label">Apex ref</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function C(id) {
+  const c = document.getElementById(id);
+  if (!c) return null;
+  return { c, x: c.getContext('2d'), w: c.width, h: c.height };
+}
+function bg(x, w, h) { x.fillStyle = '#1A1A1E'; x.fillRect(0, 0, w, h); }
+function strokePts(x, pts, lw, color, alpha) {
+  x.save(); x.globalAlpha = alpha||1; x.strokeStyle = color||'#fff';
+  x.lineWidth = lw; x.lineCap = 'round'; x.lineJoin = 'round';
+  x.beginPath(); x.moveTo(pts[0][0], pts[0][1]);
+  for (let i=1; i<pts.length; i++) x.lineTo(pts[i][0], pts[i][1]);
+  x.stroke(); x.restore();
+}
+
+// ============================================================
+// Wordmark renderer
+// ============================================================
+function drawWordmark(id, opts) {
+  const r = C(id); if (!r) return;
+  const { x, w, h } = r;
+  const {
+    text = 'baseline',
+    hasBg = false,
+    iconMode = false,
+    replaceA = true,     // replace the 'a'/'A' with EKG peak
+    fullEkg = false,     // full EKG pulse under the word
+    lineLw = 3,
+    fontWeight = '600',
+  } = opts;
+
+  if (hasBg) bg(x, w, h);
+
+  // Icon mode: just render the extracted mark
+  if (iconMode) {
+    const baseY = h * 0.58;
+    const lw = Math.max(1.5, w * 0.035);
+    if (fullEkg) {
+      // Full EKG line
+      const sx = w*0.04, ex = w*0.96, range = ex-sx;
+      const pts = [
+        [sx, baseY],
+        [sx + range*0.15, baseY],
+        [sx + range*0.25, baseY],
+        [sx + range*0.35, baseY - h*0.30],
+        [sx + range*0.48, baseY + h*0.28],
+        [sx + range*0.58, baseY - h*0.14],
+        [sx + range*0.68, baseY],
+        [sx + range*0.78, baseY],
+        [ex, baseY],
+      ];
+      strokePts(x, pts, lw, '#fff', 1);
+    } else {
+      // A-peak only
+      const pts = [
+        [w*0.06, baseY],
+        [w*0.28, baseY],
+        [w*0.42, baseY - h*0.38],
+        [w*0.50, baseY - h*0.02],
+        [w*0.58, baseY - h*0.38],
+        [w*0.72, baseY],
+        [w*0.94, baseY],
+      ];
+      strokePts(x, pts, lw, '#fff', 1);
+    }
+    return;
+  }
+
+  const fontSize = h * 0.30;
+  const font = `${fontWeight} ${fontSize}px "SF Pro Display", -apple-system, "Helvetica Neue", sans-serif`;
+  x.font = font;
+
+  // Measure character positions
+  const chars = text.split('');
+  const charWidths = chars.map(ch => x.measureText(ch).width);
+  const totalWidth = charWidths.reduce((a, b) => a + b, 0);
+  const startX = (w - totalWidth) / 2;
+
+  // Find 'a' or 'A' index
+  const aIdx = chars.findIndex(ch => ch === 'a' || ch === 'A');
+
+  // Baseline of text — we want the EKG line to kiss the bottom of the text
+  const metrics = x.measureText('b');
+  const textTop = h * 0.38;
+  const textBaseline = textTop + fontSize * 0.78; // approximate baseline
+  const lineY = textBaseline + fontSize * 0.04; // kiss the bottom
+
+  // Character X positions
+  const charXs = [];
+  let cx = startX;
+  for (let i = 0; i < chars.length; i++) {
+    charXs.push(cx);
+    cx += charWidths[i];
+  }
+  const textEndX = cx;
+
+  // Draw characters (skip the A if replacing)
+  x.save();
+  x.fillStyle = '#fff';
+  x.font = font;
+  x.textBaseline = 'alphabetic';
+  for (let i = 0; i < chars.length; i++) {
+    if (replaceA && i === aIdx) continue;
+    x.fillText(chars[i], charXs[i], textBaseline);
+  }
+  x.restore();
+
+  // Build the EKG/underline
+  const aX = charXs[aIdx];
+  const aW = charWidths[aIdx];
+  const aMid = aX + aW / 2;
+  const lineExtend = w * 0.04;
+
+  if (fullEkg && replaceA) {
+    // Full EKG: flat → spike up (A) → dip down → bump → flat
+    const peakH = fontSize * 1.1;
+    const dipH = fontSize * 0.4;
+    const bumpH = fontSize * 0.25;
+    const peakW = aW * 0.4;
+    // Distribute dip and bump after the A
+    const afterA = aX + aW;
+    const remaining = textEndX - afterA;
+    const pts = [
+      [startX - lineExtend, lineY],
+      [aX - aW*0.05, lineY],
+      [aMid - peakW, lineY],
+      [aMid, lineY - peakH],        // A peak
+      [aMid + peakW, lineY],
+      [afterA + remaining*0.15, lineY + dipH],  // dip
+      [afterA + remaining*0.4, lineY - bumpH],  // recovery bump
+      [afterA + remaining*0.55, lineY],
+      [textEndX + lineExtend, lineY],
+    ];
+    strokePts(x, pts, lineLw, '#fff', 1);
+  } else if (fullEkg && !replaceA) {
+    // Full EKG under the text, A not replaced — peak is still under the A
+    const peakH = fontSize * 0.45;
+    const dipH = fontSize * 0.3;
+    const bumpH = fontSize * 0.15;
+    const afterA = aX + aW;
+    const remaining = textEndX - afterA;
+    const pts = [
+      [startX - lineExtend, lineY],
+      [aX - aW*0.1, lineY],
+      [aMid, lineY - peakH],
+      [afterA, lineY],
+      [afterA + remaining*0.2, lineY + dipH],
+      [afterA + remaining*0.45, lineY - bumpH],
+      [afterA + remaining*0.6, lineY],
+      [textEndX + lineExtend, lineY],
+    ];
+    strokePts(x, pts, lineLw, '#fff', 1);
+    // Re-draw the A since we didn't skip it
+    x.save(); x.fillStyle='#fff'; x.font=font; x.textBaseline='alphabetic';
+    x.fillText(chars[aIdx], charXs[aIdx], textBaseline);
+    x.restore();
+  } else if (replaceA) {
+    // A peak only, flat line under rest
+    const peakH = fontSize * 1.1;
+    const peakW = aW * 0.4;
+    const pts = [
+      [startX - lineExtend, lineY],
+      [aMid - peakW, lineY],
+      [aMid, lineY - peakH],
+      [aMid + peakW, lineY],
+      [textEndX + lineExtend, lineY],
+    ];
+    strokePts(x, pts, lineLw, '#fff', 1);
+  }
+}
+
+// ============================================================
+// A: all lowercase, A peak only
+// ============================================================
+drawWordmark('a-lg', { text: 'baseline', replaceA: true, fullEkg: false });
+drawWordmark('a-icon-lg', { text: 'baseline', hasBg: true, iconMode: true, fullEkg: false });
+drawWordmark('a-icon-sm', { text: 'baseline', hasBg: true, iconMode: true, fullEkg: false });
+
+// ============================================================
+// B: Capital B, A peak only
+// ============================================================
+drawWordmark('b-lg', { text: 'Baseline', replaceA: true, fullEkg: false });
+drawWordmark('b-icon-lg', { text: 'Baseline', hasBg: true, iconMode: true, fullEkg: false });
+drawWordmark('b-icon-sm', { text: 'Baseline', hasBg: true, iconMode: true, fullEkg: false });
+
+// ============================================================
+// C: ALL CAPS, A peak only
+// ============================================================
+drawWordmark('c-lg', { text: 'BASELINE', replaceA: true, fullEkg: false });
+drawWordmark('c-icon-lg', { text: 'BASELINE', hasBg: true, iconMode: true, fullEkg: false });
+drawWordmark('c-icon-sm', { text: 'BASELINE', hasBg: true, iconMode: true, fullEkg: false });
+
+// ============================================================
+// D: lowercase, full EKG underline (A stays as text)
+// ============================================================
+drawWordmark('d-lg', { text: 'baseline', replaceA: false, fullEkg: true });
+drawWordmark('d-icon-lg', { text: 'baseline', hasBg: true, iconMode: true, fullEkg: true });
+drawWordmark('d-icon-sm', { text: 'baseline', hasBg: true, iconMode: true, fullEkg: true });
+
+// ============================================================
+// E: Capital B, full EKG underline (A stays)
+// ============================================================
+drawWordmark('e-lg', { text: 'Baseline', replaceA: false, fullEkg: true });
+drawWordmark('e-icon-lg', { text: 'Baseline', hasBg: true, iconMode: true, fullEkg: true });
+drawWordmark('e-icon-sm', { text: 'Baseline', hasBg: true, iconMode: true, fullEkg: true });
+
+// ============================================================
+// F: lowercase, A replaced + full EKG
+// ============================================================
+drawWordmark('f-lg', { text: 'baseline', replaceA: true, fullEkg: true });
+drawWordmark('f-icon-lg', { text: 'baseline', hasBg: true, iconMode: true, fullEkg: true });
+drawWordmark('f-icon-sm', { text: 'baseline', hasBg: true, iconMode: true, fullEkg: true });
+
+// ============================================================
+// Comparison
+// ============================================================
+drawWordmark('cmp-a', { hasBg:true, iconMode:true, fullEkg:false });
+drawWordmark('cmp-b', { hasBg:true, iconMode:true, fullEkg:false });
+drawWordmark('cmp-c', { hasBg:true, iconMode:true, fullEkg:false });
+drawWordmark('cmp-d', { hasBg:true, iconMode:true, fullEkg:true });
+drawWordmark('cmp-e', { hasBg:true, iconMode:true, fullEkg:true });
+drawWordmark('cmp-f', { hasBg:true, iconMode:true, fullEkg:true });
+
+// Apex ref
+{
+  const r = C('cmp-apex');
+  if(r) {
+    const {x,w,h} = r;
+    bg(x,w,h);
+    const cx2=w/2, peakY=h*0.2, baseY=h*0.75;
+    [[w*0.33,1],[w*0.25,0.5],[w*0.17,0.25]].forEach(([spread, alpha]) => {
+      const off = (w*0.33 - spread)*0.4;
+      strokePts(x, [[cx2-spread, baseY], [cx2, peakY+off], [cx2+spread, baseY]], 2.5, '#fff', alpha);
+    });
+  }
+}
+</script>
+
+</body>
+</html>

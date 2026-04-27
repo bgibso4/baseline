@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Baseline — Round 9b: Line Glow</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #0a0a0a; color: #fff; font-family: -apple-system, sans-serif; padding: 40px 20px; }
+  h1 { text-align: center; font-size: 14px; letter-spacing: 4px; text-transform: uppercase; color: #666; margin-bottom: 10px; }
+  .subtitle { text-align: center; font-size: 12px; color: #444; margin-bottom: 60px; }
+  .section { max-width: 1100px; margin: 0 auto 60px; }
+  .section h2 { font-size: 13px; letter-spacing: 3px; text-transform: uppercase; color: #e0e0e0; margin-bottom: 16px; }
+  .row { display: flex; gap: 24px; flex-wrap: wrap; margin-bottom: 24px; justify-content: center; }
+  .card {
+    background: #141414; border-radius: 16px; padding: 30px; text-align: center;
+    border: 1px solid #222; flex: 1; min-width: 260px;
+  }
+  .card h3 { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: #888; margin-bottom: 16px; }
+  canvas { display: block; margin: 0 auto; }
+  .icon-row { display: flex; gap: 20px; justify-content: center; flex-wrap: wrap; }
+  .icon-wrap { text-align: center; }
+  .icon-frame {
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 6px; border: 1px solid #333;
+  }
+  .i60 { width: 60px; height: 60px; border-radius: 13px; }
+  .i120 { width: 120px; height: 120px; border-radius: 26px; }
+  .icon-label { font-size: 10px; color: #555; }
+</style>
+</head>
+<body>
+
+<h1>Round 9b — Line as Light Source</h1>
+<div class="subtitle">The line glows in all directions like it's emitting light. Using canvas shadowBlur for real bloom.</div>
+
+<!-- Side by side -->
+<div class="section">
+  <h2>Side by Side — 300px</h2>
+  <div class="row">
+    <div class="card">
+      <h3>Current Favourite</h3>
+      <canvas id="old" width="300" height="300"></canvas>
+    </div>
+    <div class="card">
+      <h3>Glow — White</h3>
+      <canvas id="gw" width="300" height="300"></canvas>
+    </div>
+    <div class="card">
+      <h3>Glow — Blue</h3>
+      <canvas id="gb" width="300" height="300"></canvas>
+    </div>
+  </div>
+</div>
+
+<!-- Glow intensity variants -->
+<div class="section">
+  <h2>Glow Intensity</h2>
+  <div class="row">
+    <div class="card">
+      <h3>Subtle</h3>
+      <canvas id="gs" width="200" height="200"></canvas>
+    </div>
+    <div class="card">
+      <h3>Medium</h3>
+      <canvas id="gm" width="200" height="200"></canvas>
+    </div>
+    <div class="card">
+      <h3>Strong</h3>
+      <canvas id="gst" width="200" height="200"></canvas>
+    </div>
+    <div class="card">
+      <h3>Intense</h3>
+      <canvas id="gi" width="200" height="200"></canvas>
+    </div>
+  </div>
+</div>
+
+<!-- With inset -->
+<div class="section">
+  <h2>With Inset Screen</h2>
+  <div class="row">
+    <div class="card">
+      <h3>Inset + White Glow</h3>
+      <canvas id="iw" width="300" height="300"></canvas>
+    </div>
+    <div class="card">
+      <h3>Inset + Blue Glow</h3>
+      <canvas id="ib" width="300" height="300"></canvas>
+    </div>
+  </div>
+</div>
+
+<!-- Glow + area fill combo -->
+<div class="section">
+  <h2>Glow + Area Fill Combo</h2>
+  <div class="row">
+    <div class="card">
+      <h3>White glow + blue fill</h3>
+      <canvas id="combo1" width="300" height="300"></canvas>
+    </div>
+    <div class="card">
+      <h3>Blue glow + blue fill</h3>
+      <canvas id="combo2" width="300" height="300"></canvas>
+    </div>
+    <div class="card">
+      <h3>Blue glow + fill + inset</h3>
+      <canvas id="combo3" width="300" height="300"></canvas>
+    </div>
+  </div>
+</div>
+
+<!-- Icon sizes -->
+<div class="section">
+  <h2>At Icon Size</h2>
+  <div class="row">
+    <div class="card" style="min-width:100%">
+      <div class="icon-row">
+        <div class="icon-wrap"><div class="icon-frame i120" style="background:#0a0a0a"><canvas id="c-old-120" width="120" height="120"></canvas></div><div class="icon-label">Current</div></div>
+        <div class="icon-wrap"><div class="icon-frame i60" style="background:#0a0a0a"><canvas id="c-old-60" width="60" height="60"></canvas></div><div class="icon-label">60</div></div>
+        <div style="width:12px"></div>
+        <div class="icon-wrap"><div class="icon-frame i120" style="background:#0a0a0a"><canvas id="c-gw-120" width="120" height="120"></canvas></div><div class="icon-label">White glow</div></div>
+        <div class="icon-wrap"><div class="icon-frame i60" style="background:#0a0a0a"><canvas id="c-gw-60" width="60" height="60"></canvas></div><div class="icon-label">60</div></div>
+        <div style="width:12px"></div>
+        <div class="icon-wrap"><div class="icon-frame i120" style="background:#0a0a0a"><canvas id="c-gb-120" width="120" height="120"></canvas></div><div class="icon-label">Blue glow</div></div>
+        <div class="icon-wrap"><div class="icon-frame i60" style="background:#0a0a0a"><canvas id="c-gb-60" width="60" height="60"></canvas></div><div class="icon-label">60</div></div>
+        <div style="width:12px"></div>
+        <div class="icon-wrap"><div class="icon-frame i120" style="background:#0a0a0a"><canvas id="c-cb-120" width="120" height="120"></canvas></div><div class="icon-label">Combo</div></div>
+        <div class="icon-wrap"><div class="icon-frame i60" style="background:#0a0a0a"><canvas id="c-cb-60" width="60" height="60"></canvas></div><div class="icon-label">60</div></div>
+        <div style="width:12px"></div>
+        <div class="icon-wrap"><div class="icon-frame i120" style="background:#0a0a0a"><canvas id="c-in-120" width="120" height="120"></canvas></div><div class="icon-label">Inset+combo</div></div>
+        <div class="icon-wrap"><div class="icon-frame i60" style="background:#0a0a0a"><canvas id="c-in-60" width="60" height="60"></canvas></div><div class="icon-label">60</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function C(id) {
+  const c = document.getElementById(id); if(!c) return null;
+  return { c, x: c.getContext('2d'), w: c.width, h: c.height };
+}
+
+function ekgPts(w, h, by, pad) {
+  const sx=w*pad, ex=w*(1-pad), r=ex-sx;
+  return [[sx,by],[sx+r*0.18,by],[sx+r*0.24,by],[sx+r*0.34,by-h*0.28],
+    [sx+r*0.48,by+h*0.25],[sx+r*0.60,by-h*0.14],[sx+r*0.70,by],[sx+r*0.76,by],[ex,by]];
+}
+
+function tracePath(ctx, pts) {
+  ctx.beginPath();
+  ctx.moveTo(pts[0][0], pts[0][1]);
+  for (let i=1; i<pts.length; i++) ctx.lineTo(pts[i][0], pts[i][1]);
+}
+
+// Current favourite
+function drawCurrent(id) {
+  const r = C(id); if(!r) return;
+  const {x:ctx, w, h} = r;
+  ctx.fillStyle = '#1A1A1E'; ctx.fillRect(0,0,w,h);
+  const pts = ekgPts(w,h,h*0.50,0.08);
+  const lw = Math.max(2, w*0.028);
+  const fillBot = h*0.82;
+  const grad = ctx.createLinearGradient(0,h*0.15,0,fillBot);
+  grad.addColorStop(0,'rgba(107,123,148,0.40)');
+  grad.addColorStop(1,'rgba(107,123,148,0.04)');
+  ctx.save(); ctx.fillStyle=grad;
+  tracePath(ctx, pts);
+  ctx.lineTo(pts[pts.length-1][0],fillBot); ctx.lineTo(pts[0][0],fillBot);
+  ctx.closePath(); ctx.fill(); ctx.restore();
+  ctx.save(); ctx.strokeStyle='#fff'; ctx.lineWidth=lw; ctx.lineCap='round'; ctx.lineJoin='round';
+  tracePath(ctx, pts); ctx.stroke(); ctx.restore();
+}
+
+// Glow style — using shadowBlur for real bloom
+function drawGlow(id, opts={}) {
+  const r = C(id); if(!r) return;
+  const {x:ctx, w, h} = r;
+  const {
+    glowColor = 'rgba(200,210,230,0.9)',
+    glowBlur = 0.08,    // as fraction of w
+    glowPasses = 3,
+    showInset = false,
+    insetPad = 0.10,
+    showFill = false,
+    fillColor = 'rgba(107,123,148,0.30)',
+    lineColor = '#ffffff',
+  } = opts;
+
+  ctx.fillStyle = '#1A1A1E'; ctx.fillRect(0,0,w,h);
+
+  const ekgPad = showInset ? Math.max(insetPad + 0.03, 0.12) : 0.08;
+  const pts = ekgPts(w, h, h*0.48, ekgPad);
+  const lw = Math.max(1.8, w*0.024);
+
+  // Inset
+  if (showInset) {
+    const ip = w * insetPad;
+    const ir = w * 0.08;
+    ctx.save();
+    ctx.beginPath(); ctx.roundRect(ip, ip, w-ip*2, h-ip*2, ir);
+    ctx.fillStyle = 'rgba(0,0,0,0.30)'; ctx.fill();
+    ctx.strokeStyle = 'rgba(255,255,255,0.06)';
+    ctx.lineWidth = Math.max(1, w*0.006); ctx.stroke();
+    ctx.restore();
+  }
+
+  // Area fill (optional)
+  if (showFill) {
+    const fillBot = h * 0.80;
+    const grad = ctx.createLinearGradient(0, h*0.20, 0, fillBot);
+    grad.addColorStop(0, fillColor);
+    grad.addColorStop(1, 'rgba(107,123,148,0.02)');
+    ctx.save(); ctx.fillStyle = grad;
+    tracePath(ctx, pts);
+    ctx.lineTo(pts[pts.length-1][0], fillBot);
+    ctx.lineTo(pts[0][0], fillBot);
+    ctx.closePath(); ctx.fill(); ctx.restore();
+  }
+
+  // Glow passes using shadowBlur
+  const blur = w * glowBlur;
+  for (let p = 0; p < glowPasses; p++) {
+    ctx.save();
+    ctx.shadowColor = glowColor;
+    ctx.shadowBlur = blur * (1 + p * 0.3);
+    ctx.shadowOffsetX = 0;
+    ctx.shadowOffsetY = 0;
+    ctx.strokeStyle = 'rgba(0,0,0,0)'; // invisible stroke, shadow does the work
+    ctx.lineWidth = lw + p * 1;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    // Need to stroke with a visible color for shadow to show
+    ctx.strokeStyle = p === 0 ? glowColor : 'rgba(180,200,220,0.15)';
+    tracePath(ctx, pts);
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  // Another wide soft pass
+  ctx.save();
+  ctx.shadowColor = glowColor;
+  ctx.shadowBlur = blur * 2.5;
+  ctx.strokeStyle = 'rgba(180,200,220,0.08)';
+  ctx.lineWidth = lw * 2;
+  ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+  tracePath(ctx, pts); ctx.stroke();
+  ctx.restore();
+
+  // Core white line (no shadow)
+  ctx.save();
+  ctx.strokeStyle = lineColor;
+  ctx.lineWidth = lw;
+  ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+  tracePath(ctx, pts); ctx.stroke();
+  ctx.restore();
+}
+
+// ============================================================
+// Renders
+// ============================================================
+
+// Side by side
+drawCurrent('old');
+drawGlow('gw', { glowColor: 'rgba(200,210,230,0.9)', glowBlur: 0.08 });
+drawGlow('gb', { glowColor: 'rgba(107,140,190,0.9)', glowBlur: 0.08 });
+
+// Intensity
+drawGlow('gs', { glowBlur: 0.04, glowPasses: 2 });
+drawGlow('gm', { glowBlur: 0.07, glowPasses: 3 });
+drawGlow('gst', { glowBlur: 0.10, glowPasses: 4 });
+drawGlow('gi', { glowBlur: 0.14, glowPasses: 5, glowColor: 'rgba(170,190,220,1)' });
+
+// Inset
+drawGlow('iw', { showInset: true, glowBlur: 0.07 });
+drawGlow('ib', { showInset: true, glowColor: 'rgba(107,140,190,0.9)', glowBlur: 0.08 });
+
+// Combos
+drawGlow('combo1', { showFill: true, glowBlur: 0.07 });
+drawGlow('combo2', { showFill: true, glowColor: 'rgba(107,140,190,0.9)', glowBlur: 0.08 });
+drawGlow('combo3', { showFill: true, showInset: true, glowColor: 'rgba(107,140,190,0.9)', glowBlur: 0.08 });
+
+// Icon sizes
+drawCurrent('c-old-120'); drawCurrent('c-old-60');
+drawGlow('c-gw-120', { glowBlur: 0.08 }); drawGlow('c-gw-60', { glowBlur: 0.10 });
+drawGlow('c-gb-120', { glowColor:'rgba(107,140,190,0.9)', glowBlur:0.08 });
+drawGlow('c-gb-60', { glowColor:'rgba(107,140,190,0.9)', glowBlur:0.10 });
+drawGlow('c-cb-120', { showFill:true, glowColor:'rgba(107,140,190,0.9)', glowBlur:0.08 });
+drawGlow('c-cb-60', { showFill:true, glowColor:'rgba(107,140,190,0.9)', glowBlur:0.10 });
+drawGlow('c-in-120', { showFill:true, showInset:true, glowColor:'rgba(107,140,190,0.9)', glowBlur:0.07 });
+drawGlow('c-in-60', { showFill:true, showInset:true, glowColor:'rgba(107,140,190,0.9)', glowBlur:0.09 });
+</script>
+
+</body>
+</html>

@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Baseline — Round 6: Icon Rethink</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #0a0a0a;
+    color: #fff;
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
+    min-height: 100vh;
+    padding: 40px 20px;
+  }
+  h1 {
+    text-align: center;
+    font-size: 14px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: #666;
+    margin-bottom: 10px;
+  }
+  .subtitle {
+    text-align: center;
+    font-size: 12px;
+    color: #444;
+    margin-bottom: 60px;
+  }
+  .section {
+    max-width: 1200px;
+    margin: 0 auto 60px;
+  }
+  .section h2 {
+    font-size: 13px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: #e0e0e0;
+    margin-bottom: 6px;
+  }
+  .section p.desc {
+    font-size: 12px;
+    color: #555;
+    margin-bottom: 20px;
+    line-height: 1.5;
+  }
+  .row {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    margin-bottom: 16px;
+  }
+  .card {
+    background: #141414;
+    border-radius: 16px;
+    padding: 24px;
+    text-align: center;
+    border: 1px solid #222;
+    flex: 1;
+    min-width: 300px;
+  }
+  .card.wide { min-width: 100%; }
+  .card h3 {
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: #888;
+    margin-bottom: 16px;
+  }
+  canvas { display: block; margin: 0 auto; }
+
+  /* Icon previews */
+  .icon-row {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  .icon-wrap { text-align: center; }
+  .icon-frame {
+    width: 60px;
+    height: 60px;
+    border-radius: 13px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 6px;
+    border: 1px solid #333;
+  }
+  .icon-frame.lg {
+    width: 120px;
+    height: 120px;
+    border-radius: 26px;
+  }
+  .icon-label { font-size: 10px; color: #555; }
+</style>
+</head>
+<body>
+
+<h1>Round 6 — Icon Rethink</h1>
+<div class="subtitle">Ghost layers blur at small sizes. Exploring single-stroke and alternative approaches.</div>
+
+<!-- ============================================ -->
+<!-- 1. Single Stroke -->
+<!-- ============================================ -->
+<div class="section">
+  <h2>1. Single Stroke</h2>
+  <p class="desc">One clean white EKG line. No layers, no blur. The shape speaks for itself.</p>
+  <div class="row">
+    <div class="card wide">
+      <h3>Large</h3>
+      <canvas id="single-lg" width="700" height="200"></canvas>
+    </div>
+  </div>
+  <div class="row">
+    <div class="card">
+      <h3>Icons</h3>
+      <div class="icon-row">
+        <div class="icon-wrap">
+          <div class="icon-frame lg" style="background: #1A1A1E;">
+            <canvas id="single-icon-lg" width="120" height="120"></canvas>
+          </div>
+          <div class="icon-label">120px</div>
+        </div>
+        <div class="icon-wrap">
+          <div class="icon-frame" style="background: #1A1A1E;">
+            <canvas id="single-icon-sm" width="60" height="60"></canvas>
+          </div>
+          <div class="icon-label">60px (actual)</div>
+        </div>
+        <div class="icon-wrap">
+          <div class="icon-frame lg" style="background: #1A1A1E;">
+            <canvas id="single-icon-lg-thick" width="120" height="120"></canvas>
+          </div>
+          <div class="icon-label">120px thicker</div>
+        </div>
+        <div class="icon-wrap">
+          <div class="icon-frame" style="background: #1A1A1E;">
+            <canvas id="single-icon-sm-thick" width="60" height="60"></canvas>
+          </div>
+          <div class="icon-label">60px thicker</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================ -->
+<!-- 2. Single Stroke + Glow -->
+<!-- ============================================ -->
+<div class="section">
+  <h2>2. Single Stroke + Glow</h2>
+  <p class="desc">One white line with a soft bloom behind it, like a real heart monitor CRT screen.</p>
+  <div class="row">
+    <div class="card wide">
+      <h3>Large</h3>
+      <canvas id="glow-lg" width="700" height="200"></canvas>
+    </div>
+  </div>
+  <div class="row">
+    <div class="card">
+      <h3>Icons</h3>
+      <div class="icon-row">
+        <div class="icon-wrap">
+          <div class="icon-frame lg" style="background: #1A1A1E;">
+            <canvas id="glow-icon-lg" width="120" height="120"></canvas>
+          </div>
+          <div class="icon-label">120px</div>
+        </div>
+        <div class="icon-wrap">
+          <div class="icon-frame" style="background: #1A1A1E;">
+            <canvas id="glow-icon-sm" width="60" height="60"></canvas>
+          </div>
+          <div class="icon-label">60px</div>
+        </div>
+        <div class="icon-wrap">
+          <div class="icon-frame lg" style="background: #1A1A1E;">
+            <canvas id="glow-blue-lg" width="120" height="120"></canvas>
+          </div>
+          <div class="icon-label">120px blue glow</div>
+        </div>
+        <div class="icon-wrap">
+          <div class="icon-frame" style="background: #1A1A1E;">
+            <canvas id="glow-blue-sm" width="60" height="60"></canvas>
+          </div>
+          <div class="icon-label">60px blue glow</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================ -->
+<!-- 3. Filled Shape -->
+<!-- ============================================ -->
+<div class="section">
+  <h2>3. Filled Shape</h2>
+  <p class="desc">Fill the area under/around the EKG. Reads as a solid silhouette at small sizes.</p>
+  <div class="row">
+    <div class="card wide">
+      <h3>Large</h3>
+      <canvas id="filled-lg" width="700" height="200"></canvas>
+    </div>
+  </div>
+  <div class="row">
+    <div class="card">
+      <h3>Icons</h3>
+      <div class="icon-row">
+        <div class="icon-wrap">
+          <div class="icon-frame lg" style="background: #1A1A1E;">
+            <canvas id="filled-icon-lg" width="120" height="120"></canvas>
+          </div>
+          <div class="icon-label">120px filled down</div>
+        </div>
+        <div class="icon-wrap">
+          <div class="icon-frame" style="background: #1A1A1E;">
+            <canvas id="filled-icon-sm" width="60" height="60"></canvas>
+          </div>
+          <div class="icon-label">60px</div>
+        </div>
+        <div class="icon-wrap">
+          <div class="icon-frame lg" style="background: #1A1A1E;">
+            <canvas id="filled-outline-lg" width="120" height="120"></canvas>
+          </div>
+          <div class="icon-label">120px stroke + fill</div>
+        </div>
+        <div class="icon-wrap">
+          <div class="icon-frame" style="background: #1A1A1E;">
+            <canvas id="filled-outline-sm" width="60" height="60"></canvas>
+          </div>
+          <div class="icon-label">60px</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================ -->
+<!-- 4. Just the Peak -->
+<!-- ============================================ -->
+<div class="section">
+  <h2>4. Just the Peak</h2>
+  <p class="desc">Drop the flat baseline. Just the spike/dip/bump as a compact centered mark.</p>
+  <div class="row">
+    <div class="card wide">
+      <h3>Large</h3>
+      <canvas id="peak-lg" width="700" height="200"></canvas>
+    </div>
+  </div>
+  <div class="row">
+    <div class="card">
+      <h3>Icons</h3>
+      <div class="icon-row">
+        <div class="icon-wrap">
+          <div class="icon-frame lg" style="background: #1A1A1E;">
+            <canvas id="peak-icon-lg" width="120" height="120"></canvas>
+          </div>
+          <div class="icon-label">120px</div>
+        </div>
+        <div class="icon-wrap">
+          <div class="icon-frame" style="background: #1A1A1E;">
+            <canvas id="peak-icon-sm" width="60" height="60"></canvas>
+          </div>
+          <div class="icon-label">60px</div>
+        </div>
+        <div class="icon-wrap">
+          <div class="icon-frame lg" style="background: #1A1A1E;">
+            <canvas id="peak-thick-lg" width="120" height="120"></canvas>
+          </div>
+          <div class="icon-label">120px thicker</div>
+        </div>
+        <div class="icon-wrap">
+          <div class="icon-frame" style="background: #1A1A1E;">
+            <canvas id="peak-thick-sm" width="60" height="60"></canvas>
+          </div>
+          <div class="icon-label">60px thicker</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================ -->
+<!-- 5. Layers for Animation Only -->
+<!-- ============================================ -->
+<div class="section">
+  <h2>5. Single Icon → Animated Layers</h2>
+  <p class="desc">Clean single stroke as the static icon. Ghost layers only appear during animation. Best of both worlds.</p>
+  <div class="row">
+    <div class="card">
+      <h3>Static Icon</h3>
+      <div class="icon-row">
+        <div class="icon-wrap">
+          <div class="icon-frame lg" style="background: #1A1A1E;">
+            <canvas id="hybrid-static-lg" width="120" height="120"></canvas>
+          </div>
+          <div class="icon-label">Static (single)</div>
+        </div>
+        <div class="icon-wrap">
+          <div class="icon-frame" style="background: #1A1A1E;">
+            <canvas id="hybrid-static-sm" width="60" height="60"></canvas>
+          </div>
+          <div class="icon-label">60px</div>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <h3>Animated (loading)</h3>
+      <canvas id="hybrid-anim" width="400" height="140"></canvas>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================ -->
+<!-- Comparison: Ghost Layers (old) vs New -->
+<!-- ============================================ -->
+<div class="section">
+  <h2>Comparison — Old vs New at Icon Size</h2>
+  <p class="desc">The ghost layer version that looked blurry vs the new approaches.</p>
+  <div class="row">
+    <div class="card">
+      <div class="icon-row">
+        <div class="icon-wrap">
+          <div class="icon-frame" style="background: #1A1A1E;">
+            <canvas id="old-ghost-sm" width="60" height="60"></canvas>
+          </div>
+          <div class="icon-label">Old (ghost layers)</div>
+        </div>
+        <div class="icon-wrap">
+          <div class="icon-frame" style="background: #1A1A1E;">
+            <canvas id="cmp-single" width="60" height="60"></canvas>
+          </div>
+          <div class="icon-label">1. Single</div>
+        </div>
+        <div class="icon-wrap">
+          <div class="icon-frame" style="background: #1A1A1E;">
+            <canvas id="cmp-glow" width="60" height="60"></canvas>
+          </div>
+          <div class="icon-label">2. Glow</div>
+        </div>
+        <div class="icon-wrap">
+          <div class="icon-frame" style="background: #1A1A1E;">
+            <canvas id="cmp-filled" width="60" height="60"></canvas>
+          </div>
+          <div class="icon-label">3. Filled</div>
+        </div>
+        <div class="icon-wrap">
+          <div class="icon-frame" style="background: #1A1A1E;">
+            <canvas id="cmp-peak" width="60" height="60"></canvas>
+          </div>
+          <div class="icon-label">4. Peak only</div>
+        </div>
+        <div class="icon-wrap">
+          <div class="icon-frame" style="background: #1A1A1E;">
+            <canvas id="cmp-hybrid" width="60" height="60"></canvas>
+          </div>
+          <div class="icon-label">5. Hybrid</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// Path builders
+// ============================================================
+function ekgPath(w, h, baseY, pad) {
+  const sx = w * pad, ex = w * (1 - pad), r = ex - sx;
+  return [
+    [sx, baseY],
+    [sx + r * 0.18, baseY],
+    [sx + r * 0.24, baseY],
+    [sx + r * 0.34, baseY - h * 0.28],
+    [sx + r * 0.48, baseY + h * 0.25],
+    [sx + r * 0.60, baseY - h * 0.14],
+    [sx + r * 0.70, baseY],
+    [sx + r * 0.76, baseY],
+    [ex, baseY],
+  ];
+}
+
+function peakOnlyPath(w, h, cy) {
+  // Just the spike section, centered
+  return [
+    [w * 0.08, cy],
+    [w * 0.22, cy - h * 0.34],
+    [w * 0.50, cy + h * 0.34],
+    [w * 0.72, cy - h * 0.17],
+    [w * 0.92, cy],
+  ];
+}
+
+// ============================================================
+// Drawing helpers
+// ============================================================
+function strokePath(ctx, pts, lw, color, alpha) {
+  ctx.save();
+  ctx.globalAlpha = alpha || 1;
+  ctx.strokeStyle = color || '#fff';
+  ctx.lineWidth = lw;
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+  ctx.beginPath();
+  ctx.moveTo(pts[0][0], pts[0][1]);
+  for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i][0], pts[i][1]);
+  ctx.stroke();
+  ctx.restore();
+}
+
+function glowPath(ctx, pts, lw, glowColor, glowSize, coreColor) {
+  // Draw glow layers
+  for (let g = glowSize; g > 0; g -= 2) {
+    const alpha = 0.04 + (glowSize - g) * 0.01;
+    strokePath(ctx, pts, lw + g * 2, glowColor, alpha);
+  }
+  // Core line
+  strokePath(ctx, pts, lw, coreColor || '#fff', 1);
+}
+
+function fillUnderPath(ctx, pts, w, h, fillColor, alpha) {
+  ctx.save();
+  ctx.globalAlpha = alpha || 0.15;
+  ctx.fillStyle = fillColor || '#fff';
+  ctx.beginPath();
+  ctx.moveTo(pts[0][0], pts[0][1]);
+  for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i][0], pts[i][1]);
+  ctx.lineTo(pts[pts.length-1][0], h);
+  ctx.lineTo(pts[0][0], h);
+  ctx.closePath();
+  ctx.fill();
+  ctx.restore();
+}
+
+function initC(id) {
+  const c = document.getElementById(id);
+  if (!c) return null;
+  const ctx = c.getContext('2d');
+  return { c, ctx, w: c.width, h: c.height };
+}
+
+function fillBg(ctx, w, h, color) {
+  ctx.fillStyle = color || '#1A1A1E';
+  ctx.fillRect(0, 0, w, h);
+}
+
+// ============================================================
+// 1. Single Stroke
+// ============================================================
+function drawSingle(id, opts = {}) {
+  const r = initC(id); if (!r) return;
+  const { ctx, w, h } = r;
+  const { bg = null, lw = 3, pad = 0.06, baseRatio = 0.52 } = opts;
+  if (bg) fillBg(ctx, w, h, bg);
+  const pts = ekgPath(w, h, h * baseRatio, pad);
+  strokePath(ctx, pts, lw, '#fff', 1);
+}
+
+// Large
+drawSingle('single-lg', { lw: 4 });
+// Icons
+drawSingle('single-icon-lg', { bg: '#1A1A1E', lw: 3, pad: 0.08 });
+drawSingle('single-icon-sm', { bg: '#1A1A1E', lw: 2, pad: 0.08 });
+drawSingle('single-icon-lg-thick', { bg: '#1A1A1E', lw: 4.5, pad: 0.08 });
+drawSingle('single-icon-sm-thick', { bg: '#1A1A1E', lw: 3, pad: 0.08 });
+
+// ============================================================
+// 2. Glow
+// ============================================================
+function drawGlow(id, opts = {}) {
+  const r = initC(id); if (!r) return;
+  const { ctx, w, h } = r;
+  const { bg = null, lw = 2.5, pad = 0.06, baseRatio = 0.52, glowColor = 'rgba(255,255,255,1)', glowSize = 12, coreColor = '#fff' } = opts;
+  if (bg) fillBg(ctx, w, h, bg);
+  const pts = ekgPath(w, h, h * baseRatio, pad);
+  glowPath(ctx, pts, lw, glowColor, glowSize, coreColor);
+}
+
+drawGlow('glow-lg', { lw: 3, glowSize: 20 });
+drawGlow('glow-icon-lg', { bg: '#1A1A1E', lw: 2.5, pad: 0.08, glowSize: 10 });
+drawGlow('glow-icon-sm', { bg: '#1A1A1E', lw: 1.5, pad: 0.08, glowSize: 6 });
+drawGlow('glow-blue-lg', { bg: '#1A1A1E', lw: 2.5, pad: 0.08, glowSize: 12, glowColor: 'rgba(107,123,148,1)', coreColor: '#fff' });
+drawGlow('glow-blue-sm', { bg: '#1A1A1E', lw: 1.5, pad: 0.08, glowSize: 7, glowColor: 'rgba(107,123,148,1)', coreColor: '#fff' });
+
+// ============================================================
+// 3. Filled Shape
+// ============================================================
+function drawFilled(id, opts = {}) {
+  const r = initC(id); if (!r) return;
+  const { ctx, w, h } = r;
+  const { bg = null, lw = 2.5, pad = 0.06, baseRatio = 0.52, showStroke = true, fillAlpha = 0.12 } = opts;
+  if (bg) fillBg(ctx, w, h, bg);
+  const pts = ekgPath(w, h, h * baseRatio, pad);
+  fillUnderPath(ctx, pts, w, h, '#fff', fillAlpha);
+  if (showStroke) strokePath(ctx, pts, lw, '#fff', 1);
+}
+
+drawFilled('filled-lg', { lw: 3, fillAlpha: 0.1 });
+drawFilled('filled-icon-lg', { bg: '#1A1A1E', lw: 2.5, pad: 0.08, fillAlpha: 0.12 });
+drawFilled('filled-icon-sm', { bg: '#1A1A1E', lw: 1.5, pad: 0.08, fillAlpha: 0.12 });
+
+// Stroke + fill variant (brighter fill)
+function drawFilledOutline(id, opts = {}) {
+  const r = initC(id); if (!r) return;
+  const { ctx, w, h } = r;
+  const { bg = null, lw = 2.5, pad = 0.06, baseRatio = 0.52 } = opts;
+  if (bg) fillBg(ctx, w, h, bg);
+  const pts = ekgPath(w, h, h * baseRatio, pad);
+  // Gradient fill under
+  const grad = ctx.createLinearGradient(0, 0, 0, h);
+  grad.addColorStop(0, 'rgba(255,255,255,0.15)');
+  grad.addColorStop(1, 'rgba(255,255,255,0.02)');
+  ctx.save();
+  ctx.beginPath();
+  ctx.moveTo(pts[0][0], pts[0][1]);
+  for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i][0], pts[i][1]);
+  ctx.lineTo(pts[pts.length-1][0], h);
+  ctx.lineTo(pts[0][0], h);
+  ctx.closePath();
+  ctx.fillStyle = grad;
+  ctx.fill();
+  ctx.restore();
+  strokePath(ctx, pts, lw, '#fff', 1);
+}
+
+drawFilledOutline('filled-outline-lg', { bg: '#1A1A1E', lw: 2.5, pad: 0.08 });
+drawFilledOutline('filled-outline-sm', { bg: '#1A1A1E', lw: 1.5, pad: 0.08 });
+
+// ============================================================
+// 4. Just the Peak
+// ============================================================
+function drawPeak(id, opts = {}) {
+  const r = initC(id); if (!r) return;
+  const { ctx, w, h } = r;
+  const { bg = null, lw = 3, cyRatio = 0.50 } = opts;
+  if (bg) fillBg(ctx, w, h, bg);
+  const pts = peakOnlyPath(w, h, h * cyRatio);
+  strokePath(ctx, pts, lw, '#fff', 1);
+}
+
+drawPeak('peak-lg', { lw: 4 });
+drawPeak('peak-icon-lg', { bg: '#1A1A1E', lw: 3 });
+drawPeak('peak-icon-sm', { bg: '#1A1A1E', lw: 2 });
+drawPeak('peak-thick-lg', { bg: '#1A1A1E', lw: 4.5 });
+drawPeak('peak-thick-sm', { bg: '#1A1A1E', lw: 3 });
+
+// ============================================================
+// 5. Hybrid (single static + animated layers)
+// ============================================================
+drawSingle('hybrid-static-lg', { bg: '#1A1A1E', lw: 3, pad: 0.08 });
+drawSingle('hybrid-static-sm', { bg: '#1A1A1E', lw: 2, pad: 0.08 });
+
+// Animated version with wipe and ghost layers
+{
+  const r = initC('hybrid-anim');
+  if (r) {
+    const { c, ctx, w, h } = r;
+    const layers = 3, gap = 6, stagger = 0.06, lw = 3;
+    const alphas = [1, 0.5, 0.25];
+    const wipeDur = 1400, hold = 500, gap2 = 120;
+    const total = wipeDur * 2 + hold + gap2;
+
+    const paths = [];
+    for (let i = 0; i < layers; i++) {
+      paths.push(ekgPath(w, h, h * 0.50 + i * gap, 0.04));
+    }
+
+    function pathLen(pts) {
+      let len = 0;
+      for (let i = 1; i < pts.length; i++) {
+        const dx = pts[i][0]-pts[i-1][0], dy = pts[i][1]-pts[i-1][1];
+        len += Math.sqrt(dx*dx+dy*dy);
+      }
+      return len;
+    }
+    function ptAt(pts, prog) {
+      const total = pathLen(pts);
+      let target = total * Math.max(0, Math.min(1, prog)), acc = 0;
+      for (let i = 1; i < pts.length; i++) {
+        const dx = pts[i][0]-pts[i-1][0], dy = pts[i][1]-pts[i-1][1];
+        const seg = Math.sqrt(dx*dx+dy*dy);
+        if (acc + seg >= target) {
+          const t = (target-acc)/seg;
+          return { x: pts[i-1][0]+dx*t, y: pts[i-1][1]+dy*t, si: i };
+        }
+        acc += seg;
+      }
+      return { x: pts[pts.length-1][0], y: pts[pts.length-1][1], si: pts.length-1 };
+    }
+    function drawRange(ctx, pts, s, e, lw, alpha) {
+      if (e <= s + 0.001) return;
+      const sp = ptAt(pts, s), ep = ptAt(pts, e);
+      ctx.save();
+      ctx.globalAlpha = alpha;
+      ctx.strokeStyle = '#fff';
+      ctx.lineWidth = lw;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      ctx.beginPath();
+      ctx.moveTo(sp.x, sp.y);
+      for (let i = sp.si; i < pts.length; i++) {
+        if (i === ep.si) { ctx.lineTo(ep.x, ep.y); break; }
+        ctx.lineTo(pts[i][0], pts[i][1]);
+      }
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    let start = null;
+    function frame(ts) {
+      if (!start) start = ts;
+      const cp = (ts - start) % total;
+      ctx.clearRect(0, 0, w, h);
+      for (let i = layers-1; i >= 0; i--) {
+        const delay = i * stagger * wipeDur;
+        const le = Math.max(0, cp - delay);
+        let head, tail;
+        if (le < wipeDur) {
+          head = 1 - Math.pow(1 - le/wipeDur, 2.5); tail = 0;
+        } else if (le < wipeDur + hold) {
+          head = 1; tail = 0;
+        } else if (le < wipeDur*2 + hold) {
+          head = 1; tail = 1 - Math.pow(1 - (le-wipeDur-hold)/wipeDur, 2.5);
+        } else {
+          head = 0; tail = 0;
+        }
+        if (head > tail + 0.001) drawRange(ctx, paths[i], tail, head, lw, alphas[i]);
+      }
+      requestAnimationFrame(frame);
+    }
+    requestAnimationFrame(frame);
+  }
+}
+
+// ============================================================
+// Comparison row
+// ============================================================
+// Old ghost layers
+{
+  const r = initC('old-ghost-sm');
+  if (r) {
+    const { ctx, w, h } = r;
+    fillBg(ctx, w, h, '#1A1A1E');
+    const alphas = [1, 0.5, 0.25];
+    for (let i = 0; i < 3; i++) {
+      const pts = ekgPath(w, h, h * 0.52 + i * 3, 0.08);
+      strokePath(ctx, pts, 2, '#fff', alphas[i]);
+    }
+  }
+}
+drawSingle('cmp-single', { bg: '#1A1A1E', lw: 2, pad: 0.08 });
+drawGlow('cmp-glow', { bg: '#1A1A1E', lw: 1.5, pad: 0.08, glowSize: 6 });
+drawFilled('cmp-filled', { bg: '#1A1A1E', lw: 1.5, pad: 0.08, fillAlpha: 0.12 });
+drawPeak('cmp-peak', { bg: '#1A1A1E', lw: 2 });
+drawSingle('cmp-hybrid', { bg: '#1A1A1E', lw: 2, pad: 0.08 });
+</script>
+
+</body>
+</html>

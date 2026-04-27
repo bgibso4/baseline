@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Baseline — Round 7: Overhaul</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #0a0a0a;
+    color: #fff;
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
+    min-height: 100vh;
+    padding: 40px 20px;
+  }
+  h1 { text-align: center; font-size: 14px; letter-spacing: 4px; text-transform: uppercase; color: #666; margin-bottom: 10px; }
+  .subtitle { text-align: center; font-size: 12px; color: #444; margin-bottom: 60px; }
+  .section {
+    max-width: 1100px;
+    margin: 0 auto 70px;
+  }
+  .section h2 { font-size: 13px; letter-spacing: 3px; text-transform: uppercase; color: #e0e0e0; margin-bottom: 4px; }
+  .section p.desc { font-size: 12px; color: #555; margin-bottom: 20px; line-height: 1.5; }
+  .row { display: flex; gap: 20px; flex-wrap: wrap; align-items: flex-start; }
+  .card {
+    background: #141414; border-radius: 16px; padding: 24px; text-align: center;
+    border: 1px solid #222; flex: 1; min-width: 280px;
+  }
+  .card.wide { min-width: 100%; }
+  .card h3 { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: #888; margin-bottom: 16px; }
+  canvas { display: block; margin: 0 auto; }
+  .icon-row { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
+  .icon-wrap { text-align: center; }
+  .icon-frame {
+    width: 60px; height: 60px; border-radius: 13px;
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 6px; border: 1px solid #333; background: #1A1A1E;
+  }
+  .icon-frame.lg { width: 120px; height: 120px; border-radius: 26px; }
+  .icon-label { font-size: 10px; color: #555; }
+</style>
+</head>
+<body>
+
+<h1>Round 7 — Logo Overhaul</h1>
+<div class="subtitle">Fresh directions. Large previews + icon-size tests. Click to compare.</div>
+
+<!-- 1. B as Pulse -->
+<div class="section">
+  <h2>1. "B" as a Pulse</h2>
+  <p class="desc">Letter B where the vertical stroke is the baseline and the bumps are stylized pulse peaks.</p>
+  <div class="row">
+    <div class="card wide"><h3>Large</h3><canvas id="bpulse-lg" width="700" height="280"></canvas></div>
+  </div>
+  <div class="row">
+    <div class="card"><h3>Icons</h3>
+      <div class="icon-row">
+        <div class="icon-wrap"><div class="icon-frame lg"><canvas id="bpulse-icon-lg" width="120" height="120"></canvas></div><div class="icon-label">120px</div></div>
+        <div class="icon-wrap"><div class="icon-frame"><canvas id="bpulse-icon-sm" width="60" height="60"></canvas></div><div class="icon-label">60px</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 2. Stacked Bars -->
+<div class="section">
+  <h2>2. Body Composition Bars</h2>
+  <p class="desc">Abstract body comp chart — stacked horizontal bars of different widths forming a geometric mark.</p>
+  <div class="row">
+    <div class="card wide"><h3>Large</h3><canvas id="bars-lg" width="700" height="280"></canvas></div>
+  </div>
+  <div class="row">
+    <div class="card"><h3>Icons</h3>
+      <div class="icon-row">
+        <div class="icon-wrap"><div class="icon-frame lg"><canvas id="bars-icon-lg" width="120" height="120"></canvas></div><div class="icon-label">120px</div></div>
+        <div class="icon-wrap"><div class="icon-frame"><canvas id="bars-icon-sm" width="60" height="60"></canvas></div><div class="icon-label">60px</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 3. Flatline + Notch -->
+<div class="section">
+  <h2>3. Flatline + Chevron Notch</h2>
+  <p class="desc">Bold horizontal baseline with a single small Apex-chevron notch. Minimal, says "measurement" not "heartbeat."</p>
+  <div class="row">
+    <div class="card wide"><h3>Large</h3><canvas id="notch-lg" width="700" height="200"></canvas></div>
+  </div>
+  <div class="row">
+    <div class="card"><h3>Icons</h3>
+      <div class="icon-row">
+        <div class="icon-wrap"><div class="icon-frame lg"><canvas id="notch-icon-lg" width="120" height="120"></canvas></div><div class="icon-label">120px</div></div>
+        <div class="icon-wrap"><div class="icon-frame"><canvas id="notch-icon-sm" width="60" height="60"></canvas></div><div class="icon-label">60px</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 4. Chevron + Line -->
+<div class="section">
+  <h2>4. Sideways Chevron on Baseline</h2>
+  <p class="desc">Apex chevron rotated/laid sideways, sitting on a horizontal baseline. Apex DNA + baseline concept.</p>
+  <div class="row">
+    <div class="card wide"><h3>Large</h3><canvas id="chevline-lg" width="700" height="240"></canvas></div>
+  </div>
+  <div class="row">
+    <div class="card"><h3>Icons</h3>
+      <div class="icon-row">
+        <div class="icon-wrap"><div class="icon-frame lg"><canvas id="chevline-icon-lg" width="120" height="120"></canvas></div><div class="icon-label">120px</div></div>
+        <div class="icon-wrap"><div class="icon-frame"><canvas id="chevline-icon-sm" width="60" height="60"></canvas></div><div class="icon-label">60px</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 5. Circular Gauge -->
+<div class="section">
+  <h2>5. Gauge Mark</h2>
+  <p class="desc">Partial circle arc with a tick indicator — mirrors the weight gauge in your app's UI.</p>
+  <div class="row">
+    <div class="card wide"><h3>Large</h3><canvas id="gauge-lg" width="700" height="280"></canvas></div>
+  </div>
+  <div class="row">
+    <div class="card"><h3>Icons</h3>
+      <div class="icon-row">
+        <div class="icon-wrap"><div class="icon-frame lg"><canvas id="gauge-icon-lg" width="120" height="120"></canvas></div><div class="icon-label">120px</div></div>
+        <div class="icon-wrap"><div class="icon-frame"><canvas id="gauge-icon-sm" width="60" height="60"></canvas></div><div class="icon-label">60px</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 6. Geometric B Monogram -->
+<div class="section">
+  <h2>6. Geometric "B" Monogram</h2>
+  <p class="desc">Bold geometric B in Apex's layered-stroke style. The "A" has a sibling.</p>
+  <div class="row">
+    <div class="card wide"><h3>Large</h3><canvas id="mono-lg" width="700" height="280"></canvas></div>
+  </div>
+  <div class="row">
+    <div class="card"><h3>Icons</h3>
+      <div class="icon-row">
+        <div class="icon-wrap"><div class="icon-frame lg"><canvas id="mono-icon-lg" width="120" height="120"></canvas></div><div class="icon-label">120px</div></div>
+        <div class="icon-wrap"><div class="icon-frame"><canvas id="mono-icon-sm" width="60" height="60"></canvas></div><div class="icon-label">60px</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 7. Wordmark with A as EKG -->
+<div class="section">
+  <h2>7. "bAseline" Wordmark — A as EKG Peak</h2>
+  <p class="desc">The word "bAseline" where the capital A is the EKG spike. The rest of the word sits on/is underlined by the pulse line.</p>
+  <div class="row">
+    <div class="card wide"><h3>Large</h3><canvas id="wordmark-lg" width="800" height="240"></canvas></div>
+  </div>
+  <div class="row">
+    <div class="card wide"><h3>Alternate — full caps</h3><canvas id="wordmark-caps-lg" width="800" height="240"></canvas></div>
+  </div>
+  <div class="row">
+    <div class="card"><h3>Icons</h3>
+      <div class="icon-row">
+        <div class="icon-wrap"><div class="icon-frame lg"><canvas id="wordmark-icon-lg" width="120" height="120"></canvas></div><div class="icon-label">120px (mark only)</div></div>
+        <div class="icon-wrap"><div class="icon-frame"><canvas id="wordmark-icon-sm" width="60" height="60"></canvas></div><div class="icon-label">60px</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Comparison -->
+<div class="section">
+  <h2>All at Icon Size</h2>
+  <div class="row">
+    <div class="card wide">
+      <div class="icon-row">
+        <div class="icon-wrap"><div class="icon-frame"><canvas id="cmp-1" width="60" height="60"></canvas></div><div class="icon-label">1. B-Pulse</div></div>
+        <div class="icon-wrap"><div class="icon-frame"><canvas id="cmp-2" width="60" height="60"></canvas></div><div class="icon-label">2. Bars</div></div>
+        <div class="icon-wrap"><div class="icon-frame"><canvas id="cmp-3" width="60" height="60"></canvas></div><div class="icon-label">3. Notch</div></div>
+        <div class="icon-wrap"><div class="icon-frame"><canvas id="cmp-4" width="60" height="60"></canvas></div><div class="icon-label">4. Chevron</div></div>
+        <div class="icon-wrap"><div class="icon-frame"><canvas id="cmp-5" width="60" height="60"></canvas></div><div class="icon-label">5. Gauge</div></div>
+        <div class="icon-wrap"><div class="icon-frame"><canvas id="cmp-6" width="60" height="60"></canvas></div><div class="icon-label">6. Mono B</div></div>
+        <div class="icon-wrap"><div class="icon-frame"><canvas id="cmp-7" width="60" height="60"></canvas></div><div class="icon-label">7. Wordmark</div></div>
+        <div class="icon-wrap"><div class="icon-frame" style="border-color: #444;"><canvas id="cmp-apex" width="60" height="60"></canvas></div><div class="icon-label">Apex (ref)</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function C(id) {
+  const c = document.getElementById(id);
+  if (!c) return null;
+  return { c, x: c.getContext('2d'), w: c.width, h: c.height };
+}
+function bg(x, w, h, color) { x.fillStyle = color || '#1A1A1E'; x.fillRect(0, 0, w, h); }
+function stroke(x, pts, lw, color, alpha) {
+  x.save(); x.globalAlpha = alpha||1; x.strokeStyle = color||'#fff';
+  x.lineWidth = lw; x.lineCap = 'round'; x.lineJoin = 'round';
+  x.beginPath(); x.moveTo(pts[0][0], pts[0][1]);
+  for (let i=1;i<pts.length;i++) x.lineTo(pts[i][0], pts[i][1]);
+  x.stroke(); x.restore();
+}
+
+// ============================================================
+// 1. B as Pulse — vertical line with pulse-shaped bumps
+// ============================================================
+function drawBPulse(id, opts={}) {
+  const r = C(id); if(!r) return;
+  const {x,w,h} = r;
+  const {hasBg=false, lw=4} = opts;
+  if(hasBg) bg(x,w,h);
+  const cx = w*0.5, cy = h*0.5;
+  const bh = h*0.7, bw = w*0.3;
+  // Vertical stroke
+  const top = cy - bh/2, bot = cy + bh/2;
+  // Upper bump
+  const pts = [
+    [cx - bw*0.15, top],
+    [cx - bw*0.15, top + bh*0.08],
+    [cx + bw*0.6, top + bh*0.12],  // peak of upper bump
+    [cx + bw*0.65, top + bh*0.25], // curve
+    [cx + bw*0.1, top + bh*0.38],
+    [cx - bw*0.15, top + bh*0.42],
+    // Middle
+    [cx - bw*0.15, top + bh*0.48],
+    // Lower bump (wider)
+    [cx + bw*0.7, top + bh*0.52],
+    [cx + bw*0.75, top + bh*0.68],
+    [cx + bw*0.15, top + bh*0.85],
+    [cx - bw*0.15, top + bh*0.88],
+    [cx - bw*0.15, bot],
+  ];
+  stroke(x, pts, lw, '#fff', 1);
+}
+drawBPulse('bpulse-lg', {lw:5});
+drawBPulse('bpulse-icon-lg', {hasBg:true, lw:3.5});
+drawBPulse('bpulse-icon-sm', {hasBg:true, lw:2});
+
+// ============================================================
+// 2. Stacked Bars
+// ============================================================
+function drawBars(id, opts={}) {
+  const r = C(id); if(!r) return;
+  const {x,w,h} = r;
+  const {hasBg=false, lw=4} = opts;
+  if(hasBg) bg(x,w,h);
+  const cx = w*0.5;
+  const barH = lw * 1.2;
+  const gap = barH * 1.8;
+  const widths = [0.75, 0.55, 0.85, 0.45, 0.65]; // body comp ratios
+  const alphas = [1, 0.8, 1, 0.6, 0.9];
+  const totalH = widths.length * gap;
+  const startY = (h - totalH) / 2 + gap/2;
+
+  for (let i = 0; i < widths.length; i++) {
+    const bw = w * widths[i] * 0.7;
+    const y = startY + i * gap;
+    const x1 = cx - bw/2, x2 = cx + bw/2;
+    stroke(x, [[x1, y], [x2, y]], lw, '#fff', alphas[i]);
+  }
+}
+drawBars('bars-lg', {lw:6});
+drawBars('bars-icon-lg', {hasBg:true, lw:3.5});
+drawBars('bars-icon-sm', {hasBg:true, lw:2});
+
+// ============================================================
+// 3. Flatline + Chevron Notch
+// ============================================================
+function drawNotch(id, opts={}) {
+  const r = C(id); if(!r) return;
+  const {x,w,h} = r;
+  const {hasBg=false, lw=4} = opts;
+  if(hasBg) bg(x,w,h);
+  const baseY = h * 0.55;
+  const notchW = w * 0.06;
+  const notchH = h * 0.22;
+  const cx = w * 0.5;
+  const pts = [
+    [w*0.06, baseY],
+    [cx - notchW, baseY],
+    [cx, baseY - notchH],  // chevron peak up
+    [cx + notchW, baseY],
+    [w*0.94, baseY],
+  ];
+  stroke(x, pts, lw, '#fff', 1);
+}
+drawNotch('notch-lg', {lw:5});
+drawNotch('notch-icon-lg', {hasBg:true, lw:3.5});
+drawNotch('notch-icon-sm', {hasBg:true, lw:2});
+
+// ============================================================
+// 4. Sideways Chevron on Baseline
+// ============================================================
+function drawChevLine(id, opts={}) {
+  const r = C(id); if(!r) return;
+  const {x,w,h} = r;
+  const {hasBg=false, lw=4} = opts;
+  if(hasBg) bg(x,w,h);
+  const baseY = h * 0.65;
+  const cx = w * 0.45;
+  const chevH = h * 0.45;
+  const chevW = w * 0.12;
+
+  // Baseline
+  stroke(x, [[w*0.06, baseY], [w*0.94, baseY]], lw, '#fff', 0.4);
+  // Chevron sitting on the baseline, pointing right
+  const chevPts = [
+    [cx - chevW, baseY - chevH * 0.5],
+    [cx + chevW, baseY - chevH * 0.05],
+    [cx - chevW, baseY + chevH * 0.0],
+  ];
+  // Actually let's do an upward Apex-style chevron sitting on the line
+  const pts = [
+    [cx - chevW*1.5, baseY],
+    [cx, baseY - chevH],
+    [cx + chevW*1.5, baseY],
+  ];
+  stroke(x, pts, lw, '#fff', 1);
+}
+drawChevLine('chevline-lg', {lw:5});
+drawChevLine('chevline-icon-lg', {hasBg:true, lw:3});
+drawChevLine('chevline-icon-sm', {hasBg:true, lw:2});
+
+// ============================================================
+// 5. Gauge Mark
+// ============================================================
+function drawGauge(id, opts={}) {
+  const r = C(id); if(!r) return;
+  const {x,w,h} = r;
+  const {hasBg=false, lw=4} = opts;
+  if(hasBg) bg(x,w,h);
+  const cx = w*0.5, cy = h*0.55;
+  const radius = Math.min(w,h) * 0.32;
+  const startAngle = Math.PI * 0.75;
+  const endAngle = Math.PI * 0.25;
+
+  // Arc
+  x.save();
+  x.strokeStyle = '#fff'; x.lineWidth = lw; x.lineCap = 'round';
+  x.globalAlpha = 0.3;
+  x.beginPath(); x.arc(cx, cy, radius, startAngle, endAngle); x.stroke();
+  x.restore();
+
+  // Filled portion (progress)
+  x.save();
+  x.strokeStyle = '#fff'; x.lineWidth = lw; x.lineCap = 'round';
+  const progress = 0.65;
+  const progressAngle = startAngle + (Math.PI * 1.5) * progress;
+  x.beginPath(); x.arc(cx, cy, radius, startAngle, progressAngle); x.stroke();
+  x.restore();
+
+  // Tick mark at current position
+  const tickLen = lw * 2.5;
+  const tx = cx + Math.cos(progressAngle) * radius;
+  const ty = cy + Math.sin(progressAngle) * radius;
+  const nx = Math.cos(progressAngle);
+  const ny = Math.sin(progressAngle);
+  stroke(x, [
+    [tx - nx*tickLen, ty - ny*tickLen],
+    [tx + nx*tickLen, ty + ny*tickLen]
+  ], lw*0.8, '#fff', 1);
+
+  // Small dot at tick
+  x.save();
+  x.fillStyle = '#fff'; x.beginPath();
+  x.arc(tx, ty, lw*0.8, 0, Math.PI*2); x.fill();
+  x.restore();
+}
+drawGauge('gauge-lg', {lw:6});
+drawGauge('gauge-icon-lg', {hasBg:true, lw:3.5});
+drawGauge('gauge-icon-sm', {hasBg:true, lw:2});
+
+// ============================================================
+// 6. Geometric B Monogram
+// ============================================================
+function drawMonoB(id, opts={}) {
+  const r = C(id); if(!r) return;
+  const {x,w,h} = r;
+  const {hasBg=false, lw=4} = opts;
+  if(hasBg) bg(x,w,h);
+  const left = w*0.3, right = w*0.68;
+  const top = h*0.18, bot = h*0.82, mid = h*0.5;
+  const bumpR = (right-left)*0.55;
+
+  // Vertical spine
+  stroke(x, [[left, top], [left, bot]], lw, '#fff', 1);
+
+  // Top bump
+  x.save(); x.strokeStyle='#fff'; x.lineWidth=lw; x.lineCap='round'; x.lineJoin='round';
+  x.beginPath(); x.moveTo(left, top);
+  x.lineTo(left + bumpR*1.2, top);
+  x.quadraticCurveTo(right, top + (mid-top)*0.3, right - bumpR*0.2, mid*0.85);
+  x.quadraticCurveTo(left + bumpR*0.5, mid, left, mid);
+  x.stroke(); x.restore();
+
+  // Bottom bump (wider)
+  x.save(); x.strokeStyle='#fff'; x.lineWidth=lw; x.lineCap='round'; x.lineJoin='round';
+  x.beginPath(); x.moveTo(left, mid);
+  x.lineTo(left + bumpR*1.4, mid);
+  x.quadraticCurveTo(right + bumpR*0.15, mid + (bot-mid)*0.3, right, (mid+bot)*0.52);
+  x.quadraticCurveTo(right - bumpR*0.2, bot, left + bumpR*0.5, bot);
+  x.lineTo(left, bot);
+  x.stroke(); x.restore();
+}
+drawMonoB('mono-lg', {lw:6});
+drawMonoB('mono-icon-lg', {hasBg:true, lw:3.5});
+drawMonoB('mono-icon-sm', {hasBg:true, lw:2});
+
+// ============================================================
+// 7. Wordmark — "bAseline" with A as EKG peak
+// ============================================================
+function drawWordmark(id, opts={}) {
+  const r = C(id); if(!r) return;
+  const {x,w,h} = r;
+  const {hasBg=false, allCaps=false, iconMode=false} = opts;
+  if(hasBg) bg(x,w,h);
+
+  if (iconMode) {
+    // Just the "A" peak section as icon mark
+    const baseY = h * 0.6;
+    const lw = Math.max(2, w * 0.04);
+    // Flat line with A peak
+    const pts = [
+      [w*0.06, baseY],
+      [w*0.30, baseY],
+      [w*0.42, baseY - h*0.4], // A peak left
+      [w*0.50, baseY - h*0.05], // A crossbar dip
+      [w*0.58, baseY - h*0.4], // A peak right
+      [w*0.70, baseY],
+      [w*0.94, baseY],
+    ];
+    stroke(x, pts, lw, '#fff', 1);
+    return;
+  }
+
+  const text = allCaps ? 'BASELINE' : 'bAseline';
+  const fontSize = h * 0.28;
+  const baseY = h * 0.58;
+  const lw = 3;
+
+  // Draw the text
+  x.save();
+  x.font = `600 ${fontSize}px "SF Pro Display", -apple-system, sans-serif`;
+  x.fillStyle = '#fff';
+  x.textBaseline = 'alphabetic';
+
+  // Measure full text and individual chars
+  const fullWidth = x.measureText(text).width;
+  const startX = (w - fullWidth) / 2;
+
+  // Find the A position
+  let aStart = 0;
+  const aIndex = allCaps ? 1 : 1; // 'A' is at index 1
+  for (let i = 0; i < aIndex; i++) {
+    aStart += x.measureText(text[i]).width;
+  }
+  const aWidth = x.measureText('A').width;
+
+  // Draw chars except A
+  let charX = startX;
+  for (let i = 0; i < text.length; i++) {
+    if ((allCaps && i === 1) || (!allCaps && i === 1)) {
+      // Skip A — we'll draw the EKG peak instead
+      charX += x.measureText(text[i]).width;
+      continue;
+    }
+    x.fillText(text[i], charX, baseY);
+    charX += x.measureText(text[i]).width;
+  }
+  x.restore();
+
+  // Draw the EKG line under + through
+  const lineY = baseY + fontSize * 0.12;
+  const aX = startX + aStart;
+  const aMid = aX + aWidth / 2;
+  const peakH = fontSize * 1.05;
+  const peakW = aWidth * 0.45;
+
+  const ekgPts = [
+    [startX - w*0.05, lineY],
+    [aX - aWidth*0.1, lineY],
+    [aMid - peakW, lineY],
+    [aMid, lineY - peakH],  // A peak
+    [aMid + peakW, lineY],
+    [aX + aWidth*1.1, lineY],
+    [startX + fullWidth + w*0.05, lineY],
+  ];
+
+  stroke(x, ekgPts, lw, '#fff', 1);
+}
+
+drawWordmark('wordmark-lg');
+drawWordmark('wordmark-caps-lg', {allCaps: true});
+drawWordmark('wordmark-icon-lg', {hasBg:true, iconMode:true});
+drawWordmark('wordmark-icon-sm', {hasBg:true, iconMode:true});
+
+// ============================================================
+// Comparison row
+// ============================================================
+drawBPulse('cmp-1', {hasBg:true, lw:2});
+drawBars('cmp-2', {hasBg:true, lw:2});
+drawNotch('cmp-3', {hasBg:true, lw:2});
+drawChevLine('cmp-4', {hasBg:true, lw:2});
+drawGauge('cmp-5', {hasBg:true, lw:2});
+drawMonoB('cmp-6', {hasBg:true, lw:2});
+drawWordmark('cmp-7', {hasBg:true, iconMode:true});
+
+// Apex reference
+{
+  const r = C('cmp-apex');
+  if(r) {
+    const {x,w,h} = r;
+    bg(x,w,h);
+    const cx=w/2, peakY=h*0.2, baseY=h*0.75;
+    const layers = [[w*0.33,1],[w*0.25,0.5],[w*0.17,0.25]];
+    layers.forEach(([spread, alpha]) => {
+      const off = (w*0.33 - spread)*0.4;
+      stroke(x, [[cx-spread, baseY], [cx, peakY+off], [cx+spread, baseY]], 2.5, '#fff', alpha);
+    });
+  }
+}
+</script>
+
+</body>
+</html>

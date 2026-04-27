@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Baseline — Round 8b: Area Fill Closeup</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #0a0a0a; color: #fff; font-family: -apple-system, sans-serif; padding: 40px 20px; }
+  h1 { text-align: center; font-size: 14px; letter-spacing: 4px; text-transform: uppercase; color: #666; margin-bottom: 60px; }
+  .section { max-width: 1100px; margin: 0 auto 60px; }
+  .section h2 { font-size: 13px; letter-spacing: 3px; text-transform: uppercase; color: #e0e0e0; margin-bottom: 16px; }
+  .row { display: flex; gap: 24px; flex-wrap: wrap; margin-bottom: 24px; }
+  .card { background: #141414; border-radius: 16px; padding: 30px; text-align: center; border: 1px solid #222; flex: 1; min-width: 280px; }
+  .card.wide { min-width: 100%; }
+  .card h3 { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: #888; margin-bottom: 16px; }
+  canvas { display: block; margin: 0 auto; }
+  .icon-row { display: flex; gap: 20px; justify-content: center; flex-wrap: wrap; }
+  .icon-wrap { text-align: center; }
+  .icon-frame { display: flex; align-items: center; justify-content: center; margin: 0 auto 6px; border: 1px solid #333; }
+  .i60 { width: 60px; height: 60px; border-radius: 13px; }
+  .i120 { width: 120px; height: 120px; border-radius: 26px; }
+  .i200 { width: 200px; height: 200px; border-radius: 40px; }
+  .icon-label { font-size: 10px; color: #555; }
+</style>
+</head>
+<body>
+
+<h1>Round 8b — Area Fill Blowups</h1>
+
+<div class="section">
+  <h2>White Fade</h2>
+  <div class="row">
+    <div class="card wide"><h3>Full size</h3><canvas id="wf-big" width="800" height="300"></canvas></div>
+  </div>
+  <div class="row">
+    <div class="card"><h3>Sizes</h3>
+      <div class="icon-row">
+        <div class="icon-wrap"><div class="icon-frame i200" style="background:#1A1A1E"><canvas id="wf-200" width="200" height="200"></canvas></div><div class="icon-label">200px</div></div>
+        <div class="icon-wrap"><div class="icon-frame i120" style="background:#1A1A1E"><canvas id="wf-120" width="120" height="120"></canvas></div><div class="icon-label">120px</div></div>
+        <div class="icon-wrap"><div class="icon-frame i60" style="background:#1A1A1E"><canvas id="wf-60" width="60" height="60"></canvas></div><div class="icon-label">60px</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h2>Blue Fade</h2>
+  <div class="row">
+    <div class="card wide"><h3>Full size</h3><canvas id="bf-big" width="800" height="300"></canvas></div>
+  </div>
+  <div class="row">
+    <div class="card"><h3>Sizes</h3>
+      <div class="icon-row">
+        <div class="icon-wrap"><div class="icon-frame i200" style="background:#1A1A1E"><canvas id="bf-200" width="200" height="200"></canvas></div><div class="icon-label">200px</div></div>
+        <div class="icon-wrap"><div class="icon-frame i120" style="background:#1A1A1E"><canvas id="bf-120" width="120" height="120"></canvas></div><div class="icon-label">120px</div></div>
+        <div class="icon-wrap"><div class="icon-frame i60" style="background:#1A1A1E"><canvas id="bf-60" width="60" height="60"></canvas></div><div class="icon-label">60px</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h2>Stronger Blue Fill</h2>
+  <div class="row">
+    <div class="card wide"><h3>Full size</h3><canvas id="sb-big" width="800" height="300"></canvas></div>
+  </div>
+  <div class="row">
+    <div class="card"><h3>Sizes</h3>
+      <div class="icon-row">
+        <div class="icon-wrap"><div class="icon-frame i200" style="background:#1A1A1E"><canvas id="sb-200" width="200" height="200"></canvas></div><div class="icon-label">200px</div></div>
+        <div class="icon-wrap"><div class="icon-frame i120" style="background:#1A1A1E"><canvas id="sb-120" width="120" height="120"></canvas></div><div class="icon-label">120px</div></div>
+        <div class="icon-wrap"><div class="icon-frame i60" style="background:#1A1A1E"><canvas id="sb-60" width="60" height="60"></canvas></div><div class="icon-label">60px</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h2>Blue Line + Blue Fill</h2>
+  <div class="row">
+    <div class="card wide"><h3>Full size</h3><canvas id="bb-big" width="800" height="300"></canvas></div>
+  </div>
+  <div class="row">
+    <div class="card"><h3>Sizes</h3>
+      <div class="icon-row">
+        <div class="icon-wrap"><div class="icon-frame i200" style="background:#1A1A1E"><canvas id="bb-200" width="200" height="200"></canvas></div><div class="icon-label">200px</div></div>
+        <div class="icon-wrap"><div class="icon-frame i120" style="background:#1A1A1E"><canvas id="bb-120" width="120" height="120"></canvas></div><div class="icon-label">120px</div></div>
+        <div class="icon-wrap"><div class="icon-frame i60" style="background:#1A1A1E"><canvas id="bb-60" width="60" height="60"></canvas></div><div class="icon-label">60px</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h2>On App Background (#0B0B0E)</h2>
+  <div class="row">
+    <div class="card"><h3>Sizes</h3>
+      <div class="icon-row">
+        <div class="icon-wrap"><div class="icon-frame i200" style="background:#0B0B0E"><canvas id="ab-200" width="200" height="200"></canvas></div><div class="icon-label">200 app bg</div></div>
+        <div class="icon-wrap"><div class="icon-frame i120" style="background:#0B0B0E"><canvas id="ab-120" width="120" height="120"></canvas></div><div class="icon-label">120</div></div>
+        <div class="icon-wrap"><div class="icon-frame i60" style="background:#0B0B0E"><canvas id="ab-60" width="60" height="60"></canvas></div><div class="icon-label">60</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function C(id) {
+  const c = document.getElementById(id); if(!c) return null;
+  return { c, x: c.getContext('2d'), w: c.width, h: c.height };
+}
+function ekgPts(w, h, by, pad) {
+  const sx=w*pad, ex=w*(1-pad), r=ex-sx;
+  return [[sx,by],[sx+r*0.18,by],[sx+r*0.24,by],[sx+r*0.34,by-h*0.28],
+    [sx+r*0.48,by+h*0.25],[sx+r*0.60,by-h*0.14],[sx+r*0.70,by],[sx+r*0.76,by],[ex,by]];
+}
+function strokeLine(ctx, pts, lw, color, alpha) {
+  ctx.save(); ctx.globalAlpha=alpha||1; ctx.strokeStyle=color||'#fff';
+  ctx.lineWidth=lw; ctx.lineCap='round'; ctx.lineJoin='round';
+  ctx.beginPath(); ctx.moveTo(pts[0][0],pts[0][1]);
+  for(let i=1;i<pts.length;i++) ctx.lineTo(pts[i][0],pts[i][1]);
+  ctx.stroke(); ctx.restore();
+}
+
+function drawAreaFill(id, opts={}) {
+  const r = C(id); if(!r) return;
+  const {x:ctx, w, h} = r;
+  const {
+    bgColor = '#1A1A1E',
+    fillTopColor = 'rgba(255,255,255,0.18)',
+    fillBotColor = 'rgba(0,0,0,0)',
+    lineColor = '#fff',
+    lineAlpha = 1,
+    fillStrength = 1,
+  } = opts;
+
+  ctx.fillStyle = bgColor;
+  ctx.fillRect(0, 0, w, h);
+
+  const pts = ekgPts(w, h, h*0.50, 0.08);
+  const lw = Math.max(2, w*0.028);
+  const fillBottom = h * 0.82;
+
+  // Area fill
+  const grad = ctx.createLinearGradient(0, h*0.15, 0, fillBottom);
+  grad.addColorStop(0, fillTopColor);
+  grad.addColorStop(1, fillBotColor);
+  ctx.save();
+  ctx.globalAlpha = fillStrength;
+  ctx.fillStyle = grad;
+  ctx.beginPath();
+  ctx.moveTo(pts[0][0], pts[0][1]);
+  for (let i=1; i<pts.length; i++) ctx.lineTo(pts[i][0], pts[i][1]);
+  ctx.lineTo(pts[pts.length-1][0], fillBottom);
+  ctx.lineTo(pts[0][0], fillBottom);
+  ctx.closePath();
+  ctx.fill();
+  ctx.restore();
+
+  // Line
+  strokeLine(ctx, pts, lw, lineColor, lineAlpha);
+}
+
+// White fade
+['wf-big','wf-200','wf-120','wf-60'].forEach(id => drawAreaFill(id));
+
+// Blue fade
+['bf-big','bf-200','bf-120','bf-60'].forEach(id => drawAreaFill(id, {
+  fillTopColor: 'rgba(107,123,148,0.25)',
+}));
+
+// Stronger blue
+['sb-big','sb-200','sb-120','sb-60'].forEach(id => drawAreaFill(id, {
+  fillTopColor: 'rgba(107,123,148,0.40)',
+  fillBotColor: 'rgba(107,123,148,0.02)',
+}));
+
+// Blue line + blue fill
+['bb-big','bb-200','bb-120','bb-60'].forEach(id => drawAreaFill(id, {
+  fillTopColor: 'rgba(107,123,148,0.30)',
+  fillBotColor: 'rgba(107,123,148,0.02)',
+  lineColor: '#8B9AB0',
+}));
+
+// App background
+['ab-200','ab-120','ab-60'].forEach(id => drawAreaFill(id, {
+  bgColor: '#0B0B0E',
+  fillTopColor: 'rgba(107,123,148,0.30)',
+  fillBotColor: 'rgba(107,123,148,0.02)',
+}));
+</script>
+
+</body>
+</html>
