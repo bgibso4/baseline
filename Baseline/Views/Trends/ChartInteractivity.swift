@@ -1,30 +1,29 @@
 import SwiftUI
 import Charts
 
-// MARK: - Chart Interactivity (#62 horizontal scroll, #63 drag-to-inspect)
+// MARK: - Chart Interactivity (#63 — drag-to-inspect crosshair)
 
-/// Bundle of context the crosshair needs to render its rule, highlighted
-/// points, and floating callout. Built once per chart render in TrendsView
-/// and passed through `crosshairMarks`.
+/// Bundle of context the crosshair needs to render its rule line and the
+/// solid filled dots on each series at the selected x. The actual date +
+/// value display happens in the hero block above the chart (Whoop-style),
+/// not in a floating callout — keeps the value text always-visible and
+/// dodges annotation/overflow/clipping pitfalls.
 struct CrosshairContext {
     let primaryPoints: [TrendDataPoint]
     let secondaryPoints: [TrendDataPoint]
-    let primaryUnit: String
-    let primaryLabel: String
-    let secondaryUnit: String
-    let secondaryLabel: String?
     let secondaryColor: Color
     /// Dual-axis mode normalises both series into 0...1. Crosshair y-positions
-    /// must match so the highlighted ring lands on the visible line.
+    /// must match so the highlighted dot lands on the visible line.
     let isDualAxis: Bool
     let primaryRange: ClosedRange<Double>
     let secondaryRange: ClosedRange<Double>
 }
 
-/// Crosshair marks (vertical rule + highlighted points + floating callout)
-/// that get added INSIDE the existing `Chart {}` block when a date is
-/// selected. No-op when `selectedDate` is nil so the chart renders cleanly
-/// on first appear.
+/// Crosshair marks (dashed vertical rule + solid filled dot per series)
+/// added INSIDE the existing `Chart {}` block when a date is selected.
+/// No-op when `selectedDate` is nil so the chart renders cleanly on
+/// first appear. Date + value text comes from the parent view's hero
+/// swap; this builder is purely visual chrome on the chart.
 @ChartContentBuilder
 func crosshairMarks(selectedDate: Date?, context: CrosshairContext) -> some ChartContent {
     if let selectedDate, let snapped = nearestPoint(to: selectedDate, in: context.primaryPoints) {
@@ -32,43 +31,20 @@ func crosshairMarks(selectedDate: Date?, context: CrosshairContext) -> some Char
             ? normaliseForDualAxis(snapped.value, range: context.primaryRange)
             : snapped.value
 
-        // Vertical rule line, with the floating callout anchored at the top.
+        // Subtle dashed vertical line through the selected x.
         RuleMark(x: .value("Selected", snapped.date))
             .foregroundStyle(CadreColors.textPrimary.opacity(0.35))
-            .lineStyle(StrokeStyle(lineWidth: 1))
-            .annotation(
-                position: .top,
-                spacing: 6,
-                overflowResolution: .init(x: .fit(to: .chart), y: .disabled)
-            ) {
-                CrosshairCallout(
-                    primaryDate: snapped.date,
-                    primaryValue: snapped.value,
-                    primaryUnit: context.primaryUnit,
-                    primaryLabel: context.primaryLabel,
-                    secondaryValue: nearestPoint(to: selectedDate, in: context.secondaryPoints)?.value,
-                    secondaryUnit: context.secondaryUnit,
-                    secondaryLabel: context.secondaryLabel,
-                    secondaryColor: context.secondaryColor
-                )
-            }
+            .lineStyle(StrokeStyle(lineWidth: 1, dash: [3, 3]))
 
-        // Highlighted ring on the primary series.
+        // Solid filled dot on the primary line at the snapped x.
         PointMark(
             x: .value("Date", snapped.date),
             y: .value("Value", primaryY)
         )
         .foregroundStyle(CadreColors.accent)
-        .symbolSize(160)
-        .symbol {
-            ZStack {
-                Circle().fill(CadreColors.card)
-                Circle().stroke(CadreColors.accent, lineWidth: 2)
-            }
-            .frame(width: 14, height: 14)
-        }
+        .symbolSize(120)
 
-        // Highlighted ring on the secondary series (compare mode only).
+        // Solid filled dot on the secondary line (compare mode only).
         if let secSnapped = nearestPoint(to: selectedDate, in: context.secondaryPoints) {
             let secY = context.isDualAxis
                 ? normaliseForDualAxis(secSnapped.value, range: context.secondaryRange)
@@ -78,98 +54,17 @@ func crosshairMarks(selectedDate: Date?, context: CrosshairContext) -> some Char
                 y: .value("Value", secY)
             )
             .foregroundStyle(context.secondaryColor)
-            .symbolSize(140)
-            .symbol {
-                ZStack {
-                    Circle().fill(CadreColors.card)
-                    Circle().stroke(context.secondaryColor, lineWidth: 2)
-                }
-                .frame(width: 12, height: 12)
-            }
+            .symbolSize(120)
         }
-    }
-}
-
-/// Two-line floating callout shown above the crosshair rule. Stacks
-/// primary + secondary when compare mode is active (matches Apple Health).
-private struct CrosshairCallout: View {
-    let primaryDate: Date
-    let primaryValue: Double
-    let primaryUnit: String
-    let primaryLabel: String
-    let secondaryValue: Double?
-    let secondaryUnit: String
-    let secondaryLabel: String?
-    let secondaryColor: Color
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text(primaryDate, format: .dateTime.month(.abbreviated).day().year(.twoDigits))
-                .font(.system(size: 10, weight: .semibold))
-                .foregroundStyle(CadreColors.textTertiary)
-                .tracking(0.3)
-
-            valueRow(
-                color: CadreColors.accent,
-                label: primaryLabel,
-                value: primaryValue,
-                unit: primaryUnit
-            )
-
-            if let secondaryValue, let secondaryLabel {
-                valueRow(
-                    color: secondaryColor,
-                    label: secondaryLabel,
-                    value: secondaryValue,
-                    unit: secondaryUnit
-                )
-            }
-        }
-        .padding(.horizontal, 10)
-        .padding(.vertical, 8)
-        .background(
-            RoundedRectangle(cornerRadius: 8)
-                .fill(CadreColors.cardElevated)
-                .shadow(color: .black.opacity(0.4), radius: 8, y: 2)
-        )
-    }
-
-    private func valueRow(color: Color, label: String, value: Double, unit: String) -> some View {
-        HStack(spacing: 6) {
-            Circle()
-                .fill(color)
-                .frame(width: 6, height: 6)
-            Text(label)
-                .font(.system(size: 10, weight: .medium))
-                .foregroundStyle(CadreColors.textSecondary)
-            Spacer(minLength: 6)
-            HStack(alignment: .firstTextBaseline, spacing: 2) {
-                Text(formatValue(value))
-                    .font(.system(size: 12, weight: .semibold, design: .rounded))
-                    .foregroundStyle(CadreColors.textPrimary)
-                if !unit.isEmpty {
-                    Text(unit)
-                        .font(.system(size: 9, weight: .medium))
-                        .foregroundStyle(CadreColors.textTertiary)
-                }
-            }
-        }
-    }
-
-    private func formatValue(_ value: Double) -> String {
-        String(format: "%.1f", value)
     }
 }
 
 // MARK: - View modifier
 
-/// Wires `chartXSelection` for the long-press-then-drag crosshair plus
-/// the haptic tick that fires when the snapped day under the finger
-/// changes. Horizontal scrolling (#62) was attempted alongside this and
-/// reverted — see PR #71 — because Swift Charts' interaction between
-/// `chartScrollableAxes` and `chartXSelection.annotation(position: .top)`
-/// suppresses the callout and the default `.automatic` x-axis marks. To
-/// be reattempted as a separate, deliberate UX pass.
+/// Wires `chartXSelection` for drag-to-inspect plus a haptic tick when the
+/// snapped day under the finger changes. Without `chartScrollableAxes` in
+/// the modifier chain, a regular drag activates selection — no long-press
+/// required.
 struct TrendsChartInteractivity: ViewModifier {
     @Binding var selectedDate: Date?
 
@@ -209,7 +104,8 @@ extension View {
 // MARK: - Helpers
 
 /// Find the data point whose date is closest to `target`. Returns nil when
-/// the array is empty.
+/// the array is empty. Public so the parent view can use the same snapping
+/// logic for its inspect-mode hero.
 func nearestPoint(to target: Date, in points: [TrendDataPoint]) -> TrendDataPoint? {
     points.min {
         abs($0.date.timeIntervalSince(target)) < abs($1.date.timeIntervalSince(target))
@@ -223,4 +119,3 @@ private func normaliseForDualAxis(_ value: Double, range: ClosedRange<Double>) -
     guard span > 0 else { return 0.5 }
     return (value - range.lowerBound) / span
 }
-

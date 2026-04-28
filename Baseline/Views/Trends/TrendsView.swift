@@ -402,8 +402,45 @@ struct TrendsView: View {
 
         let secondaryPoints = vm?.secondaryDataPoints ?? []
 
+        // Inspect mode (#63): when the user is dragging on the chart,
+        // `inlineSelectedDate` becomes non-nil. Snap to the nearest data
+        // point on each series and swap the hero block to show that
+        // point's date + value(s) — Whoop-style live readout. Beats a
+        // floating callout because it's always-visible and avoids the
+        // chart-annotation overflow/clipping issues entirely.
+        let snappedPrimary: TrendDataPoint? = inlineSelectedDate.flatMap {
+            nearestPoint(to: $0, in: points)
+        }
+        let snappedSecondary: TrendDataPoint? = inlineSelectedDate.flatMap {
+            nearestPoint(to: $0, in: secondaryPoints)
+        }
+        let inspecting = snappedPrimary != nil
+
         return VStack(spacing: 0) {
-            if compareEnabled, let secMetric = secondaryMetric, !secondaryPoints.isEmpty {
+            if inspecting, let snap = snappedPrimary {
+                let dateSub = DateFormatting.weekdayShort(snap.date)
+                if compareEnabled, let secMetric = secondaryMetric, let snapSec = snappedSecondary {
+                    dualHeroBlock(
+                        primaryValue: snap.value, primaryUnit: unit, primaryLabel: selectedMetric.displayName,
+                        secondaryValue: snapSec.value, secondaryUnit: secMetric.unit, secondaryLabel: secMetric.displayName,
+                        sub: dateSub
+                    )
+                    .padding(.horizontal, CadreSpacing.sheetHorizontal)
+                    .padding(.top, 16)
+                } else if compareEnabled, let period = previousPeriod, let snapSec = snappedSecondary {
+                    dualHeroBlock(
+                        primaryValue: snap.value, primaryUnit: unit, primaryLabel: "Current",
+                        secondaryValue: snapSec.value, secondaryUnit: unit, secondaryLabel: period.rawValue,
+                        sub: dateSub
+                    )
+                    .padding(.horizontal, CadreSpacing.sheetHorizontal)
+                    .padding(.top, 16)
+                } else {
+                    inspectHero(value: snap.value, unit: unit, dateSub: dateSub)
+                        .padding(.horizontal, CadreSpacing.sheetHorizontal)
+                        .padding(.top, 20)
+                }
+            } else if compareEnabled, let secMetric = secondaryMetric, !secondaryPoints.isEmpty {
                 dualHeroBlock(
                     primaryValue: latestValue, primaryUnit: unit, primaryLabel: selectedMetric.displayName,
                     secondaryValue: secondaryPoints.last?.value ?? 0, secondaryUnit: secMetric.unit, secondaryLabel: secMetric.displayName,
@@ -536,6 +573,35 @@ struct TrendsView: View {
         .frame(maxWidth: .infinity, alignment: .leading)
     }
 
+    /// Hero variant used while the user is scrubbing the chart (#63). Shows
+    /// the snapped point's value in place of the latest, with the snapped
+    /// date as the sub-line ("Wed, Apr 3"). Same visual weight as
+    /// `heroBlock` so the swap doesn't shift layout.
+    private func inspectHero(value: Double, unit: String, dateSub: String) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(alignment: .firstTextBaseline, spacing: 6) {
+                Text(formatValue(value))
+                    .font(CadreTypography.trendsHero)
+                    .tracking(-1.2)
+                    .foregroundStyle(CadreColors.textPrimary)
+                    .contentTransition(.numericText())
+                    .animation(.snappy, value: value)
+                if !unit.isEmpty {
+                    Text(unit)
+                        .font(CadreTypography.trendsHeroUnit)
+                        .foregroundStyle(CadreColors.textSecondary)
+                }
+            }
+            .lineLimit(1)
+            .minimumScaleFactor(0.7)
+
+            Text(dateSub)
+                .font(CadreTypography.trendsHeroSub)
+                .foregroundStyle(CadreColors.textTertiary)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
     private func heroRelativeDate(from date: Date) -> String {
         let calendar = Calendar.current
         if calendar.isDateInToday(date) { return "Today" }
@@ -606,10 +672,6 @@ struct TrendsView: View {
         let crosshairCtx = CrosshairContext(
             primaryPoints: points,
             secondaryPoints: secondaryPoints,
-            primaryUnit: selectedMetric.unit,
-            primaryLabel: hasPreviousPeriod ? "Current" : selectedMetric.displayName,
-            secondaryUnit: secondaryMetric?.unit ?? selectedMetric.unit,
-            secondaryLabel: secondaryMetric?.displayName ?? previousPeriod?.rawValue,
             secondaryColor: secondaryColor,
             isDualAxis: dualAxis,
             primaryRange: primaryMin...primaryMax,
@@ -1125,10 +1187,6 @@ struct TrendsView: View {
                     let fsCrosshairCtx = CrosshairContext(
                         primaryPoints: points,
                         secondaryPoints: secondaryPoints,
-                        primaryUnit: selectedMetric.unit,
-                        primaryLabel: fsHasPreviousPeriod ? "Current" : selectedMetric.displayName,
-                        secondaryUnit: secondaryMetric?.unit ?? selectedMetric.unit,
-                        secondaryLabel: secondaryMetric?.displayName ?? previousPeriod?.rawValue,
                         secondaryColor: secondaryColor,
                         isDualAxis: fsDualAxis,
                         primaryRange: fsPrimaryMin...fsPrimaryMax,
