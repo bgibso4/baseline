@@ -83,19 +83,13 @@ struct TrendsView: View {
     /// than popping in.
     @State private var chartRevealProgress: Double = 0
 
-    // MARK: - Chart interactivity (#62, #63)
+    // MARK: - Chart interactivity (#63 — drag-to-inspect crosshair)
 
-    /// Selected date under the user's finger when drag-to-inspect is active.
-    /// `nil` means no crosshair drawn. Separate state for inline vs fullscreen
-    /// so the two charts don't fight over the same selection.
+    /// Selected date under the user's finger when long-press-then-drag is
+    /// active. `nil` means no crosshair drawn. Separate state for inline
+    /// vs fullscreen so the two charts don't fight over the same selection.
     @State private var inlineSelectedDate: Date?
     @State private var fullscreenSelectedDate: Date?
-
-    /// Leading edge of the chart's visible-x window. Updated as the user
-    /// scrolls horizontally; reset to the most recent window when metric
-    /// or time range changes.
-    @State private var inlineScrollPosition: Date = Date()
-    @State private var fullscreenScrollPosition: Date = Date()
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
@@ -585,36 +579,9 @@ struct TrendsView: View {
         let dualAxis = needsDualAxis
         let hasPreviousPeriod = previousPeriod != nil && compareEnabled && !secondaryPoints.isEmpty
 
-        // Scrolling (#62) is enabled when the user has picked a finite
-        // time-range window, we're not in compare mode, AND there's data
-        // outside the visible window worth panning to. Skipping it for
-        // datasets that already fit avoids a known Swift Charts quirk
-        // where applying `chartScrollableAxes` suppresses default x-axis
-        // labels when the data span ≤ visible domain.
-        let allPoints = vm?.allDataPoints ?? []
-        let allMA = vm?.allMovingAverage ?? []
-        let timeRangeForChart = vm?.timeRange ?? .month
-        let visibleDomainLength = timeRangeForChart.visibleDomainLength
-        let dataSpansOutsideWindow: Bool = {
-            guard let length = visibleDomainLength,
-                  let first = allPoints.first?.date,
-                  let last = allPoints.last?.date else { return false }
-            return last.timeIntervalSince(first) > length
-        }()
-        let scrollEnabled = visibleDomainLength != nil
-            && !compareEnabled
-            && !allPoints.isEmpty
-            && dataSpansOutsideWindow
-
-        // When scrolling, render from the unfiltered set so panning back
-        // exposes older history; y-scale must follow so off-window points
-        // don't clip at the top/bottom of the plot area.
-        let renderPoints = scrollEnabled ? allPoints : points
-        let renderMA = scrollEnabled ? allMA : movingAverage
-
         // Primary range (add 5% padding)
-        let pMin = scrollEnabled ? (allPoints.map(\.value).min() ?? 0) : (vm?.minValue ?? 0)
-        let pMax = scrollEnabled ? (allPoints.map(\.value).max() ?? 0) : (vm?.maxValue ?? 0)
+        let pMin = vm?.minValue ?? 0
+        let pMax = vm?.maxValue ?? 0
 
         // Secondary range
         let sMin = vm?.secondaryMinValue ?? 0
@@ -637,7 +604,7 @@ struct TrendsView: View {
         let secMax = sMax + sPad
 
         let crosshairCtx = CrosshairContext(
-            primaryPoints: renderPoints,
+            primaryPoints: points,
             secondaryPoints: secondaryPoints,
             primaryUnit: selectedMetric.unit,
             primaryLabel: hasPreviousPeriod ? "Current" : selectedMetric.displayName,
@@ -650,7 +617,7 @@ struct TrendsView: View {
         )
 
         return Chart {
-            ForEach(renderPoints) { point in
+            ForEach(points) { point in
                 let yVal = dualAxis ? normalize(point.value, min: primaryMin, max: primaryMax) : point.value
                 LineMark(
                     x: .value("Date", point.date),
@@ -660,7 +627,7 @@ struct TrendsView: View {
                 .foregroundStyle(CadreColors.textTertiary.opacity(0.7))
                 .lineStyle(StrokeStyle(lineWidth: 1.3, lineCap: .round, lineJoin: .round))
             }
-            ForEach(renderPoints) { point in
+            ForEach(points) { point in
                 let yVal = dualAxis ? normalize(point.value, min: primaryMin, max: primaryMax) : point.value
                 PointMark(
                     x: .value("Date", point.date),
@@ -669,7 +636,7 @@ struct TrendsView: View {
                 .foregroundStyle(CadreColors.textTertiary.opacity(0.7))
                 .symbolSize(10)
             }
-            ForEach(renderMA) { point in
+            ForEach(movingAverage) { point in
                 let yVal = dualAxis ? normalize(point.value, min: primaryMin, max: primaryMax) : point.value
                 LineMark(
                     x: .value("Date", point.date),
@@ -764,11 +731,7 @@ struct TrendsView: View {
             }
         }
         .chartYScale(domain: dualAxis ? 0.0...1.0 : (primaryMin)...(primaryMax))
-        .trendsChartInteractivity(
-            selectedDate: $inlineSelectedDate,
-            scrollPosition: scrollEnabled ? $inlineScrollPosition : nil,
-            visibleDomainLength: scrollEnabled ? visibleDomainLength : nil
-        )
+        .trendsChartInteractivity(selectedDate: $inlineSelectedDate)
         .chartPlotStyle { plotArea in
             plotArea
                 .mask(alignment: .leading) {
@@ -817,34 +780,16 @@ struct TrendsView: View {
         .animation(nil, value: vm?.selectedMetric)
         .onAppear {
             triggerChartReveal()
-            resetInlineChartInteraction()
+            inlineSelectedDate = nil
         }
         .onChange(of: vm?.timeRange) { _, _ in
             triggerChartReveal()
-            resetInlineChartInteraction()
+            inlineSelectedDate = nil
         }
         .onChange(of: vm?.selectedMetric) { _, _ in
             triggerChartReveal()
-            resetInlineChartInteraction()
+            inlineSelectedDate = nil
         }
-    }
-
-    /// Reset crosshair selection and snap the chart's scroll window back to
-    /// the most recent slice of data. Called on first appear and whenever
-    /// the user changes metric or time range so the chart never opens with
-    /// a stale selected date or pointing at an arbitrary historical window.
-    private func resetInlineChartInteraction() {
-        inlineSelectedDate = nil
-        inlineScrollPosition = scrollLeadingEdge(for: vm?.timeRange ?? .month)
-    }
-
-    /// Compute the leading edge of the chart's visible window such that the
-    /// most recent data is on screen. For a 30-day visible window with a
-    /// "today" anchor, the leading edge is 30 days before today.
-    private func scrollLeadingEdge(for range: TimeRange) -> Date {
-        let length = range.visibleDomainLength ?? 0
-        let anchor = vm?.allDataPoints.last?.date ?? Date()
-        return anchor.addingTimeInterval(-length)
     }
 
     /// Reset `chartRevealProgress` and animate it to 1 so the plot area
@@ -1164,28 +1109,8 @@ struct TrendsView: View {
                 if points.count >= 2 {
                     let fsDualAxis = hasSecondary && previousPeriod == nil
                     let fsHasPreviousPeriod = previousPeriod != nil && hasSecondary
-
-                    // Same scrolling rule as the inline chart — only when
-                    // the picker has a finite window AND we're not comparing.
-                    let fsAllPoints = vm?.allDataPoints ?? []
-                    let fsAllMA = vm?.allMovingAverage ?? []
-                    let fsTimeRange = vm?.timeRange ?? .month
-                    let fsVisibleDomain = fsTimeRange.visibleDomainLength
-                    let fsDataSpansOutsideWindow: Bool = {
-                        guard let length = fsVisibleDomain,
-                              let first = fsAllPoints.first?.date,
-                              let last = fsAllPoints.last?.date else { return false }
-                        return last.timeIntervalSince(first) > length
-                    }()
-                    let fsScrollEnabled = fsVisibleDomain != nil
-                        && !hasSecondary
-                        && !fsAllPoints.isEmpty
-                        && fsDataSpansOutsideWindow
-                    let fsRenderPoints = fsScrollEnabled ? fsAllPoints : points
-                    let fsRenderMA = fsScrollEnabled ? fsAllMA : ma
-
-                    let fsPMin = fsScrollEnabled ? (fsAllPoints.map(\.value).min() ?? 0) : (vm?.minValue ?? 0)
-                    let fsPMax = fsScrollEnabled ? (fsAllPoints.map(\.value).max() ?? 0) : (vm?.maxValue ?? 0)
+                    let fsPMin = vm?.minValue ?? 0
+                    let fsPMax = vm?.maxValue ?? 0
                     let fsSMin = vm?.secondaryMinValue ?? 0
                     let fsSMax = vm?.secondaryMaxValue ?? 0
                     let fsEffMin = fsHasPreviousPeriod ? Swift.min(fsPMin, fsSMin) : fsPMin
@@ -1198,7 +1123,7 @@ struct TrendsView: View {
                     let fsSecMax = fsSMax + fsSPad
 
                     let fsCrosshairCtx = CrosshairContext(
-                        primaryPoints: fsRenderPoints,
+                        primaryPoints: points,
                         secondaryPoints: secondaryPoints,
                         primaryUnit: selectedMetric.unit,
                         primaryLabel: fsHasPreviousPeriod ? "Current" : selectedMetric.displayName,
@@ -1211,7 +1136,7 @@ struct TrendsView: View {
                     )
 
                     Chart {
-                        ForEach(fsRenderPoints) { point in
+                        ForEach(points) { point in
                             let yVal = fsDualAxis ? normalize(point.value, min: fsPrimaryMin, max: fsPrimaryMax) : point.value
                             LineMark(
                                 x: .value("Date", point.date),
@@ -1221,7 +1146,7 @@ struct TrendsView: View {
                             .foregroundStyle(CadreColors.textTertiary.opacity(0.7))
                             .lineStyle(StrokeStyle(lineWidth: 1.3, lineCap: .round, lineJoin: .round))
                         }
-                        ForEach(fsRenderPoints) { point in
+                        ForEach(points) { point in
                             let yVal = fsDualAxis ? normalize(point.value, min: fsPrimaryMin, max: fsPrimaryMax) : point.value
                             PointMark(
                                 x: .value("Date", point.date),
@@ -1230,7 +1155,7 @@ struct TrendsView: View {
                             .foregroundStyle(CadreColors.textTertiary.opacity(0.7))
                             .symbolSize(10)
                         }
-                        ForEach(fsRenderMA) { point in
+                        ForEach(ma) { point in
                             let yVal = fsDualAxis ? normalize(point.value, min: fsPrimaryMin, max: fsPrimaryMax) : point.value
                             LineMark(
                                 x: .value("Date", point.date),
@@ -1306,21 +1231,9 @@ struct TrendsView: View {
                         }
                     }
                     .chartYScale(domain: fsDualAxis ? 0.0...1.0 : (fsPrimaryMin)...(fsPrimaryMax))
-                    .trendsChartInteractivity(
-                        selectedDate: $fullscreenSelectedDate,
-                        scrollPosition: fsScrollEnabled ? $fullscreenScrollPosition : nil,
-                        visibleDomainLength: fsScrollEnabled ? fsVisibleDomain : nil
-                    )
+                    .trendsChartInteractivity(selectedDate: $fullscreenSelectedDate)
                     .padding()
-                    .onAppear {
-                        // Fullscreen opens with the latest data on screen,
-                        // selection cleared. Same logic as the inline chart's
-                        // resetInlineChartInteraction.
-                        fullscreenSelectedDate = nil
-                        let length = (vm?.timeRange ?? .month).visibleDomainLength ?? 0
-                        let anchor = vm?.allDataPoints.last?.date ?? Date()
-                        fullscreenScrollPosition = anchor.addingTimeInterval(-length)
-                    }
+                    .onAppear { fullscreenSelectedDate = nil }
                 } else if let point = points.first {
                     Chart {
                         PointMark(

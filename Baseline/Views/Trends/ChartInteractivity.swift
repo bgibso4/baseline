@@ -163,35 +163,24 @@ private struct CrosshairCallout: View {
 
 // MARK: - View modifier
 
-/// Wires the chart-level interactivity (`chartXSelection` for crosshair,
-/// `chartScrollableAxes` + `chartXVisibleDomain` + `chartScrollPosition`
-/// for horizontal panning) plus the haptic tick on data-point crossings.
-///
-/// Pass `scrollPosition`/`visibleDomainLength` as `nil` to disable
-/// scrolling (e.g. compare mode, single-point chart).
+/// Wires `chartXSelection` for the long-press-then-drag crosshair plus
+/// the haptic tick that fires when the snapped day under the finger
+/// changes. Horizontal scrolling (#62) was attempted alongside this and
+/// reverted — see PR #71 — because Swift Charts' interaction between
+/// `chartScrollableAxes` and `chartXSelection.annotation(position: .top)`
+/// suppresses the callout and the default `.automatic` x-axis marks. To
+/// be reattempted as a separate, deliberate UX pass.
 struct TrendsChartInteractivity: ViewModifier {
     @Binding var selectedDate: Date?
-    let scrollPosition: Binding<Date>?
-    let visibleDomainLength: TimeInterval?
 
     @State private var lastHapticDay: Date?
 
     func body(content: Content) -> some View {
-        Group {
-            if let scrollPosition, let visibleDomainLength {
-                content
-                    .chartScrollableAxes(.horizontal)
-                    .chartXVisibleDomain(length: visibleDomainLength)
-                    .chartScrollPosition(x: scrollPosition)
-                    .chartXSelection(value: $selectedDate)
-            } else {
-                content
-                    .chartXSelection(value: $selectedDate)
+        content
+            .chartXSelection(value: $selectedDate)
+            .onChange(of: selectedDate) { _, newValue in
+                fireHapticIfDayChanged(newValue)
             }
-        }
-        .onChange(of: selectedDate) { _, newValue in
-            fireHapticIfDayChanged(newValue)
-        }
     }
 
     /// Fire a selection tick when the snapped day under the finger changes.
@@ -212,16 +201,8 @@ struct TrendsChartInteractivity: ViewModifier {
 
 extension View {
     /// Convenience for applying `TrendsChartInteractivity` to a chart.
-    func trendsChartInteractivity(
-        selectedDate: Binding<Date?>,
-        scrollPosition: Binding<Date>? = nil,
-        visibleDomainLength: TimeInterval? = nil
-    ) -> some View {
-        modifier(TrendsChartInteractivity(
-            selectedDate: selectedDate,
-            scrollPosition: scrollPosition,
-            visibleDomainLength: visibleDomainLength
-        ))
+    func trendsChartInteractivity(selectedDate: Binding<Date?>) -> some View {
+        modifier(TrendsChartInteractivity(selectedDate: selectedDate))
     }
 }
 
@@ -243,14 +224,3 @@ private func normaliseForDualAxis(_ value: Double, range: ClosedRange<Double>) -
     return (value - range.lowerBound) / span
 }
 
-// MARK: - Time-range → visible-window length
-
-extension TimeRange {
-    /// Length of the chart's visible-x domain, in seconds, when this time
-    /// range is selected. `.all` returns nil — scrolling is disabled because
-    /// the entire dataset already fits.
-    var visibleDomainLength: TimeInterval? {
-        guard let days else { return nil }
-        return TimeInterval(days) * 24 * 60 * 60
-    }
-}

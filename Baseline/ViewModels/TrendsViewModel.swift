@@ -227,18 +227,9 @@ class TrendsViewModel {
     var secondaryMetric: TrendMetric?
     var compareMode: CompareMode?
 
-    /// Generic data points for the currently selected metric, filtered to
-    /// the selected `timeRange`. Drives the hero, stats, legend, and the
-    /// "today minus N days" semantics throughout TrendsView.
+    /// Generic data points for the currently selected metric.
     var dataPoints: [TrendDataPoint] = []
     var movingAverage: [MovingAveragePoint] = []
-
-    /// Full unfiltered dataset for the selected metric. Used as the chart's
-    /// rendering source so horizontal scrolling (#62) can pan back through
-    /// history that falls outside the current `timeRange` window.
-    /// `dataPoints` remains the source of truth for stats and the hero.
-    var allDataPoints: [TrendDataPoint] = []
-    var allMovingAverage: [MovingAveragePoint] = []
 
     /// Secondary metric data points (populated when compare is active).
     var secondaryDataPoints: [TrendDataPoint] = []
@@ -261,13 +252,6 @@ class TrendsViewModel {
     }
 
     func refresh() {
-        // Load the full unfiltered dataset first so the chart can scroll
-        // through history outside the current time-range window (#62).
-        // Stash into `allDataPoints` / `allMovingAverage`, then fall through
-        // to the regular filtered load which overwrites `dataPoints` /
-        // `movingAverage` as the source of truth for stats + hero.
-        loadAllForCurrentMetric()
-
         switch selectedMetric {
         case .weight:
             refreshWeight()
@@ -440,29 +424,6 @@ class TrendsViewModel {
         movingAverage = primaryMA
         entries = primaryEntries
         timeRange = primaryTimeRange
-    }
-
-    /// Populate `allDataPoints` and `allMovingAverage` with the unfiltered
-    /// dataset for the currently selected metric. Saves and restores
-    /// `timeRange` so the regular filtered refresh that follows is
-    /// unaffected. Cost is one extra fetch per `refresh()` — negligible
-    /// for the dataset sizes Baseline sees in practice.
-    private func loadAllForCurrentMetric() {
-        let savedRange = timeRange
-        let savedDataPoints = dataPoints
-        let savedMA = movingAverage
-        let savedEntries = entries
-
-        timeRange = .all
-        refresh_primary_only()
-        calculateMovingAverage()
-        allDataPoints = dataPoints
-        allMovingAverage = movingAverage
-
-        timeRange = savedRange
-        dataPoints = savedDataPoints
-        movingAverage = savedMA
-        entries = savedEntries
     }
 
     /// Refresh just the primary metric data (no secondary, no MA) — used by previousPeriod.
