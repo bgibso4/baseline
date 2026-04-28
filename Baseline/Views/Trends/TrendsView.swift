@@ -418,25 +418,22 @@ struct TrendsView: View {
 
         return VStack(spacing: 0) {
             if inspecting, let snap = snappedPrimary {
-                let dateSub = DateFormatting.weekdayShort(snap.date)
                 if compareEnabled, let secMetric = secondaryMetric, let snapSec = snappedSecondary {
-                    dualHeroBlock(
-                        primaryValue: snap.value, primaryUnit: unit, primaryLabel: selectedMetric.displayName,
-                        secondaryValue: snapSec.value, secondaryUnit: secMetric.unit, secondaryLabel: secMetric.displayName,
-                        sub: dateSub
+                    inspectDualHero(
+                        primaryValue: snap.value, primaryUnit: unit, primaryLabel: selectedMetric.displayName, primaryDate: snap.date,
+                        secondaryValue: snapSec.value, secondaryUnit: secMetric.unit, secondaryLabel: secMetric.displayName, secondaryDate: snapSec.date
                     )
                     .padding(.horizontal, CadreSpacing.sheetHorizontal)
                     .padding(.top, 16)
                 } else if compareEnabled, let period = previousPeriod, let snapSec = snappedSecondary {
-                    dualHeroBlock(
-                        primaryValue: snap.value, primaryUnit: unit, primaryLabel: "Current",
-                        secondaryValue: snapSec.value, secondaryUnit: unit, secondaryLabel: period.rawValue,
-                        sub: dateSub
+                    inspectDualHero(
+                        primaryValue: snap.value, primaryUnit: unit, primaryLabel: "Current", primaryDate: snap.date,
+                        secondaryValue: snapSec.value, secondaryUnit: unit, secondaryLabel: period.rawValue, secondaryDate: snapSec.date
                     )
                     .padding(.horizontal, CadreSpacing.sheetHorizontal)
                     .padding(.top, 16)
                 } else {
-                    inspectHero(value: snap.value, unit: unit, dateSub: dateSub)
+                    inspectHero(value: snap.value, unit: unit, dateSub: DateFormatting.weekdayShort(snap.date))
                         .padding(.horizontal, CadreSpacing.sheetHorizontal)
                         .padding(.top, 20)
                 }
@@ -571,6 +568,59 @@ struct TrendsView: View {
                 .foregroundStyle(CadreColors.textTertiary)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    /// Compare-mode inspect hero. Each column carries its own snapped
+    /// date because the two series can have different sampling cadences
+    /// (daily weight vs monthly InBody scans), so the closest point on
+    /// each series may fall on different dates — pretending they share
+    /// one date would be misleading.
+    private func inspectDualHero(
+        primaryValue: Double, primaryUnit: String, primaryLabel: String, primaryDate: Date,
+        secondaryValue: Double, secondaryUnit: String, secondaryLabel: String, secondaryDate: Date
+    ) -> some View {
+        HStack(alignment: .top, spacing: 22) {
+            inspectHeroColumn(
+                color: CadreColors.accent,
+                label: primaryLabel,
+                value: primaryValue,
+                unit: primaryUnit,
+                date: primaryDate
+            )
+            inspectHeroColumn(
+                color: secondaryColor,
+                label: secondaryLabel,
+                value: secondaryValue,
+                unit: secondaryUnit,
+                date: secondaryDate
+            )
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    private func inspectHeroColumn(color: Color, label: String, value: Double, unit: String, date: Date) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(label.uppercased())
+                .font(.system(size: 9, weight: .bold))
+                .tracking(0.5)
+                .foregroundStyle(color)
+            HStack(alignment: .firstTextBaseline, spacing: 4) {
+                Text(formatValue(value))
+                    .font(.system(size: 32, weight: .bold))
+                    .tracking(-0.8)
+                    .foregroundStyle(color)
+                    .contentTransition(.numericText())
+                    .animation(.snappy, value: value)
+                if !unit.isEmpty {
+                    Text(unit)
+                        .font(.system(size: 12, weight: .medium))
+                        .foregroundStyle(CadreColors.textSecondary)
+                }
+            }
+            Text(DateFormatting.weekdayShort(date))
+                .font(CadreTypography.trendsHeroSub)
+                .foregroundStyle(CadreColors.textTertiary)
+        }
     }
 
     /// Hero variant used while the user is scrubbing the chart (#63). Shows
