@@ -960,7 +960,7 @@ struct TrendsView: View {
                 legendItem(color: secondaryColor, label: period.rawValue, dashed: true)
             } else {
                 legendItem(color: CadreColors.textTertiary, label: "Daily")
-                legendItem(color: CadreColors.chartLine, label: "7-day average")
+                legendItem(color: CadreColors.chartLine, label: "\(vm?.movingAverageWindow ?? 7)-day average")
             }
         }
         .frame(maxWidth: .infinity)

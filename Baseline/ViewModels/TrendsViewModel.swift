@@ -646,8 +646,23 @@ class TrendsViewModel {
 
     // MARK: - Moving Average
 
+    /// Smoothing window (in samples) for the trend line, scaled with the
+    /// selected time range. Wider windows on longer ranges make the trend
+    /// readable when daily zigzag noise dominates the chart visually.
+    /// 7-day on 1M (matches user expectations of "weekly average"), then
+    /// step up so 6M / Y / All charts read as smooth trends rather than
+    /// noisy moving averages.
+    var movingAverageWindow: Int {
+        switch timeRange {
+        case .month: return 7
+        case .sixMonths: return 14
+        case .year: return 30
+        case .all: return 30
+        }
+    }
+
     private func calculateMovingAverage() {
-        let window = 7
+        let window = movingAverageWindow
         guard dataPoints.count >= window else {
             movingAverage = []
             return
