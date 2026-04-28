@@ -83,6 +83,14 @@ struct TrendsView: View {
     /// than popping in.
     @State private var chartRevealProgress: Double = 0
 
+    // MARK: - Chart interactivity (#63 — drag-to-inspect crosshair)
+
+    /// Selected date under the user's finger when long-press-then-drag is
+    /// active. `nil` means no crosshair drawn. Separate state for inline
+    /// vs fullscreen so the two charts don't fight over the same selection.
+    @State private var inlineSelectedDate: Date?
+    @State private var fullscreenSelectedDate: Date?
+
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     /// Synchronous VM injection (snapshot / unit tests).
@@ -595,6 +603,19 @@ struct TrendsView: View {
         let secMin = sMin - sPad
         let secMax = sMax + sPad
 
+        let crosshairCtx = CrosshairContext(
+            primaryPoints: points,
+            secondaryPoints: secondaryPoints,
+            primaryUnit: selectedMetric.unit,
+            primaryLabel: hasPreviousPeriod ? "Current" : selectedMetric.displayName,
+            secondaryUnit: secondaryMetric?.unit ?? selectedMetric.unit,
+            secondaryLabel: secondaryMetric?.displayName ?? previousPeriod?.rawValue,
+            secondaryColor: secondaryColor,
+            isDualAxis: dualAxis,
+            primaryRange: primaryMin...primaryMax,
+            secondaryRange: secMin...secMax
+        )
+
         return Chart {
             ForEach(points) { point in
                 let yVal = dualAxis ? normalize(point.value, min: primaryMin, max: primaryMax) : point.value
@@ -662,6 +683,11 @@ struct TrendsView: View {
                             .padding(.leading, 4)
                     }
             }
+
+            // Crosshair (#63) — vertical rule + highlighted point + callout.
+            // No-op when `inlineSelectedDate` is nil so the chart renders
+            // cleanly on first appear and after the user lifts their finger.
+            crosshairMarks(selectedDate: inlineSelectedDate, context: crosshairCtx)
         }
         .chartXAxis {
             AxisMarks(values: .automatic(desiredCount: 3)) { _ in
@@ -705,6 +731,7 @@ struct TrendsView: View {
             }
         }
         .chartYScale(domain: dualAxis ? 0.0...1.0 : (primaryMin)...(primaryMax))
+        .trendsChartInteractivity(selectedDate: $inlineSelectedDate)
         .chartPlotStyle { plotArea in
             plotArea
                 .mask(alignment: .leading) {
@@ -751,9 +778,18 @@ struct TrendsView: View {
         // (driven by chartRevealProgress) is unaffected.
         .animation(nil, value: vm?.timeRange)
         .animation(nil, value: vm?.selectedMetric)
-        .onAppear { triggerChartReveal() }
-        .onChange(of: vm?.timeRange) { _, _ in triggerChartReveal() }
-        .onChange(of: vm?.selectedMetric) { _, _ in triggerChartReveal() }
+        .onAppear {
+            triggerChartReveal()
+            inlineSelectedDate = nil
+        }
+        .onChange(of: vm?.timeRange) { _, _ in
+            triggerChartReveal()
+            inlineSelectedDate = nil
+        }
+        .onChange(of: vm?.selectedMetric) { _, _ in
+            triggerChartReveal()
+            inlineSelectedDate = nil
+        }
     }
 
     /// Reset `chartRevealProgress` and animate it to 1 so the plot area
@@ -1086,6 +1122,19 @@ struct TrendsView: View {
                     let fsSecMin = fsSMin - fsSPad
                     let fsSecMax = fsSMax + fsSPad
 
+                    let fsCrosshairCtx = CrosshairContext(
+                        primaryPoints: points,
+                        secondaryPoints: secondaryPoints,
+                        primaryUnit: selectedMetric.unit,
+                        primaryLabel: fsHasPreviousPeriod ? "Current" : selectedMetric.displayName,
+                        secondaryUnit: secondaryMetric?.unit ?? selectedMetric.unit,
+                        secondaryLabel: secondaryMetric?.displayName ?? previousPeriod?.rawValue,
+                        secondaryColor: secondaryColor,
+                        isDualAxis: fsDualAxis,
+                        primaryRange: fsPrimaryMin...fsPrimaryMax,
+                        secondaryRange: fsSecMin...fsSecMax
+                    )
+
                     Chart {
                         ForEach(points) { point in
                             let yVal = fsDualAxis ? normalize(point.value, min: fsPrimaryMin, max: fsPrimaryMax) : point.value
@@ -1139,6 +1188,8 @@ struct TrendsView: View {
                                 .lineStyle(StrokeStyle(lineWidth: 1.8, lineCap: .round, lineJoin: .round, dash: [4, 3]))
                             }
                         }
+
+                        crosshairMarks(selectedDate: fullscreenSelectedDate, context: fsCrosshairCtx)
                     }
                     .chartXAxis {
                         AxisMarks(values: .automatic(desiredCount: 5)) { _ in
@@ -1180,7 +1231,9 @@ struct TrendsView: View {
                         }
                     }
                     .chartYScale(domain: fsDualAxis ? 0.0...1.0 : (fsPrimaryMin)...(fsPrimaryMax))
+                    .trendsChartInteractivity(selectedDate: $fullscreenSelectedDate)
                     .padding()
+                    .onAppear { fullscreenSelectedDate = nil }
                 } else if let point = points.first {
                     Chart {
                         PointMark(
