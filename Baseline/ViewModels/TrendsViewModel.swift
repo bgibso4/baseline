@@ -646,21 +646,43 @@ class TrendsViewModel {
 
     // MARK: - Moving Average
 
-    /// Smoothing window (in samples) for the trend line, scaled with the
-    /// selected time range. Wider windows on longer ranges make the trend
-    /// readable when daily zigzag noise dominates the chart visually.
-    /// 7-day on 1M (matches user expectations of "weekly average"), then
-    /// step up so 6M / Y / All charts read as smooth trends rather than
-    /// noisy moving averages.
+    /// Smoothing window (in samples) for the trend line. Scales with the
+    /// number of data points rather than the picker time range, so a
+    /// sparse 6M view (e.g., one InBody scan a month) gets light smoothing
+    /// while a dense 6M view (daily weights) gets heavy smoothing. Same
+    /// dataset-count axis governs `showRawLine` / `showRawDots` so all
+    /// density decisions move together.
     var movingAverageWindow: Int {
-        switch timeRange {
-        case .month: return 7
-        case .sixMonths: return 14
-        case .year: return 30
-        case .all: return 30
+        let count = dataPoints.count
+        switch count {
+        case ..<60: return 7
+        case 60..<200: return 14
+        default: return 30
         }
     }
 
+    /// Whether to render the raw daily line behind the smoothed trend.
+    /// At high densities the raw line becomes a noise haze and the
+    /// smoothed trend carries all the information the user needs.
+    var showRawLine: Bool {
+        dataPoints.count <= 120
+    }
+
+    /// Whether to render dots on each raw datapoint. Hidden earlier than
+    /// the line itself — once you can no longer count individual marks
+    /// they stop being useful as anchors and just add visual noise.
+    var showRawDots: Bool {
+        dataPoints.count <= 60
+    }
+
+    /// Centered moving average. Trailing MA visibly lags the data by
+    /// roughly `window/2` days (most obvious on the 30-day window at Y/All
+    /// where the trend line sits a full two weeks behind the actual data).
+    /// Centering removes the phase shift — the smoothed value at index `i`
+    /// is the mean of samples symmetric around `i`. At the edges (where
+    /// there's no future data for the leading half, or no past data for
+    /// the trailing half) we shrink the window to whatever's available, so
+    /// every data point still gets a smoothed value.
     private func calculateMovingAverage() {
         let window = movingAverageWindow
         guard dataPoints.count >= window else {
@@ -668,10 +690,13 @@ class TrendsViewModel {
             return
         }
 
+        let half = window / 2
         var result: [MovingAveragePoint] = []
-        for i in (window - 1)..<dataPoints.count {
-            let windowSlice = dataPoints[(i - window + 1)...i]
-            let avg = windowSlice.map(\.value).reduce(0, +) / Double(window)
+        for i in 0..<dataPoints.count {
+            let start = max(0, i - half)
+            let end = min(dataPoints.count - 1, i + half)
+            let slice = dataPoints[start...end]
+            let avg = slice.map(\.value).reduce(0, +) / Double(slice.count)
             result.append(MovingAveragePoint(date: dataPoints[i].date, value: avg))
         }
         movingAverage = result

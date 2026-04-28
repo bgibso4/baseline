@@ -728,25 +728,32 @@ struct TrendsView: View {
             secondaryRange: secMin...secMax
         )
 
+        let showRawLine = vm?.showRawLine ?? true
+        let showRawDots = vm?.showRawDots ?? true
+
         return Chart {
-            ForEach(points) { point in
-                let yVal = dualAxis ? normalize(point.value, min: primaryMin, max: primaryMax) : point.value
-                LineMark(
-                    x: .value("Date", point.date),
-                    y: .value("Value", yVal),
-                    series: .value("Series", "raw")
-                )
-                .foregroundStyle(CadreColors.textTertiary.opacity(0.7))
-                .lineStyle(StrokeStyle(lineWidth: 1.3, lineCap: .round, lineJoin: .round))
+            if showRawLine {
+                ForEach(points) { point in
+                    let yVal = dualAxis ? normalize(point.value, min: primaryMin, max: primaryMax) : point.value
+                    LineMark(
+                        x: .value("Date", point.date),
+                        y: .value("Value", yVal),
+                        series: .value("Series", "raw")
+                    )
+                    .foregroundStyle(CadreColors.textTertiary.opacity(0.7))
+                    .lineStyle(StrokeStyle(lineWidth: 1.3, lineCap: .round, lineJoin: .round))
+                }
             }
-            ForEach(points) { point in
-                let yVal = dualAxis ? normalize(point.value, min: primaryMin, max: primaryMax) : point.value
-                PointMark(
-                    x: .value("Date", point.date),
-                    y: .value("Value", yVal)
-                )
-                .foregroundStyle(CadreColors.textTertiary.opacity(0.7))
-                .symbolSize(10)
+            if showRawDots {
+                ForEach(points) { point in
+                    let yVal = dualAxis ? normalize(point.value, min: primaryMin, max: primaryMax) : point.value
+                    PointMark(
+                        x: .value("Date", point.date),
+                        y: .value("Value", yVal)
+                    )
+                    .foregroundStyle(CadreColors.textTertiary.opacity(0.7))
+                    .symbolSize(10)
+                }
             }
             ForEach(movingAverage) { point in
                 let yVal = dualAxis ? normalize(point.value, min: primaryMin, max: primaryMax) : point.value
@@ -959,7 +966,9 @@ struct TrendsView: View {
                 legendItem(color: CadreColors.accent, label: "Current")
                 legendItem(color: secondaryColor, label: period.rawValue, dashed: true)
             } else {
-                legendItem(color: CadreColors.textTertiary, label: "Daily")
+                if vm?.showRawLine == true || vm?.showRawDots == true {
+                    legendItem(color: CadreColors.textTertiary, label: "Daily")
+                }
                 legendItem(color: CadreColors.chartLine, label: "\(vm?.movingAverageWindow ?? 7)-day average")
             }
         }
@@ -1243,25 +1252,32 @@ struct TrendsView: View {
                         secondaryRange: fsSecMin...fsSecMax
                     )
 
+                    let fsShowRawLine = vm?.showRawLine ?? true
+                    let fsShowRawDots = vm?.showRawDots ?? true
+
                     Chart {
-                        ForEach(points) { point in
-                            let yVal = fsDualAxis ? normalize(point.value, min: fsPrimaryMin, max: fsPrimaryMax) : point.value
-                            LineMark(
-                                x: .value("Date", point.date),
-                                y: .value("Value", yVal),
-                                series: .value("Series", "raw")
-                            )
-                            .foregroundStyle(CadreColors.textTertiary.opacity(0.7))
-                            .lineStyle(StrokeStyle(lineWidth: 1.3, lineCap: .round, lineJoin: .round))
+                        if fsShowRawLine {
+                            ForEach(points) { point in
+                                let yVal = fsDualAxis ? normalize(point.value, min: fsPrimaryMin, max: fsPrimaryMax) : point.value
+                                LineMark(
+                                    x: .value("Date", point.date),
+                                    y: .value("Value", yVal),
+                                    series: .value("Series", "raw")
+                                )
+                                .foregroundStyle(CadreColors.textTertiary.opacity(0.7))
+                                .lineStyle(StrokeStyle(lineWidth: 1.3, lineCap: .round, lineJoin: .round))
+                            }
                         }
-                        ForEach(points) { point in
-                            let yVal = fsDualAxis ? normalize(point.value, min: fsPrimaryMin, max: fsPrimaryMax) : point.value
-                            PointMark(
-                                x: .value("Date", point.date),
-                                y: .value("Value", yVal)
-                            )
-                            .foregroundStyle(CadreColors.textTertiary.opacity(0.7))
-                            .symbolSize(10)
+                        if fsShowRawDots {
+                            ForEach(points) { point in
+                                let yVal = fsDualAxis ? normalize(point.value, min: fsPrimaryMin, max: fsPrimaryMax) : point.value
+                                PointMark(
+                                    x: .value("Date", point.date),
+                                    y: .value("Value", yVal)
+                                )
+                                .foregroundStyle(CadreColors.textTertiary.opacity(0.7))
+                                .symbolSize(10)
+                            }
                         }
                         ForEach(ma) { point in
                             let yVal = fsDualAxis ? normalize(point.value, min: fsPrimaryMin, max: fsPrimaryMax) : point.value
