@@ -662,15 +662,18 @@ class TrendsViewModel {
     }
 
     /// Whether to render the raw daily line behind the smoothed trend.
-    /// At high densities the raw line becomes a noise haze and the
-    /// smoothed trend carries all the information the user needs.
+    /// Always shown — the line itself is what carries the actual data;
+    /// the smoothed trend is interpretation. Kept as a property so a
+    /// future density rule (e.g., huge datasets) can opt out without
+    /// changing call sites.
     var showRawLine: Bool {
-        dataPoints.count <= 120
+        true
     }
 
-    /// Whether to render dots on each raw datapoint. Hidden earlier than
-    /// the line itself — once you can no longer count individual marks
-    /// they stop being useful as anchors and just add visual noise.
+    /// Whether to render dots on each raw datapoint. Hidden once you can
+    /// no longer count individual marks — beyond that they stop being
+    /// useful anchors and turn into visual noise. The connecting line
+    /// stays visible at all densities so the data itself never disappears.
     var showRawDots: Bool {
         dataPoints.count <= 60
     }
