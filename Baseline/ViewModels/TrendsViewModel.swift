@@ -227,9 +227,29 @@ class TrendsViewModel {
     var secondaryMetric: TrendMetric?
     var compareMode: CompareMode?
 
+    /// Right edge of the currently-viewed window. Defaults to now (latest
+    /// data). Stepper buttons in TrendsView shift this backward/forward by
+    /// `timeRange.days` so the user can browse historical windows without
+    /// gesture-based scrolling. Resets to `Date()` whenever the user
+    /// changes time range or metric.
+    var windowEndDate: Date = Date()
+
     /// Generic data points for the currently selected metric.
     var dataPoints: [TrendDataPoint] = []
     var movingAverage: [MovingAveragePoint] = []
+
+    /// Most recent data point for the selected metric across ALL time —
+    /// independent of `windowEndDate`/`timeRange`. Used by the view so the
+    /// hero stays meaningful when the user steps back into a window with
+    /// no data ("data exists, just not here") instead of falling through
+    /// to the cold-start empty state.
+    var latestPoint: TrendDataPoint?
+
+    /// Date of the earliest data point for the selected metric, across all
+    /// time. Used to gate the backward stepper so we stop at the oldest
+    /// window that still has data instead of letting the user wander into
+    /// a forever-empty past.
+    var earliestEntryDate: Date?
 
     /// Secondary metric data points (populated when compare is active).
     var secondaryDataPoints: [TrendDataPoint] = []
@@ -249,6 +269,70 @@ class TrendsViewModel {
 
     init(modelContext: ModelContext) {
         self.modelContext = modelContext
+    }
+
+    // MARK: - Window navigation (#62 — Whoop-style stepper)
+
+    /// Step the visible window backward (-1) or forward (+1) by exactly
+    /// one `timeRange.days` chunk. No-op for `.all` (no chunking — the
+    /// nav UI hides itself in that case). Caller is expected to call
+    /// `refresh()` after.
+    func stepWindow(by direction: Int) {
+        guard let days = timeRange.days else { return }
+        let shift = days * direction
+        let cal = Calendar.current
+        let proposed = cal.date(byAdding: .day, value: shift, to: windowEndDate) ?? windowEndDate
+        // Cap at "today" — there's no point stepping into the future.
+        let today = Date()
+        windowEndDate = min(proposed, today)
+    }
+
+    /// True when the current window doesn't already include today, i.e.
+    /// stepping forward will reveal newer data.
+    var canStepForward: Bool {
+        let cal = Calendar.current
+        return cal.startOfDay(for: windowEndDate) < cal.startOfDay(for: Date())
+    }
+
+    /// True when stepping backward by one window-width would still land
+    /// somewhere with data — i.e., the proposed earlier window's right
+    /// edge still sits at or after the earliest known entry. Disabled
+    /// once the user is already at the oldest window with data, so the
+    /// stepper bottoms out instead of letting them wander into a
+    /// permanently empty past.
+    var canStepBackward: Bool {
+        guard let earliest = earliestEntryDate else { return false }
+        guard let days = timeRange.days else { return false }
+        let cal = Calendar.current
+        // Right edge of the proposed previous window:
+        // current windowEndDate - days.
+        let proposedEnd = cal.date(byAdding: .day, value: -days, to: cal.startOfDay(for: windowEndDate)) ?? windowEndDate
+        return cal.startOfDay(for: earliest) < proposedEnd.addingTimeInterval(86400)
+    }
+
+    /// Inclusive start of the current window (one `timeRange.days` chunk
+    /// before the right edge). Returns nil for `.all` since there's no
+    /// finite window in that mode.
+    var windowStartDate: Date? {
+        guard let days = timeRange.days else { return nil }
+        let cal = Calendar.current
+        let endDay = cal.startOfDay(for: windowEndDate)
+        return cal.date(byAdding: .day, value: -(days - 1), to: endDay)
+    }
+
+    /// Display label for the current window — "MAR 6 - APR 4, 26"
+    /// matches Whoop's Trend View. Empty string for `.all`.
+    var currentWindowLabel: String {
+        guard let start = windowStartDate else { return "" }
+        let end = Calendar.current.startOfDay(for: windowEndDate)
+        let monthDay = DateFormatter()
+        monthDay.dateFormat = "MMM d"
+        let yearTwoDigit = DateFormatter()
+        yearTwoDigit.dateFormat = "yy"
+        let startStr = monthDay.string(from: start).uppercased()
+        let endStr = monthDay.string(from: end).uppercased()
+        let yearStr = yearTwoDigit.string(from: end)
+        return "\(startStr) – \(endStr), \(yearStr)"
     }
 
     func refresh() {
@@ -313,6 +397,110 @@ class TrendsViewModel {
 
         calculateMovingAverage()
         refreshSecondary()
+        refreshLatestPoint()
+    }
+
+    /// Fetch the most-recent value for the selected metric (ignoring the
+    /// active window) and the earliest entry date for that metric. Cheap
+    /// (`fetchLimit = 1` for weight/measurement, full reverse scan walk
+    /// for scan-derived metrics until a populated field is found; earliest
+    /// uses a single forward-sorted limit-1 fetch / first-populated walk).
+    private func refreshLatestPoint() {
+        let metric = selectedMetric
+
+        if metric == .weight {
+            var newest = FetchDescriptor<WeightEntry>(sortBy: [SortDescriptor(\WeightEntry.date, order: .reverse)])
+            newest.fetchLimit = 1
+            if let entry = (try? modelContext.fetch(newest))?.first {
+                latestPoint = TrendDataPoint(
+                    date: entry.date,
+                    value: UnitConversion.displayWeight(entry.weight, storedUnit: entry.unit)
+                )
+            } else {
+                latestPoint = nil
+            }
+
+            var oldest = FetchDescriptor<WeightEntry>(sortBy: [SortDescriptor(\WeightEntry.date, order: .forward)])
+            oldest.fetchLimit = 1
+            earliestEntryDate = (try? modelContext.fetch(oldest))?.first?.date
+            return
+        }
+
+        if let measType = metric.measurementType {
+            let typeRaw = measType.rawValue
+            var newest = FetchDescriptor<Measurement>(
+                predicate: #Predicate { $0.type == typeRaw },
+                sortBy: [SortDescriptor(\Measurement.date, order: .reverse)]
+            )
+            newest.fetchLimit = 1
+            if let m = (try? modelContext.fetch(newest))?.first {
+                latestPoint = TrendDataPoint(
+                    date: m.date,
+                    value: UnitConversion.displayLength(m.valueCm).value
+                )
+            } else {
+                latestPoint = nil
+            }
+
+            var oldest = FetchDescriptor<Measurement>(
+                predicate: #Predicate { $0.type == typeRaw },
+                sortBy: [SortDescriptor(\Measurement.date, order: .forward)]
+            )
+            oldest.fetchLimit = 1
+            earliestEntryDate = (try? modelContext.fetch(oldest))?.first?.date
+            return
+        }
+
+        // Scan-derived: walk newest-to-oldest, then oldest-to-newest, until
+        // each direction yields a scan that has a value for this metric.
+        let newestScans = FetchDescriptor<Scan>(sortBy: [SortDescriptor(\Scan.date, order: .reverse)])
+        let scansNewestFirst = (try? modelContext.fetch(newestScans)) ?? []
+        latestPoint = nil
+        for scan in scansNewestFirst {
+            guard let content = try? scan.decoded(),
+                  case .inBody(let payload) = content else { continue }
+            if let value = extractScanValue(for: metric, from: payload) {
+                latestPoint = TrendDataPoint(date: scan.date, value: value)
+                break
+            }
+        }
+
+        earliestEntryDate = nil
+        for scan in scansNewestFirst.reversed() {
+            guard let content = try? scan.decoded(),
+                  case .inBody(let payload) = content else { continue }
+            if extractScanValue(for: metric, from: payload) != nil {
+                earliestEntryDate = scan.date
+                break
+            }
+        }
+    }
+
+    private func extractScanValue(for metric: TrendMetric, from payload: InBodyPayload) -> Double? {
+        switch metric {
+        case .bodyFatPct: return payload.bodyFatPct
+        case .skeletalMuscle: return UnitConversion.displayMass(payload.skeletalMuscleMassKg).value
+        case .bmi: return payload.bmi
+        case .fatMass: return UnitConversion.displayMass(payload.bodyFatMassKg).value
+        case .leanBodyMass: return payload.leanBodyMassKg.map { UnitConversion.displayMass($0).value }
+        case .totalBodyWater: return payload.totalBodyWaterL
+        case .icw: return payload.intracellularWaterL
+        case .ecw: return payload.extracellularWaterL
+        case .dryLeanMass: return payload.dryLeanMassKg.map { UnitConversion.displayMass($0).value }
+        case .bmr: return payload.basalMetabolicRate
+        case .inBodyScore: return payload.inBodyScore
+        case .rightArmLean: return payload.rightArmLeanKg.map { UnitConversion.displayMass($0).value }
+        case .leftArmLean: return payload.leftArmLeanKg.map { UnitConversion.displayMass($0).value }
+        case .trunkLean: return payload.trunkLeanKg.map { UnitConversion.displayMass($0).value }
+        case .rightLegLean: return payload.rightLegLeanKg.map { UnitConversion.displayMass($0).value }
+        case .leftLegLean: return payload.leftLegLeanKg.map { UnitConversion.displayMass($0).value }
+        case .rightArmFat: return payload.rightArmFatKg.map { UnitConversion.displayMass($0).value }
+        case .leftArmFat: return payload.leftArmFatKg.map { UnitConversion.displayMass($0).value }
+        case .trunkFat: return payload.trunkFatKg.map { UnitConversion.displayMass($0).value }
+        case .rightLegFat: return payload.rightLegFatKg.map { UnitConversion.displayMass($0).value }
+        case .leftLegFat: return payload.leftLegFatKg.map { UnitConversion.displayMass($0).value }
+        default: return nil
+        }
     }
 
     /// Loads data for the secondary compare overlay.
@@ -462,10 +650,11 @@ class TrendsViewModel {
         let sort = [SortDescriptor(\WeightEntry.date, order: .forward)]
 
         if let days = timeRange.days {
-            let today = Calendar.current.startOfDay(for: Date())
-            let startDate = Calendar.current.date(byAdding: .day, value: -days, to: today)!
+            let cal = Calendar.current
+            let endDate = cal.startOfDay(for: windowEndDate).addingTimeInterval(86400)
+            let startDate = cal.date(byAdding: .day, value: -days, to: endDate)!
             let descriptor = FetchDescriptor<WeightEntry>(
-                predicate: #Predicate { $0.date > startDate },
+                predicate: #Predicate { $0.date > startDate && $0.date < endDate },
                 sortBy: sort
             )
             entries = (try? modelContext.fetch(descriptor)) ?? []
@@ -487,10 +676,11 @@ class TrendsViewModel {
 
         let scans: [Scan]
         if let days = timeRange.days {
-            let today = Calendar.current.startOfDay(for: Date())
-            let startDate = Calendar.current.date(byAdding: .day, value: -days, to: today)!
+            let cal = Calendar.current
+            let endDate = cal.startOfDay(for: windowEndDate).addingTimeInterval(86400)
+            let startDate = cal.date(byAdding: .day, value: -days, to: endDate)!
             let descriptor = FetchDescriptor<Scan>(
-                predicate: #Predicate { $0.date > startDate },
+                predicate: #Predicate { $0.date > startDate && $0.date < endDate },
                 sortBy: sort
             )
             scans = (try? modelContext.fetch(descriptor)) ?? []
@@ -514,10 +704,11 @@ class TrendsViewModel {
 
         let scans: [Scan]
         if let days = timeRange.days {
-            let today = Calendar.current.startOfDay(for: Date())
-            let startDate = Calendar.current.date(byAdding: .day, value: -days, to: today)!
+            let cal = Calendar.current
+            let endDate = cal.startOfDay(for: windowEndDate).addingTimeInterval(86400)
+            let startDate = cal.date(byAdding: .day, value: -days, to: endDate)!
             let descriptor = FetchDescriptor<Scan>(
-                predicate: #Predicate { $0.date > startDate },
+                predicate: #Predicate { $0.date > startDate && $0.date < endDate },
                 sortBy: sort
             )
             scans = (try? modelContext.fetch(descriptor)) ?? []
@@ -547,10 +738,11 @@ class TrendsViewModel {
 
         let measurements: [Measurement]
         if let days = timeRange.days {
-            let today = Calendar.current.startOfDay(for: Date())
-            let startDate = Calendar.current.date(byAdding: .day, value: -days, to: today)!
+            let cal = Calendar.current
+            let endDate = cal.startOfDay(for: windowEndDate).addingTimeInterval(86400)
+            let startDate = cal.date(byAdding: .day, value: -days, to: endDate)!
             let descriptor = FetchDescriptor<Measurement>(
-                predicate: #Predicate { $0.type == typeRaw && $0.date > startDate },
+                predicate: #Predicate { $0.type == typeRaw && $0.date > startDate && $0.date < endDate },
                 sortBy: sort
             )
             measurements = (try? modelContext.fetch(descriptor)) ?? []
@@ -646,17 +838,60 @@ class TrendsViewModel {
 
     // MARK: - Moving Average
 
+    /// Smoothing window (in samples) for the trend line. Scales with the
+    /// number of data points rather than the picker time range, so a
+    /// sparse 6M view (e.g., one InBody scan a month) gets light smoothing
+    /// while a dense 6M view (daily weights) gets heavy smoothing. Same
+    /// dataset-count axis governs `showRawLine` / `showRawDots` so all
+    /// density decisions move together.
+    var movingAverageWindow: Int {
+        let count = dataPoints.count
+        switch count {
+        case ..<60: return 7
+        case 60..<200: return 14
+        default: return 30
+        }
+    }
+
+    /// Whether to render the raw daily line behind the smoothed trend.
+    /// Always shown — the line itself is what carries the actual data;
+    /// the smoothed trend is interpretation. Kept as a property so a
+    /// future density rule (e.g., huge datasets) can opt out without
+    /// changing call sites.
+    var showRawLine: Bool {
+        true
+    }
+
+    /// Whether to render dots on each raw datapoint. Hidden once you can
+    /// no longer count individual marks — beyond that they stop being
+    /// useful anchors and turn into visual noise. The connecting line
+    /// stays visible at all densities so the data itself never disappears.
+    var showRawDots: Bool {
+        dataPoints.count <= 60
+    }
+
+    /// Centered moving average. Trailing MA visibly lags the data by
+    /// roughly `window/2` days (most obvious on the 30-day window at Y/All
+    /// where the trend line sits a full two weeks behind the actual data).
+    /// Centering removes the phase shift — the smoothed value at index `i`
+    /// is the mean of samples symmetric around `i`. At the edges (where
+    /// there's no future data for the leading half, or no past data for
+    /// the trailing half) we shrink the window to whatever's available, so
+    /// every data point still gets a smoothed value.
     private func calculateMovingAverage() {
-        let window = 7
+        let window = movingAverageWindow
         guard dataPoints.count >= window else {
             movingAverage = []
             return
         }
 
+        let half = window / 2
         var result: [MovingAveragePoint] = []
-        for i in (window - 1)..<dataPoints.count {
-            let windowSlice = dataPoints[(i - window + 1)...i]
-            let avg = windowSlice.map(\.value).reduce(0, +) / Double(window)
+        for i in 0..<dataPoints.count {
+            let start = max(0, i - half)
+            let end = min(dataPoints.count - 1, i + half)
+            let slice = dataPoints[start...end]
+            let avg = slice.map(\.value).reduce(0, +) / Double(slice.count)
             result.append(MovingAveragePoint(date: dataPoints[i].date, value: avg))
         }
         movingAverage = result

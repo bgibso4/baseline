@@ -83,6 +83,14 @@ struct TrendsView: View {
     /// than popping in.
     @State private var chartRevealProgress: Double = 0
 
+    // MARK: - Chart interactivity (#63 — drag-to-inspect crosshair)
+
+    /// Selected date under the user's finger when long-press-then-drag is
+    /// active. `nil` means no crosshair drawn. Separate state for inline
+    /// vs fullscreen so the two charts don't fight over the same selection.
+    @State private var inlineSelectedDate: Date?
+    @State private var fullscreenSelectedDate: Date?
+
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     /// Synchronous VM injection (snapshot / unit tests).
@@ -276,7 +284,15 @@ struct TrendsView: View {
         let points = vm?.dataPoints ?? []
 
         if points.isEmpty {
-            emptyStateBlock
+            // Distinguish "stepped-back into an empty window" from a real
+            // cold-start: if any data exists for this metric, show the
+            // window-empty placeholder (with stepper) instead of the
+            // log-your-first-entry CTA.
+            if let latest = vm?.latestPoint {
+                steppedBackEmptyBlock(latest: latest)
+            } else {
+                emptyStateBlock
+            }
         } else if points.count == 1 {
             singlePointBlock(points: points)
         } else {
@@ -373,6 +389,12 @@ struct TrendsView: View {
                     .onTapGesture {
                         withAnimation(.snappy(duration: 0.25)) {
                             vm?.timeRange = range
+                            // Reset the window anchor so the new range
+                            // opens on the most recent slice of data, not
+                            // wherever the user had stepped to in the
+                            // previous range.
+                            vm?.windowEndDate = Date()
+                            inlineSelectedDate = nil
                             vm?.refresh()
                         }
                         Haptics.selection()
@@ -381,6 +403,83 @@ struct TrendsView: View {
         }
         .padding(3)
         .glassCard(cornerRadius: 10)
+    }
+
+    // MARK: - Hero stepper overlay
+
+    /// Pin the window stepper to the bottom-right edge of whatever hero
+    /// view it's applied to. Uses an overlay so the hero's intrinsic
+    /// layout (and thus the chart's vertical position) doesn't shift
+    /// between time ranges. On `.all` the stepper is invisible and
+    /// non-interactive but still occupies its slot.
+    private func heroStepperOverlay<V: View>(_ hero: V) -> some View {
+        let hideStepper = (vm?.timeRange ?? .month) == .all
+        return hero
+            .overlay(alignment: .bottomTrailing) {
+                windowNavRow
+                    .opacity(hideStepper ? 0 : 1)
+                    .allowsHitTesting(!hideStepper)
+            }
+    }
+
+    // MARK: - Window stepper (#62 — Whoop-style nav)
+
+    /// Compact chevron-left/label/chevron-right row pinned inside the chart
+    /// card (top-right above the graph). Lets the user step backward and
+    /// forward through windows of the selected time range. Hidden for
+    /// `.all` because there's only one window.
+    private var windowNavRow: some View {
+        HStack(spacing: 4) {
+            Button {
+                withAnimation(.snappy(duration: 0.25)) {
+                    vm?.stepWindow(by: -1)
+                    inlineSelectedDate = nil
+                    vm?.refresh()
+                }
+                Haptics.selection()
+            } label: {
+                Image(systemName: "chevron.left")
+                    .font(.system(size: 11, weight: .bold))
+                    .foregroundStyle(
+                        (vm?.canStepBackward ?? false)
+                            ? CadreColors.textSecondary
+                            : CadreColors.textTertiary.opacity(0.3)
+                    )
+                    .frame(width: 24, height: 24)
+            }
+            .buttonStyle(.plain)
+            .disabled(!(vm?.canStepBackward ?? false))
+
+            Text(vm?.currentWindowLabel ?? "")
+                .font(.system(size: 10, weight: .bold))
+                .tracking(0.5)
+                .foregroundStyle(CadreColors.textPrimary)
+                .contentTransition(.numericText())
+                .animation(.snappy, value: vm?.windowEndDate)
+                .lineLimit(1)
+                .fixedSize()
+
+            Button {
+                withAnimation(.snappy(duration: 0.25)) {
+                    vm?.stepWindow(by: 1)
+                    inlineSelectedDate = nil
+                    vm?.refresh()
+                }
+                Haptics.selection()
+            } label: {
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 11, weight: .bold))
+                    .foregroundStyle(
+                        (vm?.canStepForward ?? false)
+                            ? CadreColors.textSecondary
+                            : CadreColors.textTertiary.opacity(0.3)
+                    )
+                    .frame(width: 24, height: 24)
+            }
+            .buttonStyle(.plain)
+            .disabled(!(vm?.canStepForward ?? false))
+        }
+        .padding(.horizontal, 4)
     }
 
     // MARK: - Full variant (2+ data points)
@@ -394,27 +493,73 @@ struct TrendsView: View {
 
         let secondaryPoints = vm?.secondaryDataPoints ?? []
 
+        // Inspect mode (#63): when the user is dragging on the chart,
+        // `inlineSelectedDate` becomes non-nil. Snap to the nearest data
+        // point on each series and swap the hero block to show that
+        // point's date + value(s) — Whoop-style live readout. Beats a
+        // floating callout because it's always-visible and avoids the
+        // chart-annotation overflow/clipping issues entirely.
+        let snappedPrimary: TrendDataPoint? = inlineSelectedDate.flatMap {
+            nearestPoint(to: $0, in: points)
+        }
+        let snappedSecondary: TrendDataPoint? = inlineSelectedDate.flatMap {
+            nearestPoint(to: $0, in: secondaryPoints)
+        }
+        let inspecting = snappedPrimary != nil
+
         return VStack(spacing: 0) {
-            if compareEnabled, let secMetric = secondaryMetric, !secondaryPoints.isEmpty {
-                dualHeroBlock(
-                    primaryValue: latestValue, primaryUnit: unit, primaryLabel: selectedMetric.displayName,
-                    secondaryValue: secondaryPoints.last?.value ?? 0, secondaryUnit: secMetric.unit, secondaryLabel: secMetric.displayName,
-                    sub: periodSub
+            if inspecting, let snap = snappedPrimary {
+                if compareEnabled, let secMetric = secondaryMetric, let snapSec = snappedSecondary {
+                    heroStepperOverlay(
+                        inspectDualHero(
+                            primaryValue: snap.value, primaryUnit: unit, primaryLabel: selectedMetric.displayName, primaryDate: snap.date,
+                            secondaryValue: snapSec.value, secondaryUnit: secMetric.unit, secondaryLabel: secMetric.displayName, secondaryDate: snapSec.date
+                        )
+                    )
+                    .padding(.horizontal, CadreSpacing.sheetHorizontal)
+                    .padding(.top, 16)
+                } else if compareEnabled, let period = previousPeriod, let snapSec = snappedSecondary {
+                    heroStepperOverlay(
+                        inspectDualHero(
+                            primaryValue: snap.value, primaryUnit: unit, primaryLabel: "Current", primaryDate: snap.date,
+                            secondaryValue: snapSec.value, secondaryUnit: unit, secondaryLabel: period.rawValue, secondaryDate: snapSec.date
+                        )
+                    )
+                    .padding(.horizontal, CadreSpacing.sheetHorizontal)
+                    .padding(.top, 16)
+                } else {
+                    heroStepperOverlay(
+                        inspectHero(value: snap.value, unit: unit, dateSub: DateFormatting.weekdayShort(snap.date))
+                    )
+                    .padding(.horizontal, CadreSpacing.sheetHorizontal)
+                    .padding(.top, 20)
+                }
+            } else if compareEnabled, let secMetric = secondaryMetric, !secondaryPoints.isEmpty {
+                heroStepperOverlay(
+                    dualHeroBlock(
+                        primaryValue: latestValue, primaryUnit: unit, primaryLabel: selectedMetric.displayName,
+                        secondaryValue: secondaryPoints.last?.value ?? 0, secondaryUnit: secMetric.unit, secondaryLabel: secMetric.displayName,
+                        sub: periodSub
+                    )
                 )
                 .padding(.horizontal, CadreSpacing.sheetHorizontal)
                 .padding(.top, 16)
             } else if compareEnabled, let period = previousPeriod, !secondaryPoints.isEmpty {
-                dualHeroBlock(
-                    primaryValue: latestValue, primaryUnit: unit, primaryLabel: "Current",
-                    secondaryValue: secondaryPoints.last?.value ?? 0, secondaryUnit: unit, secondaryLabel: period.rawValue,
-                    sub: periodSub
+                heroStepperOverlay(
+                    dualHeroBlock(
+                        primaryValue: latestValue, primaryUnit: unit, primaryLabel: "Current",
+                        secondaryValue: secondaryPoints.last?.value ?? 0, secondaryUnit: unit, secondaryLabel: period.rawValue,
+                        sub: periodSub
+                    )
                 )
                 .padding(.horizontal, CadreSpacing.sheetHorizontal)
                 .padding(.top, 16)
             } else {
-                heroBlock(latestValue: latestValue, unit: unit, delta: delta, sub: periodSub)
-                    .padding(.horizontal, CadreSpacing.sheetHorizontal)
-                    .padding(.top, 20)
+                heroStepperOverlay(
+                    heroBlock(latestValue: latestValue, unit: unit, delta: delta, sub: periodSub)
+                )
+                .padding(.horizontal, CadreSpacing.sheetHorizontal)
+                .padding(.top, 20)
             }
 
             chartBlock(points: points, movingAverage: ma)
@@ -528,6 +673,88 @@ struct TrendsView: View {
         .frame(maxWidth: .infinity, alignment: .leading)
     }
 
+    /// Compare-mode inspect hero. Each column carries its own snapped
+    /// date because the two series can have different sampling cadences
+    /// (daily weight vs monthly InBody scans), so the closest point on
+    /// each series may fall on different dates — pretending they share
+    /// one date would be misleading.
+    private func inspectDualHero(
+        primaryValue: Double, primaryUnit: String, primaryLabel: String, primaryDate: Date,
+        secondaryValue: Double, secondaryUnit: String, secondaryLabel: String, secondaryDate: Date
+    ) -> some View {
+        HStack(alignment: .top, spacing: 22) {
+            inspectHeroColumn(
+                color: CadreColors.accent,
+                label: primaryLabel,
+                value: primaryValue,
+                unit: primaryUnit,
+                date: primaryDate
+            )
+            inspectHeroColumn(
+                color: secondaryColor,
+                label: secondaryLabel,
+                value: secondaryValue,
+                unit: secondaryUnit,
+                date: secondaryDate
+            )
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    private func inspectHeroColumn(color: Color, label: String, value: Double, unit: String, date: Date) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(label.uppercased())
+                .font(.system(size: 9, weight: .bold))
+                .tracking(0.5)
+                .foregroundStyle(color)
+            HStack(alignment: .firstTextBaseline, spacing: 4) {
+                Text(formatValue(value))
+                    .font(.system(size: 32, weight: .bold))
+                    .tracking(-0.8)
+                    .foregroundStyle(color)
+                    .contentTransition(.numericText())
+                    .animation(.snappy, value: value)
+                if !unit.isEmpty {
+                    Text(unit)
+                        .font(.system(size: 12, weight: .medium))
+                        .foregroundStyle(CadreColors.textSecondary)
+                }
+            }
+            Text(DateFormatting.weekdayShort(date))
+                .font(CadreTypography.trendsHeroSub)
+                .foregroundStyle(CadreColors.textTertiary)
+        }
+    }
+
+    /// Hero variant used while the user is scrubbing the chart (#63). Shows
+    /// the snapped point's value in place of the latest, with the snapped
+    /// date as the sub-line ("Wed, Apr 3"). Same visual weight as
+    /// `heroBlock` so the swap doesn't shift layout.
+    private func inspectHero(value: Double, unit: String, dateSub: String) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(alignment: .firstTextBaseline, spacing: 6) {
+                Text(formatValue(value))
+                    .font(CadreTypography.trendsHero)
+                    .tracking(-1.2)
+                    .foregroundStyle(CadreColors.textPrimary)
+                    .contentTransition(.numericText())
+                    .animation(.snappy, value: value)
+                if !unit.isEmpty {
+                    Text(unit)
+                        .font(CadreTypography.trendsHeroUnit)
+                        .foregroundStyle(CadreColors.textSecondary)
+                }
+            }
+            .lineLimit(1)
+            .minimumScaleFactor(0.7)
+
+            Text(dateSub)
+                .font(CadreTypography.trendsHeroSub)
+                .foregroundStyle(CadreColors.textTertiary)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
     private func heroRelativeDate(from date: Date) -> String {
         let calendar = Calendar.current
         if calendar.isDateInToday(date) { return "Today" }
@@ -595,25 +822,41 @@ struct TrendsView: View {
         let secMin = sMin - sPad
         let secMax = sMax + sPad
 
-        return Chart {
-            ForEach(points) { point in
-                let yVal = dualAxis ? normalize(point.value, min: primaryMin, max: primaryMax) : point.value
-                LineMark(
-                    x: .value("Date", point.date),
-                    y: .value("Value", yVal),
-                    series: .value("Series", "raw")
-                )
-                .foregroundStyle(CadreColors.textTertiary.opacity(0.7))
-                .lineStyle(StrokeStyle(lineWidth: 1.3, lineCap: .round, lineJoin: .round))
+        let crosshairCtx = CrosshairContext(
+            primaryPoints: points,
+            secondaryPoints: secondaryPoints,
+            secondaryColor: secondaryColor,
+            isDualAxis: dualAxis,
+            primaryRange: primaryMin...primaryMax,
+            secondaryRange: secMin...secMax
+        )
+
+        let showRawLine = vm?.showRawLine ?? true
+        let showRawDots = vm?.showRawDots ?? true
+
+        let chart = Chart {
+            if showRawLine {
+                ForEach(points) { point in
+                    let yVal = dualAxis ? normalize(point.value, min: primaryMin, max: primaryMax) : point.value
+                    LineMark(
+                        x: .value("Date", point.date),
+                        y: .value("Value", yVal),
+                        series: .value("Series", "raw")
+                    )
+                    .foregroundStyle(CadreColors.textTertiary.opacity(0.7))
+                    .lineStyle(StrokeStyle(lineWidth: 1.3, lineCap: .round, lineJoin: .round))
+                }
             }
-            ForEach(points) { point in
-                let yVal = dualAxis ? normalize(point.value, min: primaryMin, max: primaryMax) : point.value
-                PointMark(
-                    x: .value("Date", point.date),
-                    y: .value("Value", yVal)
-                )
-                .foregroundStyle(CadreColors.textTertiary.opacity(0.7))
-                .symbolSize(10)
+            if showRawDots {
+                ForEach(points) { point in
+                    let yVal = dualAxis ? normalize(point.value, min: primaryMin, max: primaryMax) : point.value
+                    PointMark(
+                        x: .value("Date", point.date),
+                        y: .value("Value", yVal)
+                    )
+                    .foregroundStyle(CadreColors.textTertiary.opacity(0.7))
+                    .symbolSize(10)
+                }
             }
             ForEach(movingAverage) { point in
                 let yVal = dualAxis ? normalize(point.value, min: primaryMin, max: primaryMax) : point.value
@@ -662,6 +905,11 @@ struct TrendsView: View {
                             .padding(.leading, 4)
                     }
             }
+
+            // Crosshair (#63) — vertical rule + highlighted point + callout.
+            // No-op when `inlineSelectedDate` is nil so the chart renders
+            // cleanly on first appear and after the user lifts their finger.
+            crosshairMarks(selectedDate: inlineSelectedDate, context: crosshairCtx)
         }
         .chartXAxis {
             AxisMarks(values: .automatic(desiredCount: 3)) { _ in
@@ -705,6 +953,7 @@ struct TrendsView: View {
             }
         }
         .chartYScale(domain: dualAxis ? 0.0...1.0 : (primaryMin)...(primaryMax))
+        .trendsChartInteractivity(selectedDate: $inlineSelectedDate)
         .chartPlotStyle { plotArea in
             plotArea
                 .mask(alignment: .leading) {
@@ -751,9 +1000,29 @@ struct TrendsView: View {
         // (driven by chartRevealProgress) is unaffected.
         .animation(nil, value: vm?.timeRange)
         .animation(nil, value: vm?.selectedMetric)
-        .onAppear { triggerChartReveal() }
-        .onChange(of: vm?.timeRange) { _, _ in triggerChartReveal() }
-        .onChange(of: vm?.selectedMetric) { _, _ in triggerChartReveal() }
+        .onAppear {
+            triggerChartReveal()
+            inlineSelectedDate = nil
+        }
+        .onChange(of: vm?.timeRange) { _, _ in
+            triggerChartReveal()
+            inlineSelectedDate = nil
+        }
+        .onChange(of: vm?.selectedMetric) { _, _ in
+            triggerChartReveal()
+            inlineSelectedDate = nil
+            // New metric should open on its most recent data, not at
+            // wherever the user had stepped to in the previous metric.
+            vm?.windowEndDate = Date()
+        }
+        .onChange(of: vm?.windowEndDate) { _, _ in
+            // Re-run the reveal animation when the user steps to a new
+            // window so the chart visibly redraws — same affordance as
+            // changing the time range.
+            triggerChartReveal()
+        }
+
+        return chart
     }
 
     /// Reset `chartRevealProgress` and animate it to 1 so the plot area
@@ -811,8 +1080,10 @@ struct TrendsView: View {
                 legendItem(color: CadreColors.accent, label: "Current")
                 legendItem(color: secondaryColor, label: period.rawValue, dashed: true)
             } else {
-                legendItem(color: CadreColors.textTertiary, label: "Daily")
-                legendItem(color: CadreColors.chartLine, label: "7-day average")
+                if vm?.showRawLine == true || vm?.showRawDots == true {
+                    legendItem(color: CadreColors.textTertiary, label: "Daily")
+                }
+                legendItem(color: CadreColors.chartLine, label: "\(vm?.movingAverageWindow ?? 7)-day average")
             }
         }
         .frame(maxWidth: .infinity)
@@ -886,23 +1157,25 @@ struct TrendsView: View {
         let point = points[0]
         let unit = selectedMetric.unit
         return VStack(spacing: 0) {
-            VStack(alignment: .leading, spacing: 8) {
-                HStack(alignment: .firstTextBaseline, spacing: 6) {
-                    Text(formatValue(point.value))
-                        .font(CadreTypography.trendsHero)
-                        .tracking(-1.2)
-                        .foregroundStyle(CadreColors.textPrimary)
-                    if !unit.isEmpty {
-                        Text(unit)
-                            .font(CadreTypography.trendsHeroUnit)
-                            .foregroundStyle(CadreColors.textSecondary)
+            heroStepperOverlay(
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack(alignment: .firstTextBaseline, spacing: 6) {
+                        Text(formatValue(point.value))
+                            .font(CadreTypography.trendsHero)
+                            .tracking(-1.2)
+                            .foregroundStyle(CadreColors.textPrimary)
+                        if !unit.isEmpty {
+                            Text(unit)
+                                .font(CadreTypography.trendsHeroUnit)
+                                .foregroundStyle(CadreColors.textSecondary)
+                        }
                     }
+                    Text("Log more entries to see your trend")
+                        .font(CadreTypography.trendsHeroSub)
+                        .foregroundStyle(CadreColors.textTertiary)
                 }
-                Text("Log more entries to see your trend")
-                    .font(CadreTypography.trendsHeroSub)
-                    .foregroundStyle(CadreColors.textTertiary)
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
+                .frame(maxWidth: .infinity, alignment: .leading)
+            )
             .padding(.horizontal, CadreSpacing.sheetHorizontal)
             .padding(.top, 20)
 
@@ -978,6 +1251,46 @@ struct TrendsView: View {
             ctaAction: ctaAction
         )
         .padding(.top, 60)
+    }
+
+    /// Shown when the active window has no data but the user *does* have
+    /// data overall (i.e., they've stepped back into an empty range). The
+    /// chart placeholder explains the state and the stepper above it lets
+    /// them step forward to where the data lives. The hero + goal still
+    /// render — they're about the user's overall state, not just this
+    /// window — so the screen doesn't feel like an unrelated cold-start.
+    private func steppedBackEmptyBlock(latest: TrendDataPoint) -> some View {
+        let unit = selectedMetric.unit
+        return VStack(spacing: 0) {
+            heroStepperOverlay(
+                inspectHero(value: latest.value, unit: unit, dateSub: heroRelativeDate(from: latest.date))
+            )
+            .padding(.horizontal, CadreSpacing.sheetHorizontal)
+            .padding(.top, 20)
+
+            VStack(spacing: 8) {
+                Image(systemName: "chart.line.flattrend.xyaxis")
+                    .font(.system(size: 26, weight: .light))
+                    .foregroundStyle(CadreColors.textTertiary)
+                Text("No data in this window")
+                    .font(CadreTypography.trendsHeroSub)
+                    .foregroundStyle(CadreColors.textTertiary)
+            }
+            .frame(maxWidth: .infinity)
+            .frame(height: 280)
+            .padding(.horizontal, CadreSpacing.sheetHorizontal)
+            .padding(.top, 18)
+
+            GoalCard(
+                goal: goalVM?.activeGoal(for: vm?.selectedMetric.rawValue ?? ""),
+                currentValue: latest.value,
+                unit: unit,
+                onSetGoal: { showSetGoal = true },
+                onManageGoal: { showManageGoal = true }
+            )
+            .padding(.horizontal, CadreSpacing.sheetHorizontal)
+            .padding(.top, 16)
+        }
     }
 
     // MARK: - Fullscreen chart (landscape two-column layout)
@@ -1086,25 +1399,54 @@ struct TrendsView: View {
                     let fsSecMin = fsSMin - fsSPad
                     let fsSecMax = fsSMax + fsSPad
 
-                    Chart {
-                        ForEach(points) { point in
-                            let yVal = fsDualAxis ? normalize(point.value, min: fsPrimaryMin, max: fsPrimaryMax) : point.value
-                            LineMark(
-                                x: .value("Date", point.date),
-                                y: .value("Value", yVal),
-                                series: .value("Series", "raw")
-                            )
-                            .foregroundStyle(CadreColors.textTertiary.opacity(0.7))
-                            .lineStyle(StrokeStyle(lineWidth: 1.3, lineCap: .round, lineJoin: .round))
+                    let fsCrosshairCtx = CrosshairContext(
+                        primaryPoints: points,
+                        secondaryPoints: secondaryPoints,
+                        secondaryColor: secondaryColor,
+                        isDualAxis: fsDualAxis,
+                        primaryRange: fsPrimaryMin...fsPrimaryMax,
+                        secondaryRange: fsSecMin...fsSecMax
+                    )
+
+                    let fsShowRawLine = vm?.showRawLine ?? true
+                    let fsShowRawDots = vm?.showRawDots ?? true
+                    let fsHideStepper = (vm?.timeRange ?? .month) == .all
+
+                    VStack(spacing: 6) {
+                        HStack {
+                            Spacer()
+                            windowNavRow
+                            Spacer()
                         }
-                        ForEach(points) { point in
-                            let yVal = fsDualAxis ? normalize(point.value, min: fsPrimaryMin, max: fsPrimaryMax) : point.value
-                            PointMark(
-                                x: .value("Date", point.date),
-                                y: .value("Value", yVal)
-                            )
-                            .foregroundStyle(CadreColors.textTertiary.opacity(0.7))
-                            .symbolSize(10)
+                        .opacity(fsHideStepper ? 0 : 1)
+                        .allowsHitTesting(!fsHideStepper)
+                        // Keep clear of the close button, which overlays
+                        // the screen's top-right corner.
+                        .padding(.trailing, 36)
+
+                        Chart {
+                        if fsShowRawLine {
+                            ForEach(points) { point in
+                                let yVal = fsDualAxis ? normalize(point.value, min: fsPrimaryMin, max: fsPrimaryMax) : point.value
+                                LineMark(
+                                    x: .value("Date", point.date),
+                                    y: .value("Value", yVal),
+                                    series: .value("Series", "raw")
+                                )
+                                .foregroundStyle(CadreColors.textTertiary.opacity(0.7))
+                                .lineStyle(StrokeStyle(lineWidth: 1.3, lineCap: .round, lineJoin: .round))
+                            }
+                        }
+                        if fsShowRawDots {
+                            ForEach(points) { point in
+                                let yVal = fsDualAxis ? normalize(point.value, min: fsPrimaryMin, max: fsPrimaryMax) : point.value
+                                PointMark(
+                                    x: .value("Date", point.date),
+                                    y: .value("Value", yVal)
+                                )
+                                .foregroundStyle(CadreColors.textTertiary.opacity(0.7))
+                                .symbolSize(10)
+                            }
                         }
                         ForEach(ma) { point in
                             let yVal = fsDualAxis ? normalize(point.value, min: fsPrimaryMin, max: fsPrimaryMax) : point.value
@@ -1139,6 +1481,8 @@ struct TrendsView: View {
                                 .lineStyle(StrokeStyle(lineWidth: 1.8, lineCap: .round, lineJoin: .round, dash: [4, 3]))
                             }
                         }
+
+                        crosshairMarks(selectedDate: fullscreenSelectedDate, context: fsCrosshairCtx)
                     }
                     .chartXAxis {
                         AxisMarks(values: .automatic(desiredCount: 5)) { _ in
@@ -1180,7 +1524,10 @@ struct TrendsView: View {
                         }
                     }
                     .chartYScale(domain: fsDualAxis ? 0.0...1.0 : (fsPrimaryMin)...(fsPrimaryMax))
+                    .trendsChartInteractivity(selectedDate: $fullscreenSelectedDate)
+                    }
                     .padding()
+                    .onAppear { fullscreenSelectedDate = nil }
                 } else if let point = points.first {
                     Chart {
                         PointMark(
