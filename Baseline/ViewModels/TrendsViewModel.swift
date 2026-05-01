@@ -227,6 +227,13 @@ class TrendsViewModel {
     var secondaryMetric: TrendMetric?
     var compareMode: CompareMode?
 
+    /// Right edge of the currently-viewed window. Defaults to now (latest
+    /// data). Stepper buttons in TrendsView shift this backward/forward by
+    /// `timeRange.days` so the user can browse historical windows without
+    /// gesture-based scrolling. Resets to `Date()` whenever the user
+    /// changes time range or metric.
+    var windowEndDate: Date = Date()
+
     /// Generic data points for the currently selected metric.
     var dataPoints: [TrendDataPoint] = []
     var movingAverage: [MovingAveragePoint] = []
@@ -249,6 +256,54 @@ class TrendsViewModel {
 
     init(modelContext: ModelContext) {
         self.modelContext = modelContext
+    }
+
+    // MARK: - Window navigation (#62 — Whoop-style stepper)
+
+    /// Step the visible window backward (-1) or forward (+1) by exactly
+    /// one `timeRange.days` chunk. No-op for `.all` (no chunking — the
+    /// nav UI hides itself in that case). Caller is expected to call
+    /// `refresh()` after.
+    func stepWindow(by direction: Int) {
+        guard let days = timeRange.days else { return }
+        let shift = days * direction
+        let cal = Calendar.current
+        let proposed = cal.date(byAdding: .day, value: shift, to: windowEndDate) ?? windowEndDate
+        // Cap at "today" — there's no point stepping into the future.
+        let today = Date()
+        windowEndDate = min(proposed, today)
+    }
+
+    /// True when the current window doesn't already include today, i.e.
+    /// stepping forward will reveal newer data.
+    var canStepForward: Bool {
+        let cal = Calendar.current
+        return cal.startOfDay(for: windowEndDate) < cal.startOfDay(for: Date())
+    }
+
+    /// Inclusive start of the current window (one `timeRange.days` chunk
+    /// before the right edge). Returns nil for `.all` since there's no
+    /// finite window in that mode.
+    var windowStartDate: Date? {
+        guard let days = timeRange.days else { return nil }
+        let cal = Calendar.current
+        let endDay = cal.startOfDay(for: windowEndDate)
+        return cal.date(byAdding: .day, value: -(days - 1), to: endDay)
+    }
+
+    /// Display label for the current window — "MAR 6 - APR 4, 26"
+    /// matches Whoop's Trend View. Empty string for `.all`.
+    var currentWindowLabel: String {
+        guard let start = windowStartDate else { return "" }
+        let end = Calendar.current.startOfDay(for: windowEndDate)
+        let monthDay = DateFormatter()
+        monthDay.dateFormat = "MMM d"
+        let yearTwoDigit = DateFormatter()
+        yearTwoDigit.dateFormat = "yy"
+        let startStr = monthDay.string(from: start).uppercased()
+        let endStr = monthDay.string(from: end).uppercased()
+        let yearStr = yearTwoDigit.string(from: end)
+        return "\(startStr) – \(endStr), \(yearStr)"
     }
 
     func refresh() {
@@ -462,10 +517,11 @@ class TrendsViewModel {
         let sort = [SortDescriptor(\WeightEntry.date, order: .forward)]
 
         if let days = timeRange.days {
-            let today = Calendar.current.startOfDay(for: Date())
-            let startDate = Calendar.current.date(byAdding: .day, value: -days, to: today)!
+            let cal = Calendar.current
+            let endDate = cal.startOfDay(for: windowEndDate).addingTimeInterval(86400)
+            let startDate = cal.date(byAdding: .day, value: -days, to: endDate)!
             let descriptor = FetchDescriptor<WeightEntry>(
-                predicate: #Predicate { $0.date > startDate },
+                predicate: #Predicate { $0.date > startDate && $0.date < endDate },
                 sortBy: sort
             )
             entries = (try? modelContext.fetch(descriptor)) ?? []
@@ -487,10 +543,11 @@ class TrendsViewModel {
 
         let scans: [Scan]
         if let days = timeRange.days {
-            let today = Calendar.current.startOfDay(for: Date())
-            let startDate = Calendar.current.date(byAdding: .day, value: -days, to: today)!
+            let cal = Calendar.current
+            let endDate = cal.startOfDay(for: windowEndDate).addingTimeInterval(86400)
+            let startDate = cal.date(byAdding: .day, value: -days, to: endDate)!
             let descriptor = FetchDescriptor<Scan>(
-                predicate: #Predicate { $0.date > startDate },
+                predicate: #Predicate { $0.date > startDate && $0.date < endDate },
                 sortBy: sort
             )
             scans = (try? modelContext.fetch(descriptor)) ?? []
@@ -514,10 +571,11 @@ class TrendsViewModel {
 
         let scans: [Scan]
         if let days = timeRange.days {
-            let today = Calendar.current.startOfDay(for: Date())
-            let startDate = Calendar.current.date(byAdding: .day, value: -days, to: today)!
+            let cal = Calendar.current
+            let endDate = cal.startOfDay(for: windowEndDate).addingTimeInterval(86400)
+            let startDate = cal.date(byAdding: .day, value: -days, to: endDate)!
             let descriptor = FetchDescriptor<Scan>(
-                predicate: #Predicate { $0.date > startDate },
+                predicate: #Predicate { $0.date > startDate && $0.date < endDate },
                 sortBy: sort
             )
             scans = (try? modelContext.fetch(descriptor)) ?? []
@@ -547,10 +605,11 @@ class TrendsViewModel {
 
         let measurements: [Measurement]
         if let days = timeRange.days {
-            let today = Calendar.current.startOfDay(for: Date())
-            let startDate = Calendar.current.date(byAdding: .day, value: -days, to: today)!
+            let cal = Calendar.current
+            let endDate = cal.startOfDay(for: windowEndDate).addingTimeInterval(86400)
+            let startDate = cal.date(byAdding: .day, value: -days, to: endDate)!
             let descriptor = FetchDescriptor<Measurement>(
-                predicate: #Predicate { $0.type == typeRaw && $0.date > startDate },
+                predicate: #Predicate { $0.type == typeRaw && $0.date > startDate && $0.date < endDate },
                 sortBy: sort
             )
             measurements = (try? modelContext.fetch(descriptor)) ?? []

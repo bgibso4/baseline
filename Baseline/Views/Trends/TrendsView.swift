@@ -128,6 +128,12 @@ struct TrendsView: View {
                         .padding(.horizontal, CadreSpacing.sheetHorizontal)
                         .padding(.top, 12)
 
+                    if (vm?.timeRange ?? .month) != .all {
+                        windowNavRow
+                            .padding(.horizontal, CadreSpacing.sheetHorizontal)
+                            .padding(.top, 8)
+                    }
+
                     TipView(trendsTip)
                         .padding(.horizontal, CadreSpacing.sheetHorizontal)
                         .padding(.top, 8)
@@ -381,6 +387,12 @@ struct TrendsView: View {
                     .onTapGesture {
                         withAnimation(.snappy(duration: 0.25)) {
                             vm?.timeRange = range
+                            // Reset the window anchor so the new range
+                            // opens on the most recent slice of data, not
+                            // wherever the user had stepped to in the
+                            // previous range.
+                            vm?.windowEndDate = Date()
+                            inlineSelectedDate = nil
                             vm?.refresh()
                         }
                         Haptics.selection()
@@ -389,6 +401,58 @@ struct TrendsView: View {
         }
         .padding(3)
         .glassCard(cornerRadius: 10)
+    }
+
+    // MARK: - Window stepper (#62 — Whoop-style nav)
+
+    /// Chevron-left/label/chevron-right row that lets the user step
+    /// backward and forward through windows of the selected time range.
+    /// Hidden for `.all` because there's only one window.
+    private var windowNavRow: some View {
+        HStack(spacing: 12) {
+            Button {
+                withAnimation(.snappy(duration: 0.25)) {
+                    vm?.stepWindow(by: -1)
+                    inlineSelectedDate = nil
+                    vm?.refresh()
+                }
+                Haptics.selection()
+            } label: {
+                Image(systemName: "chevron.left")
+                    .font(.system(size: 13, weight: .bold))
+                    .foregroundStyle(CadreColors.textSecondary)
+                    .frame(width: 36, height: 32)
+            }
+            .buttonStyle(.plain)
+
+            Text(vm?.currentWindowLabel ?? "")
+                .font(.system(size: 11, weight: .bold))
+                .tracking(0.6)
+                .foregroundStyle(CadreColors.textPrimary)
+                .frame(maxWidth: .infinity)
+                .contentTransition(.numericText())
+                .animation(.snappy, value: vm?.windowEndDate)
+
+            Button {
+                withAnimation(.snappy(duration: 0.25)) {
+                    vm?.stepWindow(by: 1)
+                    inlineSelectedDate = nil
+                    vm?.refresh()
+                }
+                Haptics.selection()
+            } label: {
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 13, weight: .bold))
+                    .foregroundStyle(
+                        (vm?.canStepForward ?? false)
+                            ? CadreColors.textSecondary
+                            : CadreColors.textTertiary.opacity(0.3)
+                    )
+                    .frame(width: 36, height: 32)
+            }
+            .buttonStyle(.plain)
+            .disabled(!(vm?.canStepForward ?? false))
+        }
     }
 
     // MARK: - Full variant (2+ data points)
@@ -908,6 +972,15 @@ struct TrendsView: View {
         .onChange(of: vm?.selectedMetric) { _, _ in
             triggerChartReveal()
             inlineSelectedDate = nil
+            // New metric should open on its most recent data, not at
+            // wherever the user had stepped to in the previous metric.
+            vm?.windowEndDate = Date()
+        }
+        .onChange(of: vm?.windowEndDate) { _, _ in
+            // Re-run the reveal animation when the user steps to a new
+            // window so the chart visibly redraws — same affordance as
+            // changing the time range.
+            triggerChartReveal()
         }
     }
 
