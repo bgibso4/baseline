@@ -238,6 +238,19 @@ class TrendsViewModel {
     var dataPoints: [TrendDataPoint] = []
     var movingAverage: [MovingAveragePoint] = []
 
+    /// Most recent data point for the selected metric across ALL time —
+    /// independent of `windowEndDate`/`timeRange`. Used by the view so the
+    /// hero stays meaningful when the user steps back into a window with
+    /// no data ("data exists, just not here") instead of falling through
+    /// to the cold-start empty state.
+    var latestPoint: TrendDataPoint?
+
+    /// Date of the earliest data point for the selected metric, across all
+    /// time. Used to gate the backward stepper so we stop at the oldest
+    /// window that still has data instead of letting the user wander into
+    /// a forever-empty past.
+    var earliestEntryDate: Date?
+
     /// Secondary metric data points (populated when compare is active).
     var secondaryDataPoints: [TrendDataPoint] = []
 
@@ -279,6 +292,22 @@ class TrendsViewModel {
     var canStepForward: Bool {
         let cal = Calendar.current
         return cal.startOfDay(for: windowEndDate) < cal.startOfDay(for: Date())
+    }
+
+    /// True when stepping backward by one window-width would still land
+    /// somewhere with data — i.e., the proposed earlier window's right
+    /// edge still sits at or after the earliest known entry. Disabled
+    /// once the user is already at the oldest window with data, so the
+    /// stepper bottoms out instead of letting them wander into a
+    /// permanently empty past.
+    var canStepBackward: Bool {
+        guard let earliest = earliestEntryDate else { return false }
+        guard let days = timeRange.days else { return false }
+        let cal = Calendar.current
+        // Right edge of the proposed previous window:
+        // current windowEndDate - days.
+        let proposedEnd = cal.date(byAdding: .day, value: -days, to: cal.startOfDay(for: windowEndDate)) ?? windowEndDate
+        return cal.startOfDay(for: earliest) < proposedEnd.addingTimeInterval(86400)
     }
 
     /// Inclusive start of the current window (one `timeRange.days` chunk
@@ -368,6 +397,110 @@ class TrendsViewModel {
 
         calculateMovingAverage()
         refreshSecondary()
+        refreshLatestPoint()
+    }
+
+    /// Fetch the most-recent value for the selected metric (ignoring the
+    /// active window) and the earliest entry date for that metric. Cheap
+    /// (`fetchLimit = 1` for weight/measurement, full reverse scan walk
+    /// for scan-derived metrics until a populated field is found; earliest
+    /// uses a single forward-sorted limit-1 fetch / first-populated walk).
+    private func refreshLatestPoint() {
+        let metric = selectedMetric
+
+        if metric == .weight {
+            var newest = FetchDescriptor<WeightEntry>(sortBy: [SortDescriptor(\WeightEntry.date, order: .reverse)])
+            newest.fetchLimit = 1
+            if let entry = (try? modelContext.fetch(newest))?.first {
+                latestPoint = TrendDataPoint(
+                    date: entry.date,
+                    value: UnitConversion.displayWeight(entry.weight, storedUnit: entry.unit)
+                )
+            } else {
+                latestPoint = nil
+            }
+
+            var oldest = FetchDescriptor<WeightEntry>(sortBy: [SortDescriptor(\WeightEntry.date, order: .forward)])
+            oldest.fetchLimit = 1
+            earliestEntryDate = (try? modelContext.fetch(oldest))?.first?.date
+            return
+        }
+
+        if let measType = metric.measurementType {
+            let typeRaw = measType.rawValue
+            var newest = FetchDescriptor<Measurement>(
+                predicate: #Predicate { $0.type == typeRaw },
+                sortBy: [SortDescriptor(\Measurement.date, order: .reverse)]
+            )
+            newest.fetchLimit = 1
+            if let m = (try? modelContext.fetch(newest))?.first {
+                latestPoint = TrendDataPoint(
+                    date: m.date,
+                    value: UnitConversion.displayLength(m.valueCm).value
+                )
+            } else {
+                latestPoint = nil
+            }
+
+            var oldest = FetchDescriptor<Measurement>(
+                predicate: #Predicate { $0.type == typeRaw },
+                sortBy: [SortDescriptor(\Measurement.date, order: .forward)]
+            )
+            oldest.fetchLimit = 1
+            earliestEntryDate = (try? modelContext.fetch(oldest))?.first?.date
+            return
+        }
+
+        // Scan-derived: walk newest-to-oldest, then oldest-to-newest, until
+        // each direction yields a scan that has a value for this metric.
+        let newestScans = FetchDescriptor<Scan>(sortBy: [SortDescriptor(\Scan.date, order: .reverse)])
+        let scansNewestFirst = (try? modelContext.fetch(newestScans)) ?? []
+        latestPoint = nil
+        for scan in scansNewestFirst {
+            guard let content = try? scan.decoded(),
+                  case .inBody(let payload) = content else { continue }
+            if let value = extractScanValue(for: metric, from: payload) {
+                latestPoint = TrendDataPoint(date: scan.date, value: value)
+                break
+            }
+        }
+
+        earliestEntryDate = nil
+        for scan in scansNewestFirst.reversed() {
+            guard let content = try? scan.decoded(),
+                  case .inBody(let payload) = content else { continue }
+            if extractScanValue(for: metric, from: payload) != nil {
+                earliestEntryDate = scan.date
+                break
+            }
+        }
+    }
+
+    private func extractScanValue(for metric: TrendMetric, from payload: InBodyPayload) -> Double? {
+        switch metric {
+        case .bodyFatPct: return payload.bodyFatPct
+        case .skeletalMuscle: return UnitConversion.displayMass(payload.skeletalMuscleMassKg).value
+        case .bmi: return payload.bmi
+        case .fatMass: return UnitConversion.displayMass(payload.bodyFatMassKg).value
+        case .leanBodyMass: return payload.leanBodyMassKg.map { UnitConversion.displayMass($0).value }
+        case .totalBodyWater: return payload.totalBodyWaterL
+        case .icw: return payload.intracellularWaterL
+        case .ecw: return payload.extracellularWaterL
+        case .dryLeanMass: return payload.dryLeanMassKg.map { UnitConversion.displayMass($0).value }
+        case .bmr: return payload.basalMetabolicRate
+        case .inBodyScore: return payload.inBodyScore
+        case .rightArmLean: return payload.rightArmLeanKg.map { UnitConversion.displayMass($0).value }
+        case .leftArmLean: return payload.leftArmLeanKg.map { UnitConversion.displayMass($0).value }
+        case .trunkLean: return payload.trunkLeanKg.map { UnitConversion.displayMass($0).value }
+        case .rightLegLean: return payload.rightLegLeanKg.map { UnitConversion.displayMass($0).value }
+        case .leftLegLean: return payload.leftLegLeanKg.map { UnitConversion.displayMass($0).value }
+        case .rightArmFat: return payload.rightArmFatKg.map { UnitConversion.displayMass($0).value }
+        case .leftArmFat: return payload.leftArmFatKg.map { UnitConversion.displayMass($0).value }
+        case .trunkFat: return payload.trunkFatKg.map { UnitConversion.displayMass($0).value }
+        case .rightLegFat: return payload.rightLegFatKg.map { UnitConversion.displayMass($0).value }
+        case .leftLegFat: return payload.leftLegFatKg.map { UnitConversion.displayMass($0).value }
+        default: return nil
+        }
     }
 
     /// Loads data for the secondary compare overlay.

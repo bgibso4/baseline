@@ -128,12 +128,6 @@ struct TrendsView: View {
                         .padding(.horizontal, CadreSpacing.sheetHorizontal)
                         .padding(.top, 12)
 
-                    if (vm?.timeRange ?? .month) != .all {
-                        windowNavRow
-                            .padding(.horizontal, CadreSpacing.sheetHorizontal)
-                            .padding(.top, 8)
-                    }
-
                     TipView(trendsTip)
                         .padding(.horizontal, CadreSpacing.sheetHorizontal)
                         .padding(.top, 8)
@@ -290,7 +284,15 @@ struct TrendsView: View {
         let points = vm?.dataPoints ?? []
 
         if points.isEmpty {
-            emptyStateBlock
+            // Distinguish "stepped-back into an empty window" from a real
+            // cold-start: if any data exists for this metric, show the
+            // window-empty placeholder (with stepper) instead of the
+            // log-your-first-entry CTA.
+            if let latest = vm?.latestPoint {
+                steppedBackEmptyBlock(latest: latest)
+            } else {
+                emptyStateBlock
+            }
         } else if points.count == 1 {
             singlePointBlock(points: points)
         } else {
@@ -403,13 +405,31 @@ struct TrendsView: View {
         .glassCard(cornerRadius: 10)
     }
 
+    // MARK: - Hero stepper overlay
+
+    /// Pin the window stepper to the bottom-right edge of whatever hero
+    /// view it's applied to. Uses an overlay so the hero's intrinsic
+    /// layout (and thus the chart's vertical position) doesn't shift
+    /// between time ranges. On `.all` the stepper is invisible and
+    /// non-interactive but still occupies its slot.
+    private func heroStepperOverlay<V: View>(_ hero: V) -> some View {
+        let hideStepper = (vm?.timeRange ?? .month) == .all
+        return hero
+            .overlay(alignment: .bottomTrailing) {
+                windowNavRow
+                    .opacity(hideStepper ? 0 : 1)
+                    .allowsHitTesting(!hideStepper)
+            }
+    }
+
     // MARK: - Window stepper (#62 — Whoop-style nav)
 
-    /// Chevron-left/label/chevron-right row that lets the user step
-    /// backward and forward through windows of the selected time range.
-    /// Hidden for `.all` because there's only one window.
+    /// Compact chevron-left/label/chevron-right row pinned inside the chart
+    /// card (top-right above the graph). Lets the user step backward and
+    /// forward through windows of the selected time range. Hidden for
+    /// `.all` because there's only one window.
     private var windowNavRow: some View {
-        HStack(spacing: 12) {
+        HStack(spacing: 4) {
             Button {
                 withAnimation(.snappy(duration: 0.25)) {
                     vm?.stepWindow(by: -1)
@@ -419,19 +439,25 @@ struct TrendsView: View {
                 Haptics.selection()
             } label: {
                 Image(systemName: "chevron.left")
-                    .font(.system(size: 13, weight: .bold))
-                    .foregroundStyle(CadreColors.textSecondary)
-                    .frame(width: 36, height: 32)
+                    .font(.system(size: 11, weight: .bold))
+                    .foregroundStyle(
+                        (vm?.canStepBackward ?? false)
+                            ? CadreColors.textSecondary
+                            : CadreColors.textTertiary.opacity(0.3)
+                    )
+                    .frame(width: 24, height: 24)
             }
             .buttonStyle(.plain)
+            .disabled(!(vm?.canStepBackward ?? false))
 
             Text(vm?.currentWindowLabel ?? "")
-                .font(.system(size: 11, weight: .bold))
-                .tracking(0.6)
+                .font(.system(size: 10, weight: .bold))
+                .tracking(0.5)
                 .foregroundStyle(CadreColors.textPrimary)
-                .frame(maxWidth: .infinity)
                 .contentTransition(.numericText())
                 .animation(.snappy, value: vm?.windowEndDate)
+                .lineLimit(1)
+                .fixedSize()
 
             Button {
                 withAnimation(.snappy(duration: 0.25)) {
@@ -442,17 +468,18 @@ struct TrendsView: View {
                 Haptics.selection()
             } label: {
                 Image(systemName: "chevron.right")
-                    .font(.system(size: 13, weight: .bold))
+                    .font(.system(size: 11, weight: .bold))
                     .foregroundStyle(
                         (vm?.canStepForward ?? false)
                             ? CadreColors.textSecondary
                             : CadreColors.textTertiary.opacity(0.3)
                     )
-                    .frame(width: 36, height: 32)
+                    .frame(width: 24, height: 24)
             }
             .buttonStyle(.plain)
             .disabled(!(vm?.canStepForward ?? false))
         }
+        .padding(.horizontal, 4)
     }
 
     // MARK: - Full variant (2+ data points)
@@ -483,44 +510,56 @@ struct TrendsView: View {
         return VStack(spacing: 0) {
             if inspecting, let snap = snappedPrimary {
                 if compareEnabled, let secMetric = secondaryMetric, let snapSec = snappedSecondary {
-                    inspectDualHero(
-                        primaryValue: snap.value, primaryUnit: unit, primaryLabel: selectedMetric.displayName, primaryDate: snap.date,
-                        secondaryValue: snapSec.value, secondaryUnit: secMetric.unit, secondaryLabel: secMetric.displayName, secondaryDate: snapSec.date
+                    heroStepperOverlay(
+                        inspectDualHero(
+                            primaryValue: snap.value, primaryUnit: unit, primaryLabel: selectedMetric.displayName, primaryDate: snap.date,
+                            secondaryValue: snapSec.value, secondaryUnit: secMetric.unit, secondaryLabel: secMetric.displayName, secondaryDate: snapSec.date
+                        )
                     )
                     .padding(.horizontal, CadreSpacing.sheetHorizontal)
                     .padding(.top, 16)
                 } else if compareEnabled, let period = previousPeriod, let snapSec = snappedSecondary {
-                    inspectDualHero(
-                        primaryValue: snap.value, primaryUnit: unit, primaryLabel: "Current", primaryDate: snap.date,
-                        secondaryValue: snapSec.value, secondaryUnit: unit, secondaryLabel: period.rawValue, secondaryDate: snapSec.date
+                    heroStepperOverlay(
+                        inspectDualHero(
+                            primaryValue: snap.value, primaryUnit: unit, primaryLabel: "Current", primaryDate: snap.date,
+                            secondaryValue: snapSec.value, secondaryUnit: unit, secondaryLabel: period.rawValue, secondaryDate: snapSec.date
+                        )
                     )
                     .padding(.horizontal, CadreSpacing.sheetHorizontal)
                     .padding(.top, 16)
                 } else {
-                    inspectHero(value: snap.value, unit: unit, dateSub: DateFormatting.weekdayShort(snap.date))
-                        .padding(.horizontal, CadreSpacing.sheetHorizontal)
-                        .padding(.top, 20)
+                    heroStepperOverlay(
+                        inspectHero(value: snap.value, unit: unit, dateSub: DateFormatting.weekdayShort(snap.date))
+                    )
+                    .padding(.horizontal, CadreSpacing.sheetHorizontal)
+                    .padding(.top, 20)
                 }
             } else if compareEnabled, let secMetric = secondaryMetric, !secondaryPoints.isEmpty {
-                dualHeroBlock(
-                    primaryValue: latestValue, primaryUnit: unit, primaryLabel: selectedMetric.displayName,
-                    secondaryValue: secondaryPoints.last?.value ?? 0, secondaryUnit: secMetric.unit, secondaryLabel: secMetric.displayName,
-                    sub: periodSub
+                heroStepperOverlay(
+                    dualHeroBlock(
+                        primaryValue: latestValue, primaryUnit: unit, primaryLabel: selectedMetric.displayName,
+                        secondaryValue: secondaryPoints.last?.value ?? 0, secondaryUnit: secMetric.unit, secondaryLabel: secMetric.displayName,
+                        sub: periodSub
+                    )
                 )
                 .padding(.horizontal, CadreSpacing.sheetHorizontal)
                 .padding(.top, 16)
             } else if compareEnabled, let period = previousPeriod, !secondaryPoints.isEmpty {
-                dualHeroBlock(
-                    primaryValue: latestValue, primaryUnit: unit, primaryLabel: "Current",
-                    secondaryValue: secondaryPoints.last?.value ?? 0, secondaryUnit: unit, secondaryLabel: period.rawValue,
-                    sub: periodSub
+                heroStepperOverlay(
+                    dualHeroBlock(
+                        primaryValue: latestValue, primaryUnit: unit, primaryLabel: "Current",
+                        secondaryValue: secondaryPoints.last?.value ?? 0, secondaryUnit: unit, secondaryLabel: period.rawValue,
+                        sub: periodSub
+                    )
                 )
                 .padding(.horizontal, CadreSpacing.sheetHorizontal)
                 .padding(.top, 16)
             } else {
-                heroBlock(latestValue: latestValue, unit: unit, delta: delta, sub: periodSub)
-                    .padding(.horizontal, CadreSpacing.sheetHorizontal)
-                    .padding(.top, 20)
+                heroStepperOverlay(
+                    heroBlock(latestValue: latestValue, unit: unit, delta: delta, sub: periodSub)
+                )
+                .padding(.horizontal, CadreSpacing.sheetHorizontal)
+                .padding(.top, 20)
             }
 
             chartBlock(points: points, movingAverage: ma)
@@ -795,7 +834,7 @@ struct TrendsView: View {
         let showRawLine = vm?.showRawLine ?? true
         let showRawDots = vm?.showRawDots ?? true
 
-        return Chart {
+        let chart = Chart {
             if showRawLine {
                 ForEach(points) { point in
                     let yVal = dualAxis ? normalize(point.value, min: primaryMin, max: primaryMax) : point.value
@@ -982,6 +1021,8 @@ struct TrendsView: View {
             // changing the time range.
             triggerChartReveal()
         }
+
+        return chart
     }
 
     /// Reset `chartRevealProgress` and animate it to 1 so the plot area
@@ -1116,23 +1157,25 @@ struct TrendsView: View {
         let point = points[0]
         let unit = selectedMetric.unit
         return VStack(spacing: 0) {
-            VStack(alignment: .leading, spacing: 8) {
-                HStack(alignment: .firstTextBaseline, spacing: 6) {
-                    Text(formatValue(point.value))
-                        .font(CadreTypography.trendsHero)
-                        .tracking(-1.2)
-                        .foregroundStyle(CadreColors.textPrimary)
-                    if !unit.isEmpty {
-                        Text(unit)
-                            .font(CadreTypography.trendsHeroUnit)
-                            .foregroundStyle(CadreColors.textSecondary)
+            heroStepperOverlay(
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack(alignment: .firstTextBaseline, spacing: 6) {
+                        Text(formatValue(point.value))
+                            .font(CadreTypography.trendsHero)
+                            .tracking(-1.2)
+                            .foregroundStyle(CadreColors.textPrimary)
+                        if !unit.isEmpty {
+                            Text(unit)
+                                .font(CadreTypography.trendsHeroUnit)
+                                .foregroundStyle(CadreColors.textSecondary)
+                        }
                     }
+                    Text("Log more entries to see your trend")
+                        .font(CadreTypography.trendsHeroSub)
+                        .foregroundStyle(CadreColors.textTertiary)
                 }
-                Text("Log more entries to see your trend")
-                    .font(CadreTypography.trendsHeroSub)
-                    .foregroundStyle(CadreColors.textTertiary)
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
+                .frame(maxWidth: .infinity, alignment: .leading)
+            )
             .padding(.horizontal, CadreSpacing.sheetHorizontal)
             .padding(.top, 20)
 
@@ -1208,6 +1251,46 @@ struct TrendsView: View {
             ctaAction: ctaAction
         )
         .padding(.top, 60)
+    }
+
+    /// Shown when the active window has no data but the user *does* have
+    /// data overall (i.e., they've stepped back into an empty range). The
+    /// chart placeholder explains the state and the stepper above it lets
+    /// them step forward to where the data lives. The hero + goal still
+    /// render — they're about the user's overall state, not just this
+    /// window — so the screen doesn't feel like an unrelated cold-start.
+    private func steppedBackEmptyBlock(latest: TrendDataPoint) -> some View {
+        let unit = selectedMetric.unit
+        return VStack(spacing: 0) {
+            heroStepperOverlay(
+                inspectHero(value: latest.value, unit: unit, dateSub: heroRelativeDate(from: latest.date))
+            )
+            .padding(.horizontal, CadreSpacing.sheetHorizontal)
+            .padding(.top, 20)
+
+            VStack(spacing: 8) {
+                Image(systemName: "chart.line.flattrend.xyaxis")
+                    .font(.system(size: 26, weight: .light))
+                    .foregroundStyle(CadreColors.textTertiary)
+                Text("No data in this window")
+                    .font(CadreTypography.trendsHeroSub)
+                    .foregroundStyle(CadreColors.textTertiary)
+            }
+            .frame(maxWidth: .infinity)
+            .frame(height: 280)
+            .padding(.horizontal, CadreSpacing.sheetHorizontal)
+            .padding(.top, 18)
+
+            GoalCard(
+                goal: goalVM?.activeGoal(for: vm?.selectedMetric.rawValue ?? ""),
+                currentValue: latest.value,
+                unit: unit,
+                onSetGoal: { showSetGoal = true },
+                onManageGoal: { showManageGoal = true }
+            )
+            .padding(.horizontal, CadreSpacing.sheetHorizontal)
+            .padding(.top, 16)
+        }
     }
 
     // MARK: - Fullscreen chart (landscape two-column layout)
@@ -1327,8 +1410,21 @@ struct TrendsView: View {
 
                     let fsShowRawLine = vm?.showRawLine ?? true
                     let fsShowRawDots = vm?.showRawDots ?? true
+                    let fsHideStepper = (vm?.timeRange ?? .month) == .all
 
-                    Chart {
+                    VStack(spacing: 6) {
+                        HStack {
+                            Spacer()
+                            windowNavRow
+                            Spacer()
+                        }
+                        .opacity(fsHideStepper ? 0 : 1)
+                        .allowsHitTesting(!fsHideStepper)
+                        // Keep clear of the close button, which overlays
+                        // the screen's top-right corner.
+                        .padding(.trailing, 36)
+
+                        Chart {
                         if fsShowRawLine {
                             ForEach(points) { point in
                                 let yVal = fsDualAxis ? normalize(point.value, min: fsPrimaryMin, max: fsPrimaryMax) : point.value
@@ -1429,6 +1525,7 @@ struct TrendsView: View {
                     }
                     .chartYScale(domain: fsDualAxis ? 0.0...1.0 : (fsPrimaryMin)...(fsPrimaryMax))
                     .trendsChartInteractivity(selectedDate: $fullscreenSelectedDate)
+                    }
                     .padding()
                     .onAppear { fullscreenSelectedDate = nil }
                 } else if let point = points.first {
