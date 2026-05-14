@@ -1,6 +1,7 @@
 {
   "enabledPlugins": {
     "axiom@axiom-marketplace": true,
-    "swiftui-expert@swiftui-expert-skill": true
+    "swiftui-expert@swiftui-expert-skill": true,
+    "frontend-design@claude-plugins-official": true
   }
 }
