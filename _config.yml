@@ -1,0 +1,11 @@
+title: Baseline
+description: Privacy Policy and Terms of Service for the Baseline iOS app.
+url: https://bgibso4.github.io
+baseurl: /baseline
+theme: jekyll-theme-minimal
+
+exclude:
+  - README.md
+  - Gemfile
+  - Gemfile.lock
+  - vendor
