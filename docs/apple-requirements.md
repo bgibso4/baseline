@@ -20,7 +20,7 @@ Legend: ✅ done · ⚠️ verify · ❌ missing
 |-----|--------|-------|
 | `com.apple.developer.healthkit` | ✅ | Enabled |
 | `com.apple.developer.healthkit.access` | ✅ | Empty array — standard HealthKit only, no clinical records |
-| `com.apple.developer.icloud-services` → `CloudKit` | ✅ | CloudDocuments removed 2026-04-19 — unused (no UIDocument/iCloud Drive path; photos sync via CloudKit external storage, CSV export uses system share sheet) |
+| `com.apple.developer.icloud-services` → `CloudKit` + `CloudDocuments` | ⚠️ | Both still present in `Baseline.entitlements` and `project.yml`. Doc previously claimed CloudDocuments was removed 2026-04-19 — that change did not actually land. Unused per audit: no `UIDocument`/iCloud Drive path; photos sync via CloudKit external storage; CSV export uses system share sheet. **Follow-up:** remove CloudDocuments in #41 (App Store review guidelines audit) — handle alongside other entitlement decisions. |
 | `com.apple.developer.icloud-container-identifiers` | ✅ | `iCloud.com.cadre.baseline` |
 | `com.apple.security.application-groups` | ✅ | `group.com.cadre.baseline` (shared with widget) |
 | `aps-environment` | n/a | Not required — CloudKit silent push via `NSPersistentCloudKitContainer` does not use APNs |
@@ -38,7 +38,7 @@ Legend: ✅ done · ⚠️ verify · ❌ missing
 | Capability | Status | Notes |
 |------------|--------|-------|
 | HealthKit | ✅ | Entitlement + usage strings present |
-| iCloud (CloudKit + CloudDocuments) | ✅ | Container identifier configured |
+| iCloud (CloudKit + CloudDocuments) | ⚠️ | Container identifier configured. CloudDocuments still present but unused — see entitlements note above. |
 | App Groups | ✅ | Shared between app and widget |
 | Background Modes → Remote notifications | ✅ | In `Baseline/Info.plist` — enables CloudKit silent push wake-ups |
 | Push Notifications | n/a | User-facing push not used in v1.0 |
@@ -51,7 +51,7 @@ Legend: ✅ done · ⚠️ verify · ❌ missing
 | Key | Status | Notes |
 |-----|--------|-------|
 | `NSCameraUsageDescription` | ✅ | "Baseline uses the camera to scan InBody printouts..." |
-| `NSHealthShareUsageDescription` | ✅ | Removed 2026-04-19 — `HealthKitManager` calls `requestAuthorization(toShare:, read: [])`, so read permission was never requested and the string was unused |
+| `NSHealthShareUsageDescription` | ✅ | Removed 2026-05-14 (issue #39 PR) — `HealthKitManager` calls `requestAuthorization(toShare:, read: [])`, so read permission was never requested and the string was unused. (Doc previously claimed removed 2026-04-19; that change did not actually land in `project.yml`.) |
 | `NSHealthUpdateUsageDescription` | ✅ | Matches stated write-only behaviour |
 | `NSPhotoLibraryUsageDescription` | n/a | No photo library access (scanner uses camera only) |
 | `NSUserTrackingUsageDescription` | n/a | No tracking — confirmed in privacy manifest |
@@ -94,6 +94,20 @@ Fill in App Store Connect during submission. Listed here so nothing is forgotten
 | App Review notes | Reuse `docs/APP_REVIEW_NOTES.md` |
 | Demo account | n/a — no sign-in |
 | Export compliance (in ASC) | Uses standard encryption, exempt. |
+| Privacy policy URL | `https://bgibso4.github.io/baseline/privacy/` — source in `gh-pages` branch. |
+| Terms of Service URL | `https://bgibso4.github.io/baseline/terms/` — source in `gh-pages` branch. Not required by Apple but used for the in-app "Not medical advice" disclaimer. |
+| Privacy contact email | `gibby.b12@gmail.com` |
+
+---
+
+## Legal pages
+
+Privacy Policy and Terms of Service are hosted on GitHub Pages from the `gh-pages` branch of this repo. Live URLs:
+
+- https://bgibso4.github.io/baseline/privacy/
+- https://bgibso4.github.io/baseline/terms/
+
+Both are linked from the app's Settings → About section (see `SettingsView.swift`). To edit, switch to the `gh-pages` branch, modify `privacy.md` or `terms.md`, bump the "Last updated" date at the top, and push. GitHub Pages rebuilds automatically within ~1 minute.
 
 ---
 
@@ -112,7 +126,8 @@ Fill in App Store Connect during submission. Listed here so nothing is forgotten
 
 1. **Required Reason API audit** — walk through Apple's list once before submission and add any new entries to `PrivacyInfo.xcprivacy`.
 2. **Final app icon** — blocker for TestFlight.
+3. **CloudDocuments entitlement removal** — still present in `project.yml` despite being unused. Bundle into #41 (App Store review guidelines audit).
 
 ---
 
-Last audited: 2026-04-19 (issue #19).
+Last audited: 2026-05-14 (issue #39 — privacy policy + ToS hosted, `NSHealthShareUsageDescription` actually removed).

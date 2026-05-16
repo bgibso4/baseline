@@ -362,7 +362,7 @@ struct SettingsView: View {
                 style: .info
             )
             SettingsDivider()
-            Link(destination: URL(string: "https://baseline.app/privacy")!) {
+            Link(destination: URL(string: "https://bgibso4.github.io/baseline/privacy/")!) {
                 SettingsRow(
                     icon: "shield",
                     label: "Privacy Policy",
@@ -371,7 +371,7 @@ struct SettingsView: View {
                 )
             }
             SettingsDivider()
-            Link(destination: URL(string: "https://baseline.app/terms")!) {
+            Link(destination: URL(string: "https://bgibso4.github.io/baseline/terms/")!) {
                 SettingsRow(
                     icon: "doc.text",
                     label: "Terms of Service",
