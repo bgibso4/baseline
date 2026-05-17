@@ -654,7 +654,7 @@ class TrendsViewModel {
             let endDate = cal.startOfDay(for: windowEndDate).addingTimeInterval(86400)
             let startDate = cal.date(byAdding: .day, value: -days, to: endDate)!
             let descriptor = FetchDescriptor<WeightEntry>(
-                predicate: #Predicate { $0.date > startDate && $0.date < endDate },
+                predicate: #Predicate { $0.date >= startDate && $0.date < endDate },
                 sortBy: sort
             )
             entries = (try? modelContext.fetch(descriptor)) ?? []
@@ -680,7 +680,7 @@ class TrendsViewModel {
             let endDate = cal.startOfDay(for: windowEndDate).addingTimeInterval(86400)
             let startDate = cal.date(byAdding: .day, value: -days, to: endDate)!
             let descriptor = FetchDescriptor<Scan>(
-                predicate: #Predicate { $0.date > startDate && $0.date < endDate },
+                predicate: #Predicate { $0.date >= startDate && $0.date < endDate },
                 sortBy: sort
             )
             scans = (try? modelContext.fetch(descriptor)) ?? []
@@ -708,7 +708,7 @@ class TrendsViewModel {
             let endDate = cal.startOfDay(for: windowEndDate).addingTimeInterval(86400)
             let startDate = cal.date(byAdding: .day, value: -days, to: endDate)!
             let descriptor = FetchDescriptor<Scan>(
-                predicate: #Predicate { $0.date > startDate && $0.date < endDate },
+                predicate: #Predicate { $0.date >= startDate && $0.date < endDate },
                 sortBy: sort
             )
             scans = (try? modelContext.fetch(descriptor)) ?? []
@@ -742,7 +742,7 @@ class TrendsViewModel {
             let endDate = cal.startOfDay(for: windowEndDate).addingTimeInterval(86400)
             let startDate = cal.date(byAdding: .day, value: -days, to: endDate)!
             let descriptor = FetchDescriptor<Measurement>(
-                predicate: #Predicate { $0.type == typeRaw && $0.date > startDate && $0.date < endDate },
+                predicate: #Predicate { $0.type == typeRaw && $0.date >= startDate && $0.date < endDate },
                 sortBy: sort
             )
             measurements = (try? modelContext.fetch(descriptor)) ?? []
