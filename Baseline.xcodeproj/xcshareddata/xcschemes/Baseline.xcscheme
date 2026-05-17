@@ -43,6 +43,18 @@
       selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
       shouldUseLaunchSchemeArgsEnv = "YES"
       onlyGenerateCoverageForSpecifiedTargets = "NO">
+      <TestPlans>
+         <TestPlanReference
+            default = "YES"
+            reference = "container:Baseline.xctestplan">
+         </TestPlanReference>
+         <TestPlanReference
+            reference = "container:Baseline-CI.xctestplan">
+         </TestPlanReference>
+         <TestPlanReference
+            reference = "container:Baseline-Snapshots.xctestplan">
+         </TestPlanReference>
+      </TestPlans>
       <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
@@ -53,17 +65,6 @@
          </BuildableReference>
       </MacroExpansion>
       <Testables>
-         <TestableReference
-            skipped = "NO"
-            parallelizable = "NO">
-            <BuildableReference
-               BuildableIdentifier = "primary"
-               BlueprintIdentifier = "BC3C8FF69C3D1B0398FBF023"
-               BuildableName = "BaselineTests.xctest"
-               BlueprintName = "BaselineTests"
-               ReferencedContainer = "container:Baseline.xcodeproj">
-            </BuildableReference>
-         </TestableReference>
       </Testables>
       <CommandLineArguments>
       </CommandLineArguments>

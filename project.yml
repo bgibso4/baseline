@@ -28,8 +28,11 @@ schemes:
       config: Debug
     test:
       config: Debug
-      targets:
-        - BaselineTests
+      testPlans:
+        - path: Baseline.xctestplan
+          defaultPlan: true
+        - path: Baseline-CI.xctestplan
+        - path: Baseline-Snapshots.xctestplan
 
 targets:
   Baseline:

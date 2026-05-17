@@ -1,0 +1,29 @@
+{
+  "configurations" : [
+    {
+      "id" : "9F1E2D3C-0000-0000-0000-000000000003",
+      "name" : "Snapshots",
+      "options" : { }
+    }
+  ],
+  "defaultOptions" : { },
+  "testTargets" : [
+    {
+      "selectedTests" : [
+        "BodyViewSnapshotTests",
+        "HistoryViewSnapshotTests",
+        "NowViewSnapshotTests",
+        "ScanEntrySnapshotTests",
+        "SettingsViewSnapshotTests",
+        "TrendsViewSnapshotTests",
+        "WeighInSheetSnapshotTests"
+      ],
+      "target" : {
+        "containerPath" : "container:Baseline.xcodeproj",
+        "identifier" : "BC3C8FF69C3D1B0398FBF023",
+        "name" : "BaselineTests"
+      }
+    }
+  ],
+  "version" : 1
+}
