@@ -7,8 +7,9 @@ DERIVED_DATA := $(CURDIR)/.build/DerivedData
 BUNDLE_ID    := com.cadre.baseline
 
 # Simulator auto-detection: booted iPhone Pro -> first available iPhone Pro -> fallback.
-BOOTED_SIM  := $(shell xcrun simctl list devices booted 2>/dev/null | grep -oE 'iPhone [0-9]+ Pro' | head -n1)
-AVAIL_SIM   := $(shell xcrun simctl list devices available 2>/dev/null | grep -oE 'iPhone [0-9]+ Pro' | head -n1)
+# grep -v Max excludes "Pro Max" lines before extracting the device name.
+BOOTED_SIM  := $(shell xcrun simctl list devices booted 2>/dev/null | grep -E 'iPhone [0-9]+ Pro' | grep -v Max | grep -oE 'iPhone [0-9]+ Pro' | head -n1)
+AVAIL_SIM   := $(shell xcrun simctl list devices available 2>/dev/null | grep -E 'iPhone [0-9]+ Pro' | grep -v Max | grep -oE 'iPhone [0-9]+ Pro' | head -n1)
 SIM_DEVICE  := $(or $(BOOTED_SIM),$(AVAIL_SIM),iPhone 16 Pro)
 DESTINATION := platform=iOS Simulator,name=$(SIM_DEVICE)
 
@@ -77,6 +78,7 @@ sim: build
 	xcrun simctl boot "$$UDID" 2>/dev/null || true; \
 	open -a Simulator; \
 	APP=$$(find $(DERIVED_DATA)/Build/Products -name 'Baseline.app' -type d | head -n1); \
+	if [ -z "$$APP" ]; then echo "Baseline.app not found in $(DERIVED_DATA)/Build/Products"; exit 1; fi; \
 	xcrun simctl install "$$UDID" "$$APP"; \
 	xcrun simctl launch "$$UDID" $(BUNDLE_ID)
 
