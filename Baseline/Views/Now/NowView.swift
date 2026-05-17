@@ -24,7 +24,7 @@ struct NowView: View {
     @State private var showGoalReached = false
     @State private var reachedGoalTarget: Double = 0
     @State private var reachedGoalStart: Double = 0
-    @State private var reachedGoalStartDate: Date = Date()
+    @State private var reachedGoalStartDate = Date()
 
     /// When non-nil, the view uses this VM directly and skips the `.onAppear`
     /// lazy init. Lets snapshot/unit tests pre-load state synchronously.

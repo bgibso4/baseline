@@ -29,7 +29,7 @@ final class InBodyDocumentParserTests: XCTestCase {
             ("Percent Body Fat", "bodyFatPct"),
             ("Total Body Water", "totalBodyWaterL"),
             ("BMI", "bmi"),
-            ("Basal Metabolic Rate", "basalMetabolicRate"),
+            ("Basal Metabolic Rate", "basalMetabolicRate")
         ]
         for (label, expectedKey) in coreLabels {
             XCTAssertEqual(
@@ -55,7 +55,7 @@ final class InBodyDocumentParserTests: XCTestCase {
             ("SMM", "skeletalMuscleMassKg"),
             ("Right Arm Lean", "rightArmLeanKg"),
             ("Left Leg Fat", "leftLegFatKg"),
-            ("Trunk Lean", "trunkLeanKg"),
+            ("Trunk Lean", "trunkLeanKg")
         ]
         for (label, expectedKey) in variants {
             XCTAssertEqual(
@@ -106,7 +106,7 @@ final class InBodyDocumentParserTests: XCTestCase {
             ("bodyFatPct", 17.1),
             ("totalBodyWaterL", 52.4),
             ("bmi", 27.3),
-            ("basalMetabolicRate", 1842.0),
+            ("basalMetabolicRate", 1842.0)
         ]
         for (key, value) in coreFields {
             InBodyDocumentParser.setField(key, value: value, on: &result)
@@ -127,7 +127,7 @@ final class InBodyDocumentParserTests: XCTestCase {
             ("leftLegLeanKg", 10.0),
             ("ecwTbwRatio", 0.380),
             ("skeletalMuscleIndex", 9.8),
-            ("visceralFatLevel", 7.0),
+            ("visceralFatLevel", 7.0)
         ]
         for (key, value) in segmentalFields {
             InBodyDocumentParser.setField(key, value: value, on: &result)

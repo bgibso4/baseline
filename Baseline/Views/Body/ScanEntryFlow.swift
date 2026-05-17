@@ -908,7 +908,6 @@ struct ScanEntryFlow: View {
         .padding(.vertical, 6)
     }
 
-
     private func saveButton(vm: ScanEntryViewModel) -> some View {
         Button {
             if vm.existingScanForSelectedDate() != nil {

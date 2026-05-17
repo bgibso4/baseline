@@ -400,7 +400,7 @@ class ScanEntryViewModel {
             "rightArmLeanKg", "leftArmLeanKg", "trunkLeanKg", "rightLegLeanKg", "leftLegLeanKg",
             "rightArmLeanPct", "leftArmLeanPct", "trunkLeanPct", "rightLegLeanPct", "leftLegLeanPct",
             "rightArmFatKg", "leftArmFatKg", "trunkFatKg", "rightLegFatKg", "leftLegFatKg",
-            "rightArmFatPct", "leftArmFatPct", "trunkFatPct", "rightLegFatPct", "leftLegFatPct",
+            "rightArmFatPct", "leftArmFatPct", "trunkFatPct", "rightLegFatPct", "leftLegFatPct"
         ]
         // Sane value ranges — any value outside these is almost certainly wrong
         let saneRanges: [String: ClosedRange<Double>] = [
@@ -419,7 +419,7 @@ class ScanEntryViewModel {
             "rightArmFatKg": 0.1...20, "leftArmFatKg": 0.1...20,
             "trunkFatKg": 1...50, "rightLegFatKg": 0.5...30, "leftLegFatKg": 0.5...30,
             "rightArmFatPct": 5...500, "leftArmFatPct": 5...500,
-            "trunkFatPct": 20...500, "rightLegFatPct": 20...500, "leftLegFatPct": 20...500,
+            "trunkFatPct": 20...500, "rightLegFatPct": 20...500, "leftLegFatPct": 20...500
         ]
 
         for key in allFieldKeys {

@@ -158,7 +158,7 @@ struct TrendsView: View {
                 )
                 .presentationDetents([.fraction(0.6)])
                 .presentationDragIndicator(.hidden)
-                .presentationBackground(Color(red: 28/255, green: 28/255, blue: 34/255))
+                .presentationBackground(Color(red: 28 / 255, green: 28 / 255, blue: 34 / 255))
             }
             .sheet(isPresented: $showSetGoal) {
                 if let goalVM {
@@ -1052,7 +1052,6 @@ struct TrendsView: View {
             || ProcessInfo.processInfo.environment["XCTestBundlePath"] != nil
     }
 
-
     private var expandStub: some View {
         Button {
             showFullscreen = true
@@ -1483,7 +1482,7 @@ struct TrendsView: View {
                         }
 
                         crosshairMarks(selectedDate: fullscreenSelectedDate, context: fsCrosshairCtx)
-                    }
+                        }
                     .chartXAxis {
                         AxisMarks(values: .automatic(desiredCount: 5)) { _ in
                             AxisValueLabel()

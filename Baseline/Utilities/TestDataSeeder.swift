@@ -43,7 +43,7 @@ enum TestDataSeeder {
             45: "Post workout",
             60: "Morning weigh-in",
             75: "Post workout",
-            88: "Morning weigh-in",
+            88: "Morning weigh-in"
         ]
 
         for day in 0..<90 {
@@ -102,7 +102,7 @@ enum TestDataSeeder {
             ScanData(dayOffset: 44, weightLb: 198.0, bodyFatPct: 20.8, smmLb: 83.5,
                      bfmLb: 41.2, tbwL: 97.5, bmi: 26.9, bmr: 1870),
             ScanData(dayOffset: 4, weightLb: 192.0, bodyFatPct: 19.2, smmLb: 84.0,
-                     bfmLb: 36.9, tbwL: 98.0, bmi: 26.1, bmr: 1880),
+                     bfmLb: 36.9, tbwL: 98.0, bmi: 26.1, bmr: 1880)
         ]
 
         for scan in scans {
@@ -143,13 +143,13 @@ enum TestDataSeeder {
             MeasData(dayOffset: 89, type: .waist, inches: 36.0),
             MeasData(dayOffset: 60, type: .waist, inches: 35.5),
             MeasData(dayOffset: 30, type: .waist, inches: 35.0),
-            MeasData(dayOffset: 4,  type: .waist, inches: 34.5),
+            MeasData(dayOffset: 4, type: .waist, inches: 34.5),
             // Chest: 42.0" (2 entries)
             MeasData(dayOffset: 89, type: .chest, inches: 42.0),
             MeasData(dayOffset: 30, type: .chest, inches: 42.0),
             // Neck: 16.5" (2 entries)
             MeasData(dayOffset: 89, type: .neck, inches: 16.5),
-            MeasData(dayOffset: 30, type: .neck, inches: 16.5),
+            MeasData(dayOffset: 30, type: .neck, inches: 16.5)
         ]
 
         for m in measurements {

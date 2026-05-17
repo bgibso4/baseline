@@ -263,7 +263,7 @@ final class CSVImporterTests: XCTestCase {
         let dateB = Calendar.current.date(byAdding: .day, value: -1, to: dateA)!
         let rows = [
             CSVWeightRow(date: dateA, weight: 185.4, unit: "lb", notes: "morning"),
-            CSVWeightRow(date: dateB, weight: 186.0, unit: "lb", notes: nil),
+            CSVWeightRow(date: dateB, weight: 186.0, unit: "lb", notes: nil)
         ]
 
         let outcome = CSVImporter.importWeights(rows, context: context, conflictStrategy: .skip)
@@ -343,7 +343,7 @@ final class CSVImporterTests: XCTestCase {
         let today = Calendar.current.startOfDay(for: Date())
         let rows = [
             CSVMeasurementRow(date: today, type: .waist, valueCm: 84.5, notes: nil),
-            CSVMeasurementRow(date: today, type: .armLeft, valueCm: 32.0, notes: nil),
+            CSVMeasurementRow(date: today, type: .armLeft, valueCm: 32.0, notes: nil)
         ]
         let outcome = CSVImporter.importMeasurements(rows, context: context, conflictStrategy: .skip)
         XCTAssertEqual(outcome.inserted, 2)
@@ -490,7 +490,7 @@ final class CSVImporterTests: XCTestCase {
         // Row claims source: .ocr, but persistence must rewrite to .imported
         // so the UI can distinguish fresh OCR from a bulk import.
         let rows = [
-            CSVScanRow(date: Date(), type: .inBody, source: .ocr, payload: payload),
+            CSVScanRow(date: Date(), type: .inBody, source: .ocr, payload: payload)
         ]
         CSVImporter.importScans(rows, context: context, conflictStrategy: .skip)
 

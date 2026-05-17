@@ -9,15 +9,15 @@ enum GoalStatus: String, Codable {
 
 @Model
 final class Goal {
-    var id: UUID = UUID()
+    var id = UUID()
     var metric: String = ""
     @Attribute(.allowsCloudEncryption) var targetValue: Double = 0.0
     var targetDate: Date?
     @Attribute(.allowsCloudEncryption) var startValue: Double = 0.0
-    var startDate: Date = Date()
-    var status: GoalStatus = GoalStatus.active
+    var startDate = Date()
+    var status = GoalStatus.active
     var completedDate: Date?
-    var createdAt: Date = Date()
+    var createdAt = Date()
 
     init(
         metric: String,

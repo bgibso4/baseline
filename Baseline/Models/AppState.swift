@@ -14,7 +14,7 @@ class AppState {
     /// Trends tab to a specific metric. TrendsView consumes this on appear
     /// (or via onChange when already visible) and resets it to nil so
     /// returning to Trends later preserves the user's last in-tab selection.
-    var trendMetric: String? = nil
+    var trendMetric: String?
 
     /// When true, TrendsView will open the SetGoalSheet on its next
     /// appear. Used by the goal-reached celebration on NowView so

@@ -21,7 +21,7 @@ extension WeightEntry: MirrorableRecord {
             "unit": unit,
             "date": ISO8601DateFormatter().string(from: date),
             "created_at": ISO8601DateFormatter().string(from: createdAt),
-            "updated_at": ISO8601DateFormatter().string(from: updatedAt),
+            "updated_at": ISO8601DateFormatter().string(from: updatedAt)
         ]
         if let notes { payload["notes"] = notes }
         return payload
@@ -41,7 +41,7 @@ extension Scan: MirrorableRecord {
             "source": source,
             "payload_data": payloadData.base64EncodedString(),
             "created_at": ISO8601DateFormatter().string(from: createdAt),
-            "updated_at": ISO8601DateFormatter().string(from: updatedAt),
+            "updated_at": ISO8601DateFormatter().string(from: updatedAt)
         ]
         if let notes { payload["notes"] = notes }
         return payload
@@ -60,7 +60,7 @@ extension Measurement: MirrorableRecord {
             "type": type,
             "value_cm": valueCm,
             "created_at": ISO8601DateFormatter().string(from: createdAt),
-            "updated_at": ISO8601DateFormatter().string(from: updatedAt),
+            "updated_at": ISO8601DateFormatter().string(from: updatedAt)
         ]
         if let notes { payload["notes"] = notes }
         return payload

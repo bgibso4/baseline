@@ -67,7 +67,7 @@ final class HealthKitMirrorFlowTests: XCTestCase {
 
         XCTAssertEqual(calls, [
             .delete(sourceID: entry.id),
-            .saveWeight(entryID: entry.id),
+            .saveWeight(entryID: entry.id)
         ], "First save must delete-then-save so the same-entry-different-attempt case is always idempotent. Actual: \(calls)")
     }
 
@@ -91,7 +91,7 @@ final class HealthKitMirrorFlowTests: XCTestCase {
         XCTAssertEqual(allEntries.first?.id, originalID, "Same-day save must reuse the entry's UUID")
         XCTAssertEqual(calls, [
             .delete(sourceID: originalID),
-            .saveWeight(entryID: originalID),
+            .saveWeight(entryID: originalID)
         ], "Same-day overwrite must delete the stale HK sample (by the existing entry's id) then write a fresh one")
     }
 
@@ -113,7 +113,7 @@ final class HealthKitMirrorFlowTests: XCTestCase {
         let calls = await spy.calls
         XCTAssertEqual(calls, [
             .delete(sourceID: originalID),
-            .saveWeight(entryID: originalID),
+            .saveWeight(entryID: originalID)
         ], "Date-change edit must wipe stale HK samples for this entry (they carry the old date) and rewrite at the new date — same UUID, same behaviour as replace-in-place. Actual: \(calls)")
     }
 
@@ -139,7 +139,7 @@ final class HealthKitMirrorFlowTests: XCTestCase {
         XCTAssertEqual(calls, [
             .delete(sourceID: victimID),
             .delete(sourceID: movedID),
-            .saveWeight(entryID: movedID),
+            .saveWeight(entryID: movedID)
         ], "Overwriting another entry's date must clean up the victim's HK samples AND the moved entry's prior-date samples before writing. Actual: \(calls)")
         let remaining = try! context.fetch(FetchDescriptor<WeightEntry>())
         XCTAssertEqual(remaining.count, 1, "Victim entry must be deleted from SwiftData too")
@@ -176,7 +176,7 @@ final class HealthKitMirrorFlowTests: XCTestCase {
         let calls = await spy.calls
         XCTAssertEqual(calls, [
             .delete(sourceID: scan.id),
-            .saveScanMetrics(scanID: scan.id),
+            .saveScanMetrics(scanID: scan.id)
         ], "New scan save must be idempotent — delete-by-id (no-op here) then write. Actual: \(calls)")
     }
 
@@ -199,7 +199,7 @@ final class HealthKitMirrorFlowTests: XCTestCase {
         let calls = await spy.calls
         XCTAssertEqual(calls, [
             .delete(sourceID: scanID),
-            .saveScanMetrics(scanID: scanID),
+            .saveScanMetrics(scanID: scanID)
         ], "Scan edit must wipe prior HK samples tagged with this scan's id before rewriting. Actual: \(calls)")
     }
 
@@ -223,7 +223,7 @@ final class HealthKitMirrorFlowTests: XCTestCase {
         let calls = await spy.calls
         XCTAssertEqual(calls, [
             .delete(sourceID: scanID),
-            .saveScanMetrics(scanID: scanID),
+            .saveScanMetrics(scanID: scanID)
         ], "Scan date-change edit must delete the old-date samples (same UUID) before writing at the new date. Actual: \(calls)")
     }
 
@@ -251,7 +251,7 @@ final class HealthKitMirrorFlowTests: XCTestCase {
         XCTAssertEqual(calls, [
             .delete(sourceID: victimID),
             .delete(sourceID: movedID),
-            .saveScanMetrics(scanID: movedID),
+            .saveScanMetrics(scanID: movedID)
         ], "Overwrite-on-edit must clean up both the victim's AND the moved scan's HK samples before writing. Actual: \(calls)")
         let remaining = try context.fetch(FetchDescriptor<Scan>())
         XCTAssertEqual(remaining.count, 1, "Victim scan must be deleted from SwiftData")
@@ -282,7 +282,7 @@ final class HealthKitMirrorFlowTests: XCTestCase {
         XCTAssertEqual(calls, [
             .delete(sourceID: victimID),
             .delete(sourceID: newScan.id),
-            .saveScanMetrics(scanID: newScan.id),
+            .saveScanMetrics(scanID: newScan.id)
         ], "Replacing an existing scan on the same date must delete the victim's HK samples. Actual: \(calls)")
     }
 
@@ -364,7 +364,7 @@ final class HealthKitMirrorFlowTests: XCTestCase {
         let calls = await spy.calls
         XCTAssertEqual(calls, [
             .delete(sourceID: sourceID),
-            .saveWaist(sourceID: sourceID),
+            .saveWaist(sourceID: sourceID)
         ], "Waist edit must delete prior sample tagged with measurement.id then rewrite. Actual: \(calls)")
     }
 
@@ -388,7 +388,7 @@ final class HealthKitMirrorFlowTests: XCTestCase {
         XCTAssertEqual(calls, [
             .delete(sourceID: victimID),
             .delete(sourceID: movedID),
-            .saveWaist(sourceID: movedID),
+            .saveWaist(sourceID: movedID)
         ], "Waist edit-overwrite must clean up BOTH the victim's samples AND the moved measurement's prior-date samples. Actual: \(calls)")
         let remaining = try! context.fetch(FetchDescriptor<Measurement>())
         XCTAssertEqual(remaining.count, 1, "Victim measurement must be removed from SwiftData")

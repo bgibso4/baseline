@@ -14,7 +14,7 @@ struct MetricPickerSheet: View {
     var onDismiss: (() -> Void)?
     @Environment(\.dismiss) private var dismiss
 
-    private let sheetBg = Color(red: 28/255, green: 28/255, blue: 34/255)
+    private let sheetBg = Color(red: 28 / 255, green: 28 / 255, blue: 34 / 255)
     private let secondary = Color(hex: "B89968") // --secondary from design tokens (dusty secondary)
 
     /// Drives a content-level lift-in when the sheet presents. The system

@@ -96,7 +96,7 @@ final class HealthKitManagerTests: XCTestCase {
             HealthKitManager.buildLeanBodyMassSample(kg: 70, date: date, sourceID: id),
             HealthKitManager.buildBMISample(bmi: 25, date: date, sourceID: id),
             HealthKitManager.buildBMRSample(kcal: 1800, date: date, sourceID: id),
-            HealthKitManager.buildWaistSample(valueCm: 85, date: date, sourceID: id),
+            HealthKitManager.buildWaistSample(valueCm: 85, date: date, sourceID: id)
         ]
         for sample in samples {
             XCTAssertEqual(

@@ -232,7 +232,7 @@ class TrendsViewModel {
     /// `timeRange.days` so the user can browse historical windows without
     /// gesture-based scrolling. Resets to `Date()` whenever the user
     /// changes time range or metric.
-    var windowEndDate: Date = Date()
+    var windowEndDate = Date()
 
     /// Generic data points for the currently selected metric.
     var dataPoints: [TrendDataPoint] = []
@@ -795,7 +795,7 @@ class TrendsViewModel {
                 (.leftArmFat, { $0.leftArmFatKg }),
                 (.trunkFat, { $0.trunkFatKg }),
                 (.rightLegFat, { $0.rightLegFatKg }),
-                (.leftLegFat, { $0.leftLegFatKg }),
+                (.leftLegFat, { $0.leftLegFatKg })
             ]
 
             for scan in scans {

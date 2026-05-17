@@ -12,8 +12,8 @@ struct EmptyStateCard: View {
     let systemImage: String
     let title: String
     let message: String
-    var ctaLabel: String? = nil
-    var ctaAction: (() -> Void)? = nil
+    var ctaLabel: String?
+    var ctaAction: (() -> Void)?
     var iconTint: Color = CadreColors.textSecondary
 
     var body: some View {

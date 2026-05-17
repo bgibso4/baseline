@@ -3,14 +3,14 @@ import SwiftData
 
 @Model
 class WeightEntry {
-    var id: UUID = UUID()
+    var id = UUID()
     @Attribute(.allowsCloudEncryption) var weight: Double = 0
     var unit: String = "lb"
-    var date: Date = Date()
+    var date = Date()
     @Attribute(.allowsCloudEncryption) var notes: String?
     @Attribute(.externalStorage, .allowsCloudEncryption) var photoData: Data?
-    var createdAt: Date = Date()
-    var updatedAt: Date = Date()
+    var createdAt = Date()
+    var updatedAt = Date()
 
     init(weight: Double, unit: String = "lb", date: Date = Date(), notes: String? = nil, photoData: Data? = nil) {
         self.id = UUID()

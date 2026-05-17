@@ -61,7 +61,7 @@ struct BaselineApp: App {
                 Scan.self,
                 BaselineMeasurement.self,
                 SyncState.self,
-                Goal.self,
+                Goal.self
             ])
             modelContainer = try ModelContainer(
                 for: fullSchema,
