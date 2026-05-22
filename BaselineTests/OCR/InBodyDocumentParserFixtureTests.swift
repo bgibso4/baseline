@@ -107,7 +107,7 @@ final class InBodyDocumentParserFixtureTests: XCTestCase {
         let coreFields: [Double?] = [
             result.weightKg, result.skeletalMuscleMassKg, result.bodyFatMassKg,
             result.bodyFatPct, result.totalBodyWaterL, result.bmi,
-            result.basalMetabolicRate,
+            result.basalMetabolicRate
         ]
         let populated = coreFields.compactMap { $0 }.count
         XCTAssertGreaterThanOrEqual(
@@ -169,7 +169,7 @@ final class InBodyDocumentParserFixtureTests: XCTestCase {
             ("leftArmFatKg", result.leftArmFatKg, nil),
             ("trunkFatKg", result.trunkFatKg, nil),
             ("rightLegFatKg", result.rightLegFatKg, nil),
-            ("leftLegFatKg", result.leftLegFatKg, nil),
+            ("leftLegFatKg", result.leftLegFatKg, nil)
         ]
 
         // Mirror ScanEntryViewModel.confidenceThreshold so diagnostic

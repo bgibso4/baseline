@@ -1,0 +1,41 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Build & Test
+    runs-on: macos-15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Select Xcode 26
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: '26.3'
+
+      - name: Cache SwiftPM packages
+        uses: actions/cache@v4
+        with:
+          path: .build/DerivedData/SourcePackages
+          key: spm-${{ runner.os }}-${{ hashFiles('Baseline.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved') }}
+          restore-keys: |
+            spm-${{ runner.os }}-
+
+      - name: Install tooling
+        run: brew install swiftlint xcbeautify
+
+      - name: Lint (non-blocking)
+        run: make lint || true
+
+      - name: Build & test (logic)
+        run: make test

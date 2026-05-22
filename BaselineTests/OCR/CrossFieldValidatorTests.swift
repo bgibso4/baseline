@@ -19,7 +19,7 @@ final class CrossFieldValidatorTests: XCTestCase {
             "intracellularWaterL": "34.0",
             "extracellularWaterL": "21.0",
             "bodyFatPct": "16.7",   // 15/90*100 = 16.667
-            "ecwTbwRatio": "0.382", // 21/55 = 0.3818
+            "ecwTbwRatio": "0.382" // 21/55 = 0.3818
         ]
         XCTAssertEqual(CrossFieldValidator.validate(fields), [])
     }
@@ -31,7 +31,7 @@ final class CrossFieldValidatorTests: XCTestCase {
         let fields: [String: String] = [
             "weightKg": "90.0",
             "bodyFatMassKg": "15.0",
-            "leanBodyMassKg": "65.0",
+            "leanBodyMassKg": "65.0"
         ]
         let failing = CrossFieldValidator.validate(fields)
         XCTAssertTrue(failing.contains("weightKg"))
@@ -44,7 +44,7 @@ final class CrossFieldValidatorTests: XCTestCase {
         let fields: [String: String] = [
             "weightKg": "90.0",
             "bodyFatMassKg": "15.0",
-            "leanBodyMassKg": "74.5",
+            "leanBodyMassKg": "74.5"
         ]
         XCTAssertFalse(CrossFieldValidator.validate(fields).contains("weightKg"))
     }
@@ -53,7 +53,7 @@ final class CrossFieldValidatorTests: XCTestCase {
         // bfm + lbm = 80, but no weight to compare against — skip the check
         let fields: [String: String] = [
             "bodyFatMassKg": "15.0",
-            "leanBodyMassKg": "65.0",
+            "leanBodyMassKg": "65.0"
         ]
         let failing = CrossFieldValidator.validate(fields)
         XCTAssertFalse(failing.contains("bodyFatMassKg"))
@@ -66,7 +66,7 @@ final class CrossFieldValidatorTests: XCTestCase {
         let fields: [String: String] = [
             "leanBodyMassKg": "75.0",
             "dryLeanMassKg": "20.0",
-            "totalBodyWaterL": "45.0", // 20 + 45 = 65, should be 75
+            "totalBodyWaterL": "45.0" // 20 + 45 = 65, should be 75
         ]
         let failing = CrossFieldValidator.validate(fields)
         XCTAssertTrue(failing.contains("leanBodyMassKg"))
@@ -80,7 +80,7 @@ final class CrossFieldValidatorTests: XCTestCase {
         let fields: [String: String] = [
             "totalBodyWaterL": "55.0",
             "intracellularWaterL": "30.0",
-            "extracellularWaterL": "30.0", // 30+30=60, should be 55
+            "extracellularWaterL": "30.0" // 30+30=60, should be 55
         ]
         let failing = CrossFieldValidator.validate(fields)
         XCTAssertTrue(failing.contains("totalBodyWaterL"))
@@ -97,7 +97,7 @@ final class CrossFieldValidatorTests: XCTestCase {
             "weightKg": "199.4",
             "bodyFatMassKg": "12.0",
             "leanBodyMassKg": "187.4",
-            "bodyFatPct": "18.0",
+            "bodyFatPct": "18.0"
         ]
         let failing = CrossFieldValidator.validate(fields)
         XCTAssertTrue(failing.contains("bodyFatPct"), "PBF must flag when BFM/weight*100 doesn't match the parsed PBF")
@@ -110,7 +110,7 @@ final class CrossFieldValidatorTests: XCTestCase {
         let fields: [String: String] = [
             "weightKg": "199.4",
             "bodyFatMassKg": "12.0",
-            "bodyFatPct": "6.1",
+            "bodyFatPct": "6.1"
         ]
         XCTAssertFalse(CrossFieldValidator.validate(fields).contains("bodyFatPct"))
     }
@@ -120,7 +120,7 @@ final class CrossFieldValidatorTests: XCTestCase {
         let fields: [String: String] = [
             "weightKg": "197.2",
             "bodyFatMassKg": "14.2",
-            "bodyFatPct": "0.0",
+            "bodyFatPct": "0.0"
         ]
         XCTAssertTrue(CrossFieldValidator.validate(fields).contains("bodyFatPct"))
     }
@@ -131,7 +131,7 @@ final class CrossFieldValidatorTests: XCTestCase {
         let fields: [String: String] = [
             "totalBodyWaterL": "55.0",
             "extracellularWaterL": "21.0", // real ratio = 0.3818
-            "ecwTbwRatio": "0.500",        // claim 0.500 — way off
+            "ecwTbwRatio": "0.500"        // claim 0.500 — way off
         ]
         XCTAssertTrue(CrossFieldValidator.validate(fields).contains("ecwTbwRatio"))
     }
@@ -140,7 +140,7 @@ final class CrossFieldValidatorTests: XCTestCase {
         let fields: [String: String] = [
             "totalBodyWaterL": "55.0",
             "extracellularWaterL": "21.0", // real ratio = 0.3818
-            "ecwTbwRatio": "0.382",        // rounded
+            "ecwTbwRatio": "0.382"        // rounded
         ]
         XCTAssertFalse(CrossFieldValidator.validate(fields).contains("ecwTbwRatio"))
     }
@@ -155,7 +155,7 @@ final class CrossFieldValidatorTests: XCTestCase {
         let fields: [String: String] = [
             "weightKg": "nope",
             "bodyFatMassKg": "15.0",
-            "leanBodyMassKg": "75.0",
+            "leanBodyMassKg": "75.0"
         ]
         // weight isn't parseable, so weight check skipped — no flags
         XCTAssertEqual(CrossFieldValidator.validate(fields), [])

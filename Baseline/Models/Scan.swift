@@ -3,14 +3,14 @@ import SwiftData
 
 @Model
 final class Scan {
-    var id: UUID = UUID()
-    var date: Date = Date()
+    var id = UUID()
+    var date = Date()
     var type: String = ""
     var source: String = ""
     @Attribute(.allowsCloudEncryption) var notes: String?
-    @Attribute(.allowsCloudEncryption) var payloadData: Data = Data()
-    var createdAt: Date = Date()
-    var updatedAt: Date = Date()
+    @Attribute(.allowsCloudEncryption) var payloadData = Data()
+    var createdAt = Date()
+    var updatedAt = Date()
 
     init(date: Date, type: ScanType, source: ScanSource, payload: Data, notes: String? = nil) {
         self.id = UUID()

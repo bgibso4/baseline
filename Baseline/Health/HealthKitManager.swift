@@ -42,7 +42,7 @@ enum HealthKitManager {
             HKQuantityType(.bodyFatPercentage),
             HKQuantityType(.leanBodyMass),
             HKQuantityType(.bodyMassIndex),
-            HKQuantityType(.basalEnergyBurned),
+            HKQuantityType(.basalEnergyBurned)
         ]
         types.insert(HKQuantityType(.waistCircumference))
         return types

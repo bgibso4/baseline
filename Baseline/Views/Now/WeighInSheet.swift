@@ -22,7 +22,7 @@ struct WeighInSheet: View {
     @State private var vm: WeighInViewModel?
     @State private var showNoteField: Bool = false
     @State private var showDatePicker: Bool = false
-    @State private var selectedDate: Date = Date()
+    @State private var selectedDate = Date()
     @State private var selectedPhoto: PhotosPickerItem?
     @State private var photoData: Data?
     @State private var showPhotosPicker: Bool = false

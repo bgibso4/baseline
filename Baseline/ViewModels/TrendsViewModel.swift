@@ -232,7 +232,7 @@ class TrendsViewModel {
     /// `timeRange.days` so the user can browse historical windows without
     /// gesture-based scrolling. Resets to `Date()` whenever the user
     /// changes time range or metric.
-    var windowEndDate: Date = Date()
+    var windowEndDate = Date()
 
     /// Generic data points for the currently selected metric.
     var dataPoints: [TrendDataPoint] = []
@@ -654,7 +654,7 @@ class TrendsViewModel {
             let endDate = cal.startOfDay(for: windowEndDate).addingTimeInterval(86400)
             let startDate = cal.date(byAdding: .day, value: -days, to: endDate)!
             let descriptor = FetchDescriptor<WeightEntry>(
-                predicate: #Predicate { $0.date > startDate && $0.date < endDate },
+                predicate: #Predicate { $0.date >= startDate && $0.date < endDate },
                 sortBy: sort
             )
             entries = (try? modelContext.fetch(descriptor)) ?? []
@@ -680,7 +680,7 @@ class TrendsViewModel {
             let endDate = cal.startOfDay(for: windowEndDate).addingTimeInterval(86400)
             let startDate = cal.date(byAdding: .day, value: -days, to: endDate)!
             let descriptor = FetchDescriptor<Scan>(
-                predicate: #Predicate { $0.date > startDate && $0.date < endDate },
+                predicate: #Predicate { $0.date >= startDate && $0.date < endDate },
                 sortBy: sort
             )
             scans = (try? modelContext.fetch(descriptor)) ?? []
@@ -708,7 +708,7 @@ class TrendsViewModel {
             let endDate = cal.startOfDay(for: windowEndDate).addingTimeInterval(86400)
             let startDate = cal.date(byAdding: .day, value: -days, to: endDate)!
             let descriptor = FetchDescriptor<Scan>(
-                predicate: #Predicate { $0.date > startDate && $0.date < endDate },
+                predicate: #Predicate { $0.date >= startDate && $0.date < endDate },
                 sortBy: sort
             )
             scans = (try? modelContext.fetch(descriptor)) ?? []
@@ -742,7 +742,7 @@ class TrendsViewModel {
             let endDate = cal.startOfDay(for: windowEndDate).addingTimeInterval(86400)
             let startDate = cal.date(byAdding: .day, value: -days, to: endDate)!
             let descriptor = FetchDescriptor<Measurement>(
-                predicate: #Predicate { $0.type == typeRaw && $0.date > startDate && $0.date < endDate },
+                predicate: #Predicate { $0.type == typeRaw && $0.date >= startDate && $0.date < endDate },
                 sortBy: sort
             )
             measurements = (try? modelContext.fetch(descriptor)) ?? []
@@ -795,7 +795,7 @@ class TrendsViewModel {
                 (.leftArmFat, { $0.leftArmFatKg }),
                 (.trunkFat, { $0.trunkFatKg }),
                 (.rightLegFat, { $0.rightLegFatKg }),
-                (.leftLegFat, { $0.leftLegFatKg }),
+                (.leftLegFat, { $0.leftLegFatKg })
             ]
 
             for scan in scans {

@@ -172,7 +172,7 @@ enum ColumnSynonyms {
         .scanPBF: ["bodyfatpct", "body_fat_pct", "pbf"],
         .scanTBW: ["totalbodywaterl", "total_body_water_l", "tbw"],
         .scanBMI: ["bmi"],
-        .scanBMR: ["basalmetabolicrate", "basal_metabolic_rate", "bmr"],
+        .scanBMR: ["basalmetabolicrate", "basal_metabolic_rate", "bmr"]
     ]
 
     /// Returns every role whose synonym set contains this normalised
@@ -315,7 +315,7 @@ enum FlexibleDateParser {
 
         // Other
         "yyyy/MM/dd",
-        "dd-MM-yyyy",
+        "dd-MM-yyyy"
     ]
 
     /// Pre-built formatters covering each base format plus two common
@@ -471,7 +471,7 @@ extension CSVFormat {
     /// (which includes a weight column) isn't misclassified as weights.
     static func detect(from headerMap: HeaderMap) -> CSVFormat? {
         let scanCoreFields: Set<ColumnRole> = [
-            .scanWeightKg, .scanSMM, .scanBFM, .scanPBF, .scanTBW, .scanBMI, .scanBMR,
+            .scanWeightKg, .scanSMM, .scanBFM, .scanPBF, .scanTBW, .scanBMI, .scanBMR
         ]
         if headerMap.has(.date) && headerMap.hasAll(scanCoreFields) {
             return .scans
@@ -661,7 +661,7 @@ enum CSVImporter {
     /// `.inBody` / `.imported` when absent.
     static func parseScans(_ csv: String) -> Result<CSVParseResult<CSVScanRow>, CSVImportError> {
         let scanCoreFields: Set<ColumnRole> = [
-            .scanWeightKg, .scanSMM, .scanBFM, .scanPBF, .scanTBW, .scanBMI, .scanBMR,
+            .scanWeightKg, .scanSMM, .scanBFM, .scanPBF, .scanTBW, .scanBMI, .scanBMR
         ]
 
         return parseWithRoles(

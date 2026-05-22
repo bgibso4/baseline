@@ -66,11 +66,12 @@ final class TrendsViewModelTests: XCTestCase {
 
         let ma = vm.movingAverage
         XCTAssertFalse(ma.isEmpty)
-        // 14 entries, window 7 -> 8 MA points.
-        XCTAssertEqual(ma.count, 8)
-        // Each window of 7 alternating 196/198 values averages near 197.
+        // Centered moving average emits one smoothed point per datapoint,
+        // so 14 entries -> 14 MA points.
+        XCTAssertEqual(ma.count, 14)
+        // Smoothing the alternating 196/198 pattern keeps every point near 197.
         for point in ma {
-            XCTAssertEqual(point.value, 197.0, accuracy: 0.2)
+            XCTAssertEqual(point.value, 197.0, accuracy: 0.3)
         }
     }
 

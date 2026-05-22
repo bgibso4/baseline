@@ -9,7 +9,7 @@ struct SetGoalSheet: View {
     let goalVM: GoalViewModel
     let defaultMetric: TrendMetric
     let currentValue: Double?
-    var editingGoal: Goal? = nil
+    var editingGoal: Goal?
 
     @State private var selectedMetric: TrendMetric
     @State private var targetText: String = ""

@@ -1,0 +1,41 @@
+#!/usr/bin/env bash
+# Baseline pre-commit hook. Installed via `make setup` (sets core.hooksPath=hooks).
+# Blocks the commit on: merge-conflict markers, files larger than 1 MB, and
+# SwiftLint *error*-severity violations. Warnings print but do not block — see
+# the SwiftLint ratchet in
+# docs/superpowers/specs/2026-05-16-phase-1-testing-ci-foundation-design.md
+set -euo pipefail
+
+fail() { echo "pre-commit: $1" >&2; exit 1; }
+
+staged=$(git diff --cached --name-only --diff-filter=ACM)
+[ -z "$staged" ] && exit 0
+
+# 1. Merge-conflict markers.
+while IFS= read -r f; do
+  [ -f "$f" ] || continue
+  if grep -nE '^(<{7}|={7}|>{7})( |$)' "$f" >/dev/null 2>&1; then
+    fail "merge-conflict marker found in $f"
+  fi
+done <<< "$staged"
+
+# 2. Large files (>1 MB).
+while IFS= read -r f; do
+  [ -f "$f" ] || continue
+  size=$(wc -c < "$f" | tr -d ' ')
+  if [ "$size" -gt 1048576 ]; then
+    fail "$f is $((size / 1024)) KB (>1 MB). Add it to .gitignore or commit it deliberately."
+  fi
+done <<< "$staged"
+
+# 3. SwiftLint on staged Swift files. Blocks only on error-severity violations.
+swift_files=$(echo "$staged" | grep '\.swift$' || true)
+if [ -n "$swift_files" ]; then
+  if ! command -v swiftlint >/dev/null 2>&1; then
+    echo "pre-commit: swiftlint not installed — skipping lint. Run 'make setup'." >&2
+  elif ! echo "$swift_files" | tr '\n' '\0' | xargs -0 swiftlint lint --quiet; then
+    fail "SwiftLint reported error-severity violations. Fix them or run 'make format'."
+  fi
+fi
+
+echo "pre-commit: checks passed."

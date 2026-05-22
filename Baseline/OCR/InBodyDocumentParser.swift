@@ -56,7 +56,7 @@ struct InBodyDocumentParser {
         "skeletal muscle index": "skeletalMuscleIndex",
         // Visceral Fat
         "visceral fat level": "visceralFatLevel",
-        "visceral fat area": "visceralFatLevel",
+        "visceral fat area": "visceralFatLevel"
     ]
 
     // MARK: - Public API
@@ -125,7 +125,7 @@ struct InBodyDocumentParser {
                 ("rightLegLeanKg", result.rightLegLeanKg), ("leftLegLeanKg", result.leftLegLeanKg),
                 ("rightArmFatKg", result.rightArmFatKg), ("leftArmFatKg", result.leftArmFatKg),
                 ("trunkFatKg", result.trunkFatKg),
-                ("rightLegFatKg", result.rightLegFatKg), ("leftLegFatKg", result.leftLegFatKg),
+                ("rightLegFatKg", result.rightLegFatKg), ("leftLegFatKg", result.leftLegFatKg)
             ]
             print("--- PARSED FIELDS ---")
             for (key, val) in fields {
@@ -136,7 +136,6 @@ struct InBodyDocumentParser {
             print("--- \(populated)/\(fields.count) fields populated ---")
             print("=== END PARSER RESULTS ===")
             #endif
-
         } catch {
             #if DEBUG
             print("[InBodyDocumentParser] RecognizeDocumentsRequest error: \(error)")
@@ -214,7 +213,7 @@ struct InBodyDocumentParser {
         "ecw/tbw analysis": "ecwTbw",
         "segmental fat analysis": "segFat",
         "basal metabolic rate": "bmr",
-        "visceral fat level": "visceralFat",
+        "visceral fat level": "visceralFat"
     ]
 
     /// Builds field regions dynamically by finding section headers and using offsets.
@@ -262,13 +261,13 @@ struct InBodyDocumentParser {
             // TBW: -0.035 (different x), LBM: -0.050 (different x), Weight: -0.065 (different x)
             let m: Double = 0.012 // margin
             regions += [
-                FieldRegion("intracellularWaterL",  y: (bodyCompY - 0.040 - m)...(bodyCompY - 0.040 + m), x: 0.18...0.32),
-                FieldRegion("extracellularWaterL",  y: (bodyCompY - 0.058 - m)...(bodyCompY - 0.058 + m), x: 0.18...0.32),
-                FieldRegion("totalBodyWaterL",      y: (bodyCompY - 0.048 - m)...(bodyCompY - 0.048 + m), x: 0.28...0.42),
-                FieldRegion("dryLeanMassKg",        y: (bodyCompY - 0.076 - m)...(bodyCompY - 0.076 + m), x: 0.18...0.32),
-                FieldRegion("leanBodyMassKg",       y: (bodyCompY - 0.058 - m)...(bodyCompY - 0.058 + m), x: 0.38...0.52),
-                FieldRegion("weightKg",             y: (bodyCompY - 0.076 - m)...(bodyCompY - 0.076 + m), x: 0.48...0.62),
-                FieldRegion("bodyFatMassKg",        y: (bodyCompY - 0.100 - m)...(bodyCompY - 0.100 + m), x: 0.18...0.32),
+                FieldRegion("intracellularWaterL", y: (bodyCompY - 0.040 - m)...(bodyCompY - 0.040 + m), x: 0.18...0.32),
+                FieldRegion("extracellularWaterL", y: (bodyCompY - 0.058 - m)...(bodyCompY - 0.058 + m), x: 0.18...0.32),
+                FieldRegion("totalBodyWaterL", y: (bodyCompY - 0.048 - m)...(bodyCompY - 0.048 + m), x: 0.28...0.42),
+                FieldRegion("dryLeanMassKg", y: (bodyCompY - 0.076 - m)...(bodyCompY - 0.076 + m), x: 0.18...0.32),
+                FieldRegion("leanBodyMassKg", y: (bodyCompY - 0.058 - m)...(bodyCompY - 0.058 + m), x: 0.38...0.52),
+                FieldRegion("weightKg", y: (bodyCompY - 0.076 - m)...(bodyCompY - 0.076 + m), x: 0.48...0.62),
+                FieldRegion("bodyFatMassKg", y: (bodyCompY - 0.100 - m)...(bodyCompY - 0.100 + m), x: 0.18...0.32)
             ]
         }
 
@@ -277,9 +276,9 @@ struct InBodyDocumentParser {
             // Weight bar: ~0.040 below header, SMM: ~0.065, BFM: ~0.090
             let m: Double = 0.015
             regions += [
-                FieldRegion("weightKg",             y: (mfY - 0.045 - m)...(mfY - 0.045 + m), x: 0.20...0.62, bullet: true),
+                FieldRegion("weightKg", y: (mfY - 0.045 - m)...(mfY - 0.045 + m), x: 0.20...0.62, bullet: true),
                 FieldRegion("skeletalMuscleMassKg", y: (mfY - 0.072 - m)...(mfY - 0.072 + m), x: 0.20...0.62, bullet: true),
-                FieldRegion("bodyFatMassKg",        y: (mfY - 0.100 - m)...(mfY - 0.100 + m), x: 0.20...0.62, bullet: true),
+                FieldRegion("bodyFatMassKg", y: (mfY - 0.100 - m)...(mfY - 0.100 + m), x: 0.20...0.62, bullet: true)
             ]
         }
 
@@ -288,8 +287,8 @@ struct InBodyDocumentParser {
             // BMI: ~0.030 below header, PBF: ~0.055
             let m: Double = 0.015
             regions += [
-                FieldRegion("bmi",       y: (obY - 0.030 - m)...(obY - 0.030 + m), x: 0.20...0.62, bullet: true),
-                FieldRegion("bodyFatPct", y: (obY - 0.060 - m)...(obY - 0.060 + m), x: 0.20...0.62, bullet: true),
+                FieldRegion("bmi", y: (obY - 0.030 - m)...(obY - 0.030 + m), x: 0.20...0.62, bullet: true),
+                FieldRegion("bodyFatPct", y: (obY - 0.060 - m)...(obY - 0.060 + m), x: 0.20...0.62, bullet: true)
             ]
         }
 
@@ -339,10 +338,10 @@ struct InBodyDocumentParser {
             let m: Double = 0.012
             let fatOffsets: [(String, String, Double)] = [
                 ("rightArmFatKg", "rightArmFatPct", 0.025),
-                ("leftArmFatKg",  "leftArmFatPct",  0.042),
-                ("trunkFatKg",    "trunkFatPct",    0.058),
+                ("leftArmFatKg", "leftArmFatPct", 0.042),
+                ("trunkFatKg", "trunkFatPct", 0.058),
                 ("rightLegFatKg", "rightLegFatPct", 0.075),
-                ("leftLegFatKg",  "leftLegFatPct",  0.092),
+                ("leftLegFatKg", "leftLegFatPct", 0.092)
             ]
             for (kgKey, pctKey, offset) in fatOffsets {
                 let yBand = (sfY - offset - m)...(sfY - offset + m)
@@ -497,11 +496,11 @@ struct InBodyDocumentParser {
 
         // Body parts with their Y offsets from the anchor and field keys
         let segments: [(kgKey: String, pctKey: String, offset: Double)] = [
-            ("rightArmLeanKg",  "rightArmLeanPct",  0.042),
-            ("leftArmLeanKg",   "leftArmLeanPct",   0.074),
-            ("trunkLeanKg",     "trunkLeanPct",     0.107),
-            ("rightLegLeanKg",  "rightLegLeanPct",  0.142),
-            ("leftLegLeanKg",   "leftLegLeanPct",   0.177),
+            ("rightArmLeanKg", "rightArmLeanPct", 0.042),
+            ("leftArmLeanKg", "leftArmLeanPct", 0.074),
+            ("trunkLeanKg", "trunkLeanPct", 0.107),
+            ("rightLegLeanKg", "rightLegLeanPct", 0.142),
+            ("leftLegLeanKg", "leftLegLeanPct", 0.177)
         ]
 
         for seg in segments {
@@ -534,7 +533,7 @@ struct InBodyDocumentParser {
                 let stripped = p.text.replacingOccurrences(of: #"^[^\d]*"#, with: "", options: .regularExpression)
                 if stripped.hasSuffix(".") || stripped.hasSuffix(". ") {
                     // Look for a digit-starting paragraph at very close Y
-                    for j in (i+1)..<rawParas.count {
+                    for j in (i + 1)..<rawParas.count {
                         if skip.contains(j) { continue }
                         let q = rawParas[j]
                         if abs(p.centerY - q.centerY) < 0.005,
@@ -641,10 +640,10 @@ struct InBodyDocumentParser {
         //   PBF:    ~0.092 below
         //   ECW/TBW: ~0.135 below
         let historyFields: [(key: String, labelPattern: String, offset: Double, saneRange: ClosedRange<Double>)] = [
-            ("weightKg",             "weight",  0.030, 50...600),
-            ("skeletalMuscleMassKg", "smm",     0.060, 30...300),
-            ("bodyFatPct",           "pbf",     0.092, 1...70),
-            ("ecwTbwRatio",          "ecw",     0.135, 0.300...0.500),
+            ("weightKg", "weight", 0.030, 50...600),
+            ("skeletalMuscleMassKg", "smm", 0.060, 30...300),
+            ("bodyFatPct", "pbf", 0.092, 1...70),
+            ("ecwTbwRatio", "ecw", 0.135, 0.300...0.500)
         ]
 
         for field in historyFields {
@@ -756,7 +755,7 @@ struct InBodyDocumentParser {
             // YYYY.MM.DD
             (#"(\d{4})\.(\d{1,2})\.(\d{1,2})"#, [3, 2, 1]),
             // MM. DD. YYYY (InBody 570 format)
-            (#"(\d{2})\.\s*(\d{2})\.\s*(\d{4})"#, [1, 2, 3]),
+            (#"(\d{2})\.\s*(\d{2})\.\s*(\d{4})"#, [1, 2, 3])
         ]
 
         for (pattern, order) in dateFormats {

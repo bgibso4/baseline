@@ -107,7 +107,7 @@ final class BodyViewSnapshotTests: XCTestCase {
             (.chest, 106.7),    // ~42.0 in
             (.neck, 40.6),      // ~16.0 in
             (.armLeft, 38.1),   // ~15.0 in
-            (.armRight, 38.4),  // ~15.1 in
+            (.armRight, 38.4)  // ~15.1 in
         ]
         for (type, valueCm) in measurements {
             let m = Measurement(date: measDate, type: type, valueCm: valueCm)
