@@ -24,27 +24,27 @@ final class SmokeNavigationUITests: BaseUITestCase {
         app.buttons[A11yID.Now.settingsButton].tap()
 
         // Settings.unitToggle is a SegmentedToggle (custom HStack), not a UISwitch.
-        // `.accessibilityIdentifier` on a plain HStack creates an otherElement but
-        // it may need to be queried via descendants(matching:) if not directly in
-        // app.otherElements. We verify Settings loaded by waiting for any element
-        // carrying the identifier, falling back to the navigation bar title.
-        let unitToggle = app.descendants(matching: .any).matching(identifier: A11yID.Settings.unitToggle).firstMatch
-        let settingsNavBar = app.navigationBars["Settings"]
+        // Query directly via otherElements first; fall back to descendants(matching:) in case the
+        // HStack surfaces under a different element type, then to the navigation bar title text.
+        let unitToggle = app.otherElements[A11yID.Settings.unitToggle].firstMatch
+        let unitToggleFallback = app.descendants(matching: .any)
+            .matching(identifier: A11yID.Settings.unitToggle).firstMatch
+        let settingsTitle = app.staticTexts["Settings"]
         XCTAssertTrue(
-            unitToggle.waitForExistence(timeout: 5) || settingsNavBar.waitForExistence(timeout: 5),
+            unitToggle.waitForExistence(timeout: 5)
+                || unitToggleFallback.exists
+                || settingsTitle.waitForExistence(timeout: 5),
             "Settings screen should appear (unit toggle or nav bar)"
         )
-        app.navigationBars.buttons.element(boundBy: 0).tap() // back
+        goBack()
 
         app.buttons[A11yID.Now.historyButton].tap()
         // SwiftUI List with .insetGrouped may surface as collectionView, table, or otherElement.
-        // We also try descendants(matching:) for any element type bearing the identifier.
-        let historyList = app.descendants(matching: .any).matching(identifier: A11yID.History.list).firstMatch
+        let historyID = A11yID.History.list
         XCTAssertTrue(
-            historyList.waitForExistence(timeout: 5)
-            || app.collectionViews[A11yID.History.list].exists
-            || app.tables[A11yID.History.list].exists
-            || app.otherElements[A11yID.History.list].exists,
+            app.otherElements[historyID].waitForExistence(timeout: 5)
+            || app.collectionViews[historyID].exists
+            || app.tables[historyID].exists,
             "History list should appear"
         )
     }
