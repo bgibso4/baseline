@@ -213,6 +213,7 @@ struct WeighInSheet: View {
             .clipShape(RoundedRectangle(cornerRadius: 10))
         }
         .buttonStyle(.plain)
+        .accessibilityIdentifier(A11yID.WeighIn.dateChip)
     }
 
     private var weightDisplay: some View {
@@ -267,6 +268,7 @@ struct WeighInSheet: View {
             .buttonStyle(.plain)
             .buttonRepeatBehavior(.enabled)
             .accessibilityLabel("Decrease weight by 0.1")
+            .accessibilityIdentifier(A11yID.WeighIn.stepperMinus)
 
             Button {
                 vm?.increment()
@@ -279,6 +281,7 @@ struct WeighInSheet: View {
             .buttonStyle(.plain)
             .buttonRepeatBehavior(.enabled)
             .accessibilityLabel("Increase weight by 0.1")
+            .accessibilityIdentifier(A11yID.WeighIn.stepperPlus)
         }
     }
 
@@ -293,6 +296,7 @@ struct WeighInSheet: View {
                     showNoteField.toggle()
                 }
             }
+            .accessibilityIdentifier(A11yID.WeighIn.addNote)
 
             // Pre-expand the sheet to `.large` before opening the picker.
             // Dynamically growing the detent on `photoData` change fires while
@@ -314,6 +318,7 @@ struct WeighInSheet: View {
                 chip(label: photoData != nil ? "Photo" : "Add photo", systemImage: "camera", filled: photoData != nil)
             }
             .buttonStyle(.plain)
+            .accessibilityIdentifier(A11yID.WeighIn.addPhoto)
             .photosPicker(isPresented: $showPhotosPicker, selection: $selectedPhoto, matching: .images)
             .onChange(of: selectedPhoto) { _, newValue in
                 Task {
@@ -397,12 +402,14 @@ struct WeighInSheet: View {
                 .background(CadreColors.accent)
                 .clipShape(RoundedRectangle(cornerRadius: 16))
         }
+        .accessibilityIdentifier(A11yID.WeighIn.save)
         .padding(.top, 12)
         .alert("Overwrite Entry?", isPresented: $showOverwriteAlert) {
             Button("Cancel", role: .cancel) { }
             Button("Overwrite", role: .destructive) {
                 performSave()
             }
+            .accessibilityIdentifier(A11yID.WeighIn.overwriteConfirm)
         } message: {
             Text("You already have a weigh-in for this date. Do you want to replace it?")
         }

@@ -64,6 +64,7 @@ struct NowView: View {
                     }
                     .buttonStyle(.plain)
                     .accessibilityLabel("Settings")
+                    .accessibilityIdentifier(A11yID.Now.settingsButton)
                 }
                 ToolbarItem(placement: .topBarTrailing) {
                     Button { showHistory = true } label: {
@@ -73,6 +74,7 @@ struct NowView: View {
                     }
                     .buttonStyle(.plain)
                     .accessibilityLabel("History")
+                    .accessibilityIdentifier(A11yID.Now.historyButton)
                 }
             }
             .toolbarBackgroundVisibility(.hidden, for: .navigationBar)
@@ -247,6 +249,7 @@ struct NowView: View {
         }
         .padding(3)
         .glassCard(cornerRadius: 10)
+        .accessibilityIdentifier(A11yID.Now.rangeToggle)
     }
 
     // MARK: - Bottom block (stats + button)
@@ -280,8 +283,11 @@ struct NowView: View {
         let stats = computedStats
         return HStack(spacing: 1) {
             statCell(label: "LOWEST", value: stats.lowest)
+                .accessibilityIdentifier(A11yID.Now.statLowest)
             statCell(label: "AVERAGE", value: stats.average)
+                .accessibilityIdentifier(A11yID.Now.statAverage)
             statCell(label: "HIGHEST", value: stats.highest)
+                .accessibilityIdentifier(A11yID.Now.statHighest)
         }
         .clipShape(RoundedRectangle(cornerRadius: 14))
         .glassCard(cornerRadius: 14)
@@ -379,6 +385,7 @@ struct NowView: View {
                 .clipShape(RoundedRectangle(cornerRadius: 16))
                 .shadow(color: CadreColors.accent.opacity(0.4), radius: 12, x: 0, y: 4)
         }
+        .accessibilityIdentifier(A11yID.Now.weighInButton)
     }
 
     // MARK: - Derived data

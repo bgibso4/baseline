@@ -34,6 +34,7 @@ struct MainTabView: View {
                     Label("Trends", systemImage: "chart.xyaxis.line")
                 }
                 .tag(AppTab.trends)
+                .accessibilityIdentifier(A11yID.TabBar.trends)
 
             NowView()
                 .compositingGroup()
@@ -41,6 +42,7 @@ struct MainTabView: View {
                     Label("Now", systemImage: "scalemass.fill")
                 }
                 .tag(AppTab.now)
+                .accessibilityIdentifier(A11yID.TabBar.now)
 
             BodyView(preloadedVM: preloadedBodyVM)
                 .compositingGroup()
@@ -48,6 +50,7 @@ struct MainTabView: View {
                     Label("Body", systemImage: "figure.stand")
                 }
                 .tag(AppTab.body)
+                .accessibilityIdentifier(A11yID.TabBar.body)
         }
         .tint(CadreColors.accent)
         .preferredColorScheme(.dark)
