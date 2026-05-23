@@ -216,6 +216,7 @@ struct ScanEntryFlow: View {
                     ) {
                         vm.selectMethod(camera: false)
                     }
+                    .accessibilityIdentifier(A11yID.ScanEntry.manualEntryButton)
                 }
                 .padding(.horizontal, CadreSpacing.sheetHorizontal)
                 .padding(.top, 20)
@@ -570,6 +571,17 @@ struct ScanEntryFlow: View {
         )
     }
 
+    /// Maps a field key to an accessibility identifier for UI tests.
+    /// Only the two keys relevant to the manual-entry happy path are tagged;
+    /// all other fields return an empty string (no identifier).
+    private func fieldAccessibilityID(for key: String) -> String {
+        switch key {
+        case "weightKg": return A11yID.ScanEntry.weightField
+        case "bodyFatPct": return A11yID.ScanEntry.bodyFatField
+        default: return ""
+        }
+    }
+
     // MARK: - Review Fields (ordered to mirror InBody 570 printout)
 
     private func reviewFields(vm: ScanEntryViewModel) -> some View {
@@ -694,6 +706,7 @@ struct ScanEntryFlow: View {
                 .onChange(of: value.wrappedValue) { _, _ in
                     vm.markFieldEdited(key)
                 }
+                .accessibilityIdentifier(fieldAccessibilityID(for: key))
 
             if !unit.isEmpty {
                 Text(unit)
@@ -889,6 +902,7 @@ struct ScanEntryFlow: View {
             }
             .font(.system(size: 14, weight: .semibold))
             .foregroundStyle(CadreColors.textSecondary)
+            .accessibilityIdentifier(A11yID.ScanEntry.cancel)
 
             Spacer()
 
@@ -926,6 +940,7 @@ struct ScanEntryFlow: View {
                 .clipShape(RoundedRectangle(cornerRadius: 14))
         }
         .disabled(!vm.canSave)
+        .accessibilityIdentifier(A11yID.ScanEntry.save)
         .padding(.horizontal, CadreSpacing.sheetHorizontal)
         .padding(.top, 12)
         .padding(.bottom, 16)

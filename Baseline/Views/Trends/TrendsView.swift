@@ -368,6 +368,7 @@ struct TrendsView: View {
             .glassCard()
         }
         .buttonStyle(.plain)
+        .accessibilityIdentifier(A11yID.Trends.metricPicker)
     }
 
     // MARK: - Range tabs (M / 6M / Y / All)
@@ -449,6 +450,7 @@ struct TrendsView: View {
             }
             .buttonStyle(.plain)
             .disabled(!(vm?.canStepBackward ?? false))
+            .accessibilityIdentifier(A11yID.Trends.windowStepBack)
 
             Text(vm?.currentWindowLabel ?? "")
                 .font(.system(size: 10, weight: .bold))
@@ -478,6 +480,7 @@ struct TrendsView: View {
             }
             .buttonStyle(.plain)
             .disabled(!(vm?.canStepForward ?? false))
+            .accessibilityIdentifier(A11yID.Trends.windowStepForward)
         }
         .padding(.horizontal, 4)
     }

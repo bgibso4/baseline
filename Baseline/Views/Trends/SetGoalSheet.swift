@@ -120,6 +120,7 @@ struct SetGoalSheet: View {
                         dismiss()
                     }
                     .foregroundStyle(CadreColors.textSecondary)
+                    .accessibilityIdentifier(A11yID.SetGoal.cancel)
                 }
             }
             .toolbarBackground(CadreColors.bgGradientCenter, for: .navigationBar)
@@ -189,6 +190,7 @@ struct SetGoalSheet: View {
                 .font(.system(size: 15))
                 .foregroundStyle(CadreColors.textPrimary)
                 .frame(maxWidth: 100)
+                .accessibilityIdentifier(A11yID.SetGoal.targetField)
             if !selectedMetric.unit.isEmpty {
                 Text(selectedMetric.unit)
                     .font(.system(size: 13))
@@ -236,6 +238,7 @@ struct SetGoalSheet: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
+        .accessibilityIdentifier(A11yID.SetGoal.targetDateField)
     }
 
     // MARK: - Save button
@@ -253,6 +256,7 @@ struct SetGoalSheet: View {
                 .clipShape(RoundedRectangle(cornerRadius: 12))
         }
         .disabled(!canSave)
+        .accessibilityIdentifier(A11yID.SetGoal.save)
     }
 
     // MARK: - Divider

@@ -92,6 +92,7 @@ struct BodyView: View {
             sectionHeader(
                 title: "Body Composition",
                 meta: scanMetaText,
+                buttonID: A11yID.Body.scanButton,
                 action: {
                     showScanEntry = true
                 }
@@ -157,6 +158,7 @@ struct BodyView: View {
             sectionHeader(
                 title: "Measurements",
                 meta: measurementMetaText,
+                buttonID: A11yID.Body.logMeasurementButton,
                 action: {
                     showLogMeasurement = true
                 }
@@ -231,7 +233,12 @@ struct BodyView: View {
 
     // MARK: - Section Header
 
-    private func sectionHeader(title: String, meta: String, action: @escaping () -> Void) -> some View {
+    private func sectionHeader(
+        title: String,
+        meta: String,
+        buttonID: String? = nil,
+        action: @escaping () -> Void
+    ) -> some View {
         HStack {
             VStack(alignment: .leading, spacing: 2) {
                 Text(title.uppercased())
@@ -254,6 +261,7 @@ struct BodyView: View {
                     .clipShape(Circle())
             }
             .buttonStyle(.plain)
+            .accessibilityIdentifier(buttonID ?? "")
         }
         .padding(.horizontal, CadreSpacing.sheetHorizontal)
         .padding(.top, 18)

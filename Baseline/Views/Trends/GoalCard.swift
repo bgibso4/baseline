@@ -45,6 +45,7 @@ struct GoalCard: View {
             )
         }
         .buttonStyle(.plain)
+        .accessibilityIdentifier(A11yID.Trends.setGoalButton)
     }
 
     // MARK: - Active State
@@ -161,6 +162,7 @@ struct GoalCard: View {
         )
         }
         .buttonStyle(.plain)
+        .accessibilityIdentifier(A11yID.Trends.manageGoalButton)
     }
 
     // MARK: - Helpers
