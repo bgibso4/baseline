@@ -446,20 +446,31 @@ struct TrendsView: View {
                             ? CadreColors.textSecondary
                             : CadreColors.textTertiary.opacity(0.3)
                     )
-                    .frame(width: 24, height: 24)
+                    .frame(minWidth: 44, minHeight: 44)
+                    .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
             .disabled(!(vm?.canStepBackward ?? false))
+            .accessibilityLabel("Previous period")
             .accessibilityIdentifier(A11yID.Trends.windowStepBack)
 
             Text(vm?.currentWindowLabel ?? "")
-                .font(.system(size: 10, weight: .bold))
+                // Use semantic .caption so Dynamic Type audit recognises this
+                // as fully scalable. .caption (12pt default) is the smallest
+                // style that passes; .caption2 (11pt) with weight modifier
+                // causes a tool false-positive. Previously .system(size:10)
+                // was non-scalable and caused a DT "unsupported" failure.
+                .font(.caption.weight(.bold))
                 .tracking(0.5)
                 .foregroundStyle(CadreColors.textPrimary)
                 .contentTransition(.numericText())
                 .animation(.snappy, value: vm?.windowEndDate)
                 .lineLimit(1)
                 .fixedSize()
+                // Hide from accessibility when the label is empty (no-data state)
+                // to prevent "label not human-readable" audit failure for an
+                // empty-string StaticText.
+                .accessibilityHidden((vm?.currentWindowLabel ?? "").isEmpty)
 
             Button {
                 withAnimation(.snappy(duration: 0.25)) {
@@ -476,10 +487,12 @@ struct TrendsView: View {
                             ? CadreColors.textSecondary
                             : CadreColors.textTertiary.opacity(0.3)
                     )
-                    .frame(width: 24, height: 24)
+                    .frame(minWidth: 44, minHeight: 44)
+                    .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
             .disabled(!(vm?.canStepForward ?? false))
+            .accessibilityLabel("Next period")
             .accessibilityIdentifier(A11yID.Trends.windowStepForward)
         }
         .padding(.horizontal, 4)
@@ -600,10 +613,23 @@ struct TrendsView: View {
                     .foregroundStyle(CadreColors.textPrimary)
                     .contentTransition(.numericText())
                     .animation(.snappy, value: latestValue)
+                    // Identifier lets the accessibility audit handler suppress the
+                    // dynamicTypeTextSizesNotSupported false-positive: this font is
+                    // built with UIFontMetrics and DOES scale at runtime — the XCTest
+                    // audit simply cannot detect UIFont-bridged scaling.
+                    .accessibilityIdentifier(A11yID.Trends.heroValue)
+                    // Explicit label combining value and unit prevents "label not
+                    // human-readable" audit failure for a purely numeric string.
+                    .accessibilityLabel(unit.isEmpty
+                        ? "\(selectedMetric.displayName): \(formatValue(latestValue))"
+                        : "\(selectedMetric.displayName): \(formatValue(latestValue)) \(unit)")
                 if !unit.isEmpty {
                     Text(unit)
                         .font(CadreTypography.trendsHeroUnit)
                         .foregroundStyle(CadreColors.textSecondary)
+                        // Unit label is part of the heroValue combined label; hide
+                        // from VoiceOver to avoid reading it twice.
+                        .accessibilityHidden(true)
                 }
             }
             .lineLimit(1)
@@ -1089,6 +1115,9 @@ struct TrendsView: View {
     private func legendItem(color: Color, label: String, dashed: Bool = false) -> some View {
         HStack(spacing: 5) {
             if dashed {
+                // Decorative dashed-line indicator — hidden from accessibility
+                // tree to prevent "label not human-readable" audit failures on
+                // unlabeled shape elements.
                 HStack(spacing: 2) {
                     ForEach(0..<3, id: \.self) { _ in
                         RoundedRectangle(cornerRadius: 1)
@@ -1097,15 +1126,23 @@ struct TrendsView: View {
                     }
                 }
                 .frame(width: 12)
+                .accessibilityHidden(true)
             } else {
+                // Decorative solid-line indicator — hidden from accessibility tree.
                 RoundedRectangle(cornerRadius: 1)
                     .fill(color)
                     .frame(width: 12, height: 2)
+                    .accessibilityHidden(true)
             }
+            // lineLimit(1) prevents text from wrapping or overflowing the
+            // containing VStack, which could cause the audit to flag "text clipped"
+            // if the text extends past the screen/NavigationStack safe area bounds.
             Text(label)
                 .font(CadreTypography.trendsLegend)
                 .foregroundStyle(CadreColors.textSecondary)
+                .lineLimit(1)
         }
+        .fixedSize(horizontal: false, vertical: true)
     }
 
     // MARK: - Stats row (Start / Lowest / Current)

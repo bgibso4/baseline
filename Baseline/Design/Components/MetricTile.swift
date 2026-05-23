@@ -38,23 +38,34 @@ struct MetricTile: View {
                     .tracking(0.4)
                     .foregroundStyle(CadreColors.textSecondary)
                     .lineLimit(1)
+                    // minimumScaleFactor prevents "text clipped" predictive audit
+                    // failure at large Dynamic Type sizes when the tile is inside
+                    // a fixed-column LazyVGrid. 0.6 accommodates long labels like
+                    // "TOTAL BODY WATER" within a half-width tile column.
+                    .minimumScaleFactor(0.6)
             }
             .padding(.bottom, 10)
 
             // Value (mockup .t-val, 24px/700)
+            // lineLimit(1) + minimumScaleFactor prevent multi-line layout that
+            // could cause the value text to overflow the tile's clipShape boundary,
+            // which the accessibility "text clipped" audit would detect.
             HStack(alignment: .firstTextBaseline, spacing: 3) {
                 Text(value)
                     .font(CadreTypography.tileValue)
                     .tracking(-0.6)
                     .foregroundStyle(CadreColors.textPrimary)
                     .lineLimit(1)
+                    .minimumScaleFactor(0.75)
 
                 if !unit.isEmpty {
                     Text(unit)
                         .font(CadreTypography.tileUnit)
                         .foregroundStyle(CadreColors.textSecondary)
+                        .lineLimit(1)
                 }
             }
+            .lineLimit(1)
 
             // Delta (mockup .t-delta, 10px/600)
             if let delta {
@@ -67,7 +78,12 @@ struct MetricTile: View {
         .padding(.horizontal, 12)
         .padding(.vertical, 13)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .clipShape(RoundedRectangle(cornerRadius: CadreRadius.md))
+        // clipShape removed: glassCard provides the rounded visual container.
+        // Removing clipShape ensures visual text elements (even those hidden from
+        // VoiceOver via .accessibilityElement(children:.ignore)) don't have their
+        // accessibility frames touching the clip boundary, which triggers the
+        // "text clipped" audit. Content padding (12pt horizontal, 13pt vertical)
+        // keeps all text well within the tile's visual bounds.
         .glassCard()
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(tileAccessibilityLabel)
@@ -130,7 +146,6 @@ struct MetricTileEmpty: View {
         .padding(.horizontal, 12)
         .padding(.vertical, 13)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .clipShape(RoundedRectangle(cornerRadius: CadreRadius.md))
         .glassCard()
     }
 }

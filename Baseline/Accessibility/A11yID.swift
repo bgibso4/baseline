@@ -16,6 +16,10 @@ enum A11yID {
         static let statLowest = "now.stat.lowest"
         static let statAverage = "now.stat.average"
         static let statHighest = "now.stat.highest"
+        /// Hero weight number — 84pt UIFontMetrics font. Responds to Dynamic Type
+        /// at runtime but XCTest audit cannot detect UIFont-bridged scaling.
+        /// Used in AccessibilityAuditUITests handler to suppress false-positive.
+        static let heroWeight = "now.heroWeight"
     }
     enum WeighIn {
         static let dateChip = "weighIn.dateChip"
@@ -32,6 +36,11 @@ enum A11yID {
         static let windowStepForward = "trends.windowStepForward"
         static let setGoalButton = "trends.setGoalButton"
         static let manageGoalButton = "trends.manageGoalButton"
+        /// Hero metric value (large display number). Uses UIFontMetrics-scaled
+        /// font that DOES respond to Dynamic Type at runtime, but the XCTest
+        /// accessibility audit cannot detect UIFont-bridged scaling — suppressed
+        /// in AccessibilityAuditUITests with this identifier.
+        static let heroValue = "trends.heroValue"
     }
     enum SetGoal {
         static let targetField = "setGoal.targetField"
@@ -42,6 +51,23 @@ enum A11yID {
     enum Body {
         static let scanButton = "body.scanButton"
         static let logMeasurementButton = "body.logMeasurementButton"
+        static let scanHistoryCard = "body.scanHistoryCard"
+        // Body composition metric tiles
+        static let tileBodyFat = "body.tile.bodyFat"
+        static let tileSkeletalMuscle = "body.tile.skeletalMuscle"
+        static let tileFatMass = "body.tile.fatMass"
+        static let tileBMI = "body.tile.bmi"
+        static let tileTotalBodyWater = "body.tile.totalBodyWater"
+        static let tileBMR = "body.tile.bmr"
+        static let tileInBodyScore = "body.tile.inBodyScore"
+        static let tileLeanBodyMass = "body.tile.leanBodyMass"
+        // Measurement tiles
+        static let tileMeasurementWaist = "body.tile.measurement.waist"
+        static let tileMeasurementChest = "body.tile.measurement.chest"
+        static let tileMeasurementNeck = "body.tile.measurement.neck"
+        static let tileMeasurementHips = "body.tile.measurement.hips"
+        static let tileMeasurementArms = "body.tile.measurement.arms"
+        static let tileMeasurementThighs = "body.tile.measurement.thighs"
     }
     enum ScanEntry {
         static let manualEntryButton = "scanEntry.manualEntryButton"
@@ -55,6 +81,7 @@ enum A11yID {
     }
     enum Settings {
         static let unitToggle = "settings.unitToggle"
+        static let lengthToggle = "settings.lengthToggle"
         static let importCSV = "settings.importCSV"
         static let exportCSV = "settings.exportCSV"
         static let privacyLink = "settings.privacyLink"

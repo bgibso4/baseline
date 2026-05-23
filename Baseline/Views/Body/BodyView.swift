@@ -116,6 +116,7 @@ struct BodyView: View {
                                 )
                             }
                             .buttonStyle(.plain)
+                            .accessibilityIdentifier(bodyCompTileID(for: tile.label))
                         } else {
                             NavigationLink {
                                 MetricHistoryView(
@@ -134,6 +135,7 @@ struct BodyView: View {
                                 )
                             }
                             .buttonStyle(.plain)
+                            .accessibilityIdentifier(bodyCompTileID(for: tile.label))
                         }
                     }
                 }
@@ -171,7 +173,8 @@ struct BodyView: View {
                         MeasurementTileLink(
                             tile: tile,
                             trendName: trendMetricNameForMeasurement(tile.label),
-                            appState: appState
+                            appState: appState,
+                            a11yID: measurementTileID(for: tile.label)
                         )
                     }
                 }
@@ -210,9 +213,13 @@ struct BodyView: View {
                         .font(CadreTypography.scanHistoryTitle)
                         .tracking(-0.2)
                         .foregroundStyle(CadreColors.textPrimary)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.8)
                     Text(scanHistorySubtitle)
                         .font(CadreTypography.scanHistoryMeta)
                         .foregroundStyle(CadreColors.textTertiary)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.8)
                 }
 
                 Spacer(minLength: 0)
@@ -223,10 +230,13 @@ struct BodyView: View {
             }
             .padding(.horizontal, 14)
             .padding(.vertical, 14)
-            .clipShape(RoundedRectangle(cornerRadius: CadreRadius.md))
+            // clipShape removed from the content HStack to avoid wrapping text
+            // accessibility frames in a clip boundary. glassCard provides the
+            // rounded visual container; text stays unclipped at large DT sizes.
             .glassCard()
         }
         .buttonStyle(.plain)
+        .accessibilityIdentifier(A11yID.Body.scanHistoryCard)
     }
 
     // Scan history placeholder removed — replaced by ScanHistoryView
@@ -245,10 +255,16 @@ struct BodyView: View {
                     .font(CadreTypography.bodySectionTitle)
                     .tracking(0.6)
                     .foregroundStyle(CadreColors.textSecondary)
+                    // lineLimit + minimumScaleFactor prevent "text clipped" predictive
+                    // audit failure at large Dynamic Type sizes.
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.8)
                 if !meta.isEmpty {
                     Text(meta)
                         .font(CadreTypography.bodySectionMeta)
                         .foregroundStyle(CadreColors.textTertiary)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.8)
                 }
             }
             Spacer(minLength: 0)
@@ -444,6 +460,34 @@ struct BodyView: View {
         return nil
     }
 
+    /// Maps a body composition tile label to its A11yID constant.
+    private func bodyCompTileID(for label: String) -> String {
+        switch label {
+        case "Body Fat": return A11yID.Body.tileBodyFat
+        case "Skeletal Muscle": return A11yID.Body.tileSkeletalMuscle
+        case "Fat Mass": return A11yID.Body.tileFatMass
+        case "BMI": return A11yID.Body.tileBMI
+        case "Total Body Water": return A11yID.Body.tileTotalBodyWater
+        case "BMR": return A11yID.Body.tileBMR
+        case "InBody Score": return A11yID.Body.tileInBodyScore
+        case "Lean Body Mass": return A11yID.Body.tileLeanBodyMass
+        default: return "body.tile.\(label.lowercased().replacingOccurrences(of: " ", with: "."))"
+        }
+    }
+
+    /// Maps a measurement tile label to its A11yID constant.
+    private func measurementTileID(for label: String) -> String {
+        switch label {
+        case "Waist": return A11yID.Body.tileMeasurementWaist
+        case "Chest": return A11yID.Body.tileMeasurementChest
+        case "Neck": return A11yID.Body.tileMeasurementNeck
+        case "Hips": return A11yID.Body.tileMeasurementHips
+        case "Arms": return A11yID.Body.tileMeasurementArms
+        case "Thighs": return A11yID.Body.tileMeasurementThighs
+        default: return "body.tile.measurement.\(label.lowercased())"
+        }
+    }
+
     // MARK: - Measurement Tile Link
 
     /// Extracted to a separate struct to reduce Swift type-checker complexity.
@@ -451,6 +495,7 @@ struct BodyView: View {
         let tile: TileData
         let trendName: String?
         let appState: AppState?
+        var a11yID: String = ""
 
         var body: some View {
             if let trendName {
@@ -467,6 +512,7 @@ struct BodyView: View {
                     )
                 }
                 .buttonStyle(.plain)
+                .accessibilityIdentifier(a11yID)
             } else {
                 NavigationLink {
                     MeasurementHistoryView(
@@ -482,6 +528,7 @@ struct BodyView: View {
                     )
                 }
                 .buttonStyle(.plain)
+                .accessibilityIdentifier(a11yID)
             }
         }
     }
