@@ -191,6 +191,7 @@ struct SettingsView: View {
                         set: { vm.weightUnit = $0 }
                     )
                 )
+                .accessibilityIdentifier(A11yID.Settings.unitToggle)
             }
             .padding(.horizontal, 16)
             .padding(.vertical, 14)
@@ -248,6 +249,7 @@ struct SettingsView: View {
                     style: .action
                 )
             }
+            .accessibilityIdentifier(A11yID.Settings.exportCSV)
             SettingsDivider()
             NavigationLink {
                 ImportCSVView()
@@ -259,6 +261,7 @@ struct SettingsView: View {
                     style: .action
                 )
             }
+            .accessibilityIdentifier(A11yID.Settings.importCSV)
         }
     }
 
@@ -370,6 +373,7 @@ struct SettingsView: View {
                     style: .externalLink
                 )
             }
+            .accessibilityIdentifier(A11yID.Settings.privacyLink)
             SettingsDivider()
             Link(destination: URL(string: "https://bgibso4.github.io/baseline/terms/")!) {
                 SettingsRow(
@@ -379,6 +383,7 @@ struct SettingsView: View {
                     style: .externalLink
                 )
             }
+            .accessibilityIdentifier(A11yID.Settings.termsLink)
         }
     }
 

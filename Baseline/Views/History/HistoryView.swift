@@ -130,6 +130,7 @@ struct HistoryView: View {
         }
         .listStyle(.insetGrouped)
         .scrollContentBackground(.hidden)
+        .accessibilityIdentifier(A11yID.History.list)
     }
 
     private var emptyState: some View {
