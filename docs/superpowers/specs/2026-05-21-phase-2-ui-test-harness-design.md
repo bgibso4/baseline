@@ -28,7 +28,9 @@ The sequencing rationale (carried from the Phase 1 spec): build the UI-test harn
 |---|---|---|
 | UI-test scope | Harness **plus** full end-to-end flow coverage of existing screens | User chose to invest in real flow tests now (weigh-in, scan entry, set-goal, CSV import), not just a thin smoke test. Onboarding adds its own flow tests later. |
 | Test-mode data store | In-memory `ModelContainer` (`isStoredInMemoryOnly: true`, `cloudKitDatabase: .none`) seeded with deterministic fixtures | Each run starts identical and isolated; nothing touches iCloud or persists. A seed-profile arg varies the fixture for empty-state vs populated tests. |
-| A11y registry | Single shared `A11yID` enum compiled into app **and** UI-test target; **exhaustively** tag every interactive control across all 5 screens | One source of truth, no stringly-typed drift. User chose exhaustive tagging now over tag-as-needed. |
+| A11y registry | Single shared `A11yID` enum compiled into app **and** UI-test target; **exhaustively** tag every interactive control across all screens | One source of truth, no stringly-typed drift. User chose exhaustive tagging now over tag-as-needed. |
+
+**Navigation note:** The app has **3 tabs** — Trends, Now, Body (`AppTab` in `MainTabView.swift`). Settings and History are **not** tabs; they are pushed from the Now screen's toolbar (gear → Settings at `NowView.swift:105`, list → History at `NowView.swift:108`). Scan entry is a `fullScreenCover` from Body (`BodyView.swift:81`). "Screens" below means: Trends, Now, Body, History, Settings, plus the WeighIn / ScanEntry / SetGoal sheets.
 | Test-mode seam | One centralized `LaunchConfiguration` type parsed once at launch | Replaces the two scattered `XCTestConfigurationFilePath` checks with a single typed, unit-testable seam instead of growing the stringly-typed env checks. |
 | UI tests in CI | **Run in CI**, not local-only | Determinism is engineered in (animations off, in-memory seed, no CloudKit), so the flakiness rationale that keeps snapshot tests local does not apply. Running them in CI is the payoff of the harness. Public repo → free runner minutes. |
 | Docs | `CONTRIBUTING.md` + a `tech-debt` GitHub label (migrate Phase 1 follow-ups into issues) | `DESIGN_DECISIONS.md` already exists; flat tracking files contradict the issues-over-markdown preference. |
@@ -100,16 +102,16 @@ Fixtures use a frozen base date (a constant, e.g. a fixed `2026-01-01` anchor) s
 
 A namespace of nested enums of `String` raw values, one group per screen/area:
 
-- `A11yID.TabBar` — `now`, `trends`, `body`, `history`, `settings`
-- `A11yID.Now` — the weigh-in button, range toggle, stats elements
+- `A11yID.TabBar` — `trends`, `now`, `body` (the only 3 tabs)
+- `A11yID.Now` — `settingsButton`, `historyButton` (toolbar entry points to Settings/History), weigh-in button, range toggle, stats elements
 - `A11yID.WeighIn` — `stepperPlus`, `stepperMinus`, `valueLabel`, `save`, `cancel`
 - `A11yID.Trends` — metric picker, window stepper controls, set-goal entry, goal-mode elements
-- `A11yID.Body` — `scanButton` and scan list elements
+- `A11yID.Body` — `scanButton`, log-measurement button, scan/measurement list elements
 - `A11yID.ScanEntry` — capture/manual-entry fields, confirm/save
 - `A11yID.History` — list and row elements
 - `A11yID.Settings` — toggles, the privacy/terms links, CSV import/export, about
 
-**Exhaustive tagging:** every interactive control across all 5 screens gets `.accessibilityIdentifier(A11yID.…)`. This is a deliberate, complete pass — not tag-as-needed.
+**Exhaustive tagging:** every interactive control across all screens gets `.accessibilityIdentifier(A11yID.…)`. This is a deliberate, complete pass — not tag-as-needed.
 
 Identifiers are referenced by raw value from the UI tests (e.g. `app.buttons[A11yID.WeighIn.save]`), so a rename in one place flows to the tests at compile time.
 
@@ -123,8 +125,8 @@ Identifiers are referenced by raw value from the UI tests (e.g. `app.buttons[A11
 
 Test files:
 
-- **`AccessibilityAuditUITests.swift`** — navigates to each of the 5 screens and calls `try app.performAccessibilityAudit()` on each. Catches contrast, hit-target, label, and clipping issues automatically.
-- **`SmokeNavigationUITests.swift`** — launches and visits all 5 tabs, asserting a landmark element exists on each. The minimum "the app boots and navigates" guarantee.
+- **`AccessibilityAuditUITests.swift`** — navigates to each screen (the 3 tabs plus Settings and History via Now's toolbar) and calls `try app.performAccessibilityAudit()` on each. Catches contrast, hit-target, label, and clipping issues automatically.
+- **`SmokeNavigationUITests.swift`** — launches, visits all 3 tabs and pushes Settings + History from Now, asserting a landmark element exists on each. The minimum "the app boots and navigates" guarantee.
 - **`IdentifierCoverageUITests.swift`** — the ratchet: walk `app.buttons`/`app.textFields` on each screen and fail if any non-system interactive element has an empty `identifier`. Catches future untagged controls (adapted from Beacon's `testNoUntaggedButtons`/`testNoUntaggedTextFields`, with a system-control allowlist).
 - **`WeighInFlowUITests.swift`** — `.populated`: open the weigh-in sheet, use the steppers, save, assert the Now screen reflects the new value.
 - **`ScanEntryFlowUITests.swift`** — `.populated`: drive the scan-entry **manual-entry** path (camera capture cannot run in the simulator), confirm, assert the new scan appears in Body/History.
@@ -160,7 +162,7 @@ No `TECHNICAL_DEBT.md` and no `DECISIONS.md` are created — the latter already 
 
 - Launching with `-UITestMode -UITestSeed populated` shows the seeded fixture, animations disabled, no iCloud/HealthKit activity.
 - `make test-ui` runs only the UI tests; `make test` runs logic + UI tests (the CI plan); `make test-all` adds snapshots.
-- `AccessibilityAuditUITests` passes `performAccessibilityAudit()` on all 5 screens.
+- `AccessibilityAuditUITests` passes `performAccessibilityAudit()` on all screens (3 tabs + Settings + History).
 - `IdentifierCoverageUITests` fails if an interactive control is added without an `A11yID`.
 - The four flow tests (weigh-in, scan entry, set-goal, CSV import) pass deterministically across repeated runs.
 - A PR triggers CI and the UI tests run as part of the gate.
