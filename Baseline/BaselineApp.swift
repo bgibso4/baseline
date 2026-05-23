@@ -36,6 +36,35 @@ struct BaselineApp: App {
 
     init() {
         Log.app.info("Baseline launching")
+
+        let config = LaunchConfiguration.current
+
+        #if DEBUG
+        if config.isUITesting {
+            let schema = Schema([WeightEntry.self, Scan.self, BaselineMeasurement.self, SyncState.self, Goal.self])
+            let memConfig = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true, cloudKitDatabase: .none)
+            do {
+                modelContainer = try ModelContainer(for: schema, configurations: [memConfig])
+            } catch {
+                fatalError("Failed to configure in-memory UI-test store: \(error)")
+            }
+            TestDataSeeder.seed(profile: config.seedProfile, into: modelContainer.mainContext, referenceDate: Date())
+
+            self.mirror = NoOpOutboundMirror()
+            SyncHelper.mirror = self.mirror
+
+            let context = modelContainer.mainContext
+            let state = AppState()
+            let trendsVM = TrendsViewModel(modelContext: context)
+            trendsVM.refresh()
+            state.preloadedTrendsVM = trendsVM
+            state.preloadedGoalVM = GoalViewModel(modelContext: context)
+            state.preloadedBodyVM = BodyViewModel(modelContext: context)
+            _appState = State(initialValue: state)
+            return
+        }
+        #endif
+
         CloudKitSyncMonitor.start()
 
         // User data — syncs to iCloud via CloudKit, stored in shared App Group container
@@ -100,14 +129,17 @@ struct BaselineApp: App {
             MainTabView()
                 .environment(appState)
                 .task {
+                    guard !LaunchConfiguration.current.isUITesting else { return }
                     try? Tips.configure([
                         .displayFrequency(.weekly)
                     ])
                 }
                 .task {
+                    guard !LaunchConfiguration.current.isUITesting else { return }
                     await HealthKitManager.requestAuthorizationIfNeeded()
                 }
                 .task {
+                    guard !LaunchConfiguration.current.isUITesting else { return }
                     await mirror.reconcile(context: modelContainer.mainContext)
                 }
         }
