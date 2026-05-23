@@ -24,6 +24,7 @@ schemes:
       targets:
         Baseline: all
         BaselineTests: [test]
+        BaselineUITests: [test]
     run:
       config: Debug
     test:
@@ -92,6 +93,19 @@ targets:
       - target: Baseline
       - package: SnapshotTesting
         product: SnapshotTesting
+
+  BaselineUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources:
+      - path: BaselineUITests
+      - path: Baseline/Accessibility/A11yID.swift
+    settings:
+      base:
+        GENERATE_INFOPLIST_FILE: YES
+        TARGETED_DEVICE_FAMILY: "1"
+    dependencies:
+      - target: Baseline
 
   BaselineWidgets:
     type: app-extension

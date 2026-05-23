@@ -14,6 +14,13 @@
         "identifier" : "BC3C8FF69C3D1B0398FBF023",
         "name" : "BaselineTests"
       }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:Baseline.xcodeproj",
+        "identifier" : "EEAE4EA7C96444E0F9647218",
+        "name" : "BaselineUITests"
+      }
     }
   ],
   "version" : 1

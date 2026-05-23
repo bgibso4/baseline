@@ -35,6 +35,20 @@
                ReferencedContainer = "container:Baseline.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
+         <BuildActionEntry
+            buildForTesting = "YES"
+            buildForRunning = "NO"
+            buildForProfiling = "NO"
+            buildForArchiving = "NO"
+            buildForAnalyzing = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "EEAE4EA7C96444E0F9647218"
+               BuildableName = "BaselineUITests.xctest"
+               BlueprintName = "BaselineUITests"
+               ReferencedContainer = "container:Baseline.xcodeproj">
+            </BuildableReference>
+         </BuildActionEntry>
       </BuildActionEntries>
    </BuildAction>
    <TestAction
