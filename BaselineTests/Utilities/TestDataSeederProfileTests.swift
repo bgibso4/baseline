@@ -12,7 +12,7 @@ final class TestDataSeederProfileTests: XCTestCase {
     }
 
     private let refDate = Calendar.current.startOfDay(
-        for: Date(timeIntervalSince1970: 1_767_225_600) // 2026-01-01 UTC
+        for: Date(timeIntervalSince1970: 1_767_225_600) // 2026-01-01 00:00:00 UTC (local start-of-day applied by seeder)
     )
 
     func testEmptyProfileInsertsNothing() throws {
@@ -20,6 +20,8 @@ final class TestDataSeederProfileTests: XCTestCase {
         TestDataSeeder.seed(profile: .empty, into: context, referenceDate: refDate)
         XCTAssertEqual(try context.fetchCount(FetchDescriptor<WeightEntry>()), 0)
         XCTAssertEqual(try context.fetchCount(FetchDescriptor<Goal>()), 0)
+        XCTAssertEqual(try context.fetchCount(FetchDescriptor<Scan>()), 0)
+        XCTAssertEqual(try context.fetchCount(FetchDescriptor<Baseline.Measurement>()), 0)
     }
 
     func testPopulatedProfileSeedsKnownCounts() throws {
@@ -38,6 +40,8 @@ final class TestDataSeederProfileTests: XCTestCase {
         XCTAssertEqual(goals.count, 1)
         XCTAssertEqual(goals.first?.status, .active)
         XCTAssertEqual(goals.first?.metric, TrendMetric.weight.rawValue)
+        XCTAssertEqual(goals.first?.targetValue, 185.0)
+        XCTAssertEqual(goals.first?.startValue, 205.0)
     }
 
     func testPopulatedIsDeterministicAcrossRuns() throws {

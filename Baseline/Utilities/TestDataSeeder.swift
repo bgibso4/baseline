@@ -44,6 +44,7 @@ enum TestDataSeeder {
         try? context.delete(model: WeightEntry.self)
         try? context.delete(model: Scan.self)
         try? context.delete(model: BodyMeasurement.self)
+        try? context.delete(model: Goal.self)
         try? context.save()
     }
 
