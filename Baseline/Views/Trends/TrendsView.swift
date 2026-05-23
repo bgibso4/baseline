@@ -1035,7 +1035,7 @@ struct TrendsView: View {
         // hosting controller's first frame, before .onAppear's animation
         // can run. Without this guard, snapshots come out with a blank
         // chart area where the line should be.
-        if reduceMotion || isRunningTests {
+        if reduceMotion || LaunchConfiguration.current.shouldDisableAnimations {
             chartRevealProgress = 1
             return
         }
@@ -1045,11 +1045,6 @@ struct TrendsView: View {
                 chartRevealProgress = 1
             }
         }
-    }
-
-    private var isRunningTests: Bool {
-        ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil
-            || ProcessInfo.processInfo.environment["XCTestBundlePath"] != nil
     }
 
     private var expandStub: some View {
