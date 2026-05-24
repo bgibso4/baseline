@@ -38,102 +38,38 @@ final class AccessibilityAuditUITests: BaseUITestCase {
     //      correctly at runtime. Each suppressed element is listed in the
     //      handler below.
 
-    // MARK: - Shared contrast + Dynamic Type handler
+    // MARK: - Global false-positive handler
+    //
+    // Only truly cross-screen suppressions live here. Screen-specific ones
+    // (now.stat.*, body tile labels, history month names, etc.) are gated in
+    // each test's own closure so future regressions on other screens still fail.
 
     /// Returns true (suppress) for audit issues that are false-positives caused by
     /// the app's transparent/glass-card design or UIFont-bridged Dynamic Type fonts.
-    private func suppressKnownContrastFalsePositive(_ issue: XCUIAccessibilityAuditIssue) -> Bool {
+    /// Only contains suppressions that apply globally (all screens).
+    private func suppressKnownFalsePositive(_ issue: XCUIAccessibilityAuditIssue) -> Bool {
         let desc = issue.element?.description ?? ""
 
-        // MARK: Dynamic Type suppressions
+        // MARK: Dynamic Type suppressions — global (UIFontMetrics heroes)
         //
-        // Two categories of DT false-positives:
-        //
-        // A) UIFontMetrics-bridged fonts (hero numbers). These scale at runtime but
-        //    XCTest cannot detect UIFont-bridged scaling — a known tool limitation.
-        //
-        // B) SwiftUI semantic .caption2 fonts with weight modifiers (e.g.
-        //    .caption2.weight(.semibold)). The XCTest DT audit marks these
-        //    "partially unsupported" even though they ARE Dynamic Type-aware at
-        //    runtime. This appears to be a tool limitation specific to .caption2;
-        //    larger semantic styles (.caption and above) with weight modifiers
-        //    are detected correctly. Pixel-verified: all affected elements scale
-        //    normally when the user increases text size in Settings.
+        // UIFontMetrics-bridged fonts (hero numbers). These scale at runtime but
+        // XCTest cannot detect UIFont-bridged scaling — a known tool limitation.
+        // These are narrowly matched by A11yID identifier so they only fire
+        // on the element they're intended for.
         if issue.auditType == .dynamicType {
-            // A) UIFontMetrics heroes:
-            // Trends hero value (44pt trendsHero), Now hero weight (84pt weightHero).
+            // Trends hero value (44pt trendsHero) and Now hero weight (84pt weightHero):
+            // UIFontMetrics-bridged; XCTest cannot verify scaling.
             if desc.contains(A11yID.Trends.heroValue) { return true }
             if desc.contains(A11yID.Now.heroWeight) { return true }
-
-            // B) .caption2.weight(…) partially-unsupported false-positives:
-            // Now stat cells — statLabel (.caption2.semibold) and statUnit (.caption2).
-            // Parent container identifier propagates to child StaticText descriptions.
-            if desc.contains("now.stat.") { return true }
-            // Body section meta "Last logged · …" and "Last scan · …":
-            // bodySectionMeta = .caption2.weight(.medium), textTertiary on gradient.
-            if desc.contains("Last logged") || desc.contains("Last scan") { return true }
-            // Trends chart legend items ("7-day average", "Daily"):
-            // trendsLegend = .caption2.weight(.medium), textSecondary on gradient.
-            if desc.contains("7-day average") || desc.contains("Daily") { return true }
-            // Trends stat row labels (START, LOWEST, CURRENT):
-            // trendsStatLabel = .caption2.weight(.semibold), textTertiary on card.
-            let trendsStatLabels = ["\"START\"", "\"LOWEST\"", "\"CURRENT\""]
-            if trendsStatLabels.contains(where: { desc.hasPrefix($0) }) { return true }
-            // Body tile labels: tileLabel = .caption2.weight(.semibold).
-            // MetricTile uses .accessibilityElement(children: .ignore) so children
-            // aren't in the VoiceOver tree, but the DT audit still scans visual text.
-            // The parent Button's identifier (body.tile.*) may or may not propagate;
-            // suppress by matching the known uppercase tile label strings.
-            if desc.contains("body.tile.") { return true }
-            let bodyTileLabels = ["BODY FAT", "SKELETAL MUSCLE", "FAT MASS", "BMI",
-                                  "TOTAL BODY WATER", "BMR", "INBODY SCORE", "LEAN BODY MASS",
-                                  "WAIST", "CHEST", "NECK", "HIPS", "ARMS", "THIGHS"]
-            if bodyTileLabels.contains(where: { desc.contains($0) }) { return true }
         }
 
         guard issue.auditType == .contrast else { return false }
-
-        // Range toggle tabs (Now screen): textSecondary on Color.clear over glassCard.
-        // Actual contrast ≈7.1:1 against composited surface.
-        if desc.contains("now.rangeToggle") { return true }
-
-        // Trends range tabs ("M", "6M", "Y", "All"): same transparent-bg pattern.
-        let trendRangeLabels = ["\"M\"", "\"6M\"", "\"Y\"", "\"All\""]
-        if trendRangeLabels.contains(where: { desc.hasPrefix($0) }) { return true }
-
-        // Trends chart legend texts ("7-day average", "Weight", etc.):
-        // textTertiary on gradient background — no card bg detectable by audit.
-        let trendLegendPhrases = ["7-day average", "Weight"]
-        if trendLegendPhrases.contains(where: { desc.contains($0) }) { return true }
-
-        // Body subtitle texts ("Last scan · …", "Last logged · …",
-        // "N scans · since …"): textTertiary on glass card. Actual ≈6.7:1.
-        if desc.contains("Last scan") || desc.contains("Last logged") ||
-           desc.contains("scans ·") || desc.contains("since ") { return true }
 
         // Settings segmented toggles: inactive option on Color.clear, dark card behind.
         // The "unitToggle" and "lengthToggle" identifiers propagate to child StaticTexts.
         if desc.contains("settings.unitToggle") || desc.contains("settings.lengthToggle") {
             return true
         }
-
-        // Settings "Measurements" row label: textPrimary (#F2F3F5, L≈0.90) on cardGlass
-        // (Color(hex:"17171B").opacity(0.75)) composited over the dark gradient.
-        // Pixel contrast ≈14:1 — extreme PASS. Audit false-positive because it cannot
-        // see through the 75% opacity layer and assumes white behind the transparent card.
-        if desc.hasPrefix("\"Measurements\"") { return true }
-
-        // Settings section header labels ("UNITS", "PROFILE", etc.):
-        // textTertiary on gradient. Actual ≈7.2:1.
-        let settingsHeaderLabels = ["\"UNITS\"", "\"PROFILE\"", "\"APPEARANCE\"", "\"DATA\"",
-                                    "\"HEALTH\"", "\"ABOUT\"", "\"RESET\"", "\"DEVELOPER\""]
-        if settingsHeaderLabels.contains(where: { desc.hasPrefix($0) }) { return true }
-
-        // History section header month labels ("MAY 2026", "APRIL 2026", etc.):
-        // textTertiary on gradient background. Actual ≈6.7:1.
-        let monthNames = ["JANUARY", "FEBRUARY", "MARCH", "APRIL", "MAY", "JUNE",
-                          "JULY", "AUGUST", "SEPTEMBER", "OCTOBER", "NOVEMBER", "DECEMBER"]
-        if monthNames.contains(where: { desc.contains($0) }) { return true }
 
         return false
     }
@@ -143,7 +79,27 @@ final class AccessibilityAuditUITests: BaseUITestCase {
     func testNowScreenAccessibility() throws {
         tapTab(A11yID.TabBar.now)
         try app.performAccessibilityAudit { issue in
-            if self.suppressKnownContrastFalsePositive(issue) { return true }
+            if self.suppressKnownFalsePositive(issue) { return true }
+
+            let desc = issue.element?.description ?? ""
+
+            // MARK: Now screen — Dynamic Type false-positives
+
+            if issue.auditType == .dynamicType {
+                // Now stat cells — statLabel (.caption2.semibold) and statUnit (.caption2).
+                // Parent container identifier propagates to child StaticText descriptions.
+                // SwiftUI .caption2.weight(…) "partially unsupported" false-positive — see
+                // class comment section B. Scoped here; "now.stat." prefix is Now-specific.
+                if desc.contains("now.stat.") { return true }
+            }
+
+            // MARK: Now screen — Contrast false-positives
+
+            if issue.auditType == .contrast {
+                // Range toggle tabs (Now screen): textSecondary on Color.clear over glassCard.
+                // Actual contrast ≈7.1:1 against composited surface.
+                if desc.contains("now.rangeToggle") { return true }
+            }
 
             // MARK: Now stat-card suppression (textClipped + dynamicType)
             //
@@ -199,7 +155,37 @@ final class AccessibilityAuditUITests: BaseUITestCase {
     func testTrendsScreenAccessibility() throws {
         tapTab(A11yID.TabBar.trends)
         try app.performAccessibilityAudit { issue in
-            if self.suppressKnownContrastFalsePositive(issue) { return true }
+            if self.suppressKnownFalsePositive(issue) { return true }
+
+            let desc = issue.element?.description ?? ""
+
+            // MARK: Trends screen — Dynamic Type false-positives
+
+            if issue.auditType == .dynamicType {
+                // Trends chart legend items ("7-day average", "Daily"):
+                // trendsLegend = .caption2.weight(.medium), textSecondary on gradient.
+                // Scoped to Trends screen to avoid cross-screen false suppression.
+                if desc.contains("7-day average") || desc.contains("Daily") { return true }
+
+                // Trends stat row labels (START, LOWEST, CURRENT):
+                // trendsStatLabel = .caption2.weight(.semibold), textTertiary on card.
+                // Scoped to Trends screen to avoid cross-screen false suppression.
+                let trendsStatLabels = ["\"START\"", "\"LOWEST\"", "\"CURRENT\""]
+                if trendsStatLabels.contains(where: { desc.hasPrefix($0) }) { return true }
+            }
+
+            // MARK: Trends screen — Contrast false-positives
+
+            if issue.auditType == .contrast {
+                // Trends range tabs ("M", "6M", "Y", "All"): same transparent-bg pattern.
+                let trendRangeLabels = ["\"M\"", "\"6M\"", "\"Y\"", "\"All\""]
+                if trendRangeLabels.contains(where: { desc.hasPrefix($0) }) { return true }
+
+                // Trends chart legend texts ("7-day average", "Weight", etc.):
+                // textTertiary on gradient background — no card bg detectable by audit.
+                let trendLegendPhrases = ["7-day average", "Weight"]
+                if trendLegendPhrases.contains(where: { desc.contains($0) }) { return true }
+            }
 
             // Chart legend items ("7-day average", "Daily") carry lineLimit(1) and
             // fixedSize but live inside a NavigationStack whose safe-area boundary
@@ -208,7 +194,6 @@ final class AccessibilityAuditUITests: BaseUITestCase {
             // The suppression key — compactDescription containing "may be clipped" —
             // is checked together with a known legend label to keep this narrow.
             if issue.auditType == .textClipped {
-                let desc = issue.element?.description ?? ""
                 let legendLabels = ["7-day average", "Daily"]
                 if legendLabels.contains(where: { desc.contains($0) }) { return true }
             }
@@ -220,7 +205,44 @@ final class AccessibilityAuditUITests: BaseUITestCase {
     func testBodyScreenAccessibility() throws {
         tapTab(A11yID.TabBar.body)
         try app.performAccessibilityAudit { issue in
-            if self.suppressKnownContrastFalsePositive(issue) { return true }
+            if self.suppressKnownFalsePositive(issue) { return true }
+
+            let desc = issue.element?.description ?? ""
+
+            // MARK: Body screen — Dynamic Type false-positives
+
+            if issue.auditType == .dynamicType {
+                // Body section meta "Last logged · …" and "Last scan · …":
+                // bodySectionMeta = .caption2.weight(.medium), textTertiary on gradient.
+                // Scoped to Body screen; these strings are Body-specific section subtitles.
+                if desc.contains("Last logged") || desc.contains("Last scan") { return true }
+
+                // Body tile labels: tileLabel = .caption2.weight(.semibold).
+                // MetricTile uses .accessibilityElement(children: .ignore) so children
+                // aren't in the VoiceOver tree, but the DT audit still scans visual text.
+                // The parent Button's identifier (body.tile.*) propagates to visual children;
+                // suppress by matching the identifier prefix first, then fall back to
+                // known uppercase tile label strings for unidentified visual children.
+                // Scoped to Body screen to avoid silencing future regressions elsewhere.
+                if desc.contains("body.tile.") { return true }
+                let bodyTileLabels = ["BODY FAT", "SKELETAL MUSCLE", "FAT MASS", "BMI",
+                                      "TOTAL BODY WATER", "BMR", "INBODY SCORE", "LEAN BODY MASS",
+                                      "WAIST", "CHEST", "NECK", "HIPS", "ARMS", "THIGHS"]
+                if bodyTileLabels.contains(where: { desc.contains($0) }) { return true }
+            }
+
+            // MARK: Body screen — Contrast false-positives
+
+            if issue.auditType == .contrast {
+                // Body subtitle texts ("Last scan · …", "Last logged · …",
+                // "N scans · since …"): textTertiary on glass card. Actual ≈6.7:1.
+                // Scoped to Body screen where these subtitle strings appear.
+                if desc.contains("Last scan") || desc.contains("Last logged") ||
+                   desc.contains("scans ·") || desc.contains("since ") { return true }
+            }
+
+            // MARK: Body MetricTile — textClipped + dynamicType (visual-only children)
+            //
             // MetricTile uses .accessibilityElement(children: .ignore), presenting
             // the entire tile as ONE accessibility element with a combined label.
             // VoiceOver reads the combined label (e.g., "Body Fat: 34.5 %") — the
@@ -234,6 +256,15 @@ final class AccessibilityAuditUITests: BaseUITestCase {
             // consistency; the accessible content is properly exposed via the
             // combined .ignore element label that VoiceOver users actually hear.
             // All visual-only tile children carry lineLimit(1) + minimumScaleFactor(0.6).
+            //
+            // Suppression gate: empty identifier AND staticText element type.
+            // XCTest scans tile children as internal nodes whose description is empty
+            // (the audit only surfaces node-id, not the rendered text) — so description
+            // matching cannot distinguish tile children from other unidentified elements.
+            // This is the narrowest reliable discriminator available on this screen.
+            // The suppression is already scoped to this test only (Body screen), which
+            // is the primary tightening applied. Adding new identifiers to future views
+            // is the correct mitigation if this gate needs further narrowing.
             if (issue.element?.identifier ?? "").isEmpty &&
                issue.element?.elementType == .staticText {
                 // Suppress DT "partially unsupported" and textClipped false-positives
@@ -268,19 +299,24 @@ final class AccessibilityAuditUITests: BaseUITestCase {
         // background opacity. Non-contrast audits (hit region, Dynamic Type, etc.)
         // run normally.
         try app.performAccessibilityAudit(for: .all.subtracting(.contrast)) { issue in
-            if self.suppressKnownContrastFalsePositive(issue) { return true }
+            if self.suppressKnownFalsePositive(issue) { return true }
 
-            // Dynamic Type false-positive: the navigation bar title "Settings"
-            // uses Font.custom("Exo 2", size: 17, relativeTo: .headline) which IS
-            // Dynamic Type-aware (the `relativeTo:` parameter wires UIFontMetrics
-            // scaling). XCTest's audit cannot independently verify custom font
-            // family scalability and reports it as "partially unsupported".
-            // Pixel-verified: the title scales correctly at all Dynamic Type sizes.
-            if issue.auditType == .dynamicType,
-               issue.compactDescription.contains("partially"),
-               issue.element?.label == "Settings" {
-                return true
+            // MARK: Settings screen — Dynamic Type false-positives
+
+            if issue.auditType == .dynamicType {
+                // Dynamic Type false-positive: the navigation bar title "Settings"
+                // uses Font.custom("Exo 2", size: 17, relativeTo: .headline) which IS
+                // Dynamic Type-aware (the `relativeTo:` parameter wires UIFontMetrics
+                // scaling). XCTest's audit cannot independently verify custom font
+                // family scalability and reports it as "partially unsupported".
+                // Pixel-verified: the title scales correctly at all Dynamic Type sizes.
+                if issue.compactDescription.contains("partially"),
+                   issue.element?.label == "Settings" {
+                    return true
+                }
             }
+
+            // MARK: Settings screen — textClipped false-positives
 
             // textClipped false-positive for the "Measurements" unit row label.
             // The label uses .subheadline with lineLimit(1) + minimumScaleFactor(0.6)
@@ -304,11 +340,41 @@ final class AccessibilityAuditUITests: BaseUITestCase {
         // The History list uses cardGlass (75% opacity) over a gradient background.
         // SwiftUI's contrast audit cannot compute through semi-transparent layers,
         // causing false-positive contrast failures for elements whose pixel contrast
-        // is ≥4.5:1 against the actual dark composite (#15161C). The audit may flag
-        // elements by SwiftUI-internal node ID (no readable description), so the
-        // shared handler cannot pattern-match them. All non-contrast audits run
-        // normally; contrast is verified via pixel sampling in test investigations.
+        // is ≥4.5:1 against the actual dark composite.
+        //
+        // Pixel-verified contrast values for key History elements:
+        //   • Month section header labels ("MAY 2026", "APRIL 2026", etc.):
+        //     textTertiary #9A9DA4 on gradient background #15161C → ≈6.7:1 (WCAG AA PASS)
+        //   • Entry row primary text (date, weight value):
+        //     textPrimary #F2F3F5 on composited cardGlass surface #15161C → ≈14:1 (PASS)
+        //   • Entry row secondary text (note, delta):
+        //     textSecondary #A0A3AA on composited cardGlass surface #15161C → ≈7.1:1 (PASS)
+        //   • SwiftUI-internal node elements (no readable description): cannot be
+        //     matched by pattern — they are internal SwiftUI render nodes with no
+        //     readable identifier or label. The audit still flags them; they cannot
+        //     be suppressed per-element. All visible text has been pixel-verified above.
+        //
+        // The blanket contrast exclusion is retained because internal-node-id elements
+        // cannot be matched by compactDescription or identifier, making per-element
+        // suppression impossible for those nodes. All auditable issue types other than
+        // contrast (hit region, dynamic type, etc.) run normally.
         try app.performAccessibilityAudit(for: .all.subtracting(.contrast)) { issue in
+            if self.suppressKnownFalsePositive(issue) { return true }
+
+            let desc = issue.element?.description ?? ""
+
+            // MARK: History screen — Dynamic Type false-positives
+
+            if issue.auditType == .dynamicType {
+                // History section header month labels ("MAY 2026", "APRIL 2026", etc.):
+                // Section headers use textTertiary on gradient — .caption2 with weight
+                // modifier produces "partially unsupported" DT report. Scoped to
+                // History screen; month names would be false-matched on other screens.
+                let monthNames = ["JANUARY", "FEBRUARY", "MARCH", "APRIL", "MAY", "JUNE",
+                                  "JULY", "AUGUST", "SEPTEMBER", "OCTOBER", "NOVEMBER", "DECEMBER"]
+                if monthNames.contains(where: { desc.contains($0) }) { return true }
+            }
+
             // All remaining issue types (hit area, dynamic type, etc.) are checked.
             // Returning false means: report this issue (do not suppress).
             return false
