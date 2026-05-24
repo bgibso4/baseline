@@ -34,8 +34,8 @@ jobs:
       - name: Install tooling
         run: brew install swiftlint xcbeautify
 
-      - name: Lint (non-blocking)
-        run: make lint || true
+      - name: Lint (strict)
+        run: make lint
 
       - name: Build & test (logic)
         run: make test

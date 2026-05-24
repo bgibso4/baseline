@@ -1,8 +1,9 @@
 # SwiftLint configuration for Baseline.
-# Adoption is a ratchet: this config starts LENIENT (warnings, not errors) so
-# the initial rollout never blocks a commit or CI. A later follow-up pass will
-# tighten severities and enable `--strict`. See
-# docs/superpowers/specs/2026-05-16-phase-1-testing-ci-foundation-design.md
+# STRICT: the adoption ratchet has landed (#75). `--strict` is on in `make lint`,
+# the pre-commit hook, and CI — ANY violation (warning or error) is a hard gate.
+# The length/complexity thresholds below are intentionally inflated above today's
+# worst offenders so strict passes without refactors; a follow-up refactor issue
+# ratchets them back toward defaults as the oversized files are decomposed.
 
 included:
   - Baseline
@@ -14,8 +15,9 @@ excluded:
   - DerivedData
   - Baseline.xcodeproj
 
-# Lenient start: rules that default to `error` are softened to `warning` so the
-# initial adoption never blocks. The strict-ratchet follow-up removes these.
+# force_cast/force_try are kept at `warning` severity (not `error`), but under
+# `--strict` a warning still blocks — so these are hard gates in production.
+# Tests are exempt via BaselineTests/.swiftlint.yml.
 force_cast:
   severity: warning
 force_try:
