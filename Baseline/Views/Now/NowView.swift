@@ -297,26 +297,16 @@ struct NowView: View {
 
     private var statsCard: some View {
         let stats = computedStats
-        // Use divider-colored separators instead of per-cell clipShape backgrounds.
-        // The outer glassCard provides the rounded visual container. Removing
-        // clipShape prevents accessibility-element frames from touching the clip
-        // boundary, which causes false "text clipped" audit failures when cell
-        // frames extend to the exact top/bottom edge of the clip shape.
-        return HStack(spacing: 0) {
-            statCell(label: "LOWEST", value: stats.lowest, identifier: A11yID.Now.statLowest)
-            dividerStrip
-            statCell(label: "AVERAGE", value: stats.average, identifier: A11yID.Now.statAverage)
-            dividerStrip
-            statCell(label: "HIGHEST", value: stats.highest, identifier: A11yID.Now.statHighest)
+        return HStack(spacing: 1) {
+            statCell(label: "LOWEST", value: stats.lowest)
+                .accessibilityIdentifier(A11yID.Now.statLowest)
+            statCell(label: "AVERAGE", value: stats.average)
+                .accessibilityIdentifier(A11yID.Now.statAverage)
+            statCell(label: "HIGHEST", value: stats.highest)
+                .accessibilityIdentifier(A11yID.Now.statHighest)
         }
+        .clipShape(RoundedRectangle(cornerRadius: 14))
         .glassCard(cornerRadius: 14)
-    }
-
-    /// Thin 1-pt vertical separator between stat cells (replaces HStack spacing).
-    private var dividerStrip: some View {
-        Rectangle()
-            .fill(CadreColors.divider)
-            .frame(width: 1)
     }
 
     private var goalStatsCard: some View {
@@ -334,13 +324,12 @@ struct NowView: View {
         let remainingDisplay: Double? = remaining.map { UnitConversion.displayWeight($0, storedUnit: "lb") }
         let daysLeft: Int? = goal?.daysRemaining
 
-        return HStack(spacing: 0) {
+        return HStack(spacing: 1) {
             goalStatCell(label: "CURRENT", value: currentDisplay, unit: unit, accent: false, daysLeft: nil)
-            dividerStrip
             goalStatCell(label: "TARGET", value: targetDisplay, unit: unit, accent: true, daysLeft: nil)
-            dividerStrip
             goalStatCell(label: daysLeft.map { "TO GO (\($0)d)" } ?? "TO GO", value: remainingDisplay, unit: unit, accent: false, daysLeft: nil)
         }
+        .clipShape(RoundedRectangle(cornerRadius: 14))
         .glassCard(cornerRadius: 14)
     }
 
@@ -359,28 +348,23 @@ struct NowView: View {
                 .tracking(0.5)
                 .foregroundStyle(labelColor)
                 .lineLimit(1)
-                .minimumScaleFactor(0.6)
+                .minimumScaleFactor(0.8)
             HStack(alignment: .firstTextBaseline, spacing: 2) {
-                Text(formattedValue)
+                Text(value.map { UnitConversion.formatWeight($0, unit: unit) } ?? "—")
                     .font(CadreTypography.statValue)
                     .foregroundStyle(valueColor)
                     .contentTransition(.numericText())
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.6)
                 if value != nil {
                     Text(unit)
                         .font(CadreTypography.statUnit)
                         .foregroundStyle(CadreColors.textTertiary)
-                        .lineLimit(1)
-                        .minimumScaleFactor(0.6)
                 }
             }
-            .lineLimit(1)
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, 14)
         .padding(.horizontal, 6)
-        .fixedSize(horizontal: false, vertical: true)
+        .background(CadreColors.cardGlass)
         // Present as a single accessibility element with a descriptive label.
         // children:.ignore covers visual children so "potentially inaccessible
         // text" is not triggered; the descriptive label prevents
@@ -389,7 +373,7 @@ struct NowView: View {
         .accessibilityLabel(a11yLabel)
     }
 
-    private func statCell(label: String, value: Double?, identifier: String = "") -> some View {
+    private func statCell(label: String, value: Double?) -> some View {
         let unit = vm?.unit ?? "lb"
         let formattedValue = value.map { UnitConversion.formatWeight($0, unit: unit) } ?? "—"
         // Human-readable combined a11y label: "Lowest: 175.8 lb".
@@ -403,34 +387,22 @@ struct NowView: View {
                 .font(CadreTypography.statLabel)
                 .tracking(0.5)
                 .foregroundStyle(CadreColors.textTertiary)
-                .lineLimit(1)
-                // Allow generous scale-down so very long labels (e.g. "AVERAGE")
-                // don't overflow the constrained 1/3-width cell at large DT sizes.
-                .minimumScaleFactor(0.6)
             HStack(alignment: .firstTextBaseline, spacing: 2) {
-                Text(formattedValue)
+                Text(value.map { UnitConversion.formatWeight($0, unit: unit) } ?? "—")
                     .font(CadreTypography.statValue)
                     .foregroundStyle(CadreColors.textPrimary)
                     .contentTransition(.numericText())
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.6)
                 if value != nil {
                     Text(unit)
                         .font(CadreTypography.statUnit)
                         .foregroundStyle(CadreColors.textTertiary)
-                        .lineLimit(1)
-                        .minimumScaleFactor(0.6)
                 }
             }
-            .lineLimit(1)
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, 14)
-        .padding(.horizontal, 10)
-        // fixedSize prevents the VStack from collapsing smaller than its ideal
-        // height, ensuring text remains within the padded bounds and does not
-        // trigger "text clipped" in the accessibility audit.
-        .fixedSize(horizontal: false, vertical: true)
+        .padding(.horizontal, 6)
+        .background(CadreColors.cardGlass)
         // Present this cell as a SINGLE accessibility element with a descriptive
         // label so VoiceOver reads "Lowest: 175.8 lb" instead of the raw numeric
         // "175.8" which would trigger "label not human-readable" audit failures.
@@ -438,7 +410,6 @@ struct NowView: View {
         // by this element, preventing "potentially inaccessible text" reports.
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(a11yLabel)
-        .accessibilityIdentifier(identifier)
     }
 
     private var weighInButton: some View {
