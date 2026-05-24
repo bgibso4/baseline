@@ -504,9 +504,7 @@ struct TrendsView: View {
     // MARK: - Hero (latest value)
 
     private func heroBlock(latestValue: Double, unit: String, delta: Double, sub: String) -> some View {
-        let latestDate = vm?.dataPoints.last?.date
-
-        return VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: 8) {
             HStack(alignment: .firstTextBaseline, spacing: 6) {
                 Text(TrendsFormatting.value(latestValue))
                     .font(CadreTypography.trendsHero)
@@ -536,16 +534,13 @@ struct TrendsView: View {
             .lineLimit(1)
             .minimumScaleFactor(0.7)
 
-            // Date label for hero — "Today" or relative date for weight; period subtitle otherwise
-            if selectedMetric == .weight, let date = latestDate {
-                Text(heroRelativeDate(from: date))
-                    .font(CadreTypography.trendsHeroSub)
-                    .foregroundStyle(CadreColors.textTertiary)
-            } else {
-                Text(sub)
-                    .font(CadreTypography.trendsHeroSub)
-                    .foregroundStyle(CadreColors.textTertiary)
-            }
+            // Per-period rate subtitle (e.g. "−0.8 lb / week"), shown for every
+            // metric including weight. The date range is intentionally omitted —
+            // it's already conveyed by the window stepper. Sparse windows (<7
+            // entries) fall back to an entry count — see TrendsFormatting.
+            Text(sub)
+                .font(CadreTypography.trendsHeroSub)
+                .foregroundStyle(CadreColors.textTertiary)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
     }
