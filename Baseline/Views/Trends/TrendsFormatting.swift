@@ -20,23 +20,24 @@ enum TrendsFormatting {
         return formatted + " " + unit
     }
 
-    /// Builds the "Mar 6 – Apr 4 · -0.8 lb / week" string under the hero.
+    /// Builds the "−0.8 lb / week" rate string under the hero. The date range
+    /// is intentionally omitted — the window stepper already shows it. Sparse
+    /// windows (<7 points) report an entry count instead of a noisy rate.
     static func periodSubtitle(points: [TrendDataPoint], unit: String) -> String {
         guard let first = points.first, let last = points.last, points.count >= 2 else {
             return ""
         }
-        let spanDays = max(1, Calendar.current.dateComponents([.day], from: first.date, to: last.date).day ?? 1)
-        let dateRange = "\(DateFormatting.shortDay(first.date)) \u{2013} \(DateFormatting.shortDay(last.date))"
 
         if points.count < 7 {
-            return "\(dateRange) \u{00B7} \(points.count) entries"
+            return "\(points.count) entries"
         }
 
+        let spanDays = max(1, Calendar.current.dateComponents([.day], from: first.date, to: last.date).day ?? 1)
         let delta = last.value - first.value
         let weeks = Double(spanDays) / 7.0
         let perWeek = weeks > 0 ? delta / weeks : 0
         let perWeekStr = UnitConversion.formatDelta(perWeek)
             .replacingOccurrences(of: "-", with: "\u{2212}")
-        return "\(dateRange) \u{00B7} \(perWeekStr) \(unit) / week"
+        return "\(perWeekStr) \(unit) / week"
     }
 }

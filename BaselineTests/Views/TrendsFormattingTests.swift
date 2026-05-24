@@ -45,7 +45,8 @@ final class TrendsFormattingTests: XCTestCase {
             TrendDataPoint(date: base.addingTimeInterval(Double(i) * 86_400), value: 180)
         }
         let subtitle = TrendsFormatting.periodSubtitle(points: points, unit: "lb")
-        XCTAssertTrue(subtitle.hasSuffix("\u{00B7} 3 entries"), "got: \(subtitle)")
+        // Date range is omitted (the window stepper shows it); just the count.
+        XCTAssertEqual(subtitle, "3 entries")
     }
 
     func testPeriodSubtitleDenseShowsPerWeekRate() {
@@ -56,8 +57,9 @@ final class TrendsFormattingTests: XCTestCase {
             TrendDataPoint(date: base.addingTimeInterval(Double(i) * 86_400), value: 180 - Double(i))
         }
         // delta = 173 - 180 = -7 over 1 week → "−7.0 lb / week" (minus is U+2212).
+        // No date range — the window stepper conveys the span.
         let subtitle = TrendsFormatting.periodSubtitle(points: points, unit: "lb")
-        XCTAssertTrue(subtitle.hasSuffix("\u{00B7} \u{2212}7.0 lb / week"), "got: \(subtitle)")
+        XCTAssertEqual(subtitle, "\u{2212}7.0 lb / week")
         XCTAssertFalse(subtitle.contains("-"), "ASCII hyphen should be replaced with U+2212")
     }
 }
