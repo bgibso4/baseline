@@ -256,7 +256,12 @@ struct LogMeasurementSheet: View {
             let valueCm = lengthPref == "cm" ? currentValue : UnitConversion.inToCm(currentValue)
             let trimmedNotes = notes.trimmingCharacters(in: .whitespacesAndNewlines)
             let resolvedVM = bodyVM ?? injectedVM
-            resolvedVM?.saveMeasurement(type: selectedType, valueCm: valueCm, date: selectedDate, notes: trimmedNotes.isEmpty ? nil : trimmedNotes)
+            resolvedVM?.saveMeasurement(
+                type: selectedType,
+                valueCm: valueCm,
+                date: selectedDate,
+                notes: trimmedNotes.isEmpty ? nil : trimmedNotes
+            )
             Haptics.success()
             dismiss()
         } label: {

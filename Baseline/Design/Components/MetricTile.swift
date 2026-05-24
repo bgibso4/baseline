@@ -14,18 +14,18 @@ struct MetricTile: View {
     /// Whether the accent color is secondary (amber) vs primary (dusty blue).
     var isSecondaryAccent: Bool = false
 
+    enum DeltaDirection {
+        /// Goal-favorable direction (e.g., BF% going down, muscle going up).
+        case favorable
+        /// Opposite of goal direction.
+        case unfavorable
+        /// No meaningful change.
+        case flat
+    }
+
     struct Delta {
         let text: String
-        let direction: Direction
-
-        enum Direction {
-            /// Goal-favorable direction (e.g., BF% going down, muscle going up).
-            case favorable
-            /// Opposite of goal direction.
-            case unfavorable
-            /// No meaningful change.
-            case flat
-        }
+        let direction: DeltaDirection
     }
 
     var body: some View {
@@ -107,7 +107,7 @@ struct MetricTile: View {
             .clipShape(RoundedRectangle(cornerRadius: 6))
     }
 
-    private func deltaColor(_ direction: Delta.Direction) -> Color {
+    private func deltaColor(_ direction: DeltaDirection) -> Color {
         switch direction {
         case .favorable: return CadreColors.deltaDown   // accent dusty blue
         case .unfavorable: return CadreColors.deltaUp   // sage green

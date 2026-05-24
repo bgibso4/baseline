@@ -74,7 +74,7 @@ test-all:
 	  -derivedDataPath $(DERIVED_DATA) | xcbeautify
 
 lint:
-	swiftlint lint
+	swiftlint lint --strict
 
 format:
 	swiftlint --fix

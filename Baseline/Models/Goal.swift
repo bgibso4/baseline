@@ -64,7 +64,8 @@ final class Goal {
 
     var daysRemaining: Int? {
         guard let targetDate else { return nil }
-        let days = Calendar.current.dateComponents([.day], from: Calendar.current.startOfDay(for: Date()), to: targetDate).day
+        let start = Calendar.current.startOfDay(for: Date())
+        let days = Calendar.current.dateComponents([.day], from: start, to: targetDate).day
         return max(days ?? 0, 0)
     }
 }

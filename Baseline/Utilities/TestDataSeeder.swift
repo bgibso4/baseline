@@ -115,12 +115,36 @@ enum TestDataSeeder {
         }
 
         let scans: [ScanData] = [
-            ScanData(dayOffset: 89, weightLb: 205.0, bodyFatPct: 22.5, smmLb: 82.0,
-                     bfmLb: 46.1, tbwL: 96.0, bmi: 27.8, bmr: 1850),
-            ScanData(dayOffset: 44, weightLb: 198.0, bodyFatPct: 20.8, smmLb: 83.5,
-                     bfmLb: 41.2, tbwL: 97.5, bmi: 26.9, bmr: 1870),
-            ScanData(dayOffset: 4, weightLb: 192.0, bodyFatPct: 19.2, smmLb: 84.0,
-                     bfmLb: 36.9, tbwL: 98.0, bmi: 26.1, bmr: 1880)
+            ScanData(
+                dayOffset: 89,
+                weightLb: 205.0,
+                bodyFatPct: 22.5,
+                smmLb: 82.0,
+                bfmLb: 46.1,
+                tbwL: 96.0,
+                bmi: 27.8,
+                bmr: 1850
+            ),
+            ScanData(
+                dayOffset: 44,
+                weightLb: 198.0,
+                bodyFatPct: 20.8,
+                smmLb: 83.5,
+                bfmLb: 41.2,
+                tbwL: 97.5,
+                bmi: 26.9,
+                bmr: 1870
+            ),
+            ScanData(
+                dayOffset: 4,
+                weightLb: 192.0,
+                bodyFatPct: 19.2,
+                smmLb: 84.0,
+                bfmLb: 36.9,
+                tbwL: 98.0,
+                bmi: 26.1,
+                bmr: 1880
+            )
         ]
 
         for scan in scans {

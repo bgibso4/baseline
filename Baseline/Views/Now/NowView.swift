@@ -92,12 +92,15 @@ struct NowView: View {
                         // Check goal completion after refresh
                         if let goalVM, let goal = goalVM.activeWeightGoal {
                             let currentWeight = vm?.todayEntry?.weight ?? 0
-                            let displayWeight = UnitConversion.displayWeight(currentWeight, storedUnit: vm?.todayEntry?.unit ?? "lb")
+                            let storedUnit = vm?.todayEntry?.unit ?? "lb"
+                            let displayWeight = UnitConversion.displayWeight(currentWeight, storedUnit: storedUnit)
                             // Capture goal info before completion marks it done
                             let target = goal.targetValue
                             let start = goal.startValue
                             let startDate = goal.startDate
-                            if goalVM.checkCompletion(metricKey: TrendMetric.weight.rawValue, currentValue: displayWeight) {
+                            if goalVM.checkCompletion(
+                                metricKey: TrendMetric.weight.rawValue, currentValue: displayWeight
+                            ) {
                                 reachedGoalTarget = target
                                 reachedGoalStart = start
                                 reachedGoalStartDate = startDate
@@ -185,7 +188,9 @@ struct NowView: View {
         let calendar = Calendar.current
         if calendar.isDateInToday(date) { return "Today" }
         if calendar.isDateInYesterday(date) { return "Yesterday" }
-        let days = calendar.dateComponents([.day], from: calendar.startOfDay(for: date), to: calendar.startOfDay(for: Date())).day ?? 0
+        let fromDay = calendar.startOfDay(for: date)
+        let toDay = calendar.startOfDay(for: Date())
+        let days = calendar.dateComponents([.day], from: fromDay, to: toDay).day ?? 0
         if days < 7 { return "\(days) days ago" }
         return DateFormatting.shortDay(date)
     }
@@ -327,7 +332,13 @@ struct NowView: View {
         return HStack(spacing: 1) {
             goalStatCell(label: "CURRENT", value: currentDisplay, unit: unit, accent: false, daysLeft: nil)
             goalStatCell(label: "TARGET", value: targetDisplay, unit: unit, accent: true, daysLeft: nil)
-            goalStatCell(label: daysLeft.map { "TO GO (\($0)d)" } ?? "TO GO", value: remainingDisplay, unit: unit, accent: false, daysLeft: nil)
+            goalStatCell(
+                label: daysLeft.map { "TO GO (\($0)d)" } ?? "TO GO",
+                value: remainingDisplay,
+                unit: unit,
+                accent: false,
+                daysLeft: nil
+            )
         }
         .clipShape(RoundedRectangle(cornerRadius: 14))
         .glassCard(cornerRadius: 14)

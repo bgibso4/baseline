@@ -66,7 +66,7 @@ struct InBodyDocumentParser {
     static func parse(image: UIImage) async -> InBodyParseResult {
         guard let cgImage = image.cgImage else {
             #if DEBUG
-            print("[InBodyDocumentParser] Failed to convert UIImage to CGImage")
+            Log.scan.debug("[InBodyDocumentParser] Failed to convert UIImage to CGImage")
             #endif
             return InBodyParseResult()
         }
@@ -79,7 +79,7 @@ struct InBodyDocumentParser {
 
             guard let doc = observations.first?.document else {
                 #if DEBUG
-                print("[InBodyDocumentParser] No document observations returned")
+                Log.scan.debug("[InBodyDocumentParser] No document observations returned")
                 #endif
                 return result
             }
@@ -108,7 +108,6 @@ struct InBodyDocumentParser {
             extractDate(from: doc, into: &result)
 
             #if DEBUG
-            print("=== DOCUMENT PARSER RESULTS ===")
             let fields: [(String, Double?)] = [
                 ("weightKg", result.weightKg), ("skeletalMuscleMassKg", result.skeletalMuscleMassKg),
                 ("bodyFatMassKg", result.bodyFatMassKg), ("bodyFatPct", result.bodyFatPct),
@@ -127,18 +126,15 @@ struct InBodyDocumentParser {
                 ("trunkFatKg", result.trunkFatKg),
                 ("rightLegFatKg", result.rightLegFatKg), ("leftLegFatKg", result.leftLegFatKg)
             ]
-            print("--- PARSED FIELDS ---")
-            for (key, val) in fields {
-                if let v = val { print("  \(key): \(v)") }
-            }
-            if let date = result.scanDate { print("  scanDate: \(date)") }
+            let summary = fields.compactMap { key, val in val.map { "\(key)=\($0)" } }.joined(separator: ", ")
+            Log.scan.debug("InBody parsed fields: \(summary)")
+            if let date = result.scanDate { Log.scan.debug("InBody scanDate: \(date)") }
             let populated = fields.compactMap { $0.1 }.count
-            print("--- \(populated)/\(fields.count) fields populated ---")
-            print("=== END PARSER RESULTS ===")
+            Log.scan.debug("InBody fields populated: \(populated)/\(fields.count)")
             #endif
         } catch {
             #if DEBUG
-            print("[InBodyDocumentParser] RecognizeDocumentsRequest error: \(error)")
+            Log.scan.debug("[InBodyDocumentParser] RecognizeDocumentsRequest error: \(error)")
             #endif
         }
 
@@ -243,11 +239,10 @@ struct InBodyDocumentParser {
         }
 
         #if DEBUG
-        print("=== ANCHORS FOUND ===")
-        for (key, y) in anchors.sorted(by: { $0.value > $1.value }) {
-            print(String(format: "  %@ = %.3f", key, y))
-        }
-        print("=== END ANCHORS ===")
+        let anchorSummary = anchors.sorted(by: { $0.value > $1.value })
+            .map { String(format: "%@=%.3f", $0.key, $0.value) }
+            .joined(separator: ", ")
+        Log.scan.debug("InBody anchors found: \(anchorSummary)")
         #endif
 
         var regions: [FieldRegion] = []
@@ -261,8 +256,12 @@ struct InBodyDocumentParser {
             // TBW: -0.035 (different x), LBM: -0.050 (different x), Weight: -0.065 (different x)
             let m: Double = 0.012 // margin
             regions += [
-                FieldRegion("intracellularWaterL", y: (bodyCompY - 0.040 - m)...(bodyCompY - 0.040 + m), x: 0.18...0.32),
-                FieldRegion("extracellularWaterL", y: (bodyCompY - 0.058 - m)...(bodyCompY - 0.058 + m), x: 0.18...0.32),
+                FieldRegion(
+                    "intracellularWaterL", y: (bodyCompY - 0.040 - m)...(bodyCompY - 0.040 + m), x: 0.18...0.32
+                ),
+                FieldRegion(
+                    "extracellularWaterL", y: (bodyCompY - 0.058 - m)...(bodyCompY - 0.058 + m), x: 0.18...0.32
+                ),
                 FieldRegion("totalBodyWaterL", y: (bodyCompY - 0.048 - m)...(bodyCompY - 0.048 + m), x: 0.28...0.42),
                 FieldRegion("dryLeanMassKg", y: (bodyCompY - 0.076 - m)...(bodyCompY - 0.076 + m), x: 0.18...0.32),
                 FieldRegion("leanBodyMassKg", y: (bodyCompY - 0.058 - m)...(bodyCompY - 0.058 + m), x: 0.38...0.52),
@@ -277,7 +276,9 @@ struct InBodyDocumentParser {
             let m: Double = 0.015
             regions += [
                 FieldRegion("weightKg", y: (mfY - 0.045 - m)...(mfY - 0.045 + m), x: 0.20...0.62, bullet: true),
-                FieldRegion("skeletalMuscleMassKg", y: (mfY - 0.072 - m)...(mfY - 0.072 + m), x: 0.20...0.62, bullet: true),
+                FieldRegion(
+                    "skeletalMuscleMassKg", y: (mfY - 0.072 - m)...(mfY - 0.072 + m), x: 0.20...0.62, bullet: true
+                ),
                 FieldRegion("bodyFatMassKg", y: (mfY - 0.100 - m)...(mfY - 0.100 + m), x: 0.20...0.62, bullet: true)
             ]
         }
@@ -303,7 +304,9 @@ struct InBodyDocumentParser {
         // --- ECW/TBW Analysis ---
         if let ecwY = anchors["ecwTbw"] {
             let m: Double = 0.020
-            regions.append(FieldRegion("ecwTbwRatio", y: (ecwY - 0.040 - m)...(ecwY - 0.040 + m), x: 0.20...0.62, bullet: true))
+            regions.append(
+                FieldRegion("ecwTbwRatio", y: (ecwY - 0.040 - m)...(ecwY - 0.040 + m), x: 0.20...0.62, bullet: true)
+            )
         }
 
         // --- Right column: BMR ---
@@ -320,7 +323,9 @@ struct InBodyDocumentParser {
             if text == "smi" && box.origin.x > 0.60 {
                 let centerY = box.origin.y + box.height / 2
                 let m: Double = 0.015
-                regions.append(FieldRegion("skeletalMuscleIndex", y: (centerY - 0.015 - m)...(centerY - 0.015 + m), x: 0.64...1.0))
+                regions.append(
+                    FieldRegion("skeletalMuscleIndex", y: (centerY - 0.015 - m)...(centerY - 0.015 + m), x: 0.64...1.0)
+                )
                 break
             }
         }
@@ -627,7 +632,7 @@ struct InBodyDocumentParser {
         }
         guard let anchorY = historyY else {
             #if DEBUG
-            print("[History] Body Composition History anchor not found")
+            Log.scan.debug("[History] Body Composition History anchor not found")
             #endif
             return
         }
@@ -685,7 +690,9 @@ struct InBodyDocumentParser {
 
             #if DEBUG
             if !historyIsValid {
-                print("[History] \(field.key): history=\(historyValue) OUTSIDE sane range \(field.saneRange), ignoring")
+                Log.scan.debug(
+                    "[History] \(field.key): history=\(historyValue) OUTSIDE sane range \(field.saneRange), ignoring"
+                )
             }
             #endif
 
@@ -699,26 +706,30 @@ struct InBodyDocumentParser {
                 if pctDiff < 0.01 {
                     result.confidence[field.key] = max(currentConf, 0.95)
                     #if DEBUG
-                    print("[History] \(field.key): confirmed \(current) (history=\(historyValue)) conf→0.95")
+                    Log.scan.debug("[History] \(field.key): confirmed \(current) (history=\(historyValue)) conf→0.95")
                     #endif
                 } else if historyIsValid && !currentIsValid {
                     // Primary is out of range, history is valid → use history
                     setField(field.key, value: historyValue, on: &result)
                     result.confidence[field.key] = 0.85
                     #if DEBUG
-                    print("[History] \(field.key): primary \(current) out of range, using history \(historyValue)")
+                    Log.scan.debug(
+                        "[History] \(field.key): primary \(current) out of range, using history \(historyValue)"
+                    )
                     #endif
                 } else if historyIsValid {
                     // Both in range but disagree → trust history (simpler source)
                     setField(field.key, value: historyValue, on: &result)
                     result.confidence[field.key] = 0.85
                     #if DEBUG
-                    print("[History] \(field.key): overriding \(current) → \(historyValue) (history wins)")
+                    Log.scan.debug("[History] \(field.key): overriding \(current) → \(historyValue) (history wins)")
                     #endif
                 } else {
                     // History is invalid, keep primary
                     #if DEBUG
-                    print("[History] \(field.key): keeping primary \(current), history \(historyValue) invalid")
+                    Log.scan.debug(
+                        "[History] \(field.key): keeping primary \(current), history \(historyValue) invalid"
+                    )
                     #endif
                 }
             } else if historyIsValid {
@@ -726,7 +737,7 @@ struct InBodyDocumentParser {
                 setField(field.key, value: historyValue, on: &result)
                 result.confidence[field.key] = 0.8
                 #if DEBUG
-                print("[History] \(field.key): filled from history = \(historyValue)")
+                Log.scan.debug("[History] \(field.key): filled from history = \(historyValue)")
                 #endif
             }
         }
@@ -901,11 +912,8 @@ struct InBodyDocumentParser {
     /// multiples of 10 for muscle/fat bars. Actual values (7.2, 26.0, 105.8, 0.369)
     /// don't fall on these grids.
     private static func tickMarkScore(_ text: String) -> Int {
-        let cleaned = text.replacingOccurrences(
-            of: #"^[^\dA-Za-z(]*"#, with: "", options: .regularExpression
-        ).replacingOccurrences(
-            of: #"(\d+)\.\s+(\d)"#, with: "$1.$2", options: .regularExpression
-        )
+        let step1 = text.replacingOccurrences(of: #"^[^\dA-Za-z(]*"#, with: "", options: .regularExpression)
+        let cleaned = step1.replacingOccurrences(of: #"(\d+)\.\s+(\d)"#, with: "$1.$2", options: .regularExpression)
         guard let value = parseNumericValue(cleaned) else { return 0 }
 
         // Exact multiples of 5 with no meaningful fractional part → almost certainly a tick mark

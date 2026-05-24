@@ -1,0 +1,21 @@
+# Nested config for the test target. SwiftLint auto-detects nested .swiftlint.yml
+# files and applies them to files under BaselineTests/. Tests legitimately use
+# try!/as! against known-good fixtures, have wide table-driven argument lists,
+# and print() to the console. Relax those here; production stays strict under the
+# root .swiftlint.yml. See #75.
+parent_config: ../.swiftlint.yml
+
+disabled_rules:
+  - force_try
+  - force_cast
+  - line_length
+  - multiline_arguments
+  - multiline_parameters
+  - large_tuple
+
+custom_rules:
+  no_print:
+    name: "No print()"
+    regex: 'a^'          # never matches — print() is allowed in tests
+    message: "n/a"
+    severity: warning

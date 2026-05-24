@@ -227,10 +227,8 @@ class BodyViewModel {
 
         var seen = Set<String>()
         var latest: [Measurement] = []
-        for m in all {
-            if seen.insert(m.type).inserted {
-                latest.append(m)
-            }
+        for m in all where seen.insert(m.type).inserted {
+            latest.append(m)
         }
         latestMeasurements = latest
     }

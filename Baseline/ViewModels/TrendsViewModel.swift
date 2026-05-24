@@ -306,7 +306,8 @@ class TrendsViewModel {
         let cal = Calendar.current
         // Right edge of the proposed previous window:
         // current windowEndDate - days.
-        let proposedEnd = cal.date(byAdding: .day, value: -days, to: cal.startOfDay(for: windowEndDate)) ?? windowEndDate
+        let proposedEnd = cal.date(byAdding: .day, value: -days, to: cal.startOfDay(for: windowEndDate))
+            ?? windowEndDate
         return cal.startOfDay(for: earliest) < proposedEnd.addingTimeInterval(86400)
     }
 
@@ -816,7 +817,9 @@ class TrendsViewModel {
         }
 
         // Check measurements
-        let measurementMetrics: [TrendMetric] = [.waist, .chest, .neck, .hips, .armLeft, .armRight, .thighLeft, .thighRight, .calfLeft, .calfRight]
+        let measurementMetrics: [TrendMetric] = [
+            .waist, .chest, .neck, .hips, .armLeft, .armRight, .thighLeft, .thighRight, .calfLeft, .calfRight
+        ]
         for metric in measurementMetrics {
             guard let measType = metric.measurementType else { continue }
             let typeRaw = measType.rawValue

@@ -284,7 +284,8 @@ class ScanEntryViewModel {
             populateFields(from: voted)
         }
 
-        Log.scan.info("Consensus vote from \(allPageResults.count) page(s): \(voted.confidence.filter { $0.value >= 0.85 }.count) high-confidence fields")
+        let highConfCount = voted.confidence.filter { $0.value >= 0.85 }.count
+        Log.scan.info("Consensus vote from \(allPageResults.count) page(s): \(highConfCount) high-confidence fields")
 
         isProcessing = false
         currentStep = .review

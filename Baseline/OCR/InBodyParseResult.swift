@@ -332,7 +332,7 @@ struct InBodyParseResult {
             switch (current, new) {
             case (nil, let n): return n
             case (let c, nil): return c
-            case (let c, let n):
+            case let (c, n):
                 let currentConf = confidence[key] ?? 0
                 let newConf = other.confidence[key] ?? 0
                 if newConf > currentConf {
@@ -344,7 +344,9 @@ struct InBodyParseResult {
         }
 
         weightKg = pick("weightKg", current: weightKg, new: other.weightKg)
-        skeletalMuscleMassKg = pick("skeletalMuscleMassKg", current: skeletalMuscleMassKg, new: other.skeletalMuscleMassKg)
+        skeletalMuscleMassKg = pick(
+            "skeletalMuscleMassKg", current: skeletalMuscleMassKg, new: other.skeletalMuscleMassKg
+        )
         bodyFatMassKg = pick("bodyFatMassKg", current: bodyFatMassKg, new: other.bodyFatMassKg)
         bodyFatPct = pick("bodyFatPct", current: bodyFatPct, new: other.bodyFatPct)
         totalBodyWaterL = pick("totalBodyWaterL", current: totalBodyWaterL, new: other.totalBodyWaterL)
