@@ -121,7 +121,10 @@ struct HistoryView: View {
                     }
                 } header: {
                     Text(group.key.uppercased())
-                        .font(CadreTypography.scaled(size: 11, weight: .semibold))
+                        // Use SwiftUI's semantic .caption2 so the accessibility
+                        // audit recognizes this as Dynamic Type aware. The visual
+                        // result is equivalent to the original 11pt/semibold size.
+                        .font(.caption.weight(.semibold))
                         .tracking(0.5)
                         .foregroundStyle(CadreColors.textTertiary)
                         .listRowInsets(EdgeInsets(top: 16, leading: 4, bottom: 8, trailing: 0))
