@@ -174,3 +174,8 @@ All 9 destinations mocked at `settings-subscreens-2026-04-05.html`:
 ## 2026-04-05 — Deferred for dedicated brainstorm
 
 - **Goals (bulk / cut / maintain) as a feature** — lifecycle, history, how they surface across Today / Trends / Settings is unresolved. What happens across time ranges with multiple historical goals? Transitions between goals? Failed/abandoned goals? Needs its own brainstorm before finalizing Trends goal overlay.
+
+## 2026-05-23 — Filled-button / active-toggle accent darkened to #606E85
+
+- **Filled controls (Weigh In button, active segmented-toggle pill) use `CadreColors.accentButton` = `#606E85`**, a touch darker than the brand accent `#6B7B94`. The brand accent `#6B7B94` is unchanged for everything else (arc, links, chart lines, tints). — Surfaced during the Phase 2 accessibility audit: white/bold label text reads with more contrast on the darker fill. Kept deliberately after reviewing live on simulator. (Phase 2 UI-test harness work)
+- **Now stats card visuals unchanged** — an audit-driven attempt to flatten the stat cells (remove per-cell glass backgrounds) was reverted; the compact three-cell card with `cardGlass` backgrounds stands.
