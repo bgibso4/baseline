@@ -37,7 +37,10 @@ struct MultiPhotoTip: Tip {
     }
 
     var message: Text? {
-        Text("Scanning the same page 2–3 times significantly improves accuracy. Each photo is cross-checked to catch OCR errors.")
+        Text(
+            "Scanning the same page 2–3 times significantly improves accuracy. " +
+            "Each photo is cross-checked to catch OCR errors."
+        )
     }
 
     var image: Image? {

@@ -38,7 +38,8 @@ struct ScanDetailView: View {
                 EmptyStateCard(
                     systemImage: "exclamationmark.triangle",
                     title: "Scan data unreadable",
-                    message: "This scan was saved with an older format we can't display. Delete it and capture the printout again to restore the data.",
+                    message: "This scan was saved with an older format we can't display. " +
+                        "Delete it and capture the printout again to restore the data.",
                     ctaLabel: "Delete Scan",
                     ctaAction: { showDeleteConfirm = true },
                     iconTint: CadreColors.danger
@@ -209,7 +210,9 @@ struct ScanDetailView: View {
     }
 
     @ViewBuilder
-    private func optRow(_ label: String, value: Double?, unit: String, format: (Double) -> String = { String(format: "%.1f", $0) }) -> some View {
+    private func optRow(
+        _ label: String, value: Double?, unit: String, format: (Double) -> String = { String(format: "%.1f", $0) }
+    ) -> some View {
         if let value {
             row(label, value: format(value), unit: unit)
         }

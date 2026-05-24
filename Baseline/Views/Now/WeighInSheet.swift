@@ -307,7 +307,9 @@ struct WeighInSheet: View {
             Button {
                 UIApplication.shared.sendAction(
                     #selector(UIResponder.resignFirstResponder),
-                    to: nil, from: nil, for: nil
+                    to: nil,
+                    from: nil,
+                    for: nil
                 )
                 isFieldFocused = false
                 withAnimation(.easeInOut(duration: 0.25)) {

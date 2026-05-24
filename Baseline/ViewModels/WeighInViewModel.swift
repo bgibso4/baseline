@@ -54,7 +54,9 @@ class WeighInViewModel {
             existing.updatedAt = Date()
             savedEntry = existing
         } else {
-            let entry = WeightEntry(weight: currentWeight, unit: unit, date: date, notes: notesToSave, photoData: photoData)
+            let entry = WeightEntry(
+                weight: currentWeight, unit: unit, date: date, notes: notesToSave, photoData: photoData
+            )
             modelContext.insert(entry)
             savedEntry = entry
         }

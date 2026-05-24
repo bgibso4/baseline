@@ -528,8 +528,14 @@ struct TrendsView: View {
                 if compareEnabled, let secMetric = secondaryMetric, let snapSec = snappedSecondary {
                     heroStepperOverlay(
                         inspectDualHero(
-                            primaryValue: snap.value, primaryUnit: unit, primaryLabel: selectedMetric.displayName, primaryDate: snap.date,
-                            secondaryValue: snapSec.value, secondaryUnit: secMetric.unit, secondaryLabel: secMetric.displayName, secondaryDate: snapSec.date
+                            primaryValue: snap.value,
+                            primaryUnit: unit,
+                            primaryLabel: selectedMetric.displayName,
+                            primaryDate: snap.date,
+                            secondaryValue: snapSec.value,
+                            secondaryUnit: secMetric.unit,
+                            secondaryLabel: secMetric.displayName,
+                            secondaryDate: snapSec.date
                         )
                     )
                     .padding(.horizontal, CadreSpacing.sheetHorizontal)
@@ -537,8 +543,14 @@ struct TrendsView: View {
                 } else if compareEnabled, let period = previousPeriod, let snapSec = snappedSecondary {
                     heroStepperOverlay(
                         inspectDualHero(
-                            primaryValue: snap.value, primaryUnit: unit, primaryLabel: "Current", primaryDate: snap.date,
-                            secondaryValue: snapSec.value, secondaryUnit: unit, secondaryLabel: period.rawValue, secondaryDate: snapSec.date
+                            primaryValue: snap.value,
+                            primaryUnit: unit,
+                            primaryLabel: "Current",
+                            primaryDate: snap.date,
+                            secondaryValue: snapSec.value,
+                            secondaryUnit: unit,
+                            secondaryLabel: period.rawValue,
+                            secondaryDate: snapSec.date
                         )
                     )
                     .padding(.horizontal, CadreSpacing.sheetHorizontal)
@@ -553,8 +565,12 @@ struct TrendsView: View {
             } else if compareEnabled, let secMetric = secondaryMetric, !secondaryPoints.isEmpty {
                 heroStepperOverlay(
                     dualHeroBlock(
-                        primaryValue: latestValue, primaryUnit: unit, primaryLabel: selectedMetric.displayName,
-                        secondaryValue: secondaryPoints.last?.value ?? 0, secondaryUnit: secMetric.unit, secondaryLabel: secMetric.displayName,
+                        primaryValue: latestValue,
+                        primaryUnit: unit,
+                        primaryLabel: selectedMetric.displayName,
+                        secondaryValue: secondaryPoints.last?.value ?? 0,
+                        secondaryUnit: secMetric.unit,
+                        secondaryLabel: secMetric.displayName,
                         sub: periodSub
                     )
                 )
@@ -563,8 +579,12 @@ struct TrendsView: View {
             } else if compareEnabled, let period = previousPeriod, !secondaryPoints.isEmpty {
                 heroStepperOverlay(
                     dualHeroBlock(
-                        primaryValue: latestValue, primaryUnit: unit, primaryLabel: "Current",
-                        secondaryValue: secondaryPoints.last?.value ?? 0, secondaryUnit: unit, secondaryLabel: period.rawValue,
+                        primaryValue: latestValue,
+                        primaryUnit: unit,
+                        primaryLabel: "Current",
+                        secondaryValue: secondaryPoints.last?.value ?? 0,
+                        secondaryUnit: unit,
+                        secondaryLabel: period.rawValue,
                         sub: periodSub
                     )
                 )
@@ -650,8 +670,12 @@ struct TrendsView: View {
     }
 
     private func dualHeroBlock(
-        primaryValue: Double, primaryUnit: String, primaryLabel: String,
-        secondaryValue: Double, secondaryUnit: String, secondaryLabel: String,
+        primaryValue: Double,
+        primaryUnit: String,
+        primaryLabel: String,
+        secondaryValue: Double,
+        secondaryUnit: String,
+        secondaryLabel: String,
         sub: String
     ) -> some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -708,8 +732,14 @@ struct TrendsView: View {
     /// each series may fall on different dates — pretending they share
     /// one date would be misleading.
     private func inspectDualHero(
-        primaryValue: Double, primaryUnit: String, primaryLabel: String, primaryDate: Date,
-        secondaryValue: Double, secondaryUnit: String, secondaryLabel: String, secondaryDate: Date
+        primaryValue: Double,
+        primaryUnit: String,
+        primaryLabel: String,
+        primaryDate: Date,
+        secondaryValue: Double,
+        secondaryUnit: String,
+        secondaryLabel: String,
+        secondaryDate: Date
     ) -> some View {
         HStack(alignment: .top, spacing: 22) {
             inspectHeroColumn(
@@ -788,7 +818,8 @@ struct TrendsView: View {
         let calendar = Calendar.current
         if calendar.isDateInToday(date) { return "Today" }
         if calendar.isDateInYesterday(date) { return "Yesterday" }
-        let days = calendar.dateComponents([.day], from: calendar.startOfDay(for: date), to: calendar.startOfDay(for: Date())).day ?? 0
+        let cal = calendar
+        let days = cal.dateComponents([.day], from: cal.startOfDay(for: date), to: cal.startOfDay(for: Date())).day ?? 0
         if days < 7 { return "\(days) days ago" }
         return DateFormatting.shortDay(date)
     }
@@ -950,7 +981,9 @@ struct TrendsView: View {
         .chartYAxis {
             if dualAxis {
                 // Right axis: primary metric real values (stays on trailing like single-metric)
-                AxisMarks(position: .trailing, values: axisTickValues(min: primaryMin, max: primaryMax).map { normalize($0, min: primaryMin, max: primaryMax) }) { mark in
+                let primaryTicks = axisTickValues(min: primaryMin, max: primaryMax)
+                    .map { normalize($0, min: primaryMin, max: primaryMax) }
+                AxisMarks(position: .trailing, values: primaryTicks) { mark in
                     AxisGridLine()
                         .foregroundStyle(CadreColors.chartGrid)
                     AxisValueLabel {
@@ -962,7 +995,8 @@ struct TrendsView: View {
                     }
                 }
                 // Left axis: secondary metric real values
-                AxisMarks(position: .leading, values: axisTickValues(min: secMin, max: secMax).map { normalize($0, min: secMin, max: secMax) }) { mark in
+                let secTicks = axisTickValues(min: secMin, max: secMax).map { normalize($0, min: secMin, max: secMax) }
+                AxisMarks(position: .leading, values: secTicks) { mark in
                     AxisValueLabel {
                         let norm = mark.as(Double.self) ?? 0
                         let real = secMin + norm * (secMax - secMin)
@@ -1461,7 +1495,8 @@ struct TrendsView: View {
                         Chart {
                         if fsShowRawLine {
                             ForEach(points) { point in
-                                let yVal = fsDualAxis ? normalize(point.value, min: fsPrimaryMin, max: fsPrimaryMax) : point.value
+                                let yVal = fsDualAxis
+                                    ? normalize(point.value, min: fsPrimaryMin, max: fsPrimaryMax) : point.value
                                 LineMark(
                                     x: .value("Date", point.date),
                                     y: .value("Value", yVal),
@@ -1473,7 +1508,8 @@ struct TrendsView: View {
                         }
                         if fsShowRawDots {
                             ForEach(points) { point in
-                                let yVal = fsDualAxis ? normalize(point.value, min: fsPrimaryMin, max: fsPrimaryMax) : point.value
+                                let yVal = fsDualAxis
+                                    ? normalize(point.value, min: fsPrimaryMin, max: fsPrimaryMax) : point.value
                                 PointMark(
                                     x: .value("Date", point.date),
                                     y: .value("Value", yVal)
@@ -1483,7 +1519,8 @@ struct TrendsView: View {
                             }
                         }
                         ForEach(ma) { point in
-                            let yVal = fsDualAxis ? normalize(point.value, min: fsPrimaryMin, max: fsPrimaryMax) : point.value
+                            let yVal = fsDualAxis
+                                ? normalize(point.value, min: fsPrimaryMin, max: fsPrimaryMax) : point.value
                             LineMark(
                                 x: .value("Date", point.date),
                                 y: .value("MA", yVal),
@@ -1496,7 +1533,8 @@ struct TrendsView: View {
                         // Secondary metric line (compare)
                         if hasSecondary {
                             ForEach(secondaryPoints) { point in
-                                let yVal = fsDualAxis ? normalize(point.value, min: fsSecMin, max: fsSecMax) : point.value
+                                let yVal = fsDualAxis
+                                    ? normalize(point.value, min: fsSecMin, max: fsSecMax) : point.value
                                 PointMark(
                                     x: .value("Date", point.date),
                                     y: .value("Value", yVal)
@@ -1505,7 +1543,8 @@ struct TrendsView: View {
                                 .symbolSize(30)
                             }
                             ForEach(secondaryPoints) { point in
-                                let yVal = fsDualAxis ? normalize(point.value, min: fsSecMin, max: fsSecMax) : point.value
+                                let yVal = fsDualAxis
+                                    ? normalize(point.value, min: fsSecMin, max: fsSecMax) : point.value
                                 LineMark(
                                     x: .value("Date", point.date),
                                     y: .value("Value", yVal),
@@ -1527,7 +1566,9 @@ struct TrendsView: View {
                     }
                     .chartYAxis {
                         if fsDualAxis {
-                            AxisMarks(position: .trailing, values: axisTickValues(min: fsPrimaryMin, max: fsPrimaryMax).map { normalize($0, min: fsPrimaryMin, max: fsPrimaryMax) }) { mark in
+                            let fsPrimaryTicks = axisTickValues(min: fsPrimaryMin, max: fsPrimaryMax)
+                                .map { normalize($0, min: fsPrimaryMin, max: fsPrimaryMax) }
+                            AxisMarks(position: .trailing, values: fsPrimaryTicks) { mark in
                                 AxisGridLine()
                                     .foregroundStyle(CadreColors.chartGrid)
                                 AxisValueLabel {
@@ -1538,7 +1579,9 @@ struct TrendsView: View {
                                         .font(CadreTypography.trendsAxisLabel)
                                 }
                             }
-                            AxisMarks(position: .leading, values: axisTickValues(min: fsSecMin, max: fsSecMax).map { normalize($0, min: fsSecMin, max: fsSecMax) }) { mark in
+                            let fsSecTicks = axisTickValues(min: fsSecMin, max: fsSecMax)
+                                .map { normalize($0, min: fsSecMin, max: fsSecMax) }
+                            AxisMarks(position: .leading, values: fsSecTicks) { mark in
                                 AxisValueLabel {
                                     let norm = mark.as(Double.self) ?? 0
                                     let real = fsSecMin + norm * (fsSecMax - fsSecMin)

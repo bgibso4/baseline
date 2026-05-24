@@ -248,7 +248,8 @@ private struct HistoryRow: View {
     }
 
     private var rowAccessibilityLabel: String {
-        var label = "\(weekday), \(dateLabel), \(UnitConversion.formatWeight(displayWeight, unit: displayUnit)) \(displayUnit)"
+        let formatted = UnitConversion.formatWeight(displayWeight, unit: displayUnit)
+        var label = "\(weekday), \(dateLabel), \(formatted) \(displayUnit)"
         if let delta {
             label += ", \(deltaText(delta)) change"
         }

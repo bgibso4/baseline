@@ -237,12 +237,10 @@ struct HeaderMap {
 
         for (columnIndex, raw) in headers.enumerated() {
             let norm = NormalizedHeader(raw)
-            for role in ColumnSynonyms.roles(forNormalized: norm.normalized) {
-                if roleIndex[role] == nil {
-                    roleIndex[role] = columnIndex
-                    if let hint = norm.parentheticalHint {
-                        roleHint[role] = hint
-                    }
+            for role in ColumnSynonyms.roles(forNormalized: norm.normalized) where roleIndex[role] == nil {
+                roleIndex[role] = columnIndex
+                if let hint = norm.parentheticalHint {
+                    roleHint[role] = hint
                 }
             }
         }
@@ -616,42 +614,44 @@ enum CSVImporter {
                 typeRoleResolver(map) == nil
                     ? [ColumnRole.measurementType]
                     : []
-            }
-        ) { columns, map in
-            guard let dateStr = map.value(columns, for: .date) else {
-                throw ParseRowError("missing date")
-            }
-            let timeStr = map.value(columns, for: .time)
-            guard let date = FlexibleDateParser.parse(date: dateStr, time: timeStr) else {
-                throw ParseRowError("couldn't parse date '\(dateStr)'")
-            }
+            },
+            rowParser: { columns, map in
+                guard let dateStr = map.value(columns, for: .date) else {
+                    throw ParseRowError("missing date")
+                }
+                let timeStr = map.value(columns, for: .time)
+                guard let date = FlexibleDateParser.parse(date: dateStr, time: timeStr) else {
+                    throw ParseRowError("couldn't parse date '\(dateStr)'")
+                }
 
-            guard let typeRole = typeRoleResolver(map),
-                  let typeRaw = map.value(columns, for: typeRole) else {
-                throw ParseRowError("missing measurement type")
-            }
-            guard let type = MeasurementType(rawValue: typeRaw) else {
-                throw ParseRowError("unknown measurement type: \(typeRaw)")
-            }
+                guard let typeRole = typeRoleResolver(map),
+                      let typeRaw = map.value(columns, for: typeRole) else {
+                    throw ParseRowError("missing measurement type")
+                }
+                guard let type = MeasurementType(rawValue: typeRaw) else {
+                    throw ParseRowError("unknown measurement type: \(typeRaw)")
+                }
 
-            guard let valueStr = map.value(columns, for: .measurementValue),
-                  let value = Double(valueStr),
-                  value > 0 else {
-                throw ParseRowError("invalid measurement value: \(map.value(columns, for: .measurementValue) ?? "<missing>")")
-            }
+                guard let valueStr = map.value(columns, for: .measurementValue),
+                      let value = Double(valueStr),
+                      value > 0 else {
+                    let badVal = map.value(columns, for: .measurementValue) ?? "<missing>"
+                    throw ParseRowError("invalid measurement value: \(badVal)")
+                }
 
-            guard let unit = LengthUnitResolver.resolveUnit(
-                explicit: nil,
-                headerHint: map.hint(for: .measurementValue),
-                default: defaultUnit
-            ) else {
-                throw ParseRowError("unrecognised length unit")
-            }
-            let valueCm = LengthUnitResolver.toCentimeters(value, unit: unit)
+                guard let unit = LengthUnitResolver.resolveUnit(
+                    explicit: nil,
+                    headerHint: map.hint(for: .measurementValue),
+                    default: defaultUnit
+                ) else {
+                    throw ParseRowError("unrecognised length unit")
+                }
+                let valueCm = LengthUnitResolver.toCentimeters(value, unit: unit)
 
-            let notes = map.value(columns, for: .notes)
-            return CSVMeasurementRow(date: date, type: type, valueCm: valueCm, notes: notes)
-        }
+                let notes = map.value(columns, for: .notes)
+                return CSVMeasurementRow(date: date, type: type, valueCm: valueCm, notes: notes)
+            }
+        )
     }
 
     // MARK: Scans
@@ -792,7 +792,8 @@ enum CSVImporter {
                 )
             }
         }
-        Log.data.info("CSV weight import: inserted=\(outcome.inserted) overwritten=\(outcome.overwritten) skipped=\(outcome.skipped) failed=\(outcome.failed)")
+        Log.data.info("CSV weight import: inserted=\(outcome.inserted)" +
+            " overwritten=\(outcome.overwritten) skipped=\(outcome.skipped) failed=\(outcome.failed)")
         return outcome
     }
 
@@ -862,7 +863,8 @@ enum CSVImporter {
                 }
             }
         }
-        Log.data.info("CSV measurement import: inserted=\(outcome.inserted) overwritten=\(outcome.overwritten) skipped=\(outcome.skipped) failed=\(outcome.failed)")
+        Log.data.info("CSV measurement import: inserted=\(outcome.inserted)" +
+            " overwritten=\(outcome.overwritten) skipped=\(outcome.skipped) failed=\(outcome.failed)")
         return outcome
     }
 
@@ -937,7 +939,8 @@ enum CSVImporter {
                 )
             }
         }
-        Log.data.info("CSV scan import: inserted=\(outcome.inserted) overwritten=\(outcome.overwritten) skipped=\(outcome.skipped) failed=\(outcome.failed)")
+        Log.data.info("CSV scan import: inserted=\(outcome.inserted)" +
+            " overwritten=\(outcome.overwritten) skipped=\(outcome.skipped) failed=\(outcome.failed)")
         return outcome
     }
 

@@ -44,7 +44,8 @@ enum CSVExporter {
     // MARK: - Scans
 
     static func exportScans(context: ModelContext) -> String {
-        let header = "date,type,source,weightKg,skeletalMuscleMassKg,bodyFatMassKg,bodyFatPct,totalBodyWaterL,bmi,basalMetabolicRate"
+        let header = "date,type,source,weightKg,skeletalMuscleMassKg," +
+            "bodyFatMassKg,bodyFatPct,totalBodyWaterL,bmi,basalMetabolicRate"
         let descriptor = FetchDescriptor<Scan>(
             sortBy: [SortDescriptor(\.date, order: .forward)]
         )
@@ -57,7 +58,9 @@ enum CSVExporter {
             guard let content = try? scan.decoded() else { return nil }
             switch content {
             case .inBody(let p):
-                return "\(dateStr),\(scan.type),\(scan.source),\(p.weightKg),\(p.skeletalMuscleMassKg),\(p.bodyFatMassKg),\(p.bodyFatPct),\(p.totalBodyWaterL),\(p.bmi),\(p.basalMetabolicRate)"
+                return "\(dateStr),\(scan.type),\(scan.source)," +
+                    "\(p.weightKg),\(p.skeletalMuscleMassKg),\(p.bodyFatMassKg)," +
+                    "\(p.bodyFatPct),\(p.totalBodyWaterL),\(p.bmi),\(p.basalMetabolicRate)"
             }
         }
         return ([header] + rows).joined(separator: "\n")

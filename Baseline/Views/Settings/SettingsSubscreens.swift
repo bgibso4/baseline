@@ -326,7 +326,9 @@ struct GenderPickerView: View {
                 }
                 .padding(.top, 12)
 
-                Text("Used for BMR estimation and other gender-aware metric calculations. You can change this any time.")
+                Text(
+                    "Used for BMR estimation and other gender-aware metric calculations. You can change this any time."
+                )
                     .font(.system(size: 11, weight: .medium))
                     .foregroundStyle(CadreColors.textTertiary)
                     .padding(.horizontal, 22)
@@ -369,7 +371,9 @@ struct ThemePickerView: View {
                         HStack {
                             Text(option.displayName)
                                 .font(.system(size: 14, weight: .medium))
-                                .foregroundStyle(option.isAvailable ? CadreColors.textPrimary : CadreColors.textTertiary)
+                                .foregroundStyle(
+                                    option.isAvailable ? CadreColors.textPrimary : CadreColors.textTertiary
+                                )
                             Spacer()
                             if option.isAvailable && viewModel.theme == option {
                                 Image(systemName: "checkmark")
@@ -516,7 +520,10 @@ struct CadreSyncView: View {
                 .padding(.horizontal, 22)
                 .padding(.top, 20)
 
-                Text("Pushes weight, scan, and measurement data to the Cadre D1 backend. Used for cross-app analytics with Apex.")
+                Text(
+                    "Pushes weight, scan, and measurement data to the Cadre D1 backend. " +
+                    "Used for cross-app analytics with Apex."
+                )
                     .font(.system(size: 11, weight: .medium))
                     .foregroundStyle(CadreColors.textTertiary)
                     .padding(.horizontal, 22)
@@ -711,7 +718,10 @@ struct ImportCSVView: View {
                             .foregroundStyle(CadreColors.textPrimary)
                             .tracking(-0.2)
 
-                        Text("Weights, measurements, or scans. Pick a file exported from Baseline or one that matches the same format.")
+                        Text(
+                            "Weights, measurements, or scans. " +
+                            "Pick a file exported from Baseline or one that matches the same format."
+                        )
                             .font(.system(size: 12, weight: .medium))
                             .foregroundStyle(CadreColors.textTertiary)
                             .multilineTextAlignment(.center)
@@ -878,7 +888,9 @@ struct ImportCSVView: View {
         }
     }
 
-    private func strategyButton(label: String, detail: String, isSelected: Bool, action: @escaping () -> Void) -> some View {
+    private func strategyButton(
+        label: String, detail: String, isSelected: Bool, action: @escaping () -> Void
+    ) -> some View {
         Button(action: action) {
             VStack(alignment: .leading, spacing: 2) {
                 Text(label)
@@ -1034,7 +1046,8 @@ struct ImportCSVView: View {
         switch CSVImporter.parseAny(csv) {
         case .success(let result):
             parsed = result
-            Log.data.info("CSV import: parsed \(result.rowCount) rows, \(result.issues.count) issues, format=\(result.format.rawValue)")
+            Log.data.info("CSV import: parsed \(result.rowCount) rows, \(result.issues.count) issues," +
+                " format=\(result.format.rawValue)")
             for issue in result.issues.prefix(5) {
                 Log.data.warning("CSV import: line \(issue.line): \(issue.reason)")
             }
@@ -1066,7 +1079,8 @@ struct ImportCSVView: View {
         let result = CSVImporter.importAny(parsed, context: modelContext, conflictStrategy: conflictStrategy)
         outcome = result
 
-        Log.data.info("CSV import: done, inserted=\(result.inserted) overwritten=\(result.overwritten) skipped=\(result.skipped) failed=\(result.failed)")
+        Log.data.info("CSV import: done, inserted=\(result.inserted) overwritten=\(result.overwritten)" +
+            " skipped=\(result.skipped) failed=\(result.failed)")
 
         // Clear the preview so the user can't double-import the same rows.
         self.parsed = nil
@@ -1134,11 +1148,32 @@ struct AboutCadreView: View {
 
                     // App list
                     VStack(spacing: 0) {
-                        appRow(letter: "B", name: "Baseline", description: "Weight + body comp tracking", color: CadreColors.accent, badge: "This app", badgeStyle: .current)
+                        appRow(
+                            letter: "B",
+                            name: "Baseline",
+                            description: "Weight + body comp tracking",
+                            color: CadreColors.accent,
+                            badge: "This app",
+                            badgeStyle: .current
+                        )
                         Rectangle().fill(CadreColors.divider).frame(height: 0.5)
-                        appRow(letter: "A", name: "Apex", description: "Strength training logger", color: Color(hex: "B89968"), badge: "Sibling", badgeStyle: .normal)
+                        appRow(
+                            letter: "A",
+                            name: "Apex",
+                            description: "Strength training logger",
+                            color: Color(hex: "B89968"),
+                            badge: "Sibling",
+                            badgeStyle: .normal
+                        )
                         Rectangle().fill(CadreColors.divider).frame(height: 0.5)
-                        appRow(letter: "D", name: "Dashboard", description: "Cross-app analytics", color: Color(hex: "8A8278"), badge: "Soon", badgeStyle: .normal)
+                        appRow(
+                            letter: "D",
+                            name: "Dashboard",
+                            description: "Cross-app analytics",
+                            color: Color(hex: "8A8278"),
+                            badge: "Soon",
+                            badgeStyle: .normal
+                        )
                     }
                     .background(CadreColors.card, in: RoundedRectangle(cornerRadius: 14))
                     .padding(.horizontal, 22)
