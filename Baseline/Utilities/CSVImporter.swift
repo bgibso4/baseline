@@ -462,7 +462,7 @@ extension CSVFormat {
 
         // Parse the first line through the full quoting-aware parser so
         // quoted headers (`"Weight (lb)"`) resolve the same way values do.
-        let lines = CSVImporter._parseLines(firstLine)
+        let lines = CSVImporter.parseLines(firstLine)
         guard let headers = lines.first else { return nil }
         return detect(from: HeaderMap.build(from: headers))
     }
@@ -963,7 +963,7 @@ enum CSVImporter {
         let trimmed = csv.stripBOM().trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return .failure(.emptyFile) }
 
-        let lines = _parseLines(trimmed)
+        let lines = parseLines(trimmed)
         guard let headers = lines.first else { return .failure(.emptyFile) }
 
         let map = HeaderMap.build(from: headers)
@@ -996,7 +996,7 @@ enum CSVImporter {
     /// (`""` → literal `"`, embedded commas and newlines inside quoted
     /// fields). Exposed internally (`_` prefix) so `CSVFormat.detect`
     /// can share the same quoting logic for its first-line peek.
-    static func _parseLines(_ csv: String) -> [[String]] {
+    static func parseLines(_ csv: String) -> [[String]] {
         let normalized = csv
             .replacingOccurrences(of: "\r\n", with: "\n")
             .replacingOccurrences(of: "\r", with: "\n")
