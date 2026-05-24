@@ -9,30 +9,49 @@ enum TestDataSeeder {
     // MARK: - Public API
 
     static func seed(context: ModelContext) {
-        // Prevent test data from being written to Apple Health
+        seed(profile: .populated, into: context, referenceDate: Date())
+    }
+
+    // MARK: - Profile-based seeding (deterministic)
+
+    static func seed(profile: SeedProfile, into context: ModelContext, referenceDate: Date) {
         HealthKitManager.writesDisabled = true
         defer { HealthKitManager.writesDisabled = false }
 
         clearAll(context: context)
-        seedWeightEntries(context: context)
-        seedScans(context: context)
-        seedMeasurements(context: context)
+        guard profile != .empty else { try? context.save(); return }
+
+        let today = Calendar.current.startOfDay(for: referenceDate)
+        seedWeightEntries(context: context, today: today)
+        seedScans(context: context, today: today)
+        seedMeasurements(context: context, today: today)
+
+        if profile == .goalActive {
+            let goal = Goal(
+                metric: TrendMetric.weight.rawValue,
+                targetValue: 185.0,
+                startValue: 205.0,
+                targetDate: Calendar.current.date(byAdding: .day, value: 60, to: today)
+            )
+            context.insert(goal)
+        }
+
         try? context.save()
-        Log.app.info("Seeded test data (HealthKit writes suppressed)")
+        Log.app.info("Seeded test data (profile: \(profile.rawValue), HealthKit writes suppressed)")
     }
 
     static func clearAll(context: ModelContext) {
         try? context.delete(model: WeightEntry.self)
         try? context.delete(model: Scan.self)
         try? context.delete(model: BodyMeasurement.self)
+        try? context.delete(model: Goal.self)
         try? context.save()
     }
 
     // MARK: - Weight Entries (~90 days)
 
-    private static func seedWeightEntries(context: ModelContext) {
+    private static func seedWeightEntries(context: ModelContext, today: Date) {
         let calendar = Calendar.current
-        let today = calendar.startOfDay(for: Date())
         let startWeight = 205.0
 
         let notes: [Int: String] = [
@@ -80,9 +99,8 @@ enum TestDataSeeder {
 
     // MARK: - InBody Scans (3)
 
-    private static func seedScans(context: ModelContext) {
+    private static func seedScans(context: ModelContext, today: Date) {
         let calendar = Calendar.current
-        let today = calendar.startOfDay(for: Date())
         let lbToKg = 0.45359237
 
         struct ScanData {
@@ -127,9 +145,8 @@ enum TestDataSeeder {
 
     // MARK: - Tape Measurements
 
-    private static func seedMeasurements(context: ModelContext) {
+    private static func seedMeasurements(context: ModelContext, today: Date) {
         let calendar = Calendar.current
-        let today = calendar.startOfDay(for: Date())
         let inToCm = 2.54
 
         struct MeasData {

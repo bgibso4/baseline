@@ -29,7 +29,9 @@ struct GoalCard: View {
                         .foregroundStyle(CadreColors.accent)
                 }
                 Text("Set a goal")
-                    .font(.system(size: 13, weight: .medium))
+                    // .footnote (13pt default) matches the original 13pt size while
+                    // enabling Dynamic Type scaling for accessibility compliance.
+                    .font(.footnote.weight(.medium))
                     .foregroundStyle(CadreColors.textSecondary)
                 Spacer()
             }
@@ -45,6 +47,7 @@ struct GoalCard: View {
             )
         }
         .buttonStyle(.plain)
+        .accessibilityIdentifier(A11yID.Trends.setGoalButton)
     }
 
     // MARK: - Active State
@@ -60,12 +63,12 @@ struct GoalCard: View {
             HStack(spacing: 0) {
                 if let targetDate = goal.targetDate {
                     Text("GOAL \u{00B7} by \(goalDateLabel(targetDate))")
-                        .font(.system(size: 9, weight: .semibold))
+                        .font(.caption2.weight(.semibold))
                         .tracking(0.5)
                         .foregroundStyle(CadreColors.accent)
                 } else {
                     Text("GOAL")
-                        .font(.system(size: 9, weight: .semibold))
+                        .font(.caption2.weight(.semibold))
                         .tracking(0.5)
                         .foregroundStyle(CadreColors.accent)
                 }
@@ -82,12 +85,12 @@ struct GoalCard: View {
             HStack(spacing: 0) {
                 HStack(alignment: .firstTextBaseline, spacing: 3) {
                     Text(formatValue(current))
-                        .font(.system(size: 22, weight: .bold))
+                        .font(.title3.weight(.bold))
                         .tracking(-0.5)
                         .foregroundStyle(CadreColors.textPrimary)
                     if !unit.isEmpty {
                         Text(unit)
-                            .font(.system(size: 11, weight: .medium))
+                            .font(.caption.weight(.medium))
                             .foregroundStyle(CadreColors.textSecondary)
                     }
                 }
@@ -99,12 +102,12 @@ struct GoalCard: View {
 
                 HStack(alignment: .firstTextBaseline, spacing: 3) {
                     Text(formatValue(goal.targetValue))
-                        .font(.system(size: 22, weight: .bold))
+                        .font(.title3.weight(.bold))
                         .tracking(-0.5)
                         .foregroundStyle(CadreColors.accent)
                     if !unit.isEmpty {
                         Text(unit)
-                            .font(.system(size: 11, weight: .medium))
+                            .font(.caption.weight(.medium))
                             .foregroundStyle(CadreColors.textSecondary)
                     }
                 }
@@ -132,18 +135,18 @@ struct GoalCard: View {
             // Footer
             HStack {
                 Text(remaining > 0 ? "\(formatValue(remaining)) \(unit) to go" : "Goal reached!")
-                    .font(.system(size: 10, weight: .medium))
+                    .font(.caption2.weight(.medium))
                     .foregroundStyle(CadreColors.textSecondary)
 
                 Spacer()
 
                 if let days = goal.daysRemaining {
                     Text("\(days) days left")
-                        .font(.system(size: 10, weight: .medium))
+                        .font(.caption2.weight(.medium))
                         .foregroundStyle(CadreColors.textTertiary)
                 } else {
                     Text(String(format: "%.0f%%", progressValue * 100))
-                        .font(.system(size: 10, weight: .medium))
+                        .font(.caption2.weight(.medium))
                         .foregroundStyle(CadreColors.textTertiary)
                 }
             }
@@ -161,6 +164,7 @@ struct GoalCard: View {
         )
         }
         .buttonStyle(.plain)
+        .accessibilityIdentifier(A11yID.Trends.manageGoalButton)
     }
 
     // MARK: - Helpers

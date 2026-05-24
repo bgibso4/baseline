@@ -33,11 +33,10 @@ struct ArcIndicatorView<Content: View>: View {
     init(fraction: Double?, @ViewBuilder content: @escaping () -> Content) {
         self.fraction = fraction
         self.content = content
-        // Under XCTest, snapshot the gauge in its final state — the spring
-        // animation hasn't run by frame-1 capture, so the arc would
-        // otherwise come out empty / dot-only.
-        let isTesting = ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil
-            || ProcessInfo.processInfo.environment["XCTestBundlePath"] != nil
+        // Under test (unit snapshot OR UI test), snapshot the gauge in its
+        // final state — the spring animation hasn't run by frame-1 capture,
+        // so the arc would otherwise come out empty / dot-only.
+        let isTesting = LaunchConfiguration.current.shouldDisableAnimations
         let initialSweep: Double = isTesting ? 270 * (fraction ?? 0) : 0
         self._displaySweep = State(initialValue: initialSweep)
     }

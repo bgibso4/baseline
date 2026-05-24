@@ -36,6 +36,29 @@ struct BaselineApp: App {
 
     init() {
         Log.app.info("Baseline launching")
+
+        let config = LaunchConfiguration.current
+
+        #if DEBUG
+        if config.isUITesting {
+            let schema = Schema([WeightEntry.self, Scan.self, BaselineMeasurement.self, SyncState.self, Goal.self])
+            let memConfig = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true, cloudKitDatabase: .none)
+            do {
+                modelContainer = try ModelContainer(for: schema, configurations: [memConfig])
+            } catch {
+                Log.app.error("In-memory UI-test store configuration failed", error)
+                fatalError("Failed to configure in-memory UI-test store: \(error)")
+            }
+            TestDataSeeder.seed(profile: config.seedProfile, into: modelContainer.mainContext, referenceDate: Date())
+
+            self.mirror = NoOpOutboundMirror()
+            SyncHelper.mirror = self.mirror
+
+            _appState = State(initialValue: Self.makePreloadedState(context: modelContainer.mainContext))
+            return
+        }
+        #endif
+
         CloudKitSyncMonitor.start()
 
         // User data — syncs to iCloud via CloudKit, stored in shared App Group container
@@ -77,20 +100,24 @@ struct BaselineApp: App {
         self.mirror = outboundMirror
         SyncHelper.mirror = outboundMirror
 
-        // Preload tab view models synchronously during app init, while
-        // we already have the ModelContainer in scope. MainTabView reads
-        // these off AppState and passes them into each tab via the
-        // `viewModel:` initializer, so the tab's @State is populated
-        // BEFORE its first body eval — no "render empty, then reflow
-        // to populated" flash mid tab-switch cross-fade.
-        let context = modelContainer.mainContext
+        _appState = State(initialValue: Self.makePreloadedState(context: modelContainer.mainContext))
+    }
+
+    /// Build the AppState with view models preloaded synchronously during app
+    /// init, while we already have the ModelContainer in scope. MainTabView
+    /// reads these off AppState and passes them into each tab via the
+    /// `viewModel:` initializer, so the tab's @State is populated BEFORE its
+    /// first body eval — no "render empty, then reflow to populated" flash mid
+    /// tab-switch cross-fade. Shared by the production and UI-test launch
+    /// paths so both exercise the identical preload sequence.
+    private static func makePreloadedState(context: ModelContext) -> AppState {
         let state = AppState()
         let trendsVM = TrendsViewModel(modelContext: context)
         trendsVM.refresh()
         state.preloadedTrendsVM = trendsVM
         state.preloadedGoalVM = GoalViewModel(modelContext: context)
         state.preloadedBodyVM = BodyViewModel(modelContext: context)
-        _appState = State(initialValue: state)
+        return state
     }
 
     @State private var appState: AppState
@@ -100,14 +127,17 @@ struct BaselineApp: App {
             MainTabView()
                 .environment(appState)
                 .task {
+                    guard !LaunchConfiguration.current.isUITesting else { return }
                     try? Tips.configure([
                         .displayFrequency(.weekly)
                     ])
                 }
                 .task {
+                    guard !LaunchConfiguration.current.isUITesting else { return }
                     await HealthKitManager.requestAuthorizationIfNeeded()
                 }
                 .task {
+                    guard !LaunchConfiguration.current.isUITesting else { return }
                     await mirror.reconcile(context: modelContainer.mainContext)
                 }
         }

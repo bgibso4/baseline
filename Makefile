@@ -13,14 +13,15 @@ AVAIL_SIM   := $(shell xcrun simctl list devices available 2>/dev/null | grep -E
 SIM_DEVICE  := $(or $(BOOTED_SIM),$(AVAIL_SIM),iPhone 16 Pro)
 DESTINATION := platform=iOS Simulator,name=$(SIM_DEVICE)
 
-.PHONY: help setup generate build test test-snapshots test-all lint format sim clean
+.PHONY: help setup generate build test test-ui test-snapshots test-all lint format sim clean
 
 help:
 	@echo "Baseline — make targets:"
 	@echo "  setup           Install tooling (brew bundle) + configure git hooks"
 	@echo "  generate        Regenerate Baseline.xcodeproj from project.yml"
 	@echo "  build           Build the app for the simulator"
-	@echo "  test            Run logic tests (Baseline-CI plan) — the CI gate"
+	@echo "  test            Run logic tests + UI tests (Baseline-CI plan) — the CI gate"
+	@echo "  test-ui         Run UI tests only (Baseline-UITests plan)"
 	@echo "  test-snapshots  Run snapshot tests only (Baseline-Snapshots plan)"
 	@echo "  test-all        Run all tests (Baseline plan)"
 	@echo "  lint            Run SwiftLint"
@@ -48,6 +49,13 @@ test:
 	set -o pipefail && xcodebuild test \
 	  -project $(PROJECT) -scheme $(SCHEME) \
 	  -testPlan Baseline-CI \
+	  -destination '$(DESTINATION)' \
+	  -derivedDataPath $(DERIVED_DATA) | xcbeautify
+
+test-ui: ## Run UI tests only (Baseline-UITests plan)
+	set -o pipefail && xcodebuild test \
+	  -project $(PROJECT) -scheme $(SCHEME) \
+	  -testPlan Baseline-UITests \
 	  -destination '$(DESTINATION)' \
 	  -derivedDataPath $(DERIVED_DATA) | xcbeautify
 

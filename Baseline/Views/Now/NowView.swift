@@ -61,18 +61,24 @@ struct NowView: View {
                         Image(systemName: "gearshape")
                             .font(.system(size: 16, weight: .regular))
                             .foregroundStyle(CadreColors.textSecondary)
+                            .frame(minWidth: 44, minHeight: 44)
+                            .contentShape(Rectangle())
                     }
                     .buttonStyle(.plain)
                     .accessibilityLabel("Settings")
+                    .accessibilityIdentifier(A11yID.Now.settingsButton)
                 }
                 ToolbarItem(placement: .topBarTrailing) {
                     Button { showHistory = true } label: {
                         Image(systemName: "line.3.horizontal")
                             .font(.system(size: 16, weight: .regular))
                             .foregroundStyle(CadreColors.textSecondary)
+                            .frame(minWidth: 44, minHeight: 44)
+                            .contentShape(Rectangle())
                     }
                     .buttonStyle(.plain)
                     .accessibilityLabel("History")
+                    .accessibilityIdentifier(A11yID.Now.historyButton)
                 }
             }
             .toolbarBackgroundVisibility(.hidden, for: .navigationBar)
@@ -193,12 +199,15 @@ struct NowView: View {
         return HStack(alignment: .firstTextBaseline, spacing: 4) {
             if let weight = displayWeight {
                 // Hero weight number — 84pt bold, -2.5 tracking (mockup .weight-num)
+                // Identifier lets audit handler suppress dynamicType false-positive:
+                // UIFontMetrics scales this font at runtime; XCTest cannot detect it.
                 Text(UnitConversion.formatWeight(weight, unit: unit))
                     .font(CadreTypography.weightHero)
                     .tracking(-2.5)
                     .foregroundStyle(dimmed ? CadreColors.textTertiary : CadreColors.textPrimary)
                     .contentTransition(.numericText())
                     .animation(.snappy, value: weight)
+                    .accessibilityIdentifier(A11yID.Now.heroWeight)
                 // Unit suffix — 24pt medium (mockup .weight-num .unit)
                 Text(unit)
                     .font(CadreTypography.weightUnit)
@@ -211,7 +220,12 @@ struct NowView: View {
         }
         .lineLimit(1)
         .minimumScaleFactor(0.6)
-        .accessibilityElement(children: .combine)
+        // Present as a single accessibility element with a descriptive label.
+        // children:.ignore covers the visual children (raw numeric text, unit
+        // abbreviation) so "potentially inaccessible text" is not triggered;
+        // the descriptive label prevents "label not human-readable" for the
+        // pure-number weight string.
+        .accessibilityElement(children: .ignore)
         .accessibilityLabel(weightAccessibilityLabel)
     }
 
@@ -237,6 +251,10 @@ struct NowView: View {
                             .fill(selectedRange == option ? CadreColors.cardElevated : Color.clear)
                     )
                     .contentShape(Rectangle())
+                    // Accessibility label replaces the code ("30D") with a human-readable
+                    // description ("30 days") to pass the labelNotHumanReadable audit.
+                    .accessibilityLabel(option.accessibilityLabel)
+                    .accessibilityAddTraits(selectedRange == option ? [.isSelected] : [])
                     .onTapGesture {
                         withAnimation(.snappy(duration: 0.25)) {
                             selectedRange = option
@@ -247,6 +265,7 @@ struct NowView: View {
         }
         .padding(3)
         .glassCard(cornerRadius: 10)
+        .accessibilityIdentifier(A11yID.Now.rangeToggle)
     }
 
     // MARK: - Bottom block (stats + button)
@@ -280,8 +299,11 @@ struct NowView: View {
         let stats = computedStats
         return HStack(spacing: 1) {
             statCell(label: "LOWEST", value: stats.lowest)
+                .accessibilityIdentifier(A11yID.Now.statLowest)
             statCell(label: "AVERAGE", value: stats.average)
+                .accessibilityIdentifier(A11yID.Now.statAverage)
             statCell(label: "HIGHEST", value: stats.highest)
+                .accessibilityIdentifier(A11yID.Now.statHighest)
         }
         .clipShape(RoundedRectangle(cornerRadius: 14))
         .glassCard(cornerRadius: 14)
@@ -314,6 +336,12 @@ struct NowView: View {
     private func goalStatCell(label: String, value: Double?, unit: String, accent: Bool, daysLeft: Int?) -> some View {
         let labelColor: Color = accent ? CadreColors.accent : CadreColors.textTertiary
         let valueColor: Color = accent ? CadreColors.accent : CadreColors.textPrimary
+        let formattedValue = value.map { UnitConversion.formatWeight($0, unit: unit) } ?? "—"
+        // Human-readable combined label for VoiceOver and accessibility audit.
+        let humanLabel = label.lowercased().capitalized
+        let a11yLabel = value != nil
+            ? "\(humanLabel): \(formattedValue) \(unit)"
+            : "\(humanLabel): no data"
         return VStack(spacing: 6) {
             Text(label)
                 .font(CadreTypography.statLabel)
@@ -337,10 +365,23 @@ struct NowView: View {
         .padding(.vertical, 14)
         .padding(.horizontal, 6)
         .background(CadreColors.cardGlass)
+        // Present as a single accessibility element with a descriptive label.
+        // children:.ignore covers visual children so "potentially inaccessible
+        // text" is not triggered; the descriptive label prevents
+        // "label not human-readable" for the numeric value text.
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(a11yLabel)
     }
 
     private func statCell(label: String, value: Double?) -> some View {
         let unit = vm?.unit ?? "lb"
+        let formattedValue = value.map { UnitConversion.formatWeight($0, unit: unit) } ?? "—"
+        // Human-readable combined a11y label: "Lowest: 175.8 lb".
+        // Prevents "label not human-readable" audit failure for the numeric value
+        // text and the abbreviated uppercase label (e.g., "LOWEST").
+        let a11yLabel = value != nil
+            ? "\(label.lowercased().capitalized): \(formattedValue) \(unit)"
+            : "\(label.lowercased().capitalized): no data"
         return VStack(spacing: 6) {
             Text(label)
                 .font(CadreTypography.statLabel)
@@ -362,6 +403,13 @@ struct NowView: View {
         .padding(.vertical, 14)
         .padding(.horizontal, 6)
         .background(CadreColors.cardGlass)
+        // Present this cell as a SINGLE accessibility element with a descriptive
+        // label so VoiceOver reads "Lowest: 175.8 lb" instead of the raw numeric
+        // "175.8" which would trigger "label not human-readable" audit failures.
+        // children:.ignore tells the audit engine that visual children are covered
+        // by this element, preventing "potentially inaccessible text" reports.
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(a11yLabel)
     }
 
     private var weighInButton: some View {
@@ -369,16 +417,28 @@ struct NowView: View {
             showWeighIn = true
         } label: {
             // Primary button label — 16pt semibold, 0.3px tracking (mockup .weigh-btn)
+            // Uses accentButton (#606E85) rather than accent (#6B7B94) because white
+            // text on accent is only 4.3:1 — below WCAG AA 4.5:1 for normal text.
+            // accentButton is a 10%-darker shade giving ≈5.2:1.
+            //
+            // clipShape is applied to the background only (not the Text), so the
+            // text accessibility frame is NOT clipped. This prevents the XCTest
+            // "text clipped" predictive audit failure at large Dynamic Type sizes.
             Text("Weigh In")
                 .font(CadreTypography.buttonLabel)
                 .tracking(0.3)
                 .foregroundStyle(.white)
+                .lineLimit(1)
+                .minimumScaleFactor(0.8)
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 18)
-                .background(CadreColors.accent)
-                .clipShape(RoundedRectangle(cornerRadius: 16))
-                .shadow(color: CadreColors.accent.opacity(0.4), radius: 12, x: 0, y: 4)
+                .background(
+                    RoundedRectangle(cornerRadius: 16)
+                        .fill(CadreColors.accentButton)
+                        .shadow(color: CadreColors.accentButton.opacity(0.4), radius: 12, x: 0, y: 4)
+                )
         }
+        .accessibilityIdentifier(A11yID.Now.weighInButton)
     }
 
     // MARK: - Derived data
@@ -439,6 +499,16 @@ private enum StatsRange: CaseIterable {
         case .thirtyDays: return "30D"
         case .ninetyDays: return "90D"
         case .all: return "All"
+        }
+    }
+
+    /// Human-readable VoiceOver label — replaces the abbreviated code ("30D")
+    /// with a descriptive string to pass the labelNotHumanReadable accessibility audit.
+    var accessibilityLabel: String {
+        switch self {
+        case .thirtyDays: return "Last 30 days"
+        case .ninetyDays: return "Last 90 days"
+        case .all: return "All time"
         }
     }
 }
