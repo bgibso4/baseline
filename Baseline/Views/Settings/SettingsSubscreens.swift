@@ -806,6 +806,7 @@ struct ImportCSVView: View {
             .padding(.vertical, 14)
             .background(CadreColors.accent, in: RoundedRectangle(cornerRadius: 12))
         }
+        .accessibilityIdentifier(A11yID.Settings.importChooseFile)
     }
 
     private func previewCard(for parsed: ParsedImport) -> some View {

@@ -572,12 +572,17 @@ struct ScanEntryFlow: View {
     }
 
     /// Maps a field key to an accessibility identifier for UI tests.
-    /// Only the two keys relevant to the manual-entry happy path are tagged;
-    /// all other fields return an empty string (no identifier).
+    /// The seven required fields are tagged so UI tests can fill them all
+    /// (all seven must be non-empty for `canSave` to be true).
     private func fieldAccessibilityID(for key: String) -> String {
         switch key {
         case "weightKg": return A11yID.ScanEntry.weightField
         case "bodyFatPct": return A11yID.ScanEntry.bodyFatField
+        case "skeletalMuscleMassKg": return A11yID.ScanEntry.skeletalMuscleMassField
+        case "bodyFatMassKg": return A11yID.ScanEntry.bodyFatMassField
+        case "totalBodyWaterL": return A11yID.ScanEntry.totalBodyWaterField
+        case "bmi": return A11yID.ScanEntry.bmiField
+        case "basalMetabolicRate": return A11yID.ScanEntry.basalMetabolicRateField
         default: return ""
         }
     }
@@ -1014,6 +1019,7 @@ struct ScanEntryFlow: View {
                 .background(CadreColors.accent)
                 .clipShape(RoundedRectangle(cornerRadius: 14))
         }
+        .accessibilityIdentifier(A11yID.ScanEntry.continueButton)
         .padding(.horizontal, CadreSpacing.sheetHorizontal)
         .padding(.top, 20)
         .padding(.bottom, 16)

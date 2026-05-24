@@ -71,8 +71,20 @@ enum A11yID {
     }
     enum ScanEntry {
         static let manualEntryButton = "scanEntry.manualEntryButton"
+        /// "Continue" button on the scan-type selection step (step 1 of 2).
+        static let continueButton = "scanEntry.continueButton"
         static let weightField = "scanEntry.weightField"
         static let bodyFatField = "scanEntry.bodyFatField"
+        /// Required field: Skeletal Muscle Mass — needed for canSave gate.
+        static let skeletalMuscleMassField = "scanEntry.skeletalMuscleMassField"
+        /// Required field: Body Fat Mass — needed for canSave gate.
+        static let bodyFatMassField = "scanEntry.bodyFatMassField"
+        /// Required field: Total Body Water — needed for canSave gate.
+        static let totalBodyWaterField = "scanEntry.totalBodyWaterField"
+        /// Required field: BMI — needed for canSave gate.
+        static let bmiField = "scanEntry.bmiField"
+        /// Required field: Basal Metabolic Rate — needed for canSave gate.
+        static let basalMetabolicRateField = "scanEntry.basalMetabolicRateField"
         static let save = "scanEntry.save"
         static let cancel = "scanEntry.cancel"
     }
@@ -86,5 +98,7 @@ enum A11yID {
         static let exportCSV = "settings.exportCSV"
         static let privacyLink = "settings.privacyLink"
         static let termsLink = "settings.termsLink"
+        /// "Choose CSV file" button on the ImportCSVView screen.
+        static let importChooseFile = "settings.importChooseFile"
     }
 }
