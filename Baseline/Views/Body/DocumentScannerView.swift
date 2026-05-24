@@ -36,7 +36,7 @@ struct DocumentScannerView: UIViewControllerRepresentable {
                 return
             }
             #if DEBUG
-            print("[DocumentScannerView] Captured \(scan.pageCount) page(s)")
+            Log.scan.debug("[DocumentScannerView] Captured \(scan.pageCount) page(s)")
             #endif
             onScan(scan)
         }
@@ -50,7 +50,7 @@ struct DocumentScannerView: UIViewControllerRepresentable {
             didFailWithError error: Error
         ) {
             #if DEBUG
-            print("[DocumentScannerView] Camera error: \(error)")
+            Log.scan.debug("[DocumentScannerView] Camera error: \(error)")
             #endif
             onCancel()
         }
