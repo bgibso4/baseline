@@ -34,6 +34,7 @@ schemes:
           defaultPlan: true
         - path: Baseline-CI.xctestplan
         - path: Baseline-Snapshots.xctestplan
+        - path: Baseline-UITests.xctestplan
 
 targets:
   Baseline:

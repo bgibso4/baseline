@@ -1,0 +1,20 @@
+{
+  "configurations" : [
+    {
+      "id" : "9F1E2D3C-0000-0000-0000-000000000004",
+      "name" : "UITests",
+      "options" : { }
+    }
+  ],
+  "defaultOptions" : { },
+  "testTargets" : [
+    {
+      "target" : {
+        "containerPath" : "container:Baseline.xcodeproj",
+        "identifier" : "EEAE4EA7C96444E0F9647218",
+        "name" : "BaselineUITests"
+      }
+    }
+  ],
+  "version" : 1
+}

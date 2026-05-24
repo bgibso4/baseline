@@ -68,6 +68,9 @@
          <TestPlanReference
             reference = "container:Baseline-Snapshots.xctestplan">
          </TestPlanReference>
+         <TestPlanReference
+            reference = "container:Baseline-UITests.xctestplan">
+         </TestPlanReference>
       </TestPlans>
       <MacroExpansion>
          <BuildableReference
