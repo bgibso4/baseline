@@ -2,50 +2,6 @@ import SwiftUI
 import SwiftData
 import Charts
 import TipKit
-import UIKit
-
-// MARK: - Landscape Hosting (forces landscape orientation for fullscreen chart)
-
-private struct LandscapeHostingController<Content: View>: UIViewControllerRepresentable {
-    let content: Content
-
-    func makeUIViewController(context: Context) -> UIHostingController<Content> {
-        LandscapeHostingVC(rootView: content)
-    }
-
-    func updateUIViewController(_ uiViewController: UIHostingController<Content>, context: Context) {
-        uiViewController.rootView = content
-    }
-}
-
-private class LandscapeHostingVC<Content: View>: UIHostingController<Content> {
-    override var supportedInterfaceOrientations: UIInterfaceOrientationMask {
-        .landscape
-    }
-
-    override var preferredInterfaceOrientationForPresentation: UIInterfaceOrientation {
-        .landscapeRight
-    }
-
-    override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
-        BaselineAppDelegate.allowLandscape = true
-        setNeedsUpdateOfSupportedInterfaceOrientations()
-        requestRotation(to: .landscape)
-    }
-
-    override func viewWillDisappear(_ animated: Bool) {
-        super.viewWillDisappear(animated)
-        BaselineAppDelegate.allowLandscape = false
-        requestRotation(to: .portrait)
-    }
-
-    private func requestRotation(to mask: UIInterfaceOrientationMask) {
-        let scene = view.window?.windowScene
-            ?? UIApplication.shared.connectedScenes.first as? UIWindowScene
-        scene?.requestGeometryUpdate(.iOS(interfaceOrientations: mask))
-    }
-}
 
 /// Trends tab — metric trend over selectable time range.
 ///
@@ -120,13 +76,35 @@ struct TrendsView: View {
                 GradientBackground(center: .top)
 
                 VStack(spacing: 0) {
-                    metricChipButton
-                        .padding(.horizontal, CadreSpacing.sheetHorizontal)
-                        .padding(.top, CadreSpacing.md)
+                    TrendsMetricChip(
+                        selectedMetric: selectedMetric,
+                        compareEnabled: compareEnabled,
+                        secondaryMetric: secondaryMetric,
+                        previousPeriod: previousPeriod,
+                        secondaryColor: secondaryColor,
+                        onTap: { showMetricSheet = true }
+                    )
+                    .padding(.horizontal, CadreSpacing.sheetHorizontal)
+                    .padding(.top, CadreSpacing.md)
 
-                    rangeTabs
-                        .padding(.horizontal, CadreSpacing.sheetHorizontal)
-                        .padding(.top, 12)
+                    TrendsRangeTabs(
+                        selected: vm?.timeRange ?? .month,
+                        onSelect: { range in
+                            withAnimation(.snappy(duration: 0.25)) {
+                                vm?.timeRange = range
+                                // Reset the window anchor so the new range
+                                // opens on the most recent slice of data, not
+                                // wherever the user had stepped to in the
+                                // previous range.
+                                vm?.windowEndDate = Date()
+                                inlineSelectedDate = nil
+                                vm?.refresh()
+                            }
+                            Haptics.selection()
+                        }
+                    )
+                    .padding(.horizontal, CadreSpacing.sheetHorizontal)
+                    .padding(.top, 12)
 
                     TipView(trendsTip)
                         .padding(.horizontal, CadreSpacing.sheetHorizontal)
@@ -291,7 +269,10 @@ struct TrendsView: View {
             if let latest = vm?.latestPoint {
                 steppedBackEmptyBlock(latest: latest)
             } else {
-                emptyStateBlock
+                TrendsEmptyState(
+                    metric: selectedMetric,
+                    onSelectTab: { appState?.selectedTab = $0 }
+                )
             }
         } else if points.count == 1 {
             singlePointBlock(points: points)
@@ -300,111 +281,11 @@ struct TrendsView: View {
         }
     }
 
-    // MARK: - Metric chip button (always visible)
+    // MARK: - Shared palette
 
-    private let secondaryColor = Color(hex: "B89968") // dusty secondaryColor from design tokens
-
-    private var metricChipButton: some View {
-        Button {
-            showMetricSheet = true
-        } label: {
-            HStack(spacing: 10) {
-                if compareEnabled, let secondary = secondaryMetric {
-                    // Dual-icon stack for metric compare
-                    ZStack {
-                        RoundedRectangle(cornerRadius: CadreRadius.sm)
-                            .fill(CadreColors.cardElevated)
-                            .frame(width: 28, height: 28)
-                        Image(systemName: selectedMetric.icon)
-                            .font(.system(size: 14, weight: .semibold))
-                            .foregroundStyle(CadreColors.accent)
-                            .offset(x: -3, y: -2)
-                        Image(systemName: secondary.icon)
-                            .font(.system(size: 10, weight: .semibold))
-                            .foregroundStyle(secondaryColor)
-                            .offset(x: 5, y: 4)
-                    }
-                    Text("\(selectedMetric.displayName) \u{00B7} \(secondary.displayName)")
-                        .font(CadreTypography.trendsMetricName)
-                        .tracking(-0.1)
-                        .foregroundStyle(CadreColors.textPrimary)
-                        .lineLimit(1)
-                } else if compareEnabled, let period = previousPeriod {
-                    // Period compare chip
-                    ZStack {
-                        RoundedRectangle(cornerRadius: CadreRadius.sm)
-                            .fill(CadreColors.cardElevated)
-                            .frame(width: 28, height: 28)
-                        Image(systemName: selectedMetric.icon)
-                            .font(.system(size: 14, weight: .semibold))
-                            .foregroundStyle(CadreColors.accent)
-                    }
-                    Text("\(selectedMetric.displayName) \u{00B7} vs \(period.rawValue)")
-                        .font(CadreTypography.trendsMetricName)
-                        .tracking(-0.1)
-                        .foregroundStyle(CadreColors.textPrimary)
-                        .lineLimit(1)
-                } else {
-                    ZStack {
-                        RoundedRectangle(cornerRadius: CadreRadius.sm)
-                            .fill(CadreColors.cardElevated)
-                            .frame(width: 28, height: 28)
-                        Image(systemName: selectedMetric.icon)
-                            .font(.system(size: 14, weight: .semibold))
-                            .foregroundStyle(CadreColors.accent)
-                    }
-                    Text(selectedMetric.displayName)
-                        .font(CadreTypography.trendsMetricName)
-                        .tracking(-0.1)
-                        .foregroundStyle(CadreColors.textPrimary)
-                }
-                Spacer()
-                Image(systemName: "chevron.down")
-                    .font(.system(size: 12, weight: .semibold))
-                    .foregroundStyle(CadreColors.textTertiary)
-            }
-            .padding(.horizontal, 14)
-            .padding(.vertical, 12)
-            .glassCard()
-        }
-        .buttonStyle(.plain)
-        .accessibilityIdentifier(A11yID.Trends.metricPicker)
-    }
-
-    // MARK: - Range tabs (M / 6M / Y / All)
-
-    private var rangeTabs: some View {
-        HStack(spacing: 0) {
-            ForEach(TimeRange.allCases, id: \.self) { range in
-                let active = (vm?.timeRange ?? .month) == range
-                Text(range.rawValue)
-                    .font(CadreTypography.trendsRangeTab)
-                    .foregroundStyle(active ? CadreColors.textPrimary : CadreColors.textSecondary)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 8)
-                    .background(
-                        RoundedRectangle(cornerRadius: 7)
-                            .fill(active ? CadreColors.cardElevated : Color.clear)
-                    )
-                    .contentShape(Rectangle())
-                    .onTapGesture {
-                        withAnimation(.snappy(duration: 0.25)) {
-                            vm?.timeRange = range
-                            // Reset the window anchor so the new range
-                            // opens on the most recent slice of data, not
-                            // wherever the user had stepped to in the
-                            // previous range.
-                            vm?.windowEndDate = Date()
-                            inlineSelectedDate = nil
-                            vm?.refresh()
-                        }
-                        Haptics.selection()
-                    }
-            }
-        }
-        .padding(3)
-        .glassCard(cornerRadius: 10)
-    }
+    /// Dusty secondary accent used for the compare / secondary-metric series.
+    /// Threaded into `TrendsMetricChip` and the chart/legend/hero rendering.
+    private let secondaryColor = Color(hex: "B89968")
 
     // MARK: - Hero stepper overlay
 
@@ -504,7 +385,7 @@ struct TrendsView: View {
         let unit = selectedMetric.unit
         let latestValue = points.last?.value ?? 0
         let delta = (points.last?.value ?? 0) - (points.first?.value ?? 0)
-        let periodSub = periodSubtitle(points: points, unit: unit)
+        let periodSub = TrendsFormatting.periodSubtitle(points: points, unit: unit)
         let ma = vm?.movingAverage ?? []
 
         let secondaryPoints = vm?.secondaryDataPoints ?? []
@@ -627,7 +508,7 @@ struct TrendsView: View {
 
         return VStack(alignment: .leading, spacing: 8) {
             HStack(alignment: .firstTextBaseline, spacing: 6) {
-                Text(formatValue(latestValue))
+                Text(TrendsFormatting.value(latestValue))
                     .font(CadreTypography.trendsHero)
                     .tracking(-1.2)
                     .foregroundStyle(CadreColors.textPrimary)
@@ -641,8 +522,8 @@ struct TrendsView: View {
                     // Explicit label combining value and unit prevents "label not
                     // human-readable" audit failure for a purely numeric string.
                     .accessibilityLabel(unit.isEmpty
-                        ? "\(selectedMetric.displayName): \(formatValue(latestValue))"
-                        : "\(selectedMetric.displayName): \(formatValue(latestValue)) \(unit)")
+                        ? "\(selectedMetric.displayName): \(TrendsFormatting.value(latestValue))"
+                        : "\(selectedMetric.displayName): \(TrendsFormatting.value(latestValue)) \(unit)")
                 if !unit.isEmpty {
                     Text(unit)
                         .font(CadreTypography.trendsHeroUnit)
@@ -687,7 +568,7 @@ struct TrendsView: View {
                         .tracking(0.5)
                         .foregroundStyle(CadreColors.accent)
                     HStack(alignment: .firstTextBaseline, spacing: 4) {
-                        Text(formatValue(primaryValue))
+                        Text(TrendsFormatting.value(primaryValue))
                             .font(.system(size: 32, weight: .bold))
                             .tracking(-0.8)
                             .foregroundStyle(CadreColors.accent)
@@ -706,7 +587,7 @@ struct TrendsView: View {
                         .tracking(0.5)
                         .foregroundStyle(secondaryColor)
                     HStack(alignment: .firstTextBaseline, spacing: 4) {
-                        Text(formatValue(secondaryValue))
+                        Text(TrendsFormatting.value(secondaryValue))
                             .font(.system(size: 32, weight: .bold))
                             .tracking(-0.8)
                             .foregroundStyle(secondaryColor)
@@ -767,7 +648,7 @@ struct TrendsView: View {
                 .tracking(0.5)
                 .foregroundStyle(color)
             HStack(alignment: .firstTextBaseline, spacing: 4) {
-                Text(formatValue(value))
+                Text(TrendsFormatting.value(value))
                     .font(.system(size: 32, weight: .bold))
                     .tracking(-0.8)
                     .foregroundStyle(color)
@@ -792,7 +673,7 @@ struct TrendsView: View {
     private func inspectHero(value: Double, unit: String, dateSub: String) -> some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack(alignment: .firstTextBaseline, spacing: 6) {
-                Text(formatValue(value))
+                Text(TrendsFormatting.value(value))
                     .font(CadreTypography.trendsHero)
                     .tracking(-1.2)
                     .foregroundStyle(CadreColors.textPrimary)
@@ -959,7 +840,7 @@ struct TrendsView: View {
                     .foregroundStyle(CadreColors.accent.opacity(0.5))
                     .lineStyle(StrokeStyle(lineWidth: 1.5, dash: [6, 4]))
                     .annotation(position: .trailing, alignment: .trailing) {
-                        Text(formatGoalLabel(goal.targetValue, unit: vm?.selectedMetric.unit ?? ""))
+                        Text(TrendsFormatting.goalLabel(goal.targetValue, unit: vm?.selectedMetric.unit ?? ""))
                             .font(.system(size: 8, weight: .bold))
                             .foregroundStyle(CadreColors.accent)
                             .padding(.leading, 4)
@@ -989,7 +870,7 @@ struct TrendsView: View {
                     AxisValueLabel {
                         let norm = mark.as(Double.self) ?? 0
                         let real = primaryMin + norm * (primaryMax - primaryMin)
-                        Text(formatValue(real))
+                        Text(TrendsFormatting.value(real))
                             .foregroundStyle(CadreColors.accent)
                             .font(CadreTypography.trendsAxisLabel)
                     }
@@ -1000,7 +881,7 @@ struct TrendsView: View {
                     AxisValueLabel {
                         let norm = mark.as(Double.self) ?? 0
                         let real = secMin + norm * (secMax - secMin)
-                        Text(formatValue(real))
+                        Text(TrendsFormatting.value(real))
                             .foregroundStyle(secondaryColor)
                             .font(CadreTypography.trendsAxisLabel)
                     }
@@ -1202,7 +1083,7 @@ struct TrendsView: View {
                 .tracking(0.5)
                 .foregroundStyle(CadreColors.textTertiary)
             HStack(alignment: .firstTextBaseline, spacing: 2) {
-                Text(value.map { formatValue($0) } ?? "\u{2014}")
+                Text(value.map { TrendsFormatting.value($0) } ?? "\u{2014}")
                     .font(CadreTypography.trendsStatValue)
                     .foregroundStyle(CadreColors.textPrimary)
                     .contentTransition(.numericText())
@@ -1228,7 +1109,7 @@ struct TrendsView: View {
             heroStepperOverlay(
                 VStack(alignment: .leading, spacing: 8) {
                     HStack(alignment: .firstTextBaseline, spacing: 6) {
-                        Text(formatValue(point.value))
+                        Text(TrendsFormatting.value(point.value))
                             .font(CadreTypography.trendsHero)
                             .tracking(-1.2)
                             .foregroundStyle(CadreColors.textPrimary)
@@ -1284,43 +1165,6 @@ struct TrendsView: View {
 
     // MARK: - Empty state
 
-    /// Tailors the CTA to the selected metric — weight routes to the Now
-    /// tab (fastest path), measurements route to Body (where the log sheet
-    /// lives), and body-comp metrics prompt for a scan.
-    private var emptyStateBlock: some View {
-        let (message, ctaLabel, ctaAction): (String, String, () -> Void) = {
-            switch selectedMetric.group {
-            case .core where selectedMetric == .weight:
-                return (
-                    "Log a weigh-in to start building your trend.",
-                    "Log Weigh-In",
-                    { appState?.selectedTab = .now }
-                )
-            case .measurements:
-                return (
-                    "Log a measurement on the Body tab to start tracking it here.",
-                    "Go to Body",
-                    { appState?.selectedTab = .body }
-                )
-            default:
-                return (
-                    "Add an InBody scan on the Body tab to start tracking this metric.",
-                    "Go to Body",
-                    { appState?.selectedTab = .body }
-                )
-            }
-        }()
-
-        return EmptyStateCard(
-            systemImage: selectedMetric.icon,
-            title: "No data yet",
-            message: message,
-            ctaLabel: ctaLabel,
-            ctaAction: ctaAction
-        )
-        .padding(.top, 60)
-    }
-
     /// Shown when the active window has no data but the user *does* have
     /// data overall (i.e., they've stepped back into an empty range). The
     /// chart placeholder explains the state and the stepper above it lets
@@ -1369,7 +1213,7 @@ struct TrendsView: View {
         let secondaryPoints = vm?.secondaryDataPoints ?? []
         let unit = selectedMetric.unit
         let latestValue = points.last?.value ?? 0
-        let periodSub = periodSubtitle(points: points, unit: unit)
+        let periodSub = TrendsFormatting.periodSubtitle(points: points, unit: unit)
         let hasSecondary = compareEnabled && secondaryMetric != nil && !secondaryPoints.isEmpty
 
         return ZStack {
@@ -1388,7 +1232,7 @@ struct TrendsView: View {
                                 .foregroundStyle(CadreColors.textPrimary)
                         }
                         HStack(alignment: .firstTextBaseline, spacing: 4) {
-                            Text(formatValue(latestValue))
+                            Text(TrendsFormatting.value(latestValue))
                                 .font(.system(size: 32, weight: .bold))
                                 .tracking(-0.8)
                                 .foregroundStyle(CadreColors.accent)
@@ -1410,7 +1254,7 @@ struct TrendsView: View {
                                 .foregroundStyle(CadreColors.textPrimary)
                         }
                         HStack(alignment: .firstTextBaseline, spacing: 4) {
-                            Text(formatValue(secondaryPoints.last?.value ?? 0))
+                            Text(TrendsFormatting.value(secondaryPoints.last?.value ?? 0))
                                 .font(.system(size: 32, weight: .bold))
                                 .tracking(-0.8)
                                 .foregroundStyle(secondaryColor)
@@ -1429,7 +1273,7 @@ struct TrendsView: View {
                                 .foregroundStyle(CadreColors.textPrimary)
                         }
                         HStack(alignment: .firstTextBaseline, spacing: 4) {
-                            Text(formatValue(latestValue))
+                            Text(TrendsFormatting.value(latestValue))
                                 .font(.system(size: 36, weight: .bold))
                                 .tracking(-1.0)
                                 .foregroundStyle(CadreColors.accent)
@@ -1574,7 +1418,7 @@ struct TrendsView: View {
                                 AxisValueLabel {
                                     let norm = mark.as(Double.self) ?? 0
                                     let real = fsPrimaryMin + norm * (fsPrimaryMax - fsPrimaryMin)
-                                    Text(formatValue(real))
+                                    Text(TrendsFormatting.value(real))
                                         .foregroundStyle(CadreColors.accent)
                                         .font(CadreTypography.trendsAxisLabel)
                                 }
@@ -1585,7 +1429,7 @@ struct TrendsView: View {
                                 AxisValueLabel {
                                     let norm = mark.as(Double.self) ?? 0
                                     let real = fsSecMin + norm * (fsSecMax - fsSecMin)
-                                    Text(formatValue(real))
+                                    Text(TrendsFormatting.value(real))
                                         .foregroundStyle(secondaryColor)
                                         .font(CadreTypography.trendsAxisLabel)
                                 }
@@ -1648,40 +1492,6 @@ struct TrendsView: View {
             }
         }
         .statusBarHidden()
-    }
-
-    // MARK: - Helpers
-
-    /// Format a value for display (1 decimal place).
-    private func formatValue(_ value: Double) -> String {
-        String(format: "%.1f", value)
-    }
-
-    private func formatGoalLabel(_ value: Double, unit: String) -> String {
-        let formatted = value == value.rounded() && value >= 10
-            ? String(format: "%.0f", value)
-            : String(format: "%.1f", value)
-        return formatted + " " + unit
-    }
-
-    /// Builds the "Mar 6 – Apr 4 · -0.8 lb / week" string under the hero.
-    private func periodSubtitle(points: [TrendDataPoint], unit: String) -> String {
-        guard let first = points.first, let last = points.last, points.count >= 2 else {
-            return ""
-        }
-        let spanDays = max(1, Calendar.current.dateComponents([.day], from: first.date, to: last.date).day ?? 1)
-        let dateRange = "\(DateFormatting.shortDay(first.date)) \u{2013} \(DateFormatting.shortDay(last.date))"
-
-        if points.count < 7 {
-            return "\(dateRange) \u{00B7} \(points.count) entries"
-        }
-
-        let delta = last.value - first.value
-        let weeks = Double(spanDays) / 7.0
-        let perWeek = weeks > 0 ? delta / weeks : 0
-        let perWeekStr = UnitConversion.formatDelta(perWeek)
-            .replacingOccurrences(of: "-", with: "\u{2212}")
-        return "\(dateRange) \u{00B7} \(perWeekStr) \(unit) / week"
     }
 }
 
