@@ -31,9 +31,9 @@ line_length:
   ignores_comments: true
   ignores_urls: true
 file_length:
-  warning: 1700        # current max 1648 (TrendsView.swift)
+  warning: 1200        # current max 1171 (ScanEntryFlow.swift) — #80 ratchet
 type_body_length:
-  warning: 1350        # current max 1305 (TrendsView)
+  warning: 1000        # current max 993 (ScanEntryFlow) — #80 ratchet
 function_body_length:
   warning: 200         # current max 187 (TrendsView)
 cyclomatic_complexity:
