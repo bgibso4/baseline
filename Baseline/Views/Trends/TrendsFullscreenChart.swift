@@ -28,6 +28,15 @@ struct TrendsFullscreenChart: View {
         let periodSub = TrendsFormatting.periodSubtitle(points: points, unit: unit)
         let hasSecondary = compareEnabled && secondaryMetric != nil && !secondaryPoints.isEmpty
 
+        // Inspect mode: when the user drags the crosshair, snap the left-panel
+        // hero(s) to the nearest point and show that point's date — parity with
+        // the portrait chart, which swaps to an inspect hero on drag.
+        let snappedPrimary = fullscreenSelectedDate.flatMap { nearestPoint(to: $0, in: points) }
+        let snappedSecondary = fullscreenSelectedDate.flatMap { nearestPoint(to: $0, in: secondaryPoints) }
+        let primaryValue = snappedPrimary?.value ?? latestValue
+        let secondaryValue = snappedSecondary?.value ?? (secondaryPoints.last?.value ?? 0)
+        let heroSubtitle = snappedPrimary.map { DateFormatting.weekdayShort($0.date) } ?? periodSub
+
         return ZStack {
             GradientBackground(center: .top)
 
@@ -44,7 +53,7 @@ struct TrendsFullscreenChart: View {
                                 .foregroundStyle(CadreColors.textPrimary)
                         }
                         HStack(alignment: .firstTextBaseline, spacing: 4) {
-                            Text(TrendsFormatting.value(latestValue))
+                            Text(TrendsFormatting.value(primaryValue))
                                 .font(.system(size: 32, weight: .bold))
                                 .tracking(-0.8)
                                 .foregroundStyle(CadreColors.accent)
@@ -66,7 +75,7 @@ struct TrendsFullscreenChart: View {
                                 .foregroundStyle(CadreColors.textPrimary)
                         }
                         HStack(alignment: .firstTextBaseline, spacing: 4) {
-                            Text(TrendsFormatting.value(secondaryPoints.last?.value ?? 0))
+                            Text(TrendsFormatting.value(secondaryValue))
                                 .font(.system(size: 32, weight: .bold))
                                 .tracking(-0.8)
                                 .foregroundStyle(secondaryColor)
@@ -85,7 +94,7 @@ struct TrendsFullscreenChart: View {
                                 .foregroundStyle(CadreColors.textPrimary)
                         }
                         HStack(alignment: .firstTextBaseline, spacing: 4) {
-                            Text(TrendsFormatting.value(latestValue))
+                            Text(TrendsFormatting.value(primaryValue))
                                 .font(.system(size: 36, weight: .bold))
                                 .tracking(-1.0)
                                 .foregroundStyle(CadreColors.accent)
@@ -97,7 +106,7 @@ struct TrendsFullscreenChart: View {
                         }
                     }
 
-                    Text(periodSub)
+                    Text(heroSubtitle)
                         .font(.system(size: 11, weight: .medium))
                         .foregroundStyle(CadreColors.textTertiary)
 
