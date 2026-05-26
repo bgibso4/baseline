@@ -298,85 +298,10 @@ struct TrendsView: View {
         let hideStepper = (vm?.timeRange ?? .month) == .all
         return hero
             .overlay(alignment: .bottomTrailing) {
-                windowNavRow
+                TrendsWindowStepper(vm: vm, onStep: { inlineSelectedDate = nil })
                     .opacity(hideStepper ? 0 : 1)
                     .allowsHitTesting(!hideStepper)
             }
-    }
-
-    // MARK: - Window stepper (#62 — Whoop-style nav)
-
-    /// Compact chevron-left/label/chevron-right row pinned inside the chart
-    /// card (top-right above the graph). Lets the user step backward and
-    /// forward through windows of the selected time range. Hidden for
-    /// `.all` because there's only one window.
-    private var windowNavRow: some View {
-        HStack(spacing: 4) {
-            Button {
-                withAnimation(.snappy(duration: 0.25)) {
-                    vm?.stepWindow(by: -1)
-                    inlineSelectedDate = nil
-                    vm?.refresh()
-                }
-                Haptics.selection()
-            } label: {
-                Image(systemName: "chevron.left")
-                    .font(.system(size: 11, weight: .bold))
-                    .foregroundStyle(
-                        (vm?.canStepBackward ?? false)
-                            ? CadreColors.textSecondary
-                            : CadreColors.textTertiary.opacity(0.3)
-                    )
-                    .frame(minWidth: 44, minHeight: 44)
-                    .contentShape(Rectangle())
-            }
-            .buttonStyle(.plain)
-            .disabled(!(vm?.canStepBackward ?? false))
-            .accessibilityLabel("Previous period")
-            .accessibilityIdentifier(A11yID.Trends.windowStepBack)
-
-            Text(vm?.currentWindowLabel ?? "")
-                // Use semantic .caption so Dynamic Type audit recognises this
-                // as fully scalable. .caption (12pt default) is the smallest
-                // style that passes; .caption2 (11pt) with weight modifier
-                // causes a tool false-positive. Previously .system(size:10)
-                // was non-scalable and caused a DT "unsupported" failure.
-                .font(.caption.weight(.bold))
-                .tracking(0.5)
-                .foregroundStyle(CadreColors.textPrimary)
-                .contentTransition(.numericText())
-                .animation(.snappy, value: vm?.windowEndDate)
-                .lineLimit(1)
-                .fixedSize()
-                // Hide from accessibility when the label is empty (no-data state)
-                // to prevent "label not human-readable" audit failure for an
-                // empty-string StaticText.
-                .accessibilityHidden((vm?.currentWindowLabel ?? "").isEmpty)
-
-            Button {
-                withAnimation(.snappy(duration: 0.25)) {
-                    vm?.stepWindow(by: 1)
-                    inlineSelectedDate = nil
-                    vm?.refresh()
-                }
-                Haptics.selection()
-            } label: {
-                Image(systemName: "chevron.right")
-                    .font(.system(size: 11, weight: .bold))
-                    .foregroundStyle(
-                        (vm?.canStepForward ?? false)
-                            ? CadreColors.textSecondary
-                            : CadreColors.textTertiary.opacity(0.3)
-                    )
-                    .frame(minWidth: 44, minHeight: 44)
-                    .contentShape(Rectangle())
-            }
-            .buttonStyle(.plain)
-            .disabled(!(vm?.canStepForward ?? false))
-            .accessibilityLabel("Next period")
-            .accessibilityIdentifier(A11yID.Trends.windowStepForward)
-        }
-        .padding(.horizontal, 4)
     }
 
     // MARK: - Full variant (2+ data points)
@@ -700,13 +625,7 @@ struct TrendsView: View {
         return DateFormatting.shortDay(date)
     }
 
-    // MARK: - Dual-axis normalization helpers
-
-    /// Normalize a value into 0–1 range given a min/max. Returns 0.5 if range is zero.
-    private func normalize(_ value: Double, min: Double, max: Double) -> Double {
-        guard max - min > 0 else { return 0.5 }
-        return (value - min) / (max - min)
-    }
+    // MARK: - Dual-axis helper
 
     /// Whether dual-axis normalization is needed (compare active with a different metric).
     /// Previous period uses the same scale, so no normalization needed.
@@ -717,14 +636,6 @@ struct TrendsView: View {
         // Previous period compare is same metric → same scale → no dual axis
         if previousPeriod != nil { return false }
         return true
-    }
-
-    /// Compute 4 evenly-spaced real-value tick labels for a given min/max range.
-    private func axisTickValues(min: Double, max: Double, count: Int = 4) -> [Double] {
-        guard max - min > 0 else { return [min] }
-        return (0..<count).map { i in
-            min + (max - min) * Double(i) / Double(count - 1)
-        }
     }
 
     // MARK: - Chart (Swift Charts)
@@ -773,7 +684,9 @@ struct TrendsView: View {
         let chart = Chart {
             if showRawLine {
                 ForEach(points) { point in
-                    let yVal = dualAxis ? normalize(point.value, min: primaryMin, max: primaryMax) : point.value
+                    let yVal = dualAxis
+                        ? TrendsAxisScale.normalize(point.value, min: primaryMin, max: primaryMax)
+                        : point.value
                     LineMark(
                         x: .value("Date", point.date),
                         y: .value("Value", yVal),
@@ -785,7 +698,9 @@ struct TrendsView: View {
             }
             if showRawDots {
                 ForEach(points) { point in
-                    let yVal = dualAxis ? normalize(point.value, min: primaryMin, max: primaryMax) : point.value
+                    let yVal = dualAxis
+                        ? TrendsAxisScale.normalize(point.value, min: primaryMin, max: primaryMax)
+                        : point.value
                     PointMark(
                         x: .value("Date", point.date),
                         y: .value("Value", yVal)
@@ -795,7 +710,9 @@ struct TrendsView: View {
                 }
             }
             ForEach(movingAverage) { point in
-                let yVal = dualAxis ? normalize(point.value, min: primaryMin, max: primaryMax) : point.value
+                let yVal = dualAxis
+                    ? TrendsAxisScale.normalize(point.value, min: primaryMin, max: primaryMax)
+                    : point.value
                 LineMark(
                     x: .value("Date", point.date),
                     y: .value("MA", yVal),
@@ -808,7 +725,7 @@ struct TrendsView: View {
             // Secondary metric (compare mode)
             if compareEnabled && !secondaryPoints.isEmpty {
                 ForEach(secondaryPoints) { point in
-                    let yVal = dualAxis ? normalize(point.value, min: secMin, max: secMax) : point.value
+                    let yVal = dualAxis ? TrendsAxisScale.normalize(point.value, min: secMin, max: secMax) : point.value
                     PointMark(
                         x: .value("Date", point.date),
                         y: .value("Value", yVal)
@@ -817,7 +734,7 @@ struct TrendsView: View {
                     .symbolSize(30)
                 }
                 ForEach(secondaryPoints) { point in
-                    let yVal = dualAxis ? normalize(point.value, min: secMin, max: secMax) : point.value
+                    let yVal = dualAxis ? TrendsAxisScale.normalize(point.value, min: secMin, max: secMax) : point.value
                     LineMark(
                         x: .value("Date", point.date),
                         y: .value("Value", yVal),
@@ -857,8 +774,8 @@ struct TrendsView: View {
         .chartYAxis {
             if dualAxis {
                 // Right axis: primary metric real values (stays on trailing like single-metric)
-                let primaryTicks = axisTickValues(min: primaryMin, max: primaryMax)
-                    .map { normalize($0, min: primaryMin, max: primaryMax) }
+                let primaryTicks = TrendsAxisScale.axisTickValues(min: primaryMin, max: primaryMax)
+                    .map { TrendsAxisScale.normalize($0, min: primaryMin, max: primaryMax) }
                 AxisMarks(position: .trailing, values: primaryTicks) { mark in
                     AxisGridLine()
                         .foregroundStyle(CadreColors.chartGrid)
@@ -871,7 +788,8 @@ struct TrendsView: View {
                     }
                 }
                 // Left axis: secondary metric real values
-                let secTicks = axisTickValues(min: secMin, max: secMax).map { normalize($0, min: secMin, max: secMax) }
+                let secTicks = TrendsAxisScale.axisTickValues(min: secMin, max: secMax)
+                    .map { TrendsAxisScale.normalize($0, min: secMin, max: secMax) }
                 AxisMarks(position: .leading, values: secTicks) { mark in
                     AxisValueLabel {
                         let norm = mark.as(Double.self) ?? 0
@@ -1322,7 +1240,7 @@ struct TrendsView: View {
                     VStack(spacing: 6) {
                         HStack {
                             Spacer()
-                            windowNavRow
+                            TrendsWindowStepper(vm: vm, onStep: { fullscreenSelectedDate = nil })
                             Spacer()
                         }
                         .opacity(fsHideStepper ? 0 : 1)
@@ -1335,7 +1253,8 @@ struct TrendsView: View {
                         if fsShowRawLine {
                             ForEach(points) { point in
                                 let yVal = fsDualAxis
-                                    ? normalize(point.value, min: fsPrimaryMin, max: fsPrimaryMax) : point.value
+                                    ? TrendsAxisScale.normalize(point.value, min: fsPrimaryMin, max: fsPrimaryMax)
+                                    : point.value
                                 LineMark(
                                     x: .value("Date", point.date),
                                     y: .value("Value", yVal),
@@ -1348,7 +1267,8 @@ struct TrendsView: View {
                         if fsShowRawDots {
                             ForEach(points) { point in
                                 let yVal = fsDualAxis
-                                    ? normalize(point.value, min: fsPrimaryMin, max: fsPrimaryMax) : point.value
+                                    ? TrendsAxisScale.normalize(point.value, min: fsPrimaryMin, max: fsPrimaryMax)
+                                    : point.value
                                 PointMark(
                                     x: .value("Date", point.date),
                                     y: .value("Value", yVal)
@@ -1359,7 +1279,8 @@ struct TrendsView: View {
                         }
                         ForEach(ma) { point in
                             let yVal = fsDualAxis
-                                ? normalize(point.value, min: fsPrimaryMin, max: fsPrimaryMax) : point.value
+                                ? TrendsAxisScale.normalize(point.value, min: fsPrimaryMin, max: fsPrimaryMax)
+                                : point.value
                             LineMark(
                                 x: .value("Date", point.date),
                                 y: .value("MA", yVal),
@@ -1373,7 +1294,7 @@ struct TrendsView: View {
                         if hasSecondary {
                             ForEach(secondaryPoints) { point in
                                 let yVal = fsDualAxis
-                                    ? normalize(point.value, min: fsSecMin, max: fsSecMax) : point.value
+                                    ? TrendsAxisScale.normalize(point.value, min: fsSecMin, max: fsSecMax) : point.value
                                 PointMark(
                                     x: .value("Date", point.date),
                                     y: .value("Value", yVal)
@@ -1383,7 +1304,7 @@ struct TrendsView: View {
                             }
                             ForEach(secondaryPoints) { point in
                                 let yVal = fsDualAxis
-                                    ? normalize(point.value, min: fsSecMin, max: fsSecMax) : point.value
+                                    ? TrendsAxisScale.normalize(point.value, min: fsSecMin, max: fsSecMax) : point.value
                                 LineMark(
                                     x: .value("Date", point.date),
                                     y: .value("Value", yVal),
@@ -1405,8 +1326,8 @@ struct TrendsView: View {
                     }
                     .chartYAxis {
                         if fsDualAxis {
-                            let fsPrimaryTicks = axisTickValues(min: fsPrimaryMin, max: fsPrimaryMax)
-                                .map { normalize($0, min: fsPrimaryMin, max: fsPrimaryMax) }
+                            let fsPrimaryTicks = TrendsAxisScale.axisTickValues(min: fsPrimaryMin, max: fsPrimaryMax)
+                                .map { TrendsAxisScale.normalize($0, min: fsPrimaryMin, max: fsPrimaryMax) }
                             AxisMarks(position: .trailing, values: fsPrimaryTicks) { mark in
                                 AxisGridLine()
                                     .foregroundStyle(CadreColors.chartGrid)
@@ -1418,8 +1339,8 @@ struct TrendsView: View {
                                         .font(CadreTypography.trendsAxisLabel)
                                 }
                             }
-                            let fsSecTicks = axisTickValues(min: fsSecMin, max: fsSecMax)
-                                .map { normalize($0, min: fsSecMin, max: fsSecMax) }
+                            let fsSecTicks = TrendsAxisScale.axisTickValues(min: fsSecMin, max: fsSecMax)
+                                .map { TrendsAxisScale.normalize($0, min: fsSecMin, max: fsSecMax) }
                             AxisMarks(position: .leading, values: fsSecTicks) { mark in
                                 AxisValueLabel {
                                     let norm = mark.as(Double.self) ?? 0
