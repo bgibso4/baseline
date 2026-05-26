@@ -47,6 +47,7 @@ struct TrendsView: View {
     @State private var inlineSelectedDate: Date?
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     /// Synchronous VM injection (snapshot / unit tests).
     private let injectedVM: TrendsViewModel?
@@ -293,21 +294,39 @@ struct TrendsView: View {
     /// Threaded into `TrendsMetricChip` and the chart/legend/hero rendering.
     private let secondaryColor = Color(hex: "B89968")
 
-    // MARK: - Hero stepper overlay
+    // MARK: - Hero + window stepper
 
-    /// Pin the window stepper to the bottom-right edge of whatever hero
-    /// view it's applied to. Uses an overlay so the hero's intrinsic
-    /// layout (and thus the chart's vertical position) doesn't shift
-    /// between time ranges. On `.all` the stepper is invisible and
-    /// non-interactive but still occupies its slot.
-    private func heroStepperOverlay<V: View>(_ hero: V) -> some View {
+    /// Lay a hero out with its subtitle and the window stepper sharing one row
+    /// beneath the values — subtitle on the left, stepper on the right. Keeps
+    /// the hero to two rows and gives the stepper horizontal room instead of
+    /// crowding the (wider) dual-hero in compare mode. On `.all` the stepper is
+    /// hidden but still reserves its slot so the chart doesn't shift.
+    private func heroWithStepper<V: View>(subtitle: String, _ hero: V) -> some View {
         let hideStepper = (vm?.timeRange ?? .month) == .all
-        return hero
-            .overlay(alignment: .bottomTrailing) {
-                TrendsWindowStepper(vm: vm, onStep: { inlineSelectedDate = nil })
-                    .opacity(hideStepper ? 0 : 1)
-                    .allowsHitTesting(!hideStepper)
+        let subtitleText = Text(subtitle)
+            .font(CadreTypography.trendsHeroSub)
+            .foregroundStyle(CadreColors.textTertiary)
+        let stepper = TrendsWindowStepper(vm: vm, onStep: { inlineSelectedDate = nil })
+            .opacity(hideStepper ? 0 : 1)
+            .allowsHitTesting(!hideStepper)
+
+        return VStack(alignment: .leading, spacing: 8) {
+            hero
+            // Subtitle + stepper share one row at normal text sizes. At
+            // accessibility Dynamic Type sizes they stack vertically so each
+            // gets the full width to grow — squeezing them onto one row there
+            // would constrain the text and prevent it from scaling.
+            if dynamicTypeSize.isAccessibilitySize {
+                subtitleText
+                stepper.frame(maxWidth: .infinity, alignment: .trailing)
+            } else {
+                HStack(spacing: 8) {
+                    subtitleText
+                    Spacer(minLength: 8)
+                    stepper
+                }
             }
+        }
     }
 
     // MARK: - Full variant (2+ data points)
@@ -338,7 +357,8 @@ struct TrendsView: View {
         return VStack(spacing: 0) {
             if inspecting, let snap = snappedPrimary {
                 if compareEnabled, let secMetric = secondaryMetric, let snapSec = snappedSecondary {
-                    heroStepperOverlay(
+                    heroWithStepper(
+                        subtitle: "",
                         inspectDualHero(
                             primaryValue: snap.value,
                             primaryUnit: unit,
@@ -353,7 +373,8 @@ struct TrendsView: View {
                     .padding(.horizontal, CadreSpacing.sheetHorizontal)
                     .padding(.top, 16)
                 } else if compareEnabled, let period = previousPeriod, let snapSec = snappedSecondary {
-                    heroStepperOverlay(
+                    heroWithStepper(
+                        subtitle: "",
                         inspectDualHero(
                             primaryValue: snap.value,
                             primaryUnit: unit,
@@ -368,43 +389,45 @@ struct TrendsView: View {
                     .padding(.horizontal, CadreSpacing.sheetHorizontal)
                     .padding(.top, 16)
                 } else {
-                    heroStepperOverlay(
-                        inspectHero(value: snap.value, unit: unit, dateSub: DateFormatting.weekdayShort(snap.date))
+                    heroWithStepper(
+                        subtitle: DateFormatting.weekdayShort(snap.date),
+                        inspectHero(value: snap.value, unit: unit)
                     )
                     .padding(.horizontal, CadreSpacing.sheetHorizontal)
                     .padding(.top, 20)
                 }
             } else if compareEnabled, let secMetric = secondaryMetric, !secondaryPoints.isEmpty {
-                heroStepperOverlay(
+                heroWithStepper(
+                    subtitle: periodSub,
                     dualHeroBlock(
                         primaryValue: latestValue,
                         primaryUnit: unit,
                         primaryLabel: selectedMetric.displayName,
                         secondaryValue: secondaryPoints.last?.value ?? 0,
                         secondaryUnit: secMetric.unit,
-                        secondaryLabel: secMetric.displayName,
-                        sub: periodSub
+                        secondaryLabel: secMetric.displayName
                     )
                 )
                 .padding(.horizontal, CadreSpacing.sheetHorizontal)
                 .padding(.top, 16)
             } else if compareEnabled, let period = previousPeriod, !secondaryPoints.isEmpty {
-                heroStepperOverlay(
+                heroWithStepper(
+                    subtitle: periodSub,
                     dualHeroBlock(
                         primaryValue: latestValue,
                         primaryUnit: unit,
                         primaryLabel: "Current",
                         secondaryValue: secondaryPoints.last?.value ?? 0,
                         secondaryUnit: unit,
-                        secondaryLabel: period.rawValue,
-                        sub: periodSub
+                        secondaryLabel: period.rawValue
                     )
                 )
                 .padding(.horizontal, CadreSpacing.sheetHorizontal)
                 .padding(.top, 16)
             } else {
-                heroStepperOverlay(
-                    heroBlock(latestValue: latestValue, unit: unit, delta: delta, sub: periodSub)
+                heroWithStepper(
+                    subtitle: periodSub,
+                    heroBlock(latestValue: latestValue, unit: unit, delta: delta)
                 )
                 .padding(.horizontal, CadreSpacing.sheetHorizontal)
                 .padding(.top, 20)
@@ -434,45 +457,35 @@ struct TrendsView: View {
 
     // MARK: - Hero (latest value)
 
-    private func heroBlock(latestValue: Double, unit: String, delta: Double, sub: String) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack(alignment: .firstTextBaseline, spacing: 6) {
-                Text(TrendsFormatting.value(latestValue))
-                    .font(CadreTypography.trendsHero)
-                    .tracking(-1.2)
-                    .foregroundStyle(CadreColors.textPrimary)
-                    .contentTransition(.numericText())
-                    .animation(.snappy, value: latestValue)
-                    // Identifier lets the accessibility audit handler suppress the
-                    // dynamicTypeTextSizesNotSupported false-positive: this font is
-                    // built with UIFontMetrics and DOES scale at runtime — the XCTest
-                    // audit simply cannot detect UIFont-bridged scaling.
-                    .accessibilityIdentifier(A11yID.Trends.heroValue)
-                    // Explicit label combining value and unit prevents "label not
-                    // human-readable" audit failure for a purely numeric string.
-                    .accessibilityLabel(unit.isEmpty
-                        ? "\(selectedMetric.displayName): \(TrendsFormatting.value(latestValue))"
-                        : "\(selectedMetric.displayName): \(TrendsFormatting.value(latestValue)) \(unit)")
-                if !unit.isEmpty {
-                    Text(unit)
-                        .font(CadreTypography.trendsHeroUnit)
-                        .foregroundStyle(CadreColors.textSecondary)
-                        // Unit label is part of the heroValue combined label; hide
-                        // from VoiceOver to avoid reading it twice.
-                        .accessibilityHidden(true)
-                }
+    private func heroBlock(latestValue: Double, unit: String, delta: Double) -> some View {
+        HStack(alignment: .firstTextBaseline, spacing: 6) {
+            Text(TrendsFormatting.value(latestValue))
+                .font(CadreTypography.trendsHero)
+                .tracking(-1.2)
+                .foregroundStyle(CadreColors.textPrimary)
+                .contentTransition(.numericText())
+                .animation(.snappy, value: latestValue)
+                // Identifier lets the accessibility audit handler suppress the
+                // dynamicTypeTextSizesNotSupported false-positive: this font is
+                // built with UIFontMetrics and DOES scale at runtime — the XCTest
+                // audit simply cannot detect UIFont-bridged scaling.
+                .accessibilityIdentifier(A11yID.Trends.heroValue)
+                // Explicit label combining value and unit prevents "label not
+                // human-readable" audit failure for a purely numeric string.
+                .accessibilityLabel(unit.isEmpty
+                    ? "\(selectedMetric.displayName): \(TrendsFormatting.value(latestValue))"
+                    : "\(selectedMetric.displayName): \(TrendsFormatting.value(latestValue)) \(unit)")
+            if !unit.isEmpty {
+                Text(unit)
+                    .font(CadreTypography.trendsHeroUnit)
+                    .foregroundStyle(CadreColors.textSecondary)
+                    // Unit label is part of the heroValue combined label; hide
+                    // from VoiceOver to avoid reading it twice.
+                    .accessibilityHidden(true)
             }
-            .lineLimit(1)
-            .minimumScaleFactor(0.7)
-
-            // Per-period rate subtitle (e.g. "−0.8 lb / week"), shown for every
-            // metric including weight. The date range is intentionally omitted —
-            // it's already conveyed by the window stepper. Sparse windows (<7
-            // entries) fall back to an entry count — see TrendsFormatting.
-            Text(sub)
-                .font(CadreTypography.trendsHeroSub)
-                .foregroundStyle(CadreColors.textTertiary)
         }
+        .lineLimit(1)
+        .minimumScaleFactor(0.7)
         .frame(maxWidth: .infinity, alignment: .leading)
     }
 
@@ -482,53 +495,47 @@ struct TrendsView: View {
         primaryLabel: String,
         secondaryValue: Double,
         secondaryUnit: String,
-        secondaryLabel: String,
-        sub: String
+        secondaryLabel: String
     ) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack(spacing: 22) {
-                // Primary
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(primaryLabel.uppercased())
-                        .font(.system(size: 9, weight: .bold))
-                        .tracking(0.5)
+        HStack(spacing: 22) {
+            // Primary
+            VStack(alignment: .leading, spacing: 4) {
+                Text(primaryLabel.uppercased())
+                    .font(.system(size: 9, weight: .bold))
+                    .tracking(0.5)
+                    .foregroundStyle(CadreColors.accent)
+                HStack(alignment: .firstTextBaseline, spacing: 4) {
+                    Text(TrendsFormatting.value(primaryValue))
+                        .font(.system(size: 32, weight: .bold))
+                        .tracking(-0.8)
                         .foregroundStyle(CadreColors.accent)
-                    HStack(alignment: .firstTextBaseline, spacing: 4) {
-                        Text(TrendsFormatting.value(primaryValue))
-                            .font(.system(size: 32, weight: .bold))
-                            .tracking(-0.8)
-                            .foregroundStyle(CadreColors.accent)
-                            .contentTransition(.numericText())
-                        if !primaryUnit.isEmpty {
-                            Text(primaryUnit)
-                                .font(.system(size: 12, weight: .medium))
-                                .foregroundStyle(CadreColors.textSecondary)
-                        }
-                    }
-                }
-                // Secondary
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(secondaryLabel.uppercased())
-                        .font(.system(size: 9, weight: .bold))
-                        .tracking(0.5)
-                        .foregroundStyle(secondaryColor)
-                    HStack(alignment: .firstTextBaseline, spacing: 4) {
-                        Text(TrendsFormatting.value(secondaryValue))
-                            .font(.system(size: 32, weight: .bold))
-                            .tracking(-0.8)
-                            .foregroundStyle(secondaryColor)
-                            .contentTransition(.numericText())
-                        if !secondaryUnit.isEmpty {
-                            Text(secondaryUnit)
-                                .font(.system(size: 12, weight: .medium))
-                                .foregroundStyle(CadreColors.textSecondary)
-                        }
+                        .contentTransition(.numericText())
+                    if !primaryUnit.isEmpty {
+                        Text(primaryUnit)
+                            .font(.system(size: 12, weight: .medium))
+                            .foregroundStyle(CadreColors.textSecondary)
                     }
                 }
             }
-            Text(sub)
-                .font(CadreTypography.trendsHeroSub)
-                .foregroundStyle(CadreColors.textTertiary)
+            // Secondary
+            VStack(alignment: .leading, spacing: 4) {
+                Text(secondaryLabel.uppercased())
+                    .font(.system(size: 9, weight: .bold))
+                    .tracking(0.5)
+                    .foregroundStyle(secondaryColor)
+                HStack(alignment: .firstTextBaseline, spacing: 4) {
+                    Text(TrendsFormatting.value(secondaryValue))
+                        .font(.system(size: 32, weight: .bold))
+                        .tracking(-0.8)
+                        .foregroundStyle(secondaryColor)
+                        .contentTransition(.numericText())
+                    if !secondaryUnit.isEmpty {
+                        Text(secondaryUnit)
+                            .font(.system(size: 12, weight: .medium))
+                            .foregroundStyle(CadreColors.textSecondary)
+                    }
+                }
+            }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
     }
@@ -593,31 +600,25 @@ struct TrendsView: View {
     }
 
     /// Hero variant used while the user is scrubbing the chart (#63). Shows
-    /// the snapped point's value in place of the latest, with the snapped
-    /// date as the sub-line ("Wed, Apr 3"). Same visual weight as
+    /// the snapped point's value in place of the latest; the snapped date is
+    /// supplied as the subtitle by `heroWithStepper`. Same visual weight as
     /// `heroBlock` so the swap doesn't shift layout.
-    private func inspectHero(value: Double, unit: String, dateSub: String) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack(alignment: .firstTextBaseline, spacing: 6) {
-                Text(TrendsFormatting.value(value))
-                    .font(CadreTypography.trendsHero)
-                    .tracking(-1.2)
-                    .foregroundStyle(CadreColors.textPrimary)
-                    .contentTransition(.numericText())
-                    .animation(.snappy, value: value)
-                if !unit.isEmpty {
-                    Text(unit)
-                        .font(CadreTypography.trendsHeroUnit)
-                        .foregroundStyle(CadreColors.textSecondary)
-                }
+    private func inspectHero(value: Double, unit: String) -> some View {
+        HStack(alignment: .firstTextBaseline, spacing: 6) {
+            Text(TrendsFormatting.value(value))
+                .font(CadreTypography.trendsHero)
+                .tracking(-1.2)
+                .foregroundStyle(CadreColors.textPrimary)
+                .contentTransition(.numericText())
+                .animation(.snappy, value: value)
+            if !unit.isEmpty {
+                Text(unit)
+                    .font(CadreTypography.trendsHeroUnit)
+                    .foregroundStyle(CadreColors.textSecondary)
             }
-            .lineLimit(1)
-            .minimumScaleFactor(0.7)
-
-            Text(dateSub)
-                .font(CadreTypography.trendsHeroSub)
-                .foregroundStyle(CadreColors.textTertiary)
         }
+        .lineLimit(1)
+        .minimumScaleFactor(0.7)
         .frame(maxWidth: .infinity, alignment: .leading)
     }
 
@@ -1025,22 +1026,18 @@ struct TrendsView: View {
         let point = points[0]
         let unit = selectedMetric.unit
         return VStack(spacing: 0) {
-            heroStepperOverlay(
-                VStack(alignment: .leading, spacing: 8) {
-                    HStack(alignment: .firstTextBaseline, spacing: 6) {
-                        Text(TrendsFormatting.value(point.value))
-                            .font(CadreTypography.trendsHero)
-                            .tracking(-1.2)
-                            .foregroundStyle(CadreColors.textPrimary)
-                        if !unit.isEmpty {
-                            Text(unit)
-                                .font(CadreTypography.trendsHeroUnit)
-                                .foregroundStyle(CadreColors.textSecondary)
-                        }
+            heroWithStepper(
+                subtitle: "Log more entries to see your trend",
+                HStack(alignment: .firstTextBaseline, spacing: 6) {
+                    Text(TrendsFormatting.value(point.value))
+                        .font(CadreTypography.trendsHero)
+                        .tracking(-1.2)
+                        .foregroundStyle(CadreColors.textPrimary)
+                    if !unit.isEmpty {
+                        Text(unit)
+                            .font(CadreTypography.trendsHeroUnit)
+                            .foregroundStyle(CadreColors.textSecondary)
                     }
-                    Text("Log more entries to see your trend")
-                        .font(CadreTypography.trendsHeroSub)
-                        .foregroundStyle(CadreColors.textTertiary)
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
             )
@@ -1093,8 +1090,9 @@ struct TrendsView: View {
     private func steppedBackEmptyBlock(latest: TrendDataPoint) -> some View {
         let unit = selectedMetric.unit
         return VStack(spacing: 0) {
-            heroStepperOverlay(
-                inspectHero(value: latest.value, unit: unit, dateSub: heroRelativeDate(from: latest.date))
+            heroWithStepper(
+                subtitle: heroRelativeDate(from: latest.date),
+                inspectHero(value: latest.value, unit: unit)
             )
             .padding(.horizontal, CadreSpacing.sheetHorizontal)
             .padding(.top, 20)
