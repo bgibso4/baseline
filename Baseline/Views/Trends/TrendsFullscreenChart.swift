@@ -19,6 +19,22 @@ struct TrendsFullscreenChart: View {
         vm?.selectedMetric ?? .weight
     }
 
+    /// Centered window stepper, hidden (but space-reserved) on the `.all`
+    /// range. Shown in every data state — including an empty or single-point
+    /// window — so stepping back out to where data lives stays possible.
+    private var fsStepperRow: some View {
+        let hideStepper = (vm?.timeRange ?? .month) == .all
+        return HStack {
+            Spacer()
+            TrendsWindowStepper(vm: vm, onStep: { fullscreenSelectedDate = nil })
+            Spacer()
+        }
+        .opacity(hideStepper ? 0 : 1)
+        .allowsHitTesting(!hideStepper)
+        // Keep clear of the close button, which overlays the top-right corner.
+        .padding(.trailing, 36)
+    }
+
     var body: some View {
         let points = vm?.dataPoints ?? []
         let ma = vm?.movingAverage ?? []
@@ -143,19 +159,9 @@ struct TrendsFullscreenChart: View {
 
                     let fsShowRawLine = vm?.showRawLine ?? true
                     let fsShowRawDots = vm?.showRawDots ?? true
-                    let fsHideStepper = (vm?.timeRange ?? .month) == .all
 
                     VStack(spacing: 6) {
-                        HStack {
-                            Spacer()
-                            TrendsWindowStepper(vm: vm, onStep: { fullscreenSelectedDate = nil })
-                            Spacer()
-                        }
-                        .opacity(fsHideStepper ? 0 : 1)
-                        .allowsHitTesting(!fsHideStepper)
-                        // Keep clear of the close button, which overlays
-                        // the screen's top-right corner.
-                        .padding(.trailing, 36)
+                        fsStepperRow
 
                         Chart {
                         if fsShowRawLine {
@@ -274,24 +280,31 @@ struct TrendsFullscreenChart: View {
                     .padding()
                     .onAppear { fullscreenSelectedDate = nil }
                 } else if let point = points.first {
-                    Chart {
-                        PointMark(
-                            x: .value("Date", point.date),
-                            y: .value("Value", point.value)
-                        )
-                        .foregroundStyle(CadreColors.chartLine)
-                        .symbolSize(80)
+                    VStack(spacing: 6) {
+                        fsStepperRow
+                        Chart {
+                            PointMark(
+                                x: .value("Date", point.date),
+                                y: .value("Value", point.value)
+                            )
+                            .foregroundStyle(CadreColors.chartLine)
+                            .symbolSize(80)
+                        }
+                        .chartXAxis(.hidden)
+                        .chartYAxis(.hidden)
+                        .chartYScale(domain: (point.value - 2)...(point.value + 2))
                     }
-                    .chartXAxis(.hidden)
-                    .chartYAxis(.hidden)
-                    .chartYScale(domain: (point.value - 2)...(point.value + 2))
                     .padding()
                 } else {
-                    Spacer()
-                    Text("No data")
-                        .font(CadreTypography.trendsEmptyTitle)
-                        .foregroundStyle(CadreColors.textTertiary)
-                    Spacer()
+                    VStack(spacing: 6) {
+                        fsStepperRow
+                        Spacer()
+                        Text("No data")
+                            .font(CadreTypography.trendsEmptyTitle)
+                            .foregroundStyle(CadreColors.textTertiary)
+                        Spacer()
+                    }
+                    .padding()
                 }
             }
 
