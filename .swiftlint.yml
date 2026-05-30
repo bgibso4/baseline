@@ -31,9 +31,9 @@ line_length:
   ignores_comments: true
   ignores_urls: true
 file_length:
-  warning: 1200        # current max 1171 (ScanEntryFlow.swift) — #80 ratchet
+  warning: 1000        # current max 940 (InBodyDocumentParser.swift) — #80 ratchet
 type_body_length:
-  warning: 1000        # current max 993 (ScanEntryFlow) — #80 ratchet
+  warning: 950         # current max <950 (ScanReviewForm) — #80 ratchet
 function_body_length:
   warning: 200         # current max 187 (TrendsView)
 cyclomatic_complexity:
