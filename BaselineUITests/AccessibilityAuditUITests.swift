@@ -74,11 +74,50 @@ final class AccessibilityAuditUITests: BaseUITestCase {
         return false
     }
 
+    // MARK: - Audit slicing
+    //
+    // Each screen test runs the audit as a sequence of per-type calls instead
+    // of one combined `.all` call. Reasons:
+    //   • Each `performAccessibilityAudit(for:)` invocation gets its own
+    //     internal deadline. Heavy screens (Body's tile grid) sat right at the
+    //     edge of the combined-call limit on CI runners and intermittently hit
+    //     "audit failed to complete in time."
+    //   • A failure now identifies the offending audit type ("contrast on Body")
+    //     instead of a generic combined-audit timeout.
+    //   • The tab launch + the suppression handler are shared across the sub-
+    //     calls in one test, so there's no per-test setup overhead added — only
+    //     the audit work is sliced.
+
+    /// `XCUIAccessibilityAuditType` is an `OptionSet`, not iterable, so we list
+    /// the individual types explicitly. If Apple adds a new type, add it here
+    /// to enable the check on every screen.
+    private static let individualAuditTypes: [XCUIAccessibilityAuditType] = [
+        .contrast,
+        .dynamicType,
+        .elementDetection,
+        .hitRegion,
+        .sufficientElementDescription,
+        .textClipped,
+        .trait
+    ]
+
+    /// Run the accessibility audit on the current screen as one call per type.
+    /// Optionally skip specific types (e.g. `.contrast` on screens whose glass
+    /// design makes every contrast issue a known false positive).
+    private func runScreenAudit(
+        excluding excluded: XCUIAccessibilityAuditType = [],
+        handler: @escaping (XCUIAccessibilityAuditIssue) -> Bool
+    ) throws {
+        for type in Self.individualAuditTypes where !excluded.contains(type) {
+            try app.performAccessibilityAudit(for: type, handler)
+        }
+    }
+
     // MARK: - Tests
 
     func testNowScreenAccessibility() throws {
         tapTab(A11yID.TabBar.now)
-        try app.performAccessibilityAudit { issue in
+        try runScreenAudit { issue in
             if self.suppressKnownFalsePositive(issue) { return true }
 
             let desc = issue.element?.description ?? ""
@@ -154,7 +193,7 @@ final class AccessibilityAuditUITests: BaseUITestCase {
 
     func testTrendsScreenAccessibility() throws {
         tapTab(A11yID.TabBar.trends)
-        try app.performAccessibilityAudit { issue in
+        try runScreenAudit { issue in
             if self.suppressKnownFalsePositive(issue) { return true }
 
             let desc = issue.element?.description ?? ""
@@ -204,7 +243,7 @@ final class AccessibilityAuditUITests: BaseUITestCase {
 
     func testBodyScreenAccessibility() throws {
         tapTab(A11yID.TabBar.body)
-        try app.performAccessibilityAudit { issue in
+        try runScreenAudit { issue in
             if self.suppressKnownFalsePositive(issue) { return true }
 
             let desc = issue.element?.description ?? ""
@@ -285,8 +324,10 @@ final class AccessibilityAuditUITests: BaseUITestCase {
     func testSettingsScreenAccessibility() throws {
         tapTab(A11yID.TabBar.now)
         app.buttons[A11yID.Now.settingsButton].tap()
-        XCTAssertTrue(app.otherElements[A11yID.Settings.unitToggle].firstMatch.waitForExistence(timeout: Self.defaultTimeout)
-                      || app.staticTexts["Settings"].waitForExistence(timeout: Self.defaultTimeout))
+        XCTAssertTrue(
+            app.otherElements[A11yID.Settings.unitToggle].firstMatch.waitForExistence(timeout: Self.defaultTimeout)
+                || app.staticTexts["Settings"].waitForExistence(timeout: Self.defaultTimeout)
+        )
         // Settings uses cardGlass (75% opacity) over a radial gradient for all row
         // surfaces. The contrast audit cannot compute contrast through semi-transparent
         // layers, producing false-positive failures for every row label and value even
@@ -298,7 +339,7 @@ final class AccessibilityAuditUITests: BaseUITestCase {
         // All remaining contrast findings are false-positives from the glass-card
         // background opacity. Non-contrast audits (hit region, Dynamic Type, etc.)
         // run normally.
-        try app.performAccessibilityAudit(for: .all.subtracting(.contrast)) { issue in
+        try runScreenAudit(excluding: .contrast) { issue in
             if self.suppressKnownFalsePositive(issue) { return true }
 
             // MARK: Settings screen — Dynamic Type false-positives
@@ -358,7 +399,7 @@ final class AccessibilityAuditUITests: BaseUITestCase {
         // cannot be matched by compactDescription or identifier, making per-element
         // suppression impossible for those nodes. All auditable issue types other than
         // contrast (hit region, dynamic type, etc.) run normally.
-        try app.performAccessibilityAudit(for: .all.subtracting(.contrast)) { issue in
+        try runScreenAudit(excluding: .contrast) { issue in
             if self.suppressKnownFalsePositive(issue) { return true }
 
             let desc = issue.element?.description ?? ""
