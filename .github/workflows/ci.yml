@@ -31,6 +31,22 @@ jobs:
           restore-keys: |
             spm-${{ runner.os }}-
 
+      # Cache the rest of DerivedData (Build/, ModuleCache.noindex/, etc.) so
+      # subsequent runs incrementally compile instead of starting cold. The
+      # SourcePackages cache above is intentionally separate (different key
+      # cadence). Key on Swift sources + the checked-in pbxproj + Package.resolved
+      # so any source/config change busts the cache; the restore-keys fallback
+      # still hands a warm tree to the compiler.
+      - name: Cache DerivedData (build artifacts)
+        uses: actions/cache@v4
+        with:
+          path: |
+            .build/DerivedData/Build
+            .build/DerivedData/ModuleCache.noindex
+          key: dd-${{ runner.os }}-xcode26.3-${{ hashFiles('**/*.swift', 'Baseline.xcodeproj/project.pbxproj', 'Baseline.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved') }}
+          restore-keys: |
+            dd-${{ runner.os }}-xcode26.3-
+
       - name: Install tooling
         run: brew install swiftlint xcbeautify
 

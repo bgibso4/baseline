@@ -50,7 +50,9 @@ test:
 	  -project $(PROJECT) -scheme $(SCHEME) \
 	  -testPlan Baseline-CI \
 	  -destination '$(DESTINATION)' \
-	  -derivedDataPath $(DERIVED_DATA) | xcbeautify
+	  -derivedDataPath $(DERIVED_DATA) \
+	  -parallel-testing-enabled YES \
+	  -parallel-testing-worker-count 2 | xcbeautify
 
 test-ui: ## Run UI tests only (Baseline-UITests plan)
 	set -o pipefail && xcodebuild test \
