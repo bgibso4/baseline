@@ -154,6 +154,7 @@
 		D76C812702C9547B6C9F28A7 /* ScanEntrySnapshotTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74D5C40BED7A835BFB495376 /* ScanEntrySnapshotTests.swift */; };
 		D92F5C6E44E03E9A3A116155 /* GoalReachedOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1424BC1B992343663EFFF98A /* GoalReachedOverlay.swift */; };
 		DAC1ACCF3391AFF4C92B7AF9 /* testScanEntry_ReviewForm_WithLowConfidence.1.png in Resources */ = {isa = PBXBuildFile; fileRef = 33EA9A555C61700BA6F94BE2 /* testScanEntry_ReviewForm_WithLowConfidence.1.png */; };
+		DD59EC72F6431A907E3A601C /* ScanReviewForm.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2ED717562A7FF0A2571899AD /* ScanReviewForm.swift */; };
 		DE011130A60888C84A5FE788 /* ChartInteractivity.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5DE115CB3094C63E598E6560 /* ChartInteractivity.swift */; };
 		DF1C2AAE4960B545734FBBF9 /* SpyHealthKitMirror.swift in Sources */ = {isa = PBXBuildFile; fileRef = E45115050A1BEF66129E6F1A /* SpyHealthKitMirror.swift */; };
 		DFC73421E040CFEC342F983C /* LandscapeHostingController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D56B8A49CA2EEFD71F999494 /* LandscapeHostingController.swift */; };
@@ -251,6 +252,7 @@
 		2DD62082CE52C25DD0DC3AA5 /* NowViewSnapshotTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NowViewSnapshotTests.swift; sourceTree = "<group>"; };
 		2DFA854BB2DDD885AF4C12FC /* CloudKitSyncMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudKitSyncMonitor.swift; sourceTree = "<group>"; };
 		2EC28E79402D074F2A221351 /* Goal.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Goal.swift; sourceTree = "<group>"; };
+		2ED717562A7FF0A2571899AD /* ScanReviewForm.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScanReviewForm.swift; sourceTree = "<group>"; };
 		305D48B82A09CA4E0E7BCD0E /* TestDataSeederProfileTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestDataSeederProfileTests.swift; sourceTree = "<group>"; };
 		312ECD390BFC532EC10D9819 /* WeightEntry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeightEntry.swift; sourceTree = "<group>"; };
 		32B28DC15F13A362B58FD326 /* HealthKitManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthKitManager.swift; sourceTree = "<group>"; };
@@ -648,6 +650,7 @@
 				CE9D81237D70C24BBA30C9BA /* ScanEntryFlow.swift */,
 				8DA201B33D69EFE5EC41ABC3 /* ScanFlowControls.swift */,
 				44F25E2DF4D4198F90CBFA5F /* ScanHistoryView.swift */,
+				2ED717562A7FF0A2571899AD /* ScanReviewForm.swift */,
 				FD2CAB65EF5D09191212579A /* ScanTypeStep.swift */,
 			);
 			path = Body;
@@ -1222,6 +1225,7 @@
 				5E930B0375F0609094F3C87C /* ScanFlowControls.swift in Sources */,
 				A57EEB8655AA931F183DCC5A /* ScanHistoryView.swift in Sources */,
 				3A26E7683F4A65D4A9240FE8 /* ScanPayloads.swift in Sources */,
+				DD59EC72F6431A907E3A601C /* ScanReviewForm.swift in Sources */,
 				7B54306329FD9740F64ECD42 /* ScanTypeStep.swift in Sources */,
 				60FB5F4F8D87A751246CF146 /* SetGoalSheet.swift in Sources */,
 				AFEED3FBF53EA760CC11BDC3 /* SettingsComponents.swift in Sources */,
