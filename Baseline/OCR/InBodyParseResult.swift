@@ -67,6 +67,69 @@ struct InBodyParseResult {
     var confidence: [String: Float] = [:]
     var detectedUnit: DetectedUnit = .lbs
 
+    // MARK: - Field Registry
+    //
+    // Single source of truth for OCR-extractable Double fields. `value(forKey:)`,
+    // `setValue(_:forKey:)`, `merge(with:)`, and `consensusVote(_:)` all derive
+    // from this list — add a field here and every dispatch picks it up automatically.
+    //
+    // Order is preserved for stable iteration in tests and debug logs.
+    static let allFields: [(key: String, keyPath: WritableKeyPath<InBodyParseResult, Double?>)] = [
+        ("weightKg", \.weightKg),
+        ("skeletalMuscleMassKg", \.skeletalMuscleMassKg),
+        ("bodyFatMassKg", \.bodyFatMassKg),
+        ("bodyFatPct", \.bodyFatPct),
+        ("totalBodyWaterL", \.totalBodyWaterL),
+        ("bmi", \.bmi),
+        ("basalMetabolicRate", \.basalMetabolicRate),
+        ("intracellularWaterL", \.intracellularWaterL),
+        ("extracellularWaterL", \.extracellularWaterL),
+        ("dryLeanMassKg", \.dryLeanMassKg),
+        ("leanBodyMassKg", \.leanBodyMassKg),
+        ("inBodyScore", \.inBodyScore),
+        ("ecwTbwRatio", \.ecwTbwRatio),
+        ("skeletalMuscleIndex", \.skeletalMuscleIndex),
+        ("visceralFatLevel", \.visceralFatLevel),
+        ("rightArmLeanKg", \.rightArmLeanKg),
+        ("leftArmLeanKg", \.leftArmLeanKg),
+        ("trunkLeanKg", \.trunkLeanKg),
+        ("rightLegLeanKg", \.rightLegLeanKg),
+        ("leftLegLeanKg", \.leftLegLeanKg),
+        ("rightArmFatKg", \.rightArmFatKg),
+        ("leftArmFatKg", \.leftArmFatKg),
+        ("trunkFatKg", \.trunkFatKg),
+        ("rightLegFatKg", \.rightLegFatKg),
+        ("leftLegFatKg", \.leftLegFatKg),
+        ("rightArmLeanPct", \.rightArmLeanPct),
+        ("leftArmLeanPct", \.leftArmLeanPct),
+        ("trunkLeanPct", \.trunkLeanPct),
+        ("rightLegLeanPct", \.rightLegLeanPct),
+        ("leftLegLeanPct", \.leftLegLeanPct),
+        ("rightArmFatPct", \.rightArmFatPct),
+        ("leftArmFatPct", \.leftArmFatPct),
+        ("trunkFatPct", \.trunkFatPct),
+        ("rightLegFatPct", \.rightLegFatPct),
+        ("leftLegFatPct", \.leftLegFatPct)
+    ]
+
+    /// All field keys in stable order. Derived from `allFields` so the two can't drift.
+    static let allFieldKeys: [String] = allFields.map(\.key)
+
+    /// Indexed lookup for O(1) key → keypath resolution.
+    private static let keyPathByKey: [String: WritableKeyPath<InBodyParseResult, Double?>] =
+        Dictionary(uniqueKeysWithValues: allFields.map { ($0.key, $0.keyPath) })
+
+    /// Get a field value by key. Returns nil for unset fields or unknown keys.
+    func value(forKey key: String) -> Double? {
+        Self.keyPathByKey[key].flatMap { self[keyPath: $0] }
+    }
+
+    /// Set a field value by key. No-ops for unknown keys.
+    mutating func setValue(_ value: Double?, forKey key: String) {
+        guard let keyPath = Self.keyPathByKey[key] else { return }
+        self[keyPath: keyPath] = value
+    }
+
     // MARK: - Conversion to InBodyPayload
 
     enum ConversionError: Error, LocalizedError {
@@ -134,102 +197,6 @@ struct InBodyParseResult {
     }
 
     // MARK: - Consensus Voting
-
-    /// All field keys that can be extracted from a scan.
-    static let allFieldKeys: [String] = [
-        "weightKg", "skeletalMuscleMassKg", "bodyFatMassKg", "bodyFatPct",
-        "totalBodyWaterL", "bmi", "basalMetabolicRate",
-        "intracellularWaterL", "extracellularWaterL", "dryLeanMassKg", "leanBodyMassKg",
-        "inBodyScore", "ecwTbwRatio", "skeletalMuscleIndex", "visceralFatLevel",
-        "rightArmLeanKg", "leftArmLeanKg", "trunkLeanKg", "rightLegLeanKg", "leftLegLeanKg",
-        "rightArmFatKg", "leftArmFatKg", "trunkFatKg", "rightLegFatKg", "leftLegFatKg",
-        "rightArmLeanPct", "leftArmLeanPct", "trunkLeanPct", "rightLegLeanPct", "leftLegLeanPct",
-        "rightArmFatPct", "leftArmFatPct", "trunkFatPct", "rightLegFatPct", "leftLegFatPct"
-    ]
-
-    /// Get a field value by key.
-    func value(forKey key: String) -> Double? {
-        switch key {
-        case "weightKg": return weightKg
-        case "skeletalMuscleMassKg": return skeletalMuscleMassKg
-        case "bodyFatMassKg": return bodyFatMassKg
-        case "bodyFatPct": return bodyFatPct
-        case "totalBodyWaterL": return totalBodyWaterL
-        case "bmi": return bmi
-        case "basalMetabolicRate": return basalMetabolicRate
-        case "intracellularWaterL": return intracellularWaterL
-        case "extracellularWaterL": return extracellularWaterL
-        case "dryLeanMassKg": return dryLeanMassKg
-        case "leanBodyMassKg": return leanBodyMassKg
-        case "inBodyScore": return inBodyScore
-        case "rightArmLeanKg": return rightArmLeanKg
-        case "leftArmLeanKg": return leftArmLeanKg
-        case "trunkLeanKg": return trunkLeanKg
-        case "rightLegLeanKg": return rightLegLeanKg
-        case "leftLegLeanKg": return leftLegLeanKg
-        case "rightArmFatKg": return rightArmFatKg
-        case "leftArmFatKg": return leftArmFatKg
-        case "trunkFatKg": return trunkFatKg
-        case "rightLegFatKg": return rightLegFatKg
-        case "leftLegFatKg": return leftLegFatKg
-        case "ecwTbwRatio": return ecwTbwRatio
-        case "skeletalMuscleIndex": return skeletalMuscleIndex
-        case "visceralFatLevel": return visceralFatLevel
-        case "rightArmLeanPct": return rightArmLeanPct
-        case "leftArmLeanPct": return leftArmLeanPct
-        case "trunkLeanPct": return trunkLeanPct
-        case "rightLegLeanPct": return rightLegLeanPct
-        case "leftLegLeanPct": return leftLegLeanPct
-        case "rightArmFatPct": return rightArmFatPct
-        case "leftArmFatPct": return leftArmFatPct
-        case "trunkFatPct": return trunkFatPct
-        case "rightLegFatPct": return rightLegFatPct
-        case "leftLegFatPct": return leftLegFatPct
-        default: return nil
-        }
-    }
-
-    /// Set a field value by key.
-    mutating func setValue(_ value: Double?, forKey key: String) {
-        switch key {
-        case "weightKg": weightKg = value
-        case "skeletalMuscleMassKg": skeletalMuscleMassKg = value
-        case "bodyFatMassKg": bodyFatMassKg = value
-        case "bodyFatPct": bodyFatPct = value
-        case "totalBodyWaterL": totalBodyWaterL = value
-        case "bmi": bmi = value
-        case "basalMetabolicRate": basalMetabolicRate = value
-        case "intracellularWaterL": intracellularWaterL = value
-        case "extracellularWaterL": extracellularWaterL = value
-        case "dryLeanMassKg": dryLeanMassKg = value
-        case "leanBodyMassKg": leanBodyMassKg = value
-        case "inBodyScore": inBodyScore = value
-        case "rightArmLeanKg": rightArmLeanKg = value
-        case "leftArmLeanKg": leftArmLeanKg = value
-        case "trunkLeanKg": trunkLeanKg = value
-        case "rightLegLeanKg": rightLegLeanKg = value
-        case "leftLegLeanKg": leftLegLeanKg = value
-        case "rightArmFatKg": rightArmFatKg = value
-        case "leftArmFatKg": leftArmFatKg = value
-        case "trunkFatKg": trunkFatKg = value
-        case "rightLegFatKg": rightLegFatKg = value
-        case "leftLegFatKg": leftLegFatKg = value
-        case "ecwTbwRatio": ecwTbwRatio = value
-        case "skeletalMuscleIndex": skeletalMuscleIndex = value
-        case "visceralFatLevel": visceralFatLevel = value
-        case "rightArmLeanPct": rightArmLeanPct = value
-        case "leftArmLeanPct": leftArmLeanPct = value
-        case "trunkLeanPct": trunkLeanPct = value
-        case "rightLegLeanPct": rightLegLeanPct = value
-        case "leftLegLeanPct": leftLegLeanPct = value
-        case "rightArmFatPct": rightArmFatPct = value
-        case "leftArmFatPct": leftArmFatPct = value
-        case "trunkFatPct": trunkFatPct = value
-        case "rightLegFatPct": rightLegFatPct = value
-        case "leftLegFatPct": leftLegFatPct = value
-        default: break
-        }
-    }
 
     /// Produce a consensus result from multiple scan results using majority voting.
     ///
@@ -327,59 +294,10 @@ struct InBodyParseResult {
     /// Merges another parse result into this one. Higher confidence wins per field.
     /// Fields in `userEditedFields` are never overwritten.
     mutating func merge(with other: InBodyParseResult, userEditedFields: Set<String> = []) {
-        func pick<T>(_ key: String, current: T?, new: T?) -> T? {
-            guard !userEditedFields.contains(key) else { return current }
-            switch (current, new) {
-            case (nil, let n): return n
-            case (let c, nil): return c
-            case let (c, n):
-                let currentConf = confidence[key] ?? 0
-                let newConf = other.confidence[key] ?? 0
-                if newConf > currentConf {
-                    confidence[key] = newConf
-                    return n
-                }
-                return c
-            }
+        for (key, keyPath) in Self.allFields {
+            guard !userEditedFields.contains(key) else { continue }
+            mergeField(key: key, keyPath: keyPath, from: other)
         }
-
-        weightKg = pick("weightKg", current: weightKg, new: other.weightKg)
-        skeletalMuscleMassKg = pick(
-            "skeletalMuscleMassKg", current: skeletalMuscleMassKg, new: other.skeletalMuscleMassKg
-        )
-        bodyFatMassKg = pick("bodyFatMassKg", current: bodyFatMassKg, new: other.bodyFatMassKg)
-        bodyFatPct = pick("bodyFatPct", current: bodyFatPct, new: other.bodyFatPct)
-        totalBodyWaterL = pick("totalBodyWaterL", current: totalBodyWaterL, new: other.totalBodyWaterL)
-        bmi = pick("bmi", current: bmi, new: other.bmi)
-        basalMetabolicRate = pick("basalMetabolicRate", current: basalMetabolicRate, new: other.basalMetabolicRate)
-        intracellularWaterL = pick("intracellularWaterL", current: intracellularWaterL, new: other.intracellularWaterL)
-        extracellularWaterL = pick("extracellularWaterL", current: extracellularWaterL, new: other.extracellularWaterL)
-        dryLeanMassKg = pick("dryLeanMassKg", current: dryLeanMassKg, new: other.dryLeanMassKg)
-        leanBodyMassKg = pick("leanBodyMassKg", current: leanBodyMassKg, new: other.leanBodyMassKg)
-        inBodyScore = pick("inBodyScore", current: inBodyScore, new: other.inBodyScore)
-        rightArmLeanKg = pick("rightArmLeanKg", current: rightArmLeanKg, new: other.rightArmLeanKg)
-        leftArmLeanKg = pick("leftArmLeanKg", current: leftArmLeanKg, new: other.leftArmLeanKg)
-        trunkLeanKg = pick("trunkLeanKg", current: trunkLeanKg, new: other.trunkLeanKg)
-        rightLegLeanKg = pick("rightLegLeanKg", current: rightLegLeanKg, new: other.rightLegLeanKg)
-        leftLegLeanKg = pick("leftLegLeanKg", current: leftLegLeanKg, new: other.leftLegLeanKg)
-        rightArmFatKg = pick("rightArmFatKg", current: rightArmFatKg, new: other.rightArmFatKg)
-        leftArmFatKg = pick("leftArmFatKg", current: leftArmFatKg, new: other.leftArmFatKg)
-        trunkFatKg = pick("trunkFatKg", current: trunkFatKg, new: other.trunkFatKg)
-        rightLegFatKg = pick("rightLegFatKg", current: rightLegFatKg, new: other.rightLegFatKg)
-        leftLegFatKg = pick("leftLegFatKg", current: leftLegFatKg, new: other.leftLegFatKg)
-        ecwTbwRatio = pick("ecwTbwRatio", current: ecwTbwRatio, new: other.ecwTbwRatio)
-        skeletalMuscleIndex = pick("skeletalMuscleIndex", current: skeletalMuscleIndex, new: other.skeletalMuscleIndex)
-        visceralFatLevel = pick("visceralFatLevel", current: visceralFatLevel, new: other.visceralFatLevel)
-        rightArmLeanPct = pick("rightArmLeanPct", current: rightArmLeanPct, new: other.rightArmLeanPct)
-        leftArmLeanPct = pick("leftArmLeanPct", current: leftArmLeanPct, new: other.leftArmLeanPct)
-        trunkLeanPct = pick("trunkLeanPct", current: trunkLeanPct, new: other.trunkLeanPct)
-        rightLegLeanPct = pick("rightLegLeanPct", current: rightLegLeanPct, new: other.rightLegLeanPct)
-        leftLegLeanPct = pick("leftLegLeanPct", current: leftLegLeanPct, new: other.leftLegLeanPct)
-        rightArmFatPct = pick("rightArmFatPct", current: rightArmFatPct, new: other.rightArmFatPct)
-        leftArmFatPct = pick("leftArmFatPct", current: leftArmFatPct, new: other.leftArmFatPct)
-        trunkFatPct = pick("trunkFatPct", current: trunkFatPct, new: other.trunkFatPct)
-        rightLegFatPct = pick("rightLegFatPct", current: rightLegFatPct, new: other.rightLegFatPct)
-        leftLegFatPct = pick("leftLegFatPct", current: leftLegFatPct, new: other.leftLegFatPct)
 
         // Merge raw text for debugging
         if !other.rawText.isEmpty {
@@ -389,6 +307,29 @@ struct InBodyParseResult {
         // Keep earliest scan date found
         if let otherDate = other.scanDate {
             scanDate = scanDate.map { min($0, otherDate) } ?? otherDate
+        }
+    }
+
+    /// Per-field merge: fill blanks, otherwise let higher confidence win.
+    /// Pre-existing behavior preserved: confidence is only written when a higher-
+    /// confidence overwrite happens — the nil→value case carries no confidence update.
+    private mutating func mergeField(
+        key: String,
+        keyPath: WritableKeyPath<InBodyParseResult, Double?>,
+        from other: InBodyParseResult
+    ) {
+        switch (self[keyPath: keyPath], other[keyPath: keyPath]) {
+        case (.none, .some(let new)):
+            self[keyPath: keyPath] = new
+        case (.some, .some(let new)):
+            let currentConf = confidence[key] ?? 0
+            let newConf = other.confidence[key] ?? 0
+            if newConf > currentConf {
+                self[keyPath: keyPath] = new
+                confidence[key] = newConf
+            }
+        case (.some, .none), (.none, .none):
+            break
         }
     }
 }

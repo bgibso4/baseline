@@ -95,7 +95,7 @@ final class InBodyDocumentParserTests: XCTestCase {
         XCTAssertNil(InBodyDocumentParser.parseNumericValue("Normal"))
     }
 
-    // MARK: - setField / getField Round-Trip
+    // MARK: - InBodyParseResult value/setValue Round-Trip
 
     func testSetAndGetAllCoreFields() {
         var result = InBodyParseResult()
@@ -109,11 +109,8 @@ final class InBodyDocumentParserTests: XCTestCase {
             ("basalMetabolicRate", 1842.0)
         ]
         for (key, value) in coreFields {
-            InBodyDocumentParser.setField(key, value: value, on: &result)
-            XCTAssertEqual(
-                InBodyDocumentParser.getField(key, from: result), value,
-                "Round-trip failed for key: \(key)"
-            )
+            result.setValue(value, forKey: key)
+            XCTAssertEqual(result.value(forKey: key), value, "Round-trip failed for key: \(key)")
         }
     }
 
@@ -130,21 +127,35 @@ final class InBodyDocumentParserTests: XCTestCase {
             ("visceralFatLevel", 7.0)
         ]
         for (key, value) in segmentalFields {
-            InBodyDocumentParser.setField(key, value: value, on: &result)
-            XCTAssertEqual(
-                InBodyDocumentParser.getField(key, from: result), value,
-                "Round-trip failed for key: \(key)"
-            )
+            result.setValue(value, forKey: key)
+            XCTAssertEqual(result.value(forKey: key), value, "Round-trip failed for key: \(key)")
         }
     }
 
     func testGetFieldReturnsNilForUnsetField() {
         let result = InBodyParseResult()
-        XCTAssertNil(InBodyDocumentParser.getField("weightKg", from: result))
+        XCTAssertNil(result.value(forKey: "weightKg"))
     }
 
     func testGetFieldReturnsNilForUnknownKey() {
         let result = InBodyParseResult()
-        XCTAssertNil(InBodyDocumentParser.getField("nonexistent", from: result))
+        XCTAssertNil(result.value(forKey: "nonexistent"))
+    }
+
+    func testSetValueIgnoresUnknownKey() {
+        var result = InBodyParseResult()
+        result.setValue(99.9, forKey: "nonexistent")
+        XCTAssertNil(result.value(forKey: "nonexistent"))
+        // And nothing else was touched
+        XCTAssertNil(result.weightKg)
+    }
+
+    func testAllFieldsRegistryCoversEveryDoubleProperty() {
+        // Guard rail: if a Double? field is added without updating allFields,
+        // round-trip fails for it. This test pins the registry to the count
+        // we expect (35 OCR-extractable fields).
+        XCTAssertEqual(InBodyParseResult.allFields.count, 35)
+        XCTAssertEqual(InBodyParseResult.allFieldKeys.count, 35)
+        XCTAssertEqual(Set(InBodyParseResult.allFieldKeys).count, 35, "Duplicate key in allFields")
     }
 }
