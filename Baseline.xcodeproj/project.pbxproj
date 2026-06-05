@@ -62,6 +62,7 @@
 		4FEB35F248ED1757BCA0DC3F /* NowViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E0B169BE6D18A1AF3E2C9B2 /* NowViewModel.swift */; };
 		50C087ECEBE50B0D8B922A8A /* HistoryViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D02782E48D9542687519EF82 /* HistoryViewModel.swift */; };
 		5195855704E890ACBE13A3F5 /* CSVStringHelpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0C14232A722198699A19DEE /* CSVStringHelpers.swift */; };
+		54EF32DD477F68B418659A7A /* Exo2-OFL.txt in Resources */ = {isa = PBXBuildFile; fileRef = F57CF63011C7592B046786C4 /* Exo2-OFL.txt */; };
 		5625167D8993D65C14340F50 /* AboutCadreView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7C2B8129886E8A1210694D6 /* AboutCadreView.swift */; };
 		5890E3D66833DB31B705D1FA /* OutboundMirrorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E332C18AA2C4ABD37FADD6A6 /* OutboundMirrorTests.swift */; };
 		58CD5BFE69D3B06C2642ABCB /* DocumentScannerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F262B884AFB7AC56754A8585 /* DocumentScannerView.swift */; };
@@ -83,6 +84,7 @@
 		6F517C7BA6552BD1A6E9725E /* AccessibilityAuditUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 467DCE408F51DE3710F3F02D /* AccessibilityAuditUITests.swift */; };
 		710EF7FB0C4189C7E436F250 /* HealthKitManagerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18F90EA3B79CAA8467685396 /* HealthKitManagerTests.swift */; };
 		72194399B75B95F06A0BA393 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = CAC6C2A9B00ADEDA55343E85 /* Assets.xcassets */; };
+		7233D4DCBCB09E6002BA12F2 /* Exo2-VariableFont_wght.ttf in Resources */ = {isa = PBXBuildFile; fileRef = F9BE96EC96FF716D86124160 /* Exo2-VariableFont_wght.ttf */; };
 		724150107527CA2E2908E43F /* marked.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 41AFD2AEA42449A20EF222D9 /* marked.jpg */; };
 		77B8997508F0ECBC3EE53EA9 /* BodyViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 71F1544FF8E513297B2BF5B4 /* BodyViewModel.swift */; };
 		781D09B0EC7CF5A644ECFBF5 /* BaseUITestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D0CEB7736BC8E9CD1FB75CE /* BaseUITestCase.swift */; };
@@ -392,6 +394,8 @@
 		F48EFFC280B6AF1B4D90AADE /* MetricTile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetricTile.swift; sourceTree = "<group>"; };
 		F4B62AE88FB82E485614E3D0 /* Scan.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Scan.swift; sourceTree = "<group>"; };
 		F512DF8CAB9CFB8E2FDD5DB9 /* SettingsDeveloperSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsDeveloperSection.swift; sourceTree = "<group>"; };
+		F57CF63011C7592B046786C4 /* Exo2-OFL.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = "Exo2-OFL.txt"; sourceTree = "<group>"; };
+		F9BE96EC96FF716D86124160 /* Exo2-VariableFont_wght.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Exo2-VariableFont_wght.ttf"; sourceTree = "<group>"; };
 		F9E0701D264BBEE3B1833E0D /* ScanDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScanDetailView.swift; sourceTree = "<group>"; };
 		FD2CAB65EF5D09191212579A /* ScanTypeStep.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScanTypeStep.swift; sourceTree = "<group>"; };
 		FD91A7FB375167742BA11341 /* APIClientTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIClientTests.swift; sourceTree = "<group>"; };
@@ -409,6 +413,14 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		00F3DF02F015CA0AFC7B108C /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				537BEC80CCEB1434999A5138 /* Fonts */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
 		048A74F9F3F00C8979BBCBEB /* App */ = {
 			isa = PBXGroup;
 			children = (
@@ -595,6 +607,15 @@
 			);
 			sourceTree = "<group>";
 		};
+		537BEC80CCEB1434999A5138 /* Fonts */ = {
+			isa = PBXGroup;
+			children = (
+				F57CF63011C7592B046786C4 /* Exo2-OFL.txt */,
+				F9BE96EC96FF716D86124160 /* Exo2-VariableFont_wght.ttf */,
+			);
+			path = Fonts;
+			sourceTree = "<group>";
+		};
 		5F4D727141F8344FE3371566 /* CSV */ = {
 			isa = PBXGroup;
 			children = (
@@ -673,6 +694,7 @@
 				B167BE26CD5DA936B8738F70 /* Health */,
 				F39CD542012A303480245EC2 /* Models */,
 				4B4A0B36A69BA3729A25D969 /* OCR */,
+				00F3DF02F015CA0AFC7B108C /* Resources */,
 				82A5DA2790714B173F55D03E /* Sync */,
 				2CB70D452B7A3CC4178E16C5 /* Utilities */,
 				688D592BC4C8D65E6A2C492D /* ViewModels */,
@@ -1057,6 +1079,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				72194399B75B95F06A0BA393 /* Assets.xcassets in Resources */,
+				54EF32DD477F68B418659A7A /* Exo2-OFL.txt in Resources */,
+				7233D4DCBCB09E6002BA12F2 /* Exo2-VariableFont_wght.ttf in Resources */,
 				AC6455D3A0B6E99A6B9B613D /* PrivacyInfo.xcprivacy in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
