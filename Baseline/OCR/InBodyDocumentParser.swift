@@ -162,11 +162,11 @@ struct InBodyDocumentParser {
                 let labelText = row[0].content.text.transcript.trimmingCharacters(in: .whitespacesAndNewlines)
                 guard let key = fieldKey(for: labelText) else { continue }
                 // Only fill fields not already set by position extraction
-                guard getField(key, from: result) == nil else { continue }
+                guard result.value(forKey: key) == nil else { continue }
                 // Concatenate remaining cells as the value text
                 let valueText = row[1...].map { $0.content.text.transcript }.joined(separator: " ")
                 if let value = parseNumericValue(valueText) {
-                    setField(key, value: value, on: &result)
+                    result.setValue(value, forKey: key)
                     if confidence > 0 {
                         result.confidence[key] = confidence
                     }
@@ -367,7 +367,7 @@ struct InBodyDocumentParser {
 
         for region in regions {
             // Skip if already populated (first match wins — body comp grid before bar chart)
-            guard getField(region.key, from: result) == nil else { continue }
+            guard result.value(forKey: region.key) == nil else { continue }
 
             // Find paragraphs whose center falls within this region
             struct Candidate {
@@ -435,15 +435,13 @@ struct InBodyDocumentParser {
 
                     // For segmental fat, parse "X.Xlbs) | Y.Y%" pattern
                     if region.key.hasSuffix("FatPct"), let pct = parseSegmentalFatPct(candidate.text) {
-                        setField(region.key, value: pct, on: &result)
-                        result.confidence[region.key] = conf
+                        result.setValue(pct, forKey: region.key)
                     } else if region.key.hasSuffix("FatKg"), let kg = parseSegmentalFatKg(candidate.text) {
-                        setField(region.key, value: kg, on: &result)
-                        result.confidence[region.key] = conf
+                        result.setValue(kg, forKey: region.key)
                     } else {
-                        setField(region.key, value: value, on: &result)
-                        result.confidence[region.key] = conf
+                        result.setValue(value, forKey: region.key)
                     }
+                    result.confidence[region.key] = conf
                     break
                 }
             }
@@ -509,7 +507,7 @@ struct InBodyDocumentParser {
         ]
 
         for seg in segments {
-            guard getField(seg.kgKey, from: result) == nil else { continue }
+            guard result.value(forKey: seg.kgKey) == nil else { continue }
 
             let centerTarget = anchorY - seg.offset
             let yRange = (centerTarget - 0.018)...(centerTarget + 0.018)
@@ -587,8 +585,8 @@ struct InBodyDocumentParser {
 
             if sorted.count >= 2 {
                 // Higher Y = lbs (top row), lower Y = % (bottom row)
-                setField(seg.kgKey, value: sorted[0].value, on: &result)
-                setField(seg.pctKey, value: sorted[1].value, on: &result)
+                result.setValue(sorted[0].value, forKey: seg.kgKey)
+                result.setValue(sorted[1].value, forKey: seg.pctKey)
                 result.confidence[seg.kgKey] = 0.8
                 result.confidence[seg.pctKey] = 0.8
             } else if sorted.count == 1 {
@@ -596,10 +594,10 @@ struct InBodyDocumentParser {
                 // Use value range: sufficiency % is typically > 60
                 let v = sorted[0].value
                 if v > 60 {
-                    setField(seg.pctKey, value: v, on: &result)
+                    result.setValue(v, forKey: seg.pctKey)
                     result.confidence[seg.pctKey] = 0.5
                 } else {
-                    setField(seg.kgKey, value: v, on: &result)
+                    result.setValue(v, forKey: seg.kgKey)
                     result.confidence[seg.kgKey] = 0.5
                 }
             }
@@ -696,7 +694,7 @@ struct InBodyDocumentParser {
             }
             #endif
 
-            let currentValue = getField(field.key, from: result)
+            let currentValue = result.value(forKey: field.key)
             let currentConf = result.confidence[field.key] ?? 0
             let currentIsValid = currentValue.map { field.saneRange.contains($0) } ?? false
 
@@ -710,7 +708,7 @@ struct InBodyDocumentParser {
                     #endif
                 } else if historyIsValid && !currentIsValid {
                     // Primary is out of range, history is valid → use history
-                    setField(field.key, value: historyValue, on: &result)
+                    result.setValue(historyValue, forKey: field.key)
                     result.confidence[field.key] = 0.85
                     #if DEBUG
                     Log.scan.debug(
@@ -719,7 +717,7 @@ struct InBodyDocumentParser {
                     #endif
                 } else if historyIsValid {
                     // Both in range but disagree → trust history (simpler source)
-                    setField(field.key, value: historyValue, on: &result)
+                    result.setValue(historyValue, forKey: field.key)
                     result.confidence[field.key] = 0.85
                     #if DEBUG
                     Log.scan.debug("[History] \(field.key): overriding \(current) → \(historyValue) (history wins)")
@@ -734,7 +732,7 @@ struct InBodyDocumentParser {
                 }
             } else if historyIsValid {
                 // Primary missed it, history is valid → use it
-                setField(field.key, value: historyValue, on: &result)
+                result.setValue(historyValue, forKey: field.key)
                 result.confidence[field.key] = 0.8
                 #if DEBUG
                 Log.scan.debug("[History] \(field.key): filled from history = \(historyValue)")
@@ -817,92 +815,6 @@ struct InBodyDocumentParser {
         else { return nil }
 
         return Double(collapsed[range])
-    }
-
-    // MARK: - Field Access by Key
-
-    /// Sets a field on InBodyParseResult by string key. No-ops for unknown keys.
-    static func setField(_ key: String, value: Double, on result: inout InBodyParseResult) {
-        switch key {
-        case "weightKg":               result.weightKg = value
-        case "skeletalMuscleMassKg":   result.skeletalMuscleMassKg = value
-        case "bodyFatMassKg":          result.bodyFatMassKg = value
-        case "bodyFatPct":             result.bodyFatPct = value
-        case "totalBodyWaterL":        result.totalBodyWaterL = value
-        case "bmi":                    result.bmi = value
-        case "basalMetabolicRate":     result.basalMetabolicRate = value
-        case "intracellularWaterL":    result.intracellularWaterL = value
-        case "extracellularWaterL":    result.extracellularWaterL = value
-        case "dryLeanMassKg":          result.dryLeanMassKg = value
-        case "leanBodyMassKg":         result.leanBodyMassKg = value
-        case "inBodyScore":            result.inBodyScore = value
-        case "rightArmLeanKg":         result.rightArmLeanKg = value
-        case "leftArmLeanKg":          result.leftArmLeanKg = value
-        case "trunkLeanKg":            result.trunkLeanKg = value
-        case "rightLegLeanKg":         result.rightLegLeanKg = value
-        case "leftLegLeanKg":          result.leftLegLeanKg = value
-        case "rightArmFatKg":          result.rightArmFatKg = value
-        case "leftArmFatKg":           result.leftArmFatKg = value
-        case "trunkFatKg":             result.trunkFatKg = value
-        case "rightLegFatKg":          result.rightLegFatKg = value
-        case "leftLegFatKg":           result.leftLegFatKg = value
-        case "ecwTbwRatio":            result.ecwTbwRatio = value
-        case "skeletalMuscleIndex":    result.skeletalMuscleIndex = value
-        case "visceralFatLevel":       result.visceralFatLevel = value
-        case "rightArmLeanPct":        result.rightArmLeanPct = value
-        case "leftArmLeanPct":         result.leftArmLeanPct = value
-        case "trunkLeanPct":           result.trunkLeanPct = value
-        case "rightLegLeanPct":        result.rightLegLeanPct = value
-        case "leftLegLeanPct":         result.leftLegLeanPct = value
-        case "rightArmFatPct":         result.rightArmFatPct = value
-        case "leftArmFatPct":          result.leftArmFatPct = value
-        case "trunkFatPct":            result.trunkFatPct = value
-        case "rightLegFatPct":         result.rightLegFatPct = value
-        case "leftLegFatPct":          result.leftLegFatPct = value
-        default: break
-        }
-    }
-
-    /// Gets a field from InBodyParseResult by string key. Returns nil for unknown keys.
-    static func getField(_ key: String, from result: InBodyParseResult) -> Double? {
-        switch key {
-        case "weightKg":               return result.weightKg
-        case "skeletalMuscleMassKg":   return result.skeletalMuscleMassKg
-        case "bodyFatMassKg":          return result.bodyFatMassKg
-        case "bodyFatPct":             return result.bodyFatPct
-        case "totalBodyWaterL":        return result.totalBodyWaterL
-        case "bmi":                    return result.bmi
-        case "basalMetabolicRate":     return result.basalMetabolicRate
-        case "intracellularWaterL":    return result.intracellularWaterL
-        case "extracellularWaterL":    return result.extracellularWaterL
-        case "dryLeanMassKg":          return result.dryLeanMassKg
-        case "leanBodyMassKg":         return result.leanBodyMassKg
-        case "inBodyScore":            return result.inBodyScore
-        case "rightArmLeanKg":         return result.rightArmLeanKg
-        case "leftArmLeanKg":          return result.leftArmLeanKg
-        case "trunkLeanKg":            return result.trunkLeanKg
-        case "rightLegLeanKg":         return result.rightLegLeanKg
-        case "leftLegLeanKg":          return result.leftLegLeanKg
-        case "rightArmFatKg":          return result.rightArmFatKg
-        case "leftArmFatKg":           return result.leftArmFatKg
-        case "trunkFatKg":             return result.trunkFatKg
-        case "rightLegFatKg":          return result.rightLegFatKg
-        case "leftLegFatKg":           return result.leftLegFatKg
-        case "ecwTbwRatio":            return result.ecwTbwRatio
-        case "skeletalMuscleIndex":    return result.skeletalMuscleIndex
-        case "visceralFatLevel":       return result.visceralFatLevel
-        case "rightArmLeanPct":        return result.rightArmLeanPct
-        case "leftArmLeanPct":         return result.leftArmLeanPct
-        case "trunkLeanPct":           return result.trunkLeanPct
-        case "rightLegLeanPct":        return result.rightLegLeanPct
-        case "leftLegLeanPct":         return result.leftLegLeanPct
-        case "rightArmFatPct":         return result.rightArmFatPct
-        case "leftArmFatPct":          return result.leftArmFatPct
-        case "trunkFatPct":            return result.trunkFatPct
-        case "rightLegFatPct":         return result.rightLegFatPct
-        case "leftLegFatPct":          return result.leftLegFatPct
-        default:                       return nil
-        }
     }
 
     // MARK: - Private Helpers
