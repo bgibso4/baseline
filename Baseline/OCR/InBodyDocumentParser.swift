@@ -95,10 +95,13 @@ struct InBodyDocumentParser {
             // Segmental lean: needs special handling (lbs vs % in same Y-band)
             extractSegmentalLean(doc.paragraphs, into: &result)
 
-            // Cross-reference disabled — history section layout is unpredictable on
-            // repeat scans (mini-graphs, variable columns). Risk of extracting old
-            // values outweighs validation benefit. Re-enable when we understand the
-            // history format better across multiple scan sessions.
+            // Cross-reference stays disabled — the history block lists PRIOR
+            // scans, so on a sheet where today's scan is row N, history rows
+            // 1..N-1 are different dates with different values. Enabling cross-
+            // reference silently overwrote correct primaries with prior values
+            // during #59 investigation. The disabled function is retained for
+            // future work that figures out how to identify the current-scan
+            // row (date matching against `result.scanDate`?).
             // crossReferenceHistory(doc.paragraphs, into: &result)
 
             // Fallback: table-based extraction for anything position missed
@@ -185,14 +188,32 @@ struct InBodyDocumentParser {
         let xRange: ClosedRange<Double>
         /// If true, prefer values with bullet prefixes (•, -, =, m=) — used for bar chart fields.
         let preferBullet: Bool
+        /// Plausible value range. Candidates outside are rejected and the next
+        /// is tried — prevents impedance values, bar-chart markers, and other
+        /// OCR debris from being silently stored as legitimate field values.
+        /// nil = no range check.
+        let validRange: ClosedRange<Double>?
 
-        init(_ key: String, y: ClosedRange<Double>, x: ClosedRange<Double> = 0.0...1.0, bullet: Bool = false) {
+        init(
+            _ key: String,
+            y: ClosedRange<Double>,
+            x: ClosedRange<Double> = 0.0...1.0,
+            bullet: Bool = false,
+            valid: ClosedRange<Double>? = nil
+        ) {
             self.key = key
             self.yRange = y
             self.xRange = x
             self.preferBullet = bullet
+            self.validRange = valid
         }
     }
+
+    /// Convenience alias — `SaneRange` lives in `InBodyParseResult.swift` next
+    /// to the field definitions. Used by `FieldRegion.valid` and by the
+    /// segmental lean extractor to reject impedance values, bar-chart markers,
+    /// and OCR debris before they're written into a result.
+    typealias SaneRange = InBodyParseResult.SaneRange
 
     // MARK: - Anchor-Relative Region Building
 
@@ -256,17 +277,13 @@ struct InBodyDocumentParser {
             // TBW: -0.035 (different x), LBM: -0.050 (different x), Weight: -0.065 (different x)
             let m: Double = 0.012 // margin
             regions += [
-                FieldRegion(
-                    "intracellularWaterL", y: (bodyCompY - 0.040 - m)...(bodyCompY - 0.040 + m), x: 0.18...0.32
-                ),
-                FieldRegion(
-                    "extracellularWaterL", y: (bodyCompY - 0.058 - m)...(bodyCompY - 0.058 + m), x: 0.18...0.32
-                ),
-                FieldRegion("totalBodyWaterL", y: (bodyCompY - 0.048 - m)...(bodyCompY - 0.048 + m), x: 0.28...0.42),
-                FieldRegion("dryLeanMassKg", y: (bodyCompY - 0.076 - m)...(bodyCompY - 0.076 + m), x: 0.18...0.32),
-                FieldRegion("leanBodyMassKg", y: (bodyCompY - 0.058 - m)...(bodyCompY - 0.058 + m), x: 0.38...0.52),
-                FieldRegion("weightKg", y: (bodyCompY - 0.076 - m)...(bodyCompY - 0.076 + m), x: 0.48...0.62),
-                FieldRegion("bodyFatMassKg", y: (bodyCompY - 0.100 - m)...(bodyCompY - 0.100 + m), x: 0.18...0.32)
+                gridRegion("intracellularWaterL", y: bodyCompY - 0.040, m: m, x: 0.18...0.32, valid: SaneRange.icwLbs),
+                gridRegion("extracellularWaterL", y: bodyCompY - 0.058, m: m, x: 0.18...0.32, valid: SaneRange.ecwLbs),
+                gridRegion("totalBodyWaterL", y: bodyCompY - 0.048, m: m, x: 0.28...0.42, valid: SaneRange.tbwLbs),
+                gridRegion("dryLeanMassKg", y: bodyCompY - 0.076, m: m, x: 0.18...0.32, valid: SaneRange.dlmLbs),
+                gridRegion("leanBodyMassKg", y: bodyCompY - 0.058, m: m, x: 0.38...0.52, valid: SaneRange.lbmLbs),
+                gridRegion("weightKg", y: bodyCompY - 0.076, m: m, x: 0.48...0.62, valid: SaneRange.weightLbs),
+                gridRegion("bodyFatMassKg", y: bodyCompY - 0.100, m: m, x: 0.18...0.32, valid: SaneRange.bfmLbs)
             ]
         }
 
@@ -275,11 +292,9 @@ struct InBodyDocumentParser {
             // Weight bar: ~0.040 below header, SMM: ~0.065, BFM: ~0.090
             let m: Double = 0.015
             regions += [
-                FieldRegion("weightKg", y: (mfY - 0.045 - m)...(mfY - 0.045 + m), x: 0.20...0.62, bullet: true),
-                FieldRegion(
-                    "skeletalMuscleMassKg", y: (mfY - 0.072 - m)...(mfY - 0.072 + m), x: 0.20...0.62, bullet: true
-                ),
-                FieldRegion("bodyFatMassKg", y: (mfY - 0.100 - m)...(mfY - 0.100 + m), x: 0.20...0.62, bullet: true)
+                barRegion("weightKg", y: mfY - 0.045, m: m, x: 0.20...0.62, valid: SaneRange.weightLbs),
+                barRegion("skeletalMuscleMassKg", y: mfY - 0.072, m: m, x: 0.20...0.62, valid: SaneRange.smmLbs),
+                barRegion("bodyFatMassKg", y: mfY - 0.100, m: m, x: 0.20...0.62, valid: SaneRange.bfmLbs)
             ]
         }
 
@@ -288,8 +303,8 @@ struct InBodyDocumentParser {
             // BMI: ~0.030 below header, PBF: ~0.055
             let m: Double = 0.015
             regions += [
-                FieldRegion("bmi", y: (obY - 0.030 - m)...(obY - 0.030 + m), x: 0.20...0.62, bullet: true),
-                FieldRegion("bodyFatPct", y: (obY - 0.060 - m)...(obY - 0.060 + m), x: 0.20...0.62, bullet: true)
+                barRegion("bmi", y: obY - 0.030, m: m, x: 0.20...0.62, valid: SaneRange.bmi),
+                barRegion("bodyFatPct", y: obY - 0.060, m: m, x: 0.20...0.62, valid: SaneRange.bfpPct)
             ]
         }
 
@@ -305,14 +320,16 @@ struct InBodyDocumentParser {
         if let ecwY = anchors["ecwTbw"] {
             let m: Double = 0.020
             regions.append(
-                FieldRegion("ecwTbwRatio", y: (ecwY - 0.040 - m)...(ecwY - 0.040 + m), x: 0.20...0.62, bullet: true)
+                barRegion("ecwTbwRatio", y: ecwY - 0.040, m: m, x: 0.20...0.62, valid: SaneRange.ecwTbw)
             )
         }
 
         // --- Right column: BMR ---
         if let bmrY = anchors["bmr_right"] ?? anchors["bmr"] {
             let m: Double = 0.015
-            regions.append(FieldRegion("basalMetabolicRate", y: (bmrY - 0.015 - m)...(bmrY - 0.015 + m), x: 0.64...1.0))
+            regions.append(
+                gridRegion("basalMetabolicRate", y: bmrY - 0.015, m: m, x: 0.64...1.0, valid: SaneRange.bmrKcal)
+            )
         }
 
         // --- Right column: SMI ---
@@ -324,7 +341,7 @@ struct InBodyDocumentParser {
                 let centerY = box.origin.y + box.height / 2
                 let m: Double = 0.015
                 regions.append(
-                    FieldRegion("skeletalMuscleIndex", y: (centerY - 0.015 - m)...(centerY - 0.015 + m), x: 0.64...1.0)
+                    gridRegion("skeletalMuscleIndex", y: centerY - 0.015, m: m, x: 0.64...1.0, valid: SaneRange.smi)
                 )
                 break
             }
@@ -334,7 +351,9 @@ struct InBodyDocumentParser {
         if let vfY = anchors["visceralFat_right"] ?? anchors["visceralFat"] {
             let m: Double = 0.015
             // "Level N" appears just below the header, use the header's own line
-            regions.append(FieldRegion("visceralFatLevel", y: (vfY - 0.020 - m)...(vfY - 0.020 + m), x: 0.64...0.80))
+            regions.append(
+                gridRegion("visceralFatLevel", y: vfY - 0.020, m: m, x: 0.64...0.80, valid: SaneRange.visceralFat)
+            )
         }
 
         // --- Right column: Segmental Fat ---
@@ -349,13 +368,28 @@ struct InBodyDocumentParser {
                 ("leftLegFatKg", "leftLegFatPct", 0.092)
             ]
             for (kgKey, pctKey, offset) in fatOffsets {
-                let yBand = (sfY - offset - m)...(sfY - offset + m)
-                regions.append(FieldRegion(kgKey, y: yBand, x: 0.64...1.0))
-                regions.append(FieldRegion(pctKey, y: yBand, x: 0.64...1.0))
+                regions.append(gridRegion(kgKey, y: sfY - offset, m: m, x: 0.64...1.0, valid: SaneRange.segFatLbs))
+                regions.append(gridRegion(pctKey, y: sfY - offset, m: m, x: 0.64...1.0, valid: SaneRange.segFatPct))
             }
         }
 
         return regions
+    }
+
+    /// Compact constructor for grid-style regions (a single labeled value at a
+    /// known offset from an anchor). Centers the Y band on `y` with margin `m`.
+    private static func gridRegion(
+        _ key: String, y: Double, m: Double, x: ClosedRange<Double>, valid: ClosedRange<Double>
+    ) -> FieldRegion {
+        FieldRegion(key, y: (y - m)...(y + m), x: x, valid: valid)
+    }
+
+    /// Compact constructor for bar-chart regions (value appears as a bullet on
+    /// a bar with tick-mark axis labels nearby). `preferBullet=true`.
+    private static func barRegion(
+        _ key: String, y: Double, m: Double, x: ClosedRange<Double>, valid: ClosedRange<Double>
+    ) -> FieldRegion {
+        FieldRegion(key, y: (y - m)...(y + m), x: x, bullet: true, valid: valid)
     }
 
     /// Primary extraction: use paragraph bounding boxes to locate values by position.
@@ -375,6 +409,10 @@ struct InBodyDocumentParser {
                 let centerX: Double
                 let height: Double
                 let hasBullet: Bool
+                /// True when the text contains more than one distinct number — a
+                /// strong signal it's a bar-chart axis row (e.g. "10.0 18.0 30.0"),
+                /// not a single labeled value.
+                let multiNumber: Bool
             }
             var candidates: [Candidate] = []
 
@@ -389,26 +427,37 @@ struct InBodyDocumentParser {
                 let text = para.transcript
                 let hasBullet = text.range(of: #"^[^\dA-Za-z(\s]"#, options: .regularExpression) != nil
                     || text.range(of: #"^m[=\s]"#, options: .regularExpression) != nil
-                candidates.append(Candidate(text: text, centerX: centerX, height: box.height, hasBullet: hasBullet))
+                let multiNumber = Self.numberCount(in: text) > 1
+                candidates.append(Candidate(
+                    text: text,
+                    centerX: centerX,
+                    height: box.height,
+                    hasBullet: hasBullet,
+                    multiNumber: multiNumber
+                ))
             }
 
             guard !candidates.isEmpty else { continue }
 
-            // For bar chart fields: prefer bullet-prefixed, then tallest, then non-tick-mark
+            // For bar chart fields: prefer bullet-prefixed, then single-number,
+            // then tallest, then non-tick-mark.
             let toTry: [Candidate]
             if region.preferBullet {
                 let bulleted = candidates.filter { $0.hasBullet }
                 if !bulleted.isEmpty {
                     toTry = bulleted.sorted { $0.height > $1.height }
                 } else {
-                    // No bullets: sort by height desc, then break ties by tick-mark likelihood.
-                    // Tick marks are multiples of 5 (for BMI/PBF) or round at 0.01 (for ECW/TBW).
-                    // Actual values like 7.2, 26.0, 105.8, 0.369 don't fall on those grids.
+                    // No bullets: single-number candidates beat multi-number tick rows
+                    // unconditionally (a paragraph holding "18.0 30.0 60.0 ..." is a
+                    // bar-chart axis, not the labeled value). Within a group, sort
+                    // by height desc, then by tick-mark likelihood.
                     toTry = candidates.sorted { a, b in
+                        if a.multiNumber != b.multiNumber {
+                            return !a.multiNumber  // single-number first
+                        }
                         if abs(a.height - b.height) > 0.002 {
                             return a.height > b.height  // taller wins
                         }
-                        // Same height: prefer non-tick-mark values
                         return Self.tickMarkScore(a.text) < Self.tickMarkScore(b.text)
                     }
                 }
@@ -417,33 +466,52 @@ struct InBodyDocumentParser {
             }
 
             // Extract the first valid numeric value
-            let wasBullet = toTry.first?.hasBullet ?? false
             let wasOnlyCandidate = candidates.count == 1
             for candidate in toTry {
                 // Strip any non-alphanumeric prefix characters
                 let cleaned = candidate.text.replacingOccurrences(
                     of: #"^[^\dA-Za-z(]*"#, with: "", options: .regularExpression
                 )
-                if let value = parseNumericValue(cleaned),
-                   // Reject garbled bullet candidates that parse to 0 — no real InBody value is 0.0
-                   !(candidate.hasBullet && value < 0.1) {
-                    // Confidence: bullet > height-sorted > ambiguous
-                    let conf: Float = candidate.hasBullet ? 0.9
-                        : wasOnlyCandidate ? 0.85
-                        : (candidate.height > 0.012) ? 0.7
-                        : 0.5
 
-                    // For segmental fat, parse "X.Xlbs) | Y.Y%" pattern
-                    if region.key.hasSuffix("FatPct"), let pct = parseSegmentalFatPct(candidate.text) {
-                        result.setValue(pct, forKey: region.key)
-                    } else if region.key.hasSuffix("FatKg"), let kg = parseSegmentalFatKg(candidate.text) {
-                        result.setValue(kg, forKey: region.key)
-                    } else {
-                        result.setValue(value, forKey: region.key)
-                    }
-                    result.confidence[region.key] = conf
-                    break
+                // Visceral fat: "Level l" / "Level I" → "Level 1" (OCR confuses
+                // small digits with similarly-shaped letters on this row).
+                let textForRegion: String = region.key == "visceralFatLevel"
+                    ? Self.recoverVisceralFatDigits(candidate.text)
+                    : cleaned
+
+                guard let value = parseNumericValue(textForRegion) else { continue }
+
+                // Reject garbled bullet candidates that parse to 0 — no real InBody value is 0.0
+                if candidate.hasBullet && value < 0.1 { continue }
+
+                // Reject values outside the field's plausible range — keeps
+                // impedance-table debris and bar-chart axis markers out.
+                if let range = region.validRange, !range.contains(value) { continue }
+
+                // For bar-chart regions: reject tick-mark-shaped values when
+                // the candidate isn't a bullet hit. The actual value bullet may
+                // have been illegible (pen marks, faint print) — surfacing a
+                // tick mark as the value is worse than leaving the field nil,
+                // which the cross-field validator will flag for user review.
+                if region.preferBullet && !candidate.hasBullet
+                    && Self.tickMarkScore(candidate.text) > 0 { continue }
+
+                // Confidence: bullet > height-sorted > ambiguous
+                let conf: Float = candidate.hasBullet ? 0.9
+                    : wasOnlyCandidate ? 0.85
+                    : (candidate.height > 0.012) ? 0.7
+                    : 0.5
+
+                // For segmental fat, parse "X.Xlbs) | Y.Y%" pattern
+                if region.key.hasSuffix("FatPct"), let pct = parseSegmentalFatPct(candidate.text) {
+                    result.setValue(pct, forKey: region.key)
+                } else if region.key.hasSuffix("FatKg"), let kg = parseSegmentalFatKg(candidate.text) {
+                    result.setValue(kg, forKey: region.key)
+                } else {
+                    result.setValue(value, forKey: region.key)
                 }
+                result.confidence[region.key] = conf
+                break
             }
         }
     }
@@ -497,13 +565,15 @@ struct InBodyDocumentParser {
         }
         guard let anchorY = segLeanY else { return }
 
-        // Body parts with their Y offsets from the anchor and field keys
-        let segments: [(kgKey: String, pctKey: String, offset: Double)] = [
-            ("rightArmLeanKg", "rightArmLeanPct", 0.042),
-            ("leftArmLeanKg", "leftArmLeanPct", 0.074),
-            ("trunkLeanKg", "trunkLeanPct", 0.107),
-            ("rightLegLeanKg", "rightLegLeanPct", 0.142),
-            ("leftLegLeanKg", "leftLegLeanPct", 0.177)
+        // Body parts with their Y offsets from the anchor, field keys, and the
+        // plausible kg range (rejects impedance values and bar-chart markers).
+        // The pct range is shared across all segments.
+        let segments: [(kgKey: String, pctKey: String, offset: Double, kgRange: ClosedRange<Double>)] = [
+            ("rightArmLeanKg", "rightArmLeanPct", 0.042, SaneRange.segLeanArmLbs),
+            ("leftArmLeanKg", "leftArmLeanPct", 0.074, SaneRange.segLeanArmLbs),
+            ("trunkLeanKg", "trunkLeanPct", 0.107, SaneRange.segLeanTrunkLbs),
+            ("rightLegLeanKg", "rightLegLeanPct", 0.142, SaneRange.segLeanLegLbs),
+            ("leftLegLeanKg", "leftLegLeanPct", 0.177, SaneRange.segLeanLegLbs)
         ]
 
         for seg in segments {
@@ -583,23 +653,21 @@ struct InBodyDocumentParser {
             // Sort by Y descending (higher Y = higher on page = lbs row, which is on top)
             let sorted = candidates.sorted { $0.centerY > $1.centerY }
 
-            if sorted.count >= 2 {
-                // Higher Y = lbs (top row), lower Y = % (bottom row)
-                result.setValue(sorted[0].value, forKey: seg.kgKey)
-                result.setValue(sorted[1].value, forKey: seg.pctKey)
+            // Partition by which row the value plausibly belongs to. Values
+            // outside both ranges are debris (impedance markers, garbled OCR)
+            // and don't make it into either slot.
+            let kgRange = seg.kgRange
+            let pctRange = SaneRange.segLeanPct
+            let kgCandidates = sorted.filter { kgRange.contains($0.value) }
+            let pctCandidates = sorted.filter { pctRange.contains($0.value) }
+
+            if let kg = kgCandidates.first {
+                result.setValue(kg.value, forKey: seg.kgKey)
                 result.confidence[seg.kgKey] = 0.8
+            }
+            if let pct = pctCandidates.first {
+                result.setValue(pct.value, forKey: seg.pctKey)
                 result.confidence[seg.pctKey] = 0.8
-            } else if sorted.count == 1 {
-                // Only one value found — can't tell if lbs or %
-                // Use value range: sufficiency % is typically > 60
-                let v = sorted[0].value
-                if v > 60 {
-                    result.setValue(v, forKey: seg.pctKey)
-                    result.confidence[seg.pctKey] = 0.5
-                } else {
-                    result.setValue(v, forKey: seg.kgKey)
-                    result.confidence[seg.kgKey] = 0.5
-                }
             }
         }
     }
@@ -837,6 +905,35 @@ struct InBodyDocumentParser {
             return 1
         }
         return 0
+    }
+
+    /// Counts the number of distinct numeric tokens (`\d+\.?\d*`) in a string.
+    /// Used to distinguish single-value paragraphs ("6.1") from bar-chart axis
+    /// rows that hold multiple numbers ("18.0 30.0 60.0 ...").
+    private static func numberCount(in text: String) -> Int {
+        guard let regex = try? NSRegularExpression(pattern: #"\d+\.?\d*"#) else { return 0 }
+        let range = NSRange(text.startIndex..., in: text)
+        return regex.numberOfMatches(in: text, range: range)
+    }
+
+    /// On the Visceral Fat Level row, OCR consistently misreads single digits
+    /// as similarly-shaped letters ("Level 1" → "Level l", "Level 7" → "Level T").
+    /// Restore the digit form so `parseNumericValue` can extract it.
+    /// Only applied within the visceralFatLevel region — keeps the substitution
+    /// targeted instead of risking false positives on other fields.
+    static func recoverVisceralFatDigits(_ text: String) -> String {
+        var s = text
+        // Substitute only when the surrounding context is "Level ?" so we
+        // don't corrupt unrelated text that happens to be in the region.
+        guard s.lowercased().contains("level") else { return text }
+        let map: [Character: Character] = [
+            "l": "1", "I": "1", "|": "1",
+            "O": "0", "o": "0",
+            "Z": "2", "z": "2",
+            "T": "7"
+        ]
+        s = String(s.map { map[$0] ?? $0 })
+        return s
     }
 
     /// Lowercases, strips parenthesized unit suffixes (e.g. "(kg)"), and trims whitespace.

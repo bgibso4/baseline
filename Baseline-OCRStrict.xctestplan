@@ -1,0 +1,31 @@
+{
+  "configurations" : [
+    {
+      "id" : "9F1E2D3C-0000-0000-0000-000000000003",
+      "name" : "OCR Strict",
+      "options" : {
+        "environmentVariableEntries" : [
+          {
+            "key" : "RUN_OCR_STRICT",
+            "value" : "1"
+          }
+        ]
+      }
+    }
+  ],
+  "defaultOptions" : { },
+  "testTargets" : [
+    {
+      "selectedTests" : [
+        "InBodyDocumentParserFixtureTests/testCleanSheetParse()",
+        "InBodyDocumentParserFixtureTests/testMarkedSheetParse()"
+      ],
+      "target" : {
+        "containerPath" : "container:Baseline.xcodeproj",
+        "identifier" : "BC3C8FF69C3D1B0398FBF023",
+        "name" : "BaselineTests"
+      }
+    }
+  ],
+  "version" : 1
+}

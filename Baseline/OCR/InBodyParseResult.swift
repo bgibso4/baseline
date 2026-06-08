@@ -67,6 +67,35 @@ struct InBodyParseResult {
     var confidence: [String: Float] = [:]
     var detectedUnit: DetectedUnit = .lbs
 
+    // MARK: - Sane Ranges
+
+    /// Plausible value ranges per field. The sheet stores mass in lbs; unit
+    /// conversion happens later in `ScanEntryViewModel.buildPayload`. Ranges
+    /// are intentionally generous — they catch impedance-table debris and
+    /// bar-chart markers (e.g. SMM=5701, ARM=306), not legitimate outliers.
+    enum SaneRange {
+        static let weightLbs: ClosedRange<Double> = 50...600
+        static let smmLbs: ClosedRange<Double> = 30...300
+        static let bfmLbs: ClosedRange<Double> = 0...300
+        static let bfpPct: ClosedRange<Double> = 0.5...70
+        static let tbwLbs: ClosedRange<Double> = 30...300
+        static let bmi: ClosedRange<Double> = 5...80
+        static let bmrKcal: ClosedRange<Double> = 800...5000
+        static let icwLbs: ClosedRange<Double> = 10...200
+        static let ecwLbs: ClosedRange<Double> = 5...150
+        static let dlmLbs: ClosedRange<Double> = 10...200
+        static let lbmLbs: ClosedRange<Double> = 30...300
+        static let ecwTbw: ClosedRange<Double> = 0.300...0.500
+        static let smi: ClosedRange<Double> = 4...20
+        static let visceralFat: ClosedRange<Double> = 1...30
+        static let segLeanArmLbs: ClosedRange<Double> = 5...60
+        static let segLeanLegLbs: ClosedRange<Double> = 10...80
+        static let segLeanTrunkLbs: ClosedRange<Double> = 30...200
+        static let segLeanPct: ClosedRange<Double> = 30...250
+        static let segFatLbs: ClosedRange<Double> = 0...30
+        static let segFatPct: ClosedRange<Double> = 0...150
+    }
+
     // MARK: - Field Registry
     //
     // Single source of truth for OCR-extractable Double fields. `value(forKey:)`,
