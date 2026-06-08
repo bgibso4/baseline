@@ -73,27 +73,53 @@ struct InBodyParseResult {
     /// conversion happens later in `ScanEntryViewModel.buildPayload`. Ranges
     /// are intentionally generous — they catch impedance-table debris and
     /// bar-chart markers (e.g. SMM=5701, ARM=306), not legitimate outliers.
+    ///
+    /// Bounds are calibrated against published clinical literature and
+    /// InBody 570 device specifications where possible. See the comments on
+    /// each constant for the source-of-truth for that bound.
     enum SaneRange {
-        static let weightLbs: ClosedRange<Double> = 50...600
+        /// InBody 570 hardware: 22–551 lbs (10–250 kg). Floor matches device min;
+        /// ceiling has a small margin past device max for OCR noise. Anything
+        /// outside is mechanically impossible on this scanner.
+        static let weightLbs: ClosedRange<Double> = 22...560
         static let smmLbs: ClosedRange<Double> = 30...300
         static let bfmLbs: ClosedRange<Double> = 0...300
+        /// Essential fat ~2–5% (men) / 10–13% (women); rare clinical extremes
+        /// reach 70–90% in severely obese patients.
         static let bfpPct: ClosedRange<Double> = 0.5...70
         static let tbwLbs: ClosedRange<Double> = 30...300
+        /// BMI 5 ≈ severe emaciation; world-record obesity case reports ≥ 70.
         static let bmi: ClosedRange<Double> = 5...80
+        /// Typical adult BMR 1200–2200 kcal; athlete extremes ~3700; anorexia <800
+        /// (rare, pathology range — those users would re-enter manually anyway).
         static let bmrKcal: ClosedRange<Double> = 800...5000
         static let icwLbs: ClosedRange<Double> = 10...200
         static let ecwLbs: ClosedRange<Double> = 5...150
         static let dlmLbs: ClosedRange<Double> = 10...200
         static let lbmLbs: ClosedRange<Double> = 30...300
+        /// Healthy ECW/TBW 0.360–0.390; edema threshold 0.39; fluid overload 0.40+;
+        /// severe rare cases approach 0.45–0.50.
         static let ecwTbw: ClosedRange<Double> = 0.300...0.500
+        /// Sarcopenia cutoffs ~5.5–7.0 kg/m² (EWGSOP2 / AWGS); median adult ~7–10;
+        /// upper bound covers very muscular athletes.
         static let smi: ClosedRange<Double> = 4...20
-        static let visceralFat: ClosedRange<Double> = 1...30
+        /// InBody 570 historically capped this at 20 (= 200 cm² visceral fat area).
+        /// A 2020s software update removed that cap; severely obese users on modern
+        /// firmware can read higher. 60 is a generous post-update ceiling — well
+        /// beyond the level-30 (≈ 300 cm²) range typically seen even in obese cohorts.
+        static let visceralFat: ClosedRange<Double> = 1...60
         static let segLeanArmLbs: ClosedRange<Double> = 5...60
         static let segLeanLegLbs: ClosedRange<Double> = 10...80
         static let segLeanTrunkLbs: ClosedRange<Double> = 30...200
+        /// Sufficiency score — 100% = ideal lean mass for body type. Above 100%
+        /// = above-average development. Sheet's bar-chart axis goes to ~205%;
+        /// elite-athlete extremes can exceed that.
         static let segLeanPct: ClosedRange<Double> = 30...250
         static let segFatLbs: ClosedRange<Double> = 0...30
-        static let segFatPct: ClosedRange<Double> = 0...150
+        /// Sufficiency score — 100% = ideal fat for body type. Above 100% = excess
+        /// fat in that segment. Severely obese individuals can read 200–300%
+        /// in a single segment (especially trunk).
+        static let segFatPct: ClosedRange<Double> = 0...300
     }
 
     // MARK: - Field Registry
