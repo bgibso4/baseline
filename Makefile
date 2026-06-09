@@ -66,6 +66,13 @@ test-snapshots:
 	  -destination '$(DESTINATION)' \
 	  -derivedDataPath $(DERIVED_DATA) | xcbeautify
 
+test-ocr-strict: ## Run OCR fixture tests with strict ground-truth assertions (#59)
+	set -o pipefail && xcodebuild test \
+	  -project $(PROJECT) -scheme $(SCHEME) \
+	  -testPlan Baseline-OCRStrict \
+	  -destination '$(DESTINATION)' \
+	  -derivedDataPath $(DERIVED_DATA) | xcbeautify
+
 test-all:
 	set -o pipefail && xcodebuild test \
 	  -project $(PROJECT) -scheme $(SCHEME) \

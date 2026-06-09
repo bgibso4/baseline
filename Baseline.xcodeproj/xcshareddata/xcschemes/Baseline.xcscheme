@@ -71,6 +71,9 @@
          <TestPlanReference
             reference = "container:Baseline-UITests.xctestplan">
          </TestPlanReference>
+         <TestPlanReference
+            reference = "container:Baseline-OCRStrict.xctestplan">
+         </TestPlanReference>
       </TestPlans>
       <MacroExpansion>
          <BuildableReference

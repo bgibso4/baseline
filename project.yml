@@ -35,6 +35,7 @@ schemes:
         - path: Baseline-CI.xctestplan
         - path: Baseline-Snapshots.xctestplan
         - path: Baseline-UITests.xctestplan
+        - path: Baseline-OCRStrict.xctestplan
 
 targets:
   Baseline:
