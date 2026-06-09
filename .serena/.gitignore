@@ -1,0 +1,3 @@
+# Serena: keep project.yml (and memories/) shareable; ignore local + generated artifacts.
+/cache/
+project.local.yml
