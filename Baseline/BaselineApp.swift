@@ -51,6 +51,13 @@ struct BaselineApp: App {
             }
             TestDataSeeder.seed(profile: config.seedProfile, into: modelContainer.mainContext, referenceDate: Date())
 
+            // Onboarding UI tests must start clean every run: a prior run's
+            // completion writes persist in the simulator's standard defaults.
+            if config.forceOnboarding {
+                UserDefaults.standard.removeObject(forKey: "hasCompletedOnboarding")
+                UserDefaults.standard.removeObject(forKey: "userName")
+            }
+
             self.mirror = NoOpOutboundMirror()
             SyncHelper.mirror = self.mirror
 
@@ -122,24 +129,44 @@ struct BaselineApp: App {
 
     @State private var appState: AppState
 
+    /// First-launch gate. @AppStorage so completing onboarding (which writes
+    /// the flag) reactively swaps the root to MainTabView.
+    @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
+
+    /// Onboarding shows on first launch only. Under UI testing it is
+    /// suppressed (the suite expects MainTabView) unless the dedicated
+    /// -UITestShowOnboarding argument forces it.
+    private var shouldShowOnboarding: Bool {
+        guard !hasCompletedOnboarding else { return false }
+        let config = LaunchConfiguration.current
+        return !config.isUITesting || config.forceOnboarding
+    }
+
     var body: some Scene {
         WindowGroup {
-            MainTabView()
-                .environment(appState)
-                .task {
-                    guard !LaunchConfiguration.current.isUITesting else { return }
-                    try? Tips.configure([
-                        .displayFrequency(.weekly)
-                    ])
+            Group {
+                if shouldShowOnboarding {
+                    OnboardingFlow()
+                } else {
+                    MainTabView()
+                        .environment(appState)
+                        .task {
+                            guard !LaunchConfiguration.current.isUITesting else { return }
+                            try? Tips.configure([
+                                .displayFrequency(.weekly)
+                            ])
+                        }
+                        .task {
+                            guard !LaunchConfiguration.current.isUITesting else { return }
+                            await HealthKitManager.requestAuthorizationIfNeeded()
+                        }
+                        .task {
+                            guard !LaunchConfiguration.current.isUITesting else { return }
+                            await mirror.reconcile(context: modelContainer.mainContext)
+                        }
                 }
-                .task {
-                    guard !LaunchConfiguration.current.isUITesting else { return }
-                    await HealthKitManager.requestAuthorizationIfNeeded()
-                }
-                .task {
-                    guard !LaunchConfiguration.current.isUITesting else { return }
-                    await mirror.reconcile(context: modelContainer.mainContext)
-                }
+            }
+            .animation(.snappy, value: hasCompletedOnboarding)
         }
         .modelContainer(modelContainer)
     }
