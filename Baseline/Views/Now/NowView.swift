@@ -14,6 +14,10 @@ struct NowView: View {
     // Track unit preference so SwiftUI re-renders when it changes
     @AppStorage("weightUnit") private var weightUnit = "lb"
 
+    // Greeting name — @AppStorage so the header updates live when the user
+    // edits their name in Settings (plain defaults reads would go stale).
+    @AppStorage("userName") private var userName = ""
+
     @State private var vm: NowViewModel?
     @State private var goalVM: GoalViewModel?
     @State private var showGoalStats = true
@@ -41,6 +45,10 @@ struct NowView: View {
                 GradientBackground(center: .top)
 
                 VStack(spacing: 0) {
+                    greetingHeader
+                        .padding(.top, 8)
+                        .padding(.horizontal, CadreSpacing.md)
+
                     // Hero: arc + number + range toggle, centered in open area
                     Spacer(minLength: 0)
 
@@ -271,6 +279,38 @@ struct NowView: View {
         .padding(3)
         .glassCard(cornerRadius: 10)
         .accessibilityIdentifier(A11yID.Now.rangeToggle)
+    }
+
+    // MARK: - Greeting header (top-centered, mock variant B)
+
+    /// Trimmed display name, or nil when unset — never render an empty name line.
+    private var greetingName: String? {
+        let trimmed = userName.trimmingCharacters(in: .whitespaces)
+        return trimmed.isEmpty ? nil : trimmed
+    }
+
+    private var greetingHeader: some View {
+        let salutation = vm?.greetingSalutation ?? Greeting.salutation()
+        // Trailing comma only when a name line follows — no dangling "Good morning,".
+        return VStack(spacing: 3) {
+            Text(greetingName != nil ? "\(salutation)," : salutation)
+                .font(.footnote.weight(.medium))
+                .tracking(0.2)
+                .foregroundStyle(CadreColors.textSecondary)
+            if let name = greetingName {
+                Text(name)
+                    .font(.custom("Exo 2", size: 20, relativeTo: .title3).weight(.bold))
+                    .tracking(-0.3)
+                    .foregroundStyle(CadreColors.textPrimary)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.7)
+            }
+        }
+        .frame(maxWidth: .infinity)
+        // Single VoiceOver element: "Good morning, Ben" — avoids the comma-only
+        // first line reading awkwardly on its own.
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(greetingName.map { "\(salutation), \($0)" } ?? salutation)
     }
 
     // MARK: - Bottom block (stats + button)

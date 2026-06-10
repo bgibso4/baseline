@@ -33,7 +33,11 @@ final class NowViewSnapshotTests: XCTestCase {
 
         // Pre-load the VM synchronously so the snapshot renders against fully
         // populated data (no .onAppear race).
-        let vm = NowViewModel(modelContext: container.mainContext)
+        // Fixed 9 AM clock — greeting salutation must not depend on when the
+        // suite runs (the seeded fixture dates are already deterministic).
+        let snapshotNow = Calendar.current.date(
+            from: DateComponents(year: 2026, month: 6, day: 9, hour: 9))!
+        let vm = NowViewModel(modelContext: container.mainContext, now: { snapshotNow })
         vm.refresh()
 
         let view = NowView(viewModel: vm)
