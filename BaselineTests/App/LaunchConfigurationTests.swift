@@ -39,4 +39,15 @@ final class LaunchConfigurationTests: XCTestCase {
         XCTAssertFalse(config.isUITesting, "Unit-test env is not UI testing")
         XCTAssertTrue(config.shouldDisableAnimations)
     }
+
+    func testForceOnboardingFlagDefaultsToFalse() {
+        let config = LaunchConfiguration(arguments: ["app", "-UITestMode"], environment: [:])
+        XCTAssertFalse(config.forceOnboarding)
+    }
+
+    func testForceOnboardingFlagParsed() {
+        let config = LaunchConfiguration(
+            arguments: ["app", "-UITestMode", "-UITestShowOnboarding"], environment: [:])
+        XCTAssertTrue(config.forceOnboarding)
+    }
 }
