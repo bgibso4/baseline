@@ -33,6 +33,20 @@ struct SettingsDeveloperSection: View {
                     style: .danger
                 )
             }
+            SettingsDivider()
+            Button {
+                // Clearing the flag flips BaselineApp's @AppStorage-driven
+                // root back to OnboardingFlow immediately.
+                UserDefaults.standard.removeObject(forKey: "hasCompletedOnboarding")
+            } label: {
+                SettingsRow(
+                    icon: "sparkles",
+                    label: "Show Onboarding Again",
+                    value: nil,
+                    style: .action
+                )
+            }
+            .accessibilityIdentifier(A11yID.Settings.showOnboardingAgain)
 
             Text("Debug build only. Load realistic sample data to preview the app.")
                 .font(.caption)
