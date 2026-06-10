@@ -33,12 +33,15 @@ final class OnboardingFlowUITests: BaseUITestCase {
     }
 
     func testSkipOnNamePageLandsOnMainTabs() {
-        app.buttons[A11yID.Onboarding.getStarted].tap()
+        let getStarted = app.buttons[A11yID.Onboarding.getStarted]
+        XCTAssertTrue(getStarted.waitForExistence(timeout: Self.defaultTimeout))
+        getStarted.tap()
 
         let skipName = app.buttons[A11yID.Onboarding.skipName]
         XCTAssertTrue(skipName.waitForExistence(timeout: Self.defaultTimeout))
         skipName.tap()
 
-        XCTAssertTrue(app.tabBars.firstMatch.waitForExistence(timeout: Self.defaultTimeout))
+        XCTAssertTrue(app.tabBars.firstMatch.waitForExistence(timeout: Self.defaultTimeout),
+                      "Skipping on the name page should land on the main tab bar")
     }
 }
