@@ -48,7 +48,7 @@ struct NameEditView: View {
                 .padding(.horizontal, 22)
                 .padding(.top, 20)
 
-                Text("Your name appears on widgets and export files.")
+                Text("Your name personalizes your greeting on the Now screen.")
                     .font(.system(size: 11, weight: .medium))
                     .foregroundStyle(CadreColors.textTertiary)
                     .padding(.horizontal, 22)
