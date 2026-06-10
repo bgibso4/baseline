@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<!--
+  APPROVED: variant A (paged wizard), 2026-06-08.
+  NOTE: the Height step shown here is illustrative only — scope was later cut
+  to Welcome + Name after the profile-field audit (see
+  docs/superpowers/specs/2026-06-09-onboarding-flow-design.md). The paged-wizard
+  paradigm itself is what was approved.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Onboarding — flow paradigm</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Exo+2:ital,wght@0,400..800;1,400&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0B0B0E; --card:#17171B; --cardEl:#1F1F24;
+    --grad-c:#111520; --grad-e:#0B0B0E;
+    --tPrimary:#F2F3F5; --tSecondary:#A0A3AA; --tTertiary:#9A9DA4;
+    --divider:#2A2A30; --border:rgba(255,255,255,.06);
+    --accent:#6B7B94; --accentLight:#8B9AB0; --accentBtn:#606E85;
+    --success:#8FA880;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    background:#070709;
+    font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",sans-serif;
+    color:var(--tPrimary);
+    padding:32px 24px 64px;
+    -webkit-font-smoothing:antialiased;
+  }
+  .exo{font-family:"Exo 2",sans-serif}
+  .page-head{max-width:1180px;margin:0 auto 28px}
+  .page-head h1{font-family:"Exo 2";font-weight:700;font-size:24px;letter-spacing:-.3px;margin-bottom:6px}
+  .page-head p{color:var(--tSecondary);font-size:14px;line-height:1.5;max-width:760px}
+  .page-head .hint{color:var(--tTertiary);font-size:12.5px;margin-top:10px}
+
+  .row{display:flex;gap:30px;justify-content:center;flex-wrap:wrap;max-width:1180px;margin:0 auto}
+  .pick{cursor:pointer;border:2px solid transparent;border-radius:30px;padding:14px 14px 16px;transition:.15s;background:transparent}
+  .pick:hover{border-color:#33343c}
+  .pick.selected{border-color:var(--accentLight);background:rgba(139,154,176,.07)}
+  .pick .cap{text-align:center;margin-top:14px}
+  .pick .cap .letter{display:inline-flex;width:22px;height:22px;border-radius:50%;background:var(--accentBtn);color:#fff;font-size:12px;font-weight:700;align-items:center;justify-content:center;margin-right:7px;vertical-align:middle}
+  .pick .cap h3{display:inline;font-family:"Exo 2";font-weight:700;font-size:16px;letter-spacing:-.2px}
+  .pick .cap p{color:var(--tSecondary);font-size:12.5px;line-height:1.45;margin-top:9px;max-width:300px}
+  .pick .cap .cost{color:var(--tTertiary);font-size:11.5px;margin-top:7px;font-style:italic}
+
+  /* ---- phone ---- */
+  .phone{
+    width:300px;height:620px;border-radius:42px;
+    background:var(--bg);position:relative;overflow:hidden;
+    box-shadow:0 0 0 9px #1c1c20,0 0 0 11px #2a2a30,0 26px 60px rgba(0,0,0,.6);
+    background-image:radial-gradient(circle at 50% 8%,var(--grad-c),var(--grad-e) 78%);
+  }
+  .notch{position:absolute;top:10px;left:50%;transform:translateX(-50%);width:104px;height:26px;background:#000;border-radius:14px;z-index:30}
+  .status{position:absolute;top:0;left:0;right:0;height:44px;display:flex;align-items:center;justify-content:space-between;padding:0 22px;font-size:12px;font-weight:600;color:var(--tPrimary);z-index:20}
+  .status .dots{display:flex;gap:3px;align-items:center}
+  .scr{position:absolute;top:44px;left:0;right:0;bottom:0;display:flex;flex-direction:column;padding:0 22px}
+
+  /* top bar inside screens */
+  .topbar{display:flex;align-items:center;justify-content:space-between;height:46px;flex-shrink:0}
+  .skip{color:var(--tSecondary);font-size:13px;font-weight:600}
+  .pageDots{display:flex;gap:6px}
+  .pageDots i{width:6px;height:6px;border-radius:50%;background:#3a3b44;display:block}
+  .pageDots i.on{background:var(--accentLight);width:18px;border-radius:3px}
+  .progress{flex:1;height:4px;background:#26272e;border-radius:2px;overflow:hidden;margin-right:14px}
+  .progress b{display:block;height:100%;width:66%;background:var(--accentLight);border-radius:2px}
+
+  .scr h2{font-family:"Exo 2";font-weight:700;font-size:23px;letter-spacing:-.4px;line-height:1.15}
+  .scr .sub{color:var(--tSecondary);font-size:13px;line-height:1.45;margin-top:8px}
+  .micro{color:var(--tTertiary);font-size:10.5px;font-weight:500}
+
+  /* wheel picker */
+  .wheels{display:flex;gap:14px;justify-content:center;margin-top:6px}
+  .wheelcol{display:flex;flex-direction:column;align-items:center;gap:7px}
+  .wheelcol .wlabel{font-size:10px;font-weight:600;letter-spacing:.4px;color:var(--tTertiary)}
+  .wheel{width:78px;height:150px;position:relative;overflow:hidden;
+    -webkit-mask-image:linear-gradient(transparent,#000 26%,#000 74%,transparent);
+    mask-image:linear-gradient(transparent,#000 26%,#000 74%,transparent)}
+  .wheel ul{list-style:none;position:absolute;top:50%;left:0;right:0;transform:translateY(-50%)}
+  .wheel li{height:34px;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:500;color:var(--tTertiary)}
+  .wheel li.c{color:var(--tPrimary);font-weight:600}
+  .wheelband{position:absolute;top:50%;left:0;right:0;height:34px;transform:translateY(-50%);border-top:.5px solid var(--divider);border-bottom:.5px solid var(--divider)}
+
+  /* primary button */
+  .cta{height:50px;border-radius:14px;background:var(--accentBtn);color:#fff;font-size:15px;font-weight:600;display:flex;align-items:center;justify-content:center;letter-spacing:.2px}
+  .cta.ghost{background:transparent;color:var(--tSecondary);height:42px;font-size:13px;font-weight:600}
+  .spacer{flex:1}
+
+  /* settings-style rows */
+  .rows{background:var(--card);border:.5px solid var(--border);border-radius:14px;overflow:hidden;margin-top:4px}
+  .frow{display:flex;align-items:center;gap:12px;padding:15px 16px;border-bottom:.5px solid var(--divider)}
+  .frow:last-child{border-bottom:none}
+  .frow .ico{width:30px;height:30px;border-radius:9px;background:#23242b;display:flex;align-items:center;justify-content:center;font-size:14px;color:var(--accentLight)}
+  .frow .lbl{flex:1}
+  .frow .lbl b{font-size:14px;font-weight:600;color:var(--tPrimary);display:block}
+  .frow .lbl span{font-size:11.5px;color:var(--tTertiary)}
+  .frow .val{font-size:13px;color:var(--tSecondary)}
+  .frow .add{font-size:12.5px;color:var(--accentLight);font-weight:600}
+  .frow .chev{color:#54555e;font-size:13px;margin-left:2px}
+  .frow .check{width:22px;height:22px;border-radius:50%;background:var(--success);display:flex;align-items:center;justify-content:center;color:#0B0B0E;font-size:12px;font-weight:800}
+  .frow .ring{width:22px;height:22px;border-radius:50%;border:1.5px solid #3a3b44}
+
+  .welcome-mini h2{font-size:20px}
+  .badge{display:inline-block;font-size:10px;font-weight:700;letter-spacing:.5px;color:var(--accentLight);background:rgba(139,154,176,.12);padding:4px 9px;border-radius:6px;text-transform:uppercase}
+  .seg{font-size:11px;color:var(--tTertiary);margin-top:14px;text-align:center}
+  .logo{width:38px;height:38px;border-radius:11px;background:linear-gradient(135deg,#2a3344,#161a24);display:flex;align-items:center;justify-content:center;margin-bottom:14px}
+  .logo svg{width:22px;height:22px}
+</style>
+</head>
+<body>
+  <div class="page-head">
+    <h1 class="exo">Onboarding — pick the flow paradigm</h1>
+    <p>Same data either way (Name · Height · Age, all optional/skippable). The question is the <b>shape</b> of the first-launch experience. Each phone shows the same Height step so you can compare the feel. Tap the one that fits Baseline.</p>
+    <p class="hint">All three match prod tokens exactly (charcoal gradient, dusty-blue accent, Exo 2 headings). Build cost noted under each.</p>
+  </div>
+
+  <div class="row">
+
+    <!-- ===== A: Paged wizard ===== -->
+    <div class="pick cards" style="display:none"></div>
+    <div class="pick" data-choice="a" onclick="toggleSelect(this)">
+      <div class="phone">
+        <div class="notch"></div>
+        <div class="status"><span>9:41</span><span class="dots">􀙇 􀛨 􀋦</span></div>
+        <div class="scr">
+          <div class="topbar">
+            <div class="pageDots"><i></i><i></i><i class="on"></i><i></i></div>
+            <div class="skip">Skip</div>
+          </div>
+          <div style="margin-top:14px">
+            <h2 class="exo">How tall are you?</h2>
+            <div class="sub">Used for BMR &amp; SMI on your InBody scans.</div>
+          </div>
+          <div class="wheels" style="margin-top:26px">
+            <div class="wheelcol">
+              <span class="wlabel">FEET</span>
+              <div class="wheel"><div class="wheelband"></div>
+                <ul><li>4</li><li class="c">5</li><li>6</li><li>7</li></ul>
+              </div>
+            </div>
+            <div class="wheelcol">
+              <span class="wlabel">INCHES</span>
+              <div class="wheel"><div class="wheelband"></div>
+                <ul><li>9</li><li class="c">10</li><li>11</li><li>0</li></ul>
+              </div>
+            </div>
+          </div>
+          <div class="spacer"></div>
+          <div class="cta">Continue</div>
+          <div style="height:8px"></div>
+          <div class="cta ghost">Skip this step</div>
+          <div style="height:18px"></div>
+        </div>
+      </div>
+      <div class="cap">
+        <div><span class="letter">A</span><h3 class="exo">Paged wizard</h3></div>
+        <p>One field per full screen. Welcome → Name → Height → Age. Page dots, big Continue, swipe between. Most premium / Apple-Health-like.</p>
+        <p class="cost">Build: ~4 bespoke step screens + a pager container. Highest polish, most code.</p>
+      </div>
+    </div>
+
+    <!-- ===== B: Single scrollable form ===== -->
+    <div class="pick" data-choice="b" onclick="toggleSelect(this)">
+      <div class="phone">
+        <div class="notch"></div>
+        <div class="status"><span>9:41</span><span class="dots">􀙇 􀛨 􀋦</span></div>
+        <div class="scr">
+          <div class="topbar"><span></span><div class="skip">Skip</div></div>
+          <div class="welcome-mini" style="margin-top:6px">
+            <div class="logo">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#8B9AB0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12h4l2-6 4 14 3-9 2 4h5"/></svg>
+            </div>
+            <h2 class="exo">A few quick things</h2>
+            <div class="sub">Helps Baseline tailor your scans. All optional — fill what you like.</div>
+          </div>
+          <div class="rows" style="margin-top:20px">
+            <div class="frow">
+              <div class="ico">􀉪</div>
+              <div class="lbl"><b>Name</b></div>
+              <div class="val">Ben</div><div class="chev">›</div>
+            </div>
+            <div class="frow">
+              <div class="ico">􀅿</div>
+              <div class="lbl"><b>Height</b></div>
+              <div class="add">Add</div><div class="chev">›</div>
+            </div>
+            <div class="frow">
+              <div class="ico">􀉅</div>
+              <div class="lbl"><b>Age</b></div>
+              <div class="add">Add</div><div class="chev">›</div>
+            </div>
+          </div>
+          <div class="spacer"></div>
+          <div class="cta">Get started</div>
+          <div style="height:18px"></div>
+        </div>
+      </div>
+      <div class="cap">
+        <div><span class="letter">B</span><h3 class="exo">Single setup screen</h3></div>
+        <p>One screen, warm header + a Settings-style row list. Tap a row → the existing editor opens as a sheet, returns filled. One “Get started”.</p>
+        <p class="cost">Build: reuses Settings sub-screens almost as-is. Lowest cost, fastest, least ceremony.</p>
+      </div>
+    </div>
+
+    <!-- ===== C: Welcome + hub/checklist ===== -->
+    <div class="pick" data-choice="c" onclick="toggleSelect(this)">
+      <div class="phone">
+        <div class="notch"></div>
+        <div class="status"><span>9:41</span><span class="dots">􀙇 􀛨 􀋦</span></div>
+        <div class="scr">
+          <div class="topbar"><span class="badge">Step 2 of 2</span><div class="skip">Skip all</div></div>
+          <div style="margin-top:10px">
+            <h2 class="exo">Set up your profile</h2>
+            <div class="sub">Tap to fill, skip anything. You can edit it all later in Settings.</div>
+          </div>
+          <div class="rows" style="margin-top:20px">
+            <div class="frow">
+              <div class="check">✓</div>
+              <div class="lbl"><b>Name</b><span>Ben</span></div>
+              <div class="chev">›</div>
+            </div>
+            <div class="frow">
+              <div class="ring"></div>
+              <div class="lbl"><b>Height</b><span>Tap to add</span></div>
+              <div class="chev">›</div>
+            </div>
+            <div class="frow">
+              <div class="ring"></div>
+              <div class="lbl"><b>Age</b><span>Tap to add</span></div>
+              <div class="chev">›</div>
+            </div>
+          </div>
+          <div class="seg">1 of 3 added</div>
+          <div class="spacer"></div>
+          <div class="cta">Done</div>
+          <div style="height:18px"></div>
+        </div>
+      </div>
+      <div class="cap">
+        <div><span class="letter">C</span><h3 class="exo">Welcome + profile hub</h3></div>
+        <p>Full welcome screen, then a hub with check-off rows. Clearly optional, shows progress, tap any row to fill via sheet. Friendly, non-linear.</p>
+        <p class="cost">Build: hub screen + completion state, reuses editors as sheets. Middle cost.</p>
+      </div>
+    </div>
+
+  </div>
+</body>
+</html>

@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Now screen — greeting placement</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0B0B0E;--card:#17171B;--cardEl:#1F1F24;--grad-c:#111520;--grad-e:#0B0B0E;
+    --tPrimary:#F2F3F5;--tSecondary:#A0A3AA;--tTertiary:#9A9DA4;
+    --divider:#2A2A30;--border:rgba(255,255,255,.06);
+    --accent:#6B7B94;--accentLight:#8B9AB0;--accentBtn:#606E85;
+    --cardGlass:rgba(23,23,27,.75);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:#070709;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",sans-serif;color:var(--tPrimary);padding:30px 24px 60px;-webkit-font-smoothing:antialiased}
+  .exo{font-family:"Exo 2",sans-serif}
+  .page-head{max-width:1180px;margin:0 auto 24px}
+  .page-head h1{font-family:"Exo 2";font-weight:700;font-size:23px;letter-spacing:-.3px;margin-bottom:6px}
+  .page-head p{color:var(--tSecondary);font-size:14px;line-height:1.5;max-width:840px}
+  .page-head .note{color:var(--tTertiary);font-size:12.5px;margin-top:10px;max-width:840px}
+
+  .row{display:flex;gap:34px;justify-content:center;flex-wrap:wrap;max-width:1180px;margin:0 auto}
+  .pick{cursor:pointer;border:2px solid transparent;border-radius:30px;padding:14px 14px 16px;transition:.15s}
+  .pick:hover{border-color:#33343c}
+  .pick.selected{border-color:var(--accentLight);background:rgba(139,154,176,.07)}
+  .pick .cap{text-align:center;margin-top:14px}
+  .pick .cap .letter{display:inline-flex;width:22px;height:22px;border-radius:50%;background:var(--accentBtn);color:#fff;font-size:12px;font-weight:700;align-items:center;justify-content:center;margin-right:7px;vertical-align:middle}
+  .pick .cap h3{display:inline;font-family:"Exo 2";font-weight:700;font-size:16px;letter-spacing:-.2px}
+  .pick .cap p{color:var(--tSecondary);font-size:12.5px;line-height:1.45;margin-top:9px;max-width:300px}
+
+  .phone{width:300px;height:620px;border-radius:42px;background:var(--bg);position:relative;overflow:hidden;
+    box-shadow:0 0 0 9px #1c1c20,0 0 0 11px #2a2a30,0 26px 60px rgba(0,0,0,.6);
+    background-image:radial-gradient(circle at 50% 6%,var(--grad-c),var(--grad-e) 72%)}
+  .notch{position:absolute;top:10px;left:50%;transform:translateX(-50%);width:104px;height:26px;background:#000;border-radius:14px;z-index:30}
+  .status{position:absolute;top:0;left:0;right:0;height:44px;display:flex;align-items:center;justify-content:space-between;padding:0 22px;font-size:12px;font-weight:600;z-index:20}
+  .scr{position:absolute;top:44px;left:0;right:0;bottom:0;display:flex;flex-direction:column;padding:0 18px}
+
+  .tbar{display:flex;align-items:center;justify-content:space-between;height:46px;flex-shrink:0;color:var(--tSecondary);font-size:17px}
+  .tbar .tt{font-size:0}
+  .ghi{display:flex;align-items:center;justify-content:center;width:30px;height:30px}
+  .navtitle{font-family:"Exo 2";font-weight:600;font-size:15px;color:var(--tPrimary);letter-spacing:-.1px}
+
+  .greet-left{padding:6px 4px 0}
+  .greet-left .g1{font-size:13px;color:var(--tSecondary);font-weight:500}
+  .greet-left .g2{font-family:"Exo 2";font-weight:700;font-size:27px;letter-spacing:-.5px;margin-top:2px}
+  .greet-center{text-align:center;padding:8px 0 0}
+  .greet-center .g1{font-size:12px;color:var(--tSecondary);font-weight:500;letter-spacing:.2px}
+  .greet-center .g2{font-family:"Exo 2";font-weight:700;font-size:20px;letter-spacing:-.3px;margin-top:3px}
+
+  .spacer{flex:1}
+
+  /* hero arc */
+  .hero{display:flex;flex-direction:column;align-items:center;gap:22px}
+  .arcwrap{width:250px;height:212px;position:relative;display:flex;align-items:center;justify-content:center}
+  .arcwrap svg{position:absolute;inset:0;width:100%;height:100%}
+  .heronum{display:flex;flex-direction:column;align-items:center}
+  .heronum .n{font-family:"Exo 2";font-weight:700;font-size:62px;letter-spacing:-2.5px;line-height:1}
+  .heronum .n .u{font-size:20px;font-weight:500;color:var(--tSecondary);letter-spacing:0;margin-left:3px}
+  .heronum .today{font-size:12px;color:var(--tSecondary);font-weight:500;margin-top:8px}
+  .toggle{display:flex;gap:0;padding:3px;background:var(--cardGlass);border:.5px solid var(--border);border-radius:10px}
+  .toggle span{font-size:11px;font-weight:500;color:var(--tSecondary);padding:6px 16px;border-radius:7px}
+  .toggle span.on{background:var(--cardEl);color:var(--tPrimary)}
+
+  .bottom{display:flex;flex-direction:column;gap:18px;padding:0 4px 8px}
+  .stats{display:flex;border-radius:14px;overflow:hidden;border:.5px solid var(--border)}
+  .stats .cell{flex:1;text-align:center;padding:13px 4px;background:var(--cardGlass)}
+  .stats .cell+.cell{border-left:1px solid #0c0c0f}
+  .stats .cl{font-size:9px;font-weight:600;letter-spacing:.5px;color:var(--tTertiary)}
+  .stats .cv{font-family:"Exo 2";font-weight:700;font-size:16px;margin-top:5px}
+  .stats .cv .u{font-size:9px;font-weight:400;color:var(--tTertiary);margin-left:1px}
+  .weigh{height:54px;border-radius:16px;background:var(--accentBtn);color:#fff;font-size:15px;font-weight:600;letter-spacing:.3px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(96,110,133,.4)}
+</style>
+</head>
+<body>
+  <div class="page-head">
+    <h1 class="exo">Where should the greeting live on the Now screen?</h1>
+    <p>This is the real payoff for collecting Name. All three keep the approved hero (arc · weight · toggle · stats · Weigh In) untouched — they differ only in where the greeting sits. Time-aware ("Good morning/afternoon/evening").</p>
+    <p class="note"><b>If Name is skipped/empty:</b> the greeting falls back gracefully — A &amp; B show just "Good morning" with no name (or hide the name line); C falls back to no nav title. Nothing breaks, no empty "Hi, ".</p>
+  </div>
+
+  <div class="row">
+
+    <!-- A: top-left header -->
+    <div class="pick" data-choice="a" onclick="toggleSelect(this)">
+      <div class="phone">
+        <div class="notch"></div>
+        <div class="status"><span>9:41</span><span>􀙇 􀛨 􀋦</span></div>
+        <div class="scr">
+          <div class="tbar"><span class="ghi">⚙︎</span><span class="ghi">☰</span></div>
+          <div class="greet-left">
+            <div class="g1">Good morning,</div>
+            <div class="g2 exo">Ben</div>
+          </div>
+          <div class="spacer"></div>
+          <div class="hero">
+            <div class="arcwrap">
+              <svg viewBox="0 0 250 212"><path d="M40 180 A95 95 0 1 1 210 180" fill="none" stroke="#23242b" stroke-width="10" stroke-linecap="round"/><path d="M40 180 A95 95 0 0 1 150 33" fill="none" stroke="#6B7B94" stroke-width="10" stroke-linecap="round"/></svg>
+              <div class="heronum"><div class="n">178.4<span class="u">lb</span></div><div class="today">Today</div></div>
+            </div>
+            <div class="toggle"><span class="on">30D</span><span>90D</span><span>All</span></div>
+          </div>
+          <div class="spacer"></div>
+          <div class="bottom">
+            <div class="stats">
+              <div class="cell"><div class="cl">LOWEST</div><div class="cv exo">176.2<span class="u">lb</span></div></div>
+              <div class="cell"><div class="cl">AVERAGE</div><div class="cv exo">179.1<span class="u">lb</span></div></div>
+              <div class="cell"><div class="cl">HIGHEST</div><div class="cv exo">182.0<span class="u">lb</span></div></div>
+            </div>
+            <div class="weigh">Weigh In</div>
+          </div>
+        </div>
+      </div>
+      <div class="cap"><div><span class="letter">A</span><h3 class="exo">Top-left header</h3></div>
+        <p>"Good morning," over "Ben", left-aligned at the top. Warmest &amp; most personal. Anchors the top, hero stays centered below.</p></div>
+    </div>
+
+    <!-- B: top-centered -->
+    <div class="pick" data-choice="b" onclick="toggleSelect(this)">
+      <div class="phone">
+        <div class="notch"></div>
+        <div class="status"><span>9:41</span><span>􀙇 􀛨 􀋦</span></div>
+        <div class="scr">
+          <div class="tbar"><span class="ghi">⚙︎</span><span class="ghi">☰</span></div>
+          <div class="greet-center">
+            <div class="g1">Good morning,</div>
+            <div class="g2 exo">Ben</div>
+          </div>
+          <div class="spacer"></div>
+          <div class="hero">
+            <div class="arcwrap">
+              <svg viewBox="0 0 250 212"><path d="M40 180 A95 95 0 1 1 210 180" fill="none" stroke="#23242b" stroke-width="10" stroke-linecap="round"/><path d="M40 180 A95 95 0 0 1 150 33" fill="none" stroke="#6B7B94" stroke-width="10" stroke-linecap="round"/></svg>
+              <div class="heronum"><div class="n">178.4<span class="u">lb</span></div><div class="today">Today</div></div>
+            </div>
+            <div class="toggle"><span class="on">30D</span><span>90D</span><span>All</span></div>
+          </div>
+          <div class="spacer"></div>
+          <div class="bottom">
+            <div class="stats">
+              <div class="cell"><div class="cl">LOWEST</div><div class="cv exo">176.2<span class="u">lb</span></div></div>
+              <div class="cell"><div class="cl">AVERAGE</div><div class="cv exo">179.1<span class="u">lb</span></div></div>
+              <div class="cell"><div class="cl">HIGHEST</div><div class="cv exo">182.0<span class="u">lb</span></div></div>
+            </div>
+            <div class="weigh">Weigh In</div>
+          </div>
+        </div>
+      </div>
+      <div class="cap"><div><span class="letter">B</span><h3 class="exo">Top-centered</h3></div>
+        <p>Same greeting, centered to mirror the symmetric hero. Quieter than A, still personal. Visually balanced top-to-bottom.</p></div>
+    </div>
+
+    <!-- C: nav title -->
+    <div class="pick" data-choice="c" onclick="toggleSelect(this)">
+      <div class="phone">
+        <div class="notch"></div>
+        <div class="status"><span>9:41</span><span>􀙇 􀛨 􀋦</span></div>
+        <div class="scr">
+          <div class="tbar"><span class="ghi">⚙︎</span><span class="navtitle exo">Good morning, Ben</span><span class="ghi">☰</span></div>
+          <div class="spacer"></div>
+          <div class="hero">
+            <div class="arcwrap">
+              <svg viewBox="0 0 250 212"><path d="M40 180 A95 95 0 1 1 210 180" fill="none" stroke="#23242b" stroke-width="10" stroke-linecap="round"/><path d="M40 180 A95 95 0 0 1 150 33" fill="none" stroke="#6B7B94" stroke-width="10" stroke-linecap="round"/></svg>
+              <div class="heronum"><div class="n">178.4<span class="u">lb</span></div><div class="today">Today</div></div>
+            </div>
+            <div class="toggle"><span class="on">30D</span><span>90D</span><span>All</span></div>
+          </div>
+          <div class="spacer"></div>
+          <div class="bottom">
+            <div class="stats">
+              <div class="cell"><div class="cl">LOWEST</div><div class="cv exo">176.2<span class="u">lb</span></div></div>
+              <div class="cell"><div class="cl">AVERAGE</div><div class="cv exo">179.1<span class="u">lb</span></div></div>
+              <div class="cell"><div class="cl">HIGHEST</div><div class="cv exo">182.0<span class="u">lb</span></div></div>
+            </div>
+            <div class="weigh">Weigh In</div>
+          </div>
+        </div>
+      </div>
+      <div class="cap"><div><span class="letter">C</span><h3 class="exo">Nav-bar title</h3></div>
+        <p>Greeting as the inline nav title between the icons. Least invasive — zero change to the body composition. Subtlest, least warm.</p></div>
+    </div>
+
+  </div>
+</body>
+</html>

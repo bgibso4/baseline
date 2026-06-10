@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Onboarding — welcome screen</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Exo+2:ital,wght@0,400..800;1,400&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0B0B0E; --card:#17171B; --cardEl:#1F1F24;
+    --grad-c:#111520; --grad-e:#0B0B0E;
+    --tPrimary:#F2F3F5; --tSecondary:#A0A3AA; --tTertiary:#9A9DA4;
+    --divider:#2A2A30; --border:rgba(255,255,255,.06);
+    --accent:#6B7B94; --accentLight:#8B9AB0; --accentBtn:#606E85;
+    --success:#8FA880;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:#070709;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",sans-serif;color:var(--tPrimary);padding:32px 24px 64px;-webkit-font-smoothing:antialiased}
+  .exo{font-family:"Exo 2",sans-serif}
+  .page-head{max-width:1180px;margin:0 auto 28px}
+  .page-head h1{font-family:"Exo 2";font-weight:700;font-size:24px;letter-spacing:-.3px;margin-bottom:6px}
+  .page-head p{color:var(--tSecondary);font-size:14px;line-height:1.5;max-width:780px}
+  .page-head .hint{color:var(--tTertiary);font-size:12.5px;margin-top:10px}
+
+  .row{display:flex;gap:30px;justify-content:center;flex-wrap:wrap;max-width:1180px;margin:0 auto}
+  .pick{cursor:pointer;border:2px solid transparent;border-radius:30px;padding:14px 14px 16px;transition:.15s}
+  .pick:hover{border-color:#33343c}
+  .pick.selected{border-color:var(--accentLight);background:rgba(139,154,176,.07)}
+  .pick .cap{text-align:center;margin-top:14px}
+  .pick .cap .letter{display:inline-flex;width:22px;height:22px;border-radius:50%;background:var(--accentBtn);color:#fff;font-size:12px;font-weight:700;align-items:center;justify-content:center;margin-right:7px;vertical-align:middle}
+  .pick .cap h3{display:inline;font-family:"Exo 2";font-weight:700;font-size:16px;letter-spacing:-.2px}
+  .pick .cap p{color:var(--tSecondary);font-size:12.5px;line-height:1.45;margin-top:9px;max-width:300px}
+
+  .phone{width:300px;height:620px;border-radius:42px;background:var(--bg);position:relative;overflow:hidden;
+    box-shadow:0 0 0 9px #1c1c20,0 0 0 11px #2a2a30,0 26px 60px rgba(0,0,0,.6);
+    background-image:radial-gradient(circle at 50% 8%,var(--grad-c),var(--grad-e) 78%)}
+  .notch{position:absolute;top:10px;left:50%;transform:translateX(-50%);width:104px;height:26px;background:#000;border-radius:14px;z-index:30}
+  .status{position:absolute;top:0;left:0;right:0;height:44px;display:flex;align-items:center;justify-content:space-between;padding:0 22px;font-size:12px;font-weight:600;z-index:20}
+  .scr{position:absolute;top:44px;left:0;right:0;bottom:0;display:flex;flex-direction:column;padding:0 22px}
+  .topbar{display:flex;align-items:center;justify-content:flex-end;height:46px;flex-shrink:0}
+  .skip{color:var(--tSecondary);font-size:13px;font-weight:600}
+  .spacer{flex:1}
+  .cta{height:50px;border-radius:14px;background:var(--accentBtn);color:#fff;font-size:15px;font-weight:600;display:flex;align-items:center;justify-content:center;letter-spacing:.2px}
+  .cta.ghost{background:transparent;color:var(--tSecondary);height:42px;font-size:13px;font-weight:600}
+
+  /* EKG logo mark */
+  .mark{border-radius:22px;background:linear-gradient(160deg,#1a2030,#0e1118);border:.5px solid var(--border);display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}
+  .mark svg{width:64%;height:64%;overflow:visible}
+  .pageDots{display:flex;gap:6px;justify-content:center;margin-top:6px}
+  .pageDots i{width:6px;height:6px;border-radius:50%;background:#3a3b44;display:block}
+  .pageDots i.on{background:var(--accentLight);width:18px;border-radius:3px}
+
+  .feat{display:flex;align-items:center;gap:13px;padding:11px 2px}
+  .feat .fi{width:34px;height:34px;border-radius:10px;background:#1c1d24;border:.5px solid var(--border);display:flex;align-items:center;justify-content:center;color:var(--accentLight);font-size:15px}
+  .feat b{font-size:13.5px;font-weight:600;color:var(--tPrimary);display:block}
+  .feat span{font-size:11.5px;color:var(--tTertiary)}
+  .wordmark{font-family:"Exo 2";font-weight:800;letter-spacing:-.5px}
+</style>
+</head>
+<body>
+  <div class="page-head">
+    <h1 class="exo">Welcome screen — page 1 of the wizard</h1>
+    <p>The first thing a new user sees. After this: Name → Height → Age. The three differ in <b>how much they explain</b> vs. how minimal they stay. Skip is always available. EKG mark matches the current app icon.</p>
+    <p class="hint">Wordmark is still a work in progress — treat the lettering as placeholder, judge the layout &amp; tone.</p>
+  </div>
+
+  <div class="row">
+
+    <!-- A: Brand hero -->
+    <div class="pick" data-choice="a" onclick="toggleSelect(this)">
+      <div class="phone">
+        <div class="notch"></div>
+        <div class="status"><span>9:41</span><span>􀙇 􀛨 􀋦</span></div>
+        <div class="scr">
+          <div class="topbar"><div class="skip">Skip</div></div>
+          <div class="spacer"></div>
+          <div style="display:flex;flex-direction:column;align-items:center;text-align:center">
+            <div class="mark" style="width:96px;height:96px;margin-bottom:26px">
+              <svg viewBox="0 0 100 56" fill="none">
+                <defs><linearGradient id="fa" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#6B7B94" stop-opacity=".35"/><stop offset="1" stop-color="#6B7B94" stop-opacity="0"/></linearGradient></defs>
+                <path d="M2 34 H30 L38 34 L44 14 L52 46 L60 26 L66 34 H98 V56 H2 Z" fill="url(#fa)"/>
+                <path d="M2 34 H30 L38 34 L44 14 L52 46 L60 26 L66 34 H98" stroke="#8B9AB0" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+            <div class="wordmark" style="font-size:40px">Baseline</div>
+            <div style="color:var(--tSecondary);font-size:14px;margin-top:12px;letter-spacing:.2px">Your body, measured over time.</div>
+          </div>
+          <div class="spacer"></div>
+          <div class="cta">Get started</div>
+          <div style="height:18px"></div>
+        </div>
+      </div>
+      <div class="cap">
+        <div><span class="letter">A</span><h3 class="exo">Brand hero</h3></div>
+        <p>Big mark, wordmark, one-line tagline. Confident and minimal. Sets a premium tone, says nothing about what's next.</p>
+      </div>
+    </div>
+
+    <!-- B: Value intro -->
+    <div class="pick" data-choice="b" onclick="toggleSelect(this)">
+      <div class="phone">
+        <div class="notch"></div>
+        <div class="status"><span>9:41</span><span>􀙇 􀛨 􀋦</span></div>
+        <div class="scr">
+          <div class="topbar"><div class="skip">Skip</div></div>
+          <div style="margin-top:8px;display:flex;flex-direction:column;align-items:center;text-align:center">
+            <div class="mark" style="width:62px;height:62px;margin-bottom:18px">
+              <svg viewBox="0 0 100 56" fill="none">
+                <path d="M2 34 H30 L38 34 L44 14 L52 46 L60 26 L66 34 H98" stroke="#8B9AB0" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+            <h2 class="exo" style="font-size:25px;font-weight:700;letter-spacing:-.4px">Welcome to Baseline</h2>
+            <div style="color:var(--tSecondary);font-size:13px;margin-top:9px;line-height:1.5;max-width:230px">A quiet, accurate record of your body composition.</div>
+          </div>
+          <div style="margin-top:24px">
+            <div class="feat"><div class="fi">􀎫</div><div><b>Log weigh-ins</b><span>Fast daily entry, trends that matter</span></div></div>
+            <div class="feat"><div class="fi">􀎟</div><div><b>Scan your InBody</b><span>Snap the printout, we read it</span></div></div>
+            <div class="feat"><div class="fi">􀟜</div><div><b>See the trend</b><span>Signal through the daily noise</span></div></div>
+          </div>
+          <div class="spacer"></div>
+          <div class="cta">Get started</div>
+          <div style="height:18px"></div>
+        </div>
+      </div>
+      <div class="cap">
+        <div><span class="letter">B</span><h3 class="exo">Value intro</h3></div>
+        <p>Three tiny feature points under the mark. Tells a first-timer what the app is for before asking for anything. Warmest / most explanatory.</p>
+      </div>
+    </div>
+
+    <!-- C: Warm greeting -->
+    <div class="pick" data-choice="c" onclick="toggleSelect(this)">
+      <div class="phone">
+        <div class="notch"></div>
+        <div class="status"><span>9:41</span><span>􀙇 􀛨 􀋦</span></div>
+        <div class="scr">
+          <div class="topbar"><div class="skip">Skip</div></div>
+          <div class="spacer"></div>
+          <div style="text-align:left">
+            <div class="mark" style="width:54px;height:54px;margin-bottom:24px;border-radius:16px">
+              <svg viewBox="0 0 100 56" fill="none">
+                <path d="M2 34 H30 L38 34 L44 14 L52 46 L60 26 L66 34 H98" stroke="#8B9AB0" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+            <h2 class="exo" style="font-size:34px;font-weight:700;letter-spacing:-.6px;line-height:1.1">Let's set<br>you up.</h2>
+            <div style="color:var(--tSecondary);font-size:14px;margin-top:16px;line-height:1.55">A few optional details make your scans and trends more accurate. Takes about 20 seconds — and you can skip any of it.</div>
+          </div>
+          <div class="spacer"></div>
+          <div class="cta">Let's go</div>
+          <div style="height:8px"></div>
+          <div class="cta ghost">Skip for now</div>
+          <div style="height:14px"></div>
+        </div>
+      </div>
+      <div class="cap">
+        <div><span class="letter">C</span><h3 class="exo">Warm greeting</h3></div>
+        <p>Conversational, left-aligned. Sets expectations up front: short, optional, skippable. Feels personal rather than brand-y.</p>
+      </div>
+    </div>
+
+  </div>
+</body>
+</html>
