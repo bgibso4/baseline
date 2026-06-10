@@ -100,5 +100,14 @@ enum A11yID {
         static let termsLink = "settings.termsLink"
         /// "Choose CSV file" button on the ImportCSVView screen.
         static let importChooseFile = "settings.importChooseFile"
+        /// DEBUG developer row that clears the onboarding-completed flag.
+        static let showOnboardingAgain = "settings.showOnboardingAgain"
+    }
+    enum Onboarding {
+        static let getStarted = "onboarding.getStarted"
+        static let skipForNow = "onboarding.skipForNow"
+        static let nameField = "onboarding.nameField"
+        static let continueButton = "onboarding.continue"
+        static let skipName = "onboarding.skipName"
     }
 }
