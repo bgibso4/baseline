@@ -13,6 +13,8 @@ enum A11yID {
         static let historyButton = "now.historyButton"
         static let weighInButton = "now.weighInButton"
         static let rangeToggle = "now.rangeToggle"
+        /// Combined non-interactive greeting header ("Good morning, Ben").
+        static let greeting = "now.greeting"
         static let statLowest = "now.stat.lowest"
         static let statAverage = "now.stat.average"
         static let statHighest = "now.stat.highest"

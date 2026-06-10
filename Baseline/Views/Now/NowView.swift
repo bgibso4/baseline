@@ -307,6 +307,8 @@ struct NowView: View {
         // awkwardly on its own.
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(display.accessibilityLabel)
+        .accessibilityAddTraits(.isStaticText)
+        .accessibilityIdentifier(A11yID.Now.greeting)
     }
 
     // MARK: - Bottom block (stats + button)
