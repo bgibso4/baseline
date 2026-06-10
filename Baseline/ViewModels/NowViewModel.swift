@@ -5,6 +5,8 @@ import Observation
 @Observable
 class NowViewModel {
     private let modelContext: ModelContext
+    /// Injectable clock so greeting output is deterministic in tests/snapshots.
+    private let now: () -> Date
 
     var todayEntry: WeightEntry?
     var previousEntry: WeightEntry?
@@ -33,8 +35,14 @@ class NowViewModel {
         UnitConversion.preferredWeightUnit
     }
 
-    init(modelContext: ModelContext) {
+    /// Time-aware salutation for the Now header ("Good morning" / …).
+    var greetingSalutation: String {
+        Greeting.salutation(at: now())
+    }
+
+    init(modelContext: ModelContext, now: @escaping () -> Date = Date.init) {
         self.modelContext = modelContext
+        self.now = now
     }
 
     func refresh() {
