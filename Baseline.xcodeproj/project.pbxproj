@@ -95,6 +95,7 @@
 		7EB390BE808DC37B957DBC1D /* testTrendsView_DarkMode_DefaultMonth.1.png in Resources */ = {isa = PBXBuildFile; fileRef = 7A06A06DCC1BB86FD44CC36B /* testTrendsView_DarkMode_DefaultMonth.1.png */; };
 		7F2647C6A3C1B0DE829C5847 /* WeightEntryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F133F7888A7F42479BC2329D /* WeightEntryTests.swift */; };
 		7F56CCBB22A690D800512F96 /* DateFormatting.swift in Sources */ = {isa = PBXBuildFile; fileRef = 90026F3A1D7167909BB75A33 /* DateFormatting.swift */; };
+		8099A267F3AD7B39736F6324 /* Greeting.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C1D337FB2368366F238A910 /* Greeting.swift */; };
 		81625F15F02E0FA9F6AA78AB /* ConsensusVoteTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08F96F01F5A56D98D3C4FF27 /* ConsensusVoteTests.swift */; };
 		8389D0C647DEA8660A18AF3F /* TrendsFullscreenChart.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9371BFBCBBA4C81223F2AB12 /* TrendsFullscreenChart.swift */; };
 		854CD5565A08F754C93DB19B /* weights-clean.csv in Resources */ = {isa = PBXBuildFile; fileRef = ADD0CE59E47B8DDC91E8808A /* weights-clean.csv */; };
@@ -176,6 +177,7 @@
 		E9AE862F20C7238325BF97E0 /* WeighInSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3AFDA887F36DFDC283876B7 /* WeighInSheet.swift */; };
 		ECD711A9E493D3D05A799EC5 /* TrendsFormattingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18D1E4F3B7929952CCB9DC39 /* TrendsFormattingTests.swift */; };
 		EF2CA9F84B2BD89396902B60 /* MetricPickerSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A36E8D666AC44FF62BE94B0 /* MetricPickerSheet.swift */; };
+		F0EA7372E6DA97F390D8457D /* GreetingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9712598A7BDF6ED2FE33E45 /* GreetingTests.swift */; };
 		F2293E2A7EB969463F873FD9 /* GlassCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = C130DFBA6F02B91266B89B49 /* GlassCard.swift */; };
 		F44AC3FCE74120B6AA7A4210 /* ExportCSVView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05341852BEF2656E9E4244AC /* ExportCSVView.swift */; };
 		F6398E5CF415C6B9B8CE5BC2 /* HealthKitManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32B28DC15F13A362B58FD326 /* HealthKitManager.swift */; };
@@ -230,6 +232,7 @@
 		059218AB9BEDF74190820B6C /* ProcessingIndicator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProcessingIndicator.swift; sourceTree = "<group>"; };
 		08676595D1E00491EDB74DF5 /* ArcIndicatorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArcIndicatorView.swift; sourceTree = "<group>"; };
 		08F96F01F5A56D98D3C4FF27 /* ConsensusVoteTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConsensusVoteTests.swift; sourceTree = "<group>"; };
+		0C1D337FB2368366F238A910 /* Greeting.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Greeting.swift; sourceTree = "<group>"; };
 		1424BC1B992343663EFFF98A /* GoalReachedOverlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GoalReachedOverlay.swift; sourceTree = "<group>"; };
 		14BDE24DFB6B3F129FCF3288 /* SetGoalSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SetGoalSheet.swift; sourceTree = "<group>"; };
 		16180890AC21C5FBC902279E /* BodyViewSnapshotTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BodyViewSnapshotTests.swift; sourceTree = "<group>"; };
@@ -346,6 +349,7 @@
 		A777911A4E98904254416624 /* SettingsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsViewModel.swift; sourceTree = "<group>"; };
 		A7C2B8129886E8A1210694D6 /* AboutCadreView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AboutCadreView.swift; sourceTree = "<group>"; };
 		A81C4F273D6A07EAFB6E4BE4 /* SettingsHealthSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsHealthSection.swift; sourceTree = "<group>"; };
+		A9712598A7BDF6ED2FE33E45 /* GreetingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GreetingTests.swift; sourceTree = "<group>"; };
 		AB289EC0E5CC9756E1B62116 /* UnitConversionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UnitConversionTests.swift; sourceTree = "<group>"; };
 		AB8EB95FB6A8252C1B9C10A5 /* CrossFieldValidatorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CrossFieldValidatorTests.swift; sourceTree = "<group>"; };
 		ACDA43306F3BC25054A85ABE /* weights-slash-dates-split-time.csv */ = {isa = PBXFileReference; path = "weights-slash-dates-split-time.csv"; sourceTree = "<group>"; };
@@ -506,6 +510,7 @@
 				90026F3A1D7167909BB75A33 /* DateFormatting.swift */,
 				48CD5547B419BCE4B9D76860 /* DoubleExtensions.swift */,
 				6F0F17F442F4F3A97A59B87A /* GoalAutoCompleter.swift */,
+				0C1D337FB2368366F238A910 /* Greeting.swift */,
 				E22A1EED058DA9647318A9C3 /* Haptics.swift */,
 				6CA4DFDD50AB3412413C94F1 /* Log.swift */,
 				2019690E1B79A00585C461C5 /* TestDataSeeder.swift */,
@@ -837,6 +842,7 @@
 			children = (
 				7BD347427146045AA9060926 /* CSVExporterTests.swift */,
 				4B78901ECF3CB3B824B4DD41 /* CSVImporterTests.swift */,
+				A9712598A7BDF6ED2FE33E45 /* GreetingTests.swift */,
 				305D48B82A09CA4E0E7BCD0E /* TestDataSeederProfileTests.swift */,
 				AB289EC0E5CC9756E1B62116 /* UnitConversionTests.swift */,
 			);
@@ -1147,6 +1153,7 @@
 				81625F15F02E0FA9F6AA78AB /* ConsensusVoteTests.swift in Sources */,
 				42A19BCF838C00B2DEAFCEA2 /* CrossFieldValidatorTests.swift in Sources */,
 				A9E1A4B3AF560272E604B288 /* GoalTests.swift in Sources */,
+				F0EA7372E6DA97F390D8457D /* GreetingTests.swift in Sources */,
 				710EF7FB0C4189C7E436F250 /* HealthKitManagerTests.swift in Sources */,
 				915A716430D60521F39C832D /* HealthKitMirrorFlowTests.swift in Sources */,
 				03957DDC1AF43AC1371AC80C /* HistoryViewModelTests.swift in Sources */,
@@ -1217,6 +1224,7 @@
 				D92F5C6E44E03E9A3A116155 /* GoalReachedOverlay.swift in Sources */,
 				2F8E81B3B79137A3ED266820 /* GoalViewModel.swift in Sources */,
 				A300527210350074745BF05F /* GradientBackground.swift in Sources */,
+				8099A267F3AD7B39736F6324 /* Greeting.swift in Sources */,
 				65A61217D0DEF001C4BC19A2 /* Haptics.swift in Sources */,
 				F6398E5CF415C6B9B8CE5BC2 /* HealthKitManager.swift in Sources */,
 				C868FABFA168B158F29A8AB5 /* HeightPickerView.swift in Sources */,
