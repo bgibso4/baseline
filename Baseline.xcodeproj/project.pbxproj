@@ -68,6 +68,7 @@
 		5890E3D66833DB31B705D1FA /* OutboundMirrorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E332C18AA2C4ABD37FADD6A6 /* OutboundMirrorTests.swift */; };
 		58CD5BFE69D3B06C2642ABCB /* DocumentScannerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F262B884AFB7AC56754A8585 /* DocumentScannerView.swift */; };
 		5B654C7068D6D55B1DBB7AC6 /* HistoryViewSnapshotTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62D00EE3E15355487C97323A /* HistoryViewSnapshotTests.swift */; };
+		5C28DE1014553D7AB20E5D85 /* OnboardingFlowUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AEE56B770ED73D2E1EE50120 /* OnboardingFlowUITests.swift */; };
 		5E930B0375F0609094F3C87C /* ScanFlowControls.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8DA201B33D69EFE5EC41ABC3 /* ScanFlowControls.swift */; };
 		5ED4B5839AA81C699CB24C1F /* InBodyDocumentParserFixtureTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4CF686712FA8434CA43ADC5 /* InBodyDocumentParserFixtureTests.swift */; };
 		60FB5F4F8D87A751246CF146 /* SetGoalSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14BDE24DFB6B3F129FCF3288 /* SetGoalSheet.swift */; };
@@ -366,6 +367,7 @@
 		ACDA43306F3BC25054A85ABE /* weights-slash-dates-split-time.csv */ = {isa = PBXFileReference; path = "weights-slash-dates-split-time.csv"; sourceTree = "<group>"; };
 		ADD0CE59E47B8DDC91E8808A /* weights-clean.csv */ = {isa = PBXFileReference; path = "weights-clean.csv"; sourceTree = "<group>"; };
 		AE6D9B28D405938F17E0CB25 /* GoalCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GoalCard.swift; sourceTree = "<group>"; };
+		AEE56B770ED73D2E1EE50120 /* OnboardingFlowUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingFlowUITests.swift; sourceTree = "<group>"; };
 		AF80BCC433C58498F1AA4488 /* APIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIClient.swift; sourceTree = "<group>"; };
 		B0811FC6CD17EB2AEBCECB45 /* WeighInViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeighInViewModel.swift; sourceTree = "<group>"; };
 		B2B1A5A02A058FAEF46C90D2 /* OnboardingViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingViewModel.swift; sourceTree = "<group>"; };
@@ -654,6 +656,7 @@
 				3D0CEB7736BC8E9CD1FB75CE /* BaseUITestCase.swift */,
 				672CE4A053FBF61A4A61D870 /* CSVImportFlowUITests.swift */,
 				5A155E7245AEBA2E0B25A4FE /* IdentifierCoverageUITests.swift */,
+				AEE56B770ED73D2E1EE50120 /* OnboardingFlowUITests.swift */,
 				5E58DEC93782C5843D813E51 /* ScanEntryFlowUITests.swift */,
 				6A223965CCAEBE5DBC5E8A46 /* SetGoalFlowUITests.swift */,
 				A65E20481955BDBBED48A166 /* SmokeNavigationUITests.swift */,
@@ -1161,6 +1164,7 @@
 				E4EB95484EAD1D32EB72D167 /* CSVImportFlowUITests.swift in Sources */,
 				64D85461FED8886808120A2C /* IdentifierCoverageUITests.swift in Sources */,
 				78B7E74F07BB4211711C4556 /* LaunchConfiguration.swift in Sources */,
+				5C28DE1014553D7AB20E5D85 /* OnboardingFlowUITests.swift in Sources */,
 				86C06FD7501112C0BFEC3353 /* ScanEntryFlowUITests.swift in Sources */,
 				9AF017FC9D41880E1E65EDDE /* SetGoalFlowUITests.swift in Sources */,
 				6D21F2F3E9165259496B8558 /* SmokeNavigationUITests.swift in Sources */,

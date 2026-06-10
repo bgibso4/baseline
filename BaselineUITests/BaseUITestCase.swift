@@ -10,10 +10,15 @@ class BaseUITestCase: XCTestCase {
     /// Override per subclass to pick the seed fixture.
     var seedProfile: SeedProfile { .populated }
 
+    /// Extra launch arguments appended by subclasses (e.g. onboarding tests
+    /// pass -UITestShowOnboarding). Default: none.
+    var extraLaunchArguments: [String] { [] }
+
     override func setUpWithError() throws {
         continueAfterFailure = false
         app = XCUIApplication()
         app.launchArguments = ["-UITestMode", "-UITestSeed", seedProfile.rawValue]
+            + extraLaunchArguments
         app.launch()
     }
 
