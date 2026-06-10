@@ -23,4 +23,30 @@ final class GreetingTests: XCTestCase {
         XCTAssertEqual(Greeting.salutation(at: date(hour: 0)), "Good evening")
         XCTAssertEqual(Greeting.salutation(at: date(hour: 4)), "Good evening")
     }
+
+    func testDisplayWithNameAddsCommaAndNameLine() {
+        let display = Greeting.display(name: "Ben", at: date(hour: 9))
+        XCTAssertEqual(display.salutationLine, "Good morning,")
+        XCTAssertEqual(display.nameLine, "Ben")
+        XCTAssertEqual(display.accessibilityLabel, "Good morning, Ben")
+    }
+
+    func testDisplayWithoutNameHasNoDanglingComma() {
+        let display = Greeting.display(name: "", at: date(hour: 9))
+        XCTAssertEqual(display.salutationLine, "Good morning")
+        XCTAssertNil(display.nameLine)
+        XCTAssertEqual(display.accessibilityLabel, "Good morning")
+    }
+
+    func testDisplayTreatsWhitespaceOnlyNameAsUnset() {
+        let display = Greeting.display(name: "   ", at: date(hour: 21))
+        XCTAssertEqual(display.salutationLine, "Good evening")
+        XCTAssertNil(display.nameLine)
+    }
+
+    func testDisplayTrimsPaddedName() {
+        let display = Greeting.display(name: "  Ben ", at: date(hour: 13))
+        XCTAssertEqual(display.salutationLine, "Good afternoon,")
+        XCTAssertEqual(display.nameLine, "Ben")
+    }
 }

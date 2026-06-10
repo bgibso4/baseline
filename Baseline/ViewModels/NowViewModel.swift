@@ -35,9 +35,16 @@ class NowViewModel {
         UnitConversion.preferredWeightUnit
     }
 
-    /// Time-aware salutation for the Now header ("Good morning" / …).
-    var greetingSalutation: String {
-        Greeting.salutation(at: now())
+    /// Display-ready greeting for the Now header, composed against the
+    /// injected clock. Name comes from the view's @AppStorage so edits in
+    /// Settings reflect live.
+    ///
+    /// Known limitation (accepted): the salutation is computed per render —
+    /// a session left open or resumed across a time-bucket boundary
+    /// (11:59→12:00, 16:59→17:00) keeps the old salutation until the next
+    /// view invalidation. Fine for a glance screen.
+    func greetingDisplay(name: String) -> Greeting.Display {
+        Greeting.display(name: name, at: now())
     }
 
     init(modelContext: ModelContext, now: @escaping () -> Date = Date.init) {

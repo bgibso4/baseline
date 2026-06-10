@@ -37,6 +37,9 @@ final class SettingsViewSnapshotTests: XCTestCase {
         }
         .modelContainer(container)
 
+        // NOTE: the committed reference PNG predates the profile-field removal
+        // and is stale — re-record is deferred to issue #79 (snapshot env
+        // mismatch). This suite is excluded from the Baseline-CI gate.
         assertSnapshot(
             of: view,
             as: .image(

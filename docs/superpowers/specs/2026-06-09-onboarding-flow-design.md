@@ -2,7 +2,7 @@
 
 **Date:** 2026-06-09
 **Issue:** #5 — "Add lightweight onboarding flow (name, height, age, optional)" (`phase-4-ship`)
-**Status:** Awaiting user review
+**Status:** Approved; implemented on feat/onboarding-5-welcome-name
 
 ---
 
@@ -28,7 +28,7 @@ All visual decisions were made against high-fidelity mockups using production de
 
 | Decision | Choice | Alternatives rejected |
 |----------|--------|----------------------|
-| Flow paradigm | **Paged wizard** (full-screen pages, page dots) | Single setup screen; checklist hub |
+| Flow paradigm | **Paged wizard** (full-screen pages; page dots dropped with the scope cut to two pages) | Single setup screen; checklist hub |
 | Welcome screen | **Warm greeting** — conversational, left-aligned, sets expectations ("a few seconds, skip any of it"), explicit "Skip for now" ghost button | Brand hero; value/feature intro |
 | Scope | **Welcome + Name only** | Full name/height/age wizard (fields are vestigial) |
 | Age entry style | (moot — age step cut) Date wheel had been chosen over calendar | — |

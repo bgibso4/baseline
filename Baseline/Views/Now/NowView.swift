@@ -283,21 +283,17 @@ struct NowView: View {
 
     // MARK: - Greeting header (top-centered, mock variant B)
 
-    /// Trimmed display name, or nil when unset — never render an empty name line.
-    private var greetingName: String? {
-        let trimmed = userName.trimmingCharacters(in: .whitespaces)
-        return trimmed.isEmpty ? nil : trimmed
-    }
-
     private var greetingHeader: some View {
-        let salutation = vm?.greetingSalutation ?? Greeting.salutation()
-        // Trailing comma only when a name line follows — no dangling "Good morning,".
+        // Composition (trim / comma / a11y label) lives in Greeting.display —
+        // the view only renders. Fallback covers the pre-onAppear frame.
+        let display = vm?.greetingDisplay(name: userName)
+            ?? Greeting.display(name: userName)
         return VStack(spacing: 3) {
-            Text(greetingName != nil ? "\(salutation)," : salutation)
+            Text(display.salutationLine)
                 .font(.footnote.weight(.medium))
                 .tracking(0.2)
                 .foregroundStyle(CadreColors.textSecondary)
-            if let name = greetingName {
+            if let name = display.nameLine {
                 Text(name)
                     .font(.custom("Exo 2", size: 20, relativeTo: .title3).weight(.bold))
                     .tracking(-0.3)
@@ -307,10 +303,10 @@ struct NowView: View {
             }
         }
         .frame(maxWidth: .infinity)
-        // Single VoiceOver element: "Good morning, Ben" — avoids the comma-only
-        // first line reading awkwardly on its own.
+        // Single VoiceOver element — avoids the comma-only first line reading
+        // awkwardly on its own.
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel(greetingName.map { "\(salutation), \($0)" } ?? salutation)
+        .accessibilityLabel(display.accessibilityLabel)
     }
 
     // MARK: - Bottom block (stats + button)
