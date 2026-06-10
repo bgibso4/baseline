@@ -28,14 +28,8 @@ final class SettingsViewSnapshotTests: XCTestCase {
         let defaults = UserDefaults(suiteName: "SettingsSnapshotTest")!
         defaults.removePersistentDomain(forName: "SettingsSnapshotTest")
         defaults.set("Ben", forKey: "userName")
-        defaults.set(5, forKey: "heightFeet")
-        defaults.set(10, forKey: "heightInches")
         defaults.set("lb", forKey: "weightUnit")
         defaults.set("in", forKey: "lengthUnit")
-        defaults.set("male", forKey: "gender")
-        // Birthday: May 15, 1992
-        let birthday = Calendar.current.date(from: DateComponents(year: 1992, month: 5, day: 15))!
-        defaults.set(birthday.timeIntervalSince1970, forKey: "birthdayInterval")
 
         let vm = SettingsViewModel(defaults: defaults)
         let view = NavigationStack {
