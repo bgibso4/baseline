@@ -31,14 +31,35 @@ final class NowViewSnapshotTests: XCTestCase {
         let container = makeContainer()
         seedFourteenDays(into: container.mainContext)
 
+        // Pin the greeting name in standard defaults — NowView reads it via
+        // @AppStorage. Without this the snapshot depends on simulator state
+        // and (when empty) never exercises the name line at all.
+        let previousName = UserDefaults.standard.string(forKey: "userName")
+        UserDefaults.standard.set("Ben", forKey: "userName")
+        defer {
+            if let previousName {
+                UserDefaults.standard.set(previousName, forKey: "userName")
+            } else {
+                UserDefaults.standard.removeObject(forKey: "userName")
+            }
+        }
+
         // Pre-load the VM synchronously so the snapshot renders against fully
         // populated data (no .onAppear race).
-        let vm = NowViewModel(modelContext: container.mainContext)
+        // Fixed 9 AM clock — greeting salutation must not depend on when the
+        // suite runs. (Fixture dates are seeded relative to now; what must be
+        // deterministic here is the rendered salutation, not the data.)
+        let snapshotNow = Calendar.current.date(
+            from: DateComponents(year: 2026, month: 6, day: 9, hour: 9))!
+        let vm = NowViewModel(modelContext: container.mainContext, now: { snapshotNow })
         vm.refresh()
 
         let view = NowView(viewModel: vm)
             .modelContainer(container)
 
+        // NOTE: the committed reference PNG predates the greeting header and is
+        // stale — re-record is deferred to issue #79 (snapshot env mismatch).
+        // This suite is excluded from the Baseline-CI gate.
         assertSnapshot(
             of: view,
             as: .image(

@@ -13,10 +13,14 @@ struct LaunchConfiguration {
     let isUITesting: Bool
     let seedProfile: SeedProfile
     let shouldDisableAnimations: Bool
+    /// UI-test override: present onboarding even though `-UITestMode`
+    /// normally suppresses it. Used only by OnboardingFlowUITests.
+    let forceOnboarding: Bool
 
     init(arguments: [String], environment: [String: String]) {
         let uiTesting = arguments.contains("-UITestMode")
         self.isUITesting = uiTesting
+        self.forceOnboarding = arguments.contains("-UITestShowOnboarding")
 
         // -UITestSeed <value>; default to .populated under UI testing.
         var profile: SeedProfile = .populated

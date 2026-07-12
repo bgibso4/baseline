@@ -101,4 +101,16 @@ final class NowViewModelTests: XCTestCase {
         let lastWeight = try XCTUnwrap(vm.lastWeight)
         XCTAssertEqual(lastWeight, 197.4)
     }
+
+    func testGreetingDisplayUsesInjectedClock() {
+        let nineAM = Calendar.current.date(
+            from: DateComponents(year: 2026, month: 6, day: 9, hour: 9))!
+        let vm = NowViewModel(modelContext: context, now: { nineAM })
+        XCTAssertEqual(vm.greetingDisplay(name: "Ben").salutationLine, "Good morning,")
+
+        let ninePM = Calendar.current.date(
+            from: DateComponents(year: 2026, month: 6, day: 9, hour: 21))!
+        let eveningVM = NowViewModel(modelContext: context, now: { ninePM })
+        XCTAssertEqual(eveningVM.greetingDisplay(name: "").salutationLine, "Good evening")
+    }
 }

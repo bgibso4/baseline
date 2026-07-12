@@ -2,26 +2,6 @@ import Foundation
 import SwiftData
 import Observation
 
-// MARK: - Gender
-
-enum Gender: String, CaseIterable, Identifiable {
-    case male
-    case female
-    case other
-    case preferNotToSay = "prefer_not_to_say"
-
-    var id: String { rawValue }
-
-    var displayName: String {
-        switch self {
-        case .male: return "Male"
-        case .female: return "Female"
-        case .other: return "Other"
-        case .preferNotToSay: return "Prefer not to say"
-        }
-    }
-}
-
 // MARK: - Theme
 
 enum AppTheme: String, CaseIterable, Identifiable {
@@ -53,11 +33,6 @@ class SettingsViewModel {
     // Mutating these triggers SwiftUI view updates for the corresponding
     // computed properties that read from UserDefaults.
     private var _nameVersion = 0
-    private var _heightFeetVersion = 0
-    private var _heightInchesVersion = 0
-    private var _heightCmVersion = 0
-    private var _birthdayVersion = 0
-    private var _genderVersion = 0
     private var _weightUnitVersion = 0
     private var _lengthUnitVersion = 0
     private var _themeVersion = 0
@@ -72,48 +47,6 @@ class SettingsViewModel {
         set { defaults.set(newValue, forKey: "userName"); _nameVersion += 1 }
     }
 
-    var heightFeet: Int {
-        get { _ = _heightFeetVersion; return defaults.integer(forKey: "heightFeet") }
-        set { defaults.set(newValue, forKey: "heightFeet"); _heightFeetVersion += 1 }
-    }
-
-    var heightInches: Int {
-        get { _ = _heightInchesVersion; return defaults.integer(forKey: "heightInches") }
-        set { defaults.set(newValue, forKey: "heightInches"); _heightInchesVersion += 1 }
-    }
-
-    var heightCm: Int {
-        get { _ = _heightCmVersion; return defaults.integer(forKey: "heightCm") }
-        set { defaults.set(newValue, forKey: "heightCm"); _heightCmVersion += 1 }
-    }
-
-    var birthday: Date? {
-        get {
-            _ = _birthdayVersion
-            let interval = defaults.double(forKey: "birthdayInterval")
-            return interval > 0 ? Date(timeIntervalSince1970: interval) : nil
-        }
-        set {
-            if let newValue {
-                defaults.set(newValue.timeIntervalSince1970, forKey: "birthdayInterval")
-            } else {
-                defaults.removeObject(forKey: "birthdayInterval")
-            }
-            _birthdayVersion += 1
-        }
-    }
-
-    var gender: Gender? {
-        get {
-            _ = _genderVersion
-            return defaults.string(forKey: "gender").flatMap { Gender(rawValue: $0) }
-        }
-        set {
-            defaults.set(newValue?.rawValue, forKey: "gender")
-            _genderVersion += 1
-        }
-    }
-
     // MARK: Units
 
     var weightUnit: String {
@@ -123,32 +56,7 @@ class SettingsViewModel {
 
     var lengthUnit: String {
         get { _ = _lengthUnitVersion; return defaults.string(forKey: "lengthUnit") ?? "in" }
-        set {
-            let oldValue = defaults.string(forKey: "lengthUnit") ?? "in"
-            defaults.set(newValue, forKey: "lengthUnit")
-            _lengthUnitVersion += 1
-            if oldValue != newValue {
-                convertHeight(from: oldValue, to: newValue)
-            }
-        }
-    }
-
-    /// Converts stored height values when the length unit changes.
-    private func convertHeight(from oldUnit: String, to newUnit: String) {
-        if oldUnit == "in" && newUnit == "cm" {
-            // inches → cm
-            let totalInches = (heightFeet * 12) + heightInches
-            if totalInches > 0 {
-                heightCm = Int(round(Double(totalInches) * 2.54))
-            }
-        } else if oldUnit == "cm" && newUnit == "in" {
-            // cm → inches
-            if heightCm > 0 {
-                let totalInches = Int(round(Double(heightCm) / 2.54))
-                heightFeet = totalInches / 12
-                heightInches = totalInches % 12
-            }
-        }
+        set { defaults.set(newValue, forKey: "lengthUnit"); _lengthUnitVersion += 1 }
     }
 
     // MARK: Appearance
@@ -180,30 +88,6 @@ class SettingsViewModel {
 
     // MARK: Computed
 
-    var age: Int? {
-        guard let birthday else { return nil }
-        let components = Calendar.current.dateComponents([.year], from: birthday, to: Date())
-        return components.year
-    }
-
-    var heightDisplay: String {
-        if lengthUnit == "cm" {
-            return heightCm > 0 ? "\(heightCm) cm" : ""
-        } else {
-            if heightFeet == 0 && heightInches == 0 { return "" }
-            return "\(heightFeet)\u{2032} \(heightInches)\u{2033}"
-        }
-    }
-
-    var ageDisplay: String {
-        guard let age else { return "" }
-        return "\(age)"
-    }
-
-    var genderDisplay: String {
-        gender?.displayName ?? ""
-    }
-
     /// App version string shown in About section.
     var versionString: String {
         let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0.0"
@@ -234,6 +118,8 @@ class SettingsViewModel {
         }
 
         // Reset profile + unit prefs
+        // Includes legacy profile keys (height/birthday/gender) so users who
+        // set them before the fields were removed still get a clean wipe.
         let keys = [
             "userName", "heightFeet", "heightInches", "heightCm",
             "birthdayInterval", "gender", "weightUnit", "lengthUnit",

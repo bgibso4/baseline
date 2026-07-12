@@ -74,39 +74,6 @@ struct SettingsView: View {
                     style: .push
                 )
             }
-            SettingsDivider()
-            NavigationLink {
-                HeightPickerView(viewModel: vm)
-            } label: {
-                SettingsRow(
-                    icon: "arrow.up.and.down",
-                    label: "Height",
-                    value: vm.heightDisplay.isEmpty ? nil : vm.heightDisplay,
-                    style: .push
-                )
-            }
-            SettingsDivider()
-            NavigationLink {
-                BirthdayPickerView(viewModel: vm)
-            } label: {
-                SettingsRow(
-                    icon: "clock",
-                    label: "Age",
-                    value: vm.ageDisplay.isEmpty ? nil : vm.ageDisplay,
-                    style: .push
-                )
-            }
-            SettingsDivider()
-            NavigationLink {
-                GenderPickerView(viewModel: vm)
-            } label: {
-                SettingsRow(
-                    icon: "person",
-                    label: "Gender",
-                    value: vm.genderDisplay.isEmpty ? nil : vm.genderDisplay,
-                    style: .push
-                )
-            }
         }
     }
 

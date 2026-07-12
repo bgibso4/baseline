@@ -14,6 +14,10 @@ struct NowView: View {
     // Track unit preference so SwiftUI re-renders when it changes
     @AppStorage("weightUnit") private var weightUnit = "lb"
 
+    // Greeting name — @AppStorage so the header updates live when the user
+    // edits their name in Settings (plain defaults reads would go stale).
+    @AppStorage("userName") private var userName = ""
+
     @State private var vm: NowViewModel?
     @State private var goalVM: GoalViewModel?
     @State private var showGoalStats = true
@@ -41,6 +45,10 @@ struct NowView: View {
                 GradientBackground(center: .top)
 
                 VStack(spacing: 0) {
+                    greetingHeader
+                        .padding(.top, 8)
+                        .padding(.horizontal, CadreSpacing.md)
+
                     // Hero: arc + number + range toggle, centered in open area
                     Spacer(minLength: 0)
 
@@ -271,6 +279,36 @@ struct NowView: View {
         .padding(3)
         .glassCard(cornerRadius: 10)
         .accessibilityIdentifier(A11yID.Now.rangeToggle)
+    }
+
+    // MARK: - Greeting header (top-centered, mock variant B)
+
+    private var greetingHeader: some View {
+        // Composition (trim / comma / a11y label) lives in Greeting.display —
+        // the view only renders. Fallback covers the pre-onAppear frame.
+        let display = vm?.greetingDisplay(name: userName)
+            ?? Greeting.display(name: userName)
+        return VStack(spacing: 3) {
+            Text(display.salutationLine)
+                .font(.footnote.weight(.medium))
+                .tracking(0.2)
+                .foregroundStyle(CadreColors.textSecondary)
+            if let name = display.nameLine {
+                Text(name)
+                    .font(.custom("Exo 2", size: 20, relativeTo: .title3).weight(.bold))
+                    .tracking(-0.3)
+                    .foregroundStyle(CadreColors.textPrimary)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.7)
+            }
+        }
+        .frame(maxWidth: .infinity)
+        // Single VoiceOver element — avoids the comma-only first line reading
+        // awkwardly on its own.
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(display.accessibilityLabel)
+        .accessibilityAddTraits(.isStaticText)
+        .accessibilityIdentifier(A11yID.Now.greeting)
     }
 
     // MARK: - Bottom block (stats + button)

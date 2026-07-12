@@ -13,6 +13,8 @@ enum A11yID {
         static let historyButton = "now.historyButton"
         static let weighInButton = "now.weighInButton"
         static let rangeToggle = "now.rangeToggle"
+        /// Combined non-interactive greeting header ("Good morning, Ben").
+        static let greeting = "now.greeting"
         static let statLowest = "now.stat.lowest"
         static let statAverage = "now.stat.average"
         static let statHighest = "now.stat.highest"
@@ -100,5 +102,14 @@ enum A11yID {
         static let termsLink = "settings.termsLink"
         /// "Choose CSV file" button on the ImportCSVView screen.
         static let importChooseFile = "settings.importChooseFile"
+        /// DEBUG developer row that clears the onboarding-completed flag.
+        static let showOnboardingAgain = "settings.showOnboardingAgain"
+    }
+    enum Onboarding {
+        static let getStarted = "onboarding.getStarted"
+        static let skipForNow = "onboarding.skipForNow"
+        static let nameField = "onboarding.nameField"
+        static let continueButton = "onboarding.continue"
+        static let skipName = "onboarding.skipName"
     }
 }
