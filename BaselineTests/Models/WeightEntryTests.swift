@@ -9,7 +9,7 @@ final class WeightEntryTests: XCTestCase {
     override func setUp() {
         super.setUp()
         let schema = Schema([WeightEntry.self])
-        let config = ModelConfiguration(isStoredInMemoryOnly: true)
+        let config = ModelConfiguration.inMemoryForTesting
         container = try! ModelContainer(for: schema, configurations: [config])
         context = ModelContext(container)
     }

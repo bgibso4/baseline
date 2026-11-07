@@ -13,15 +13,15 @@ concurrency:
 jobs:
   test:
     name: Build & Test
-    runs-on: macos-15
+    runs-on: xcode-27
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Select Xcode 26
+      - name: Select Xcode 27
         uses: maxim-lobanov/setup-xcode@v1
         with:
-          xcode-version: '26.3'
+          xcode-version: '27.1'
 
       - name: Cache SwiftPM packages
         uses: actions/cache@v4
@@ -43,9 +43,9 @@ jobs:
           path: |
             .build/DerivedData/Build
             .build/DerivedData/ModuleCache.noindex
-          key: dd-${{ runner.os }}-xcode26.3-${{ hashFiles('**/*.swift', 'Baseline.xcodeproj/project.pbxproj', 'Baseline.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved') }}
+          key: dd-${{ runner.os }}-xcode27.1-${{ hashFiles('**/*.swift', 'Baseline.xcodeproj/project.pbxproj', 'Baseline.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved') }}
           restore-keys: |
-            dd-${{ runner.os }}-xcode26.3-
+            dd-${{ runner.os }}-xcode27.1-
 
       - name: Install tooling
         run: brew install swiftlint xcbeautify

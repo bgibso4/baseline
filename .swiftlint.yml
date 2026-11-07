@@ -7,7 +7,6 @@
 
 included:
   - Baseline
-  - BaselineWidgets
   - BaselineTests
 
 excluded:

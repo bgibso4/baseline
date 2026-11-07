@@ -138,6 +138,11 @@ final class AccessibilityAuditUITests: BaseUITestCase {
                 // Range toggle tabs (Now screen): textSecondary on Color.clear over glassCard.
                 // Actual contrast ≈7.1:1 against composited surface.
                 if desc.contains("now.rangeToggle") { return true }
+                // Greeting: textSecondary directly on the gradient background.
+                // Pixel-measured at 7.40:1 (#A0A3AA on ~#0F121C) on iOS 27.0.
+                // The audit reports the visual child, which has no identifier, so
+                // match on the salutation text.
+                if issue.element?.label.hasPrefix("Good ") == true { return true }
             }
 
             // MARK: Now stat-card suppression (textClipped + dynamicType)

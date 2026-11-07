@@ -28,7 +28,6 @@ Skip this section after the first successful TestFlight build.
 
 ### 4. Code signing
 - Xcode → Baseline target → **Signing & Capabilities** → Automatic signing on, team `W6S6K84XVM`.
-- Repeat for `BaselineWidgets` target.
 - If anything fails: see `axiom-code-signing-diag` skill or run `security find-identity -v -p codesigning` to confirm a valid Apple Distribution cert exists.
 
 ---

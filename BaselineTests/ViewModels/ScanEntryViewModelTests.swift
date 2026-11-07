@@ -9,7 +9,7 @@ final class ScanEntryViewModelTests: XCTestCase {
     override func setUp() {
         super.setUp()
         let schema = Schema([WeightEntry.self, Scan.self, Baseline.Measurement.self, SyncState.self])
-        let config = ModelConfiguration(isStoredInMemoryOnly: true)
+        let config = ModelConfiguration.inMemoryForTesting
         container = try! ModelContainer(for: schema, configurations: [config])
         context = ModelContext(container)
         // Tests assert literal kg values, so pin the unit preference.

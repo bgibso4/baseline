@@ -9,7 +9,7 @@ final class ScanTests: XCTestCase {
     override func setUp() {
         super.setUp()
         let schema = Schema([Scan.self])
-        let config = ModelConfiguration(isStoredInMemoryOnly: true)
+        let config = ModelConfiguration.inMemoryForTesting
         container = try! ModelContainer(for: schema, configurations: [config])
         context = ModelContext(container)
     }

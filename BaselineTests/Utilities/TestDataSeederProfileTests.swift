@@ -6,7 +6,7 @@ import SwiftData
 final class TestDataSeederProfileTests: XCTestCase {
     private func makeContext() throws -> ModelContext {
         let schema = Schema([WeightEntry.self, Scan.self, Baseline.Measurement.self, Goal.self])
-        let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)
+        let config = ModelConfiguration.inMemoryForTesting
         let container = try ModelContainer(for: schema, configurations: [config])
         return ModelContext(container)
     }

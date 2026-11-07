@@ -53,7 +53,7 @@ final class WeighInSheetSnapshotTests: XCTestCase {
             Measurement.self,
             SyncState.self
         ])
-        let config = ModelConfiguration(isStoredInMemoryOnly: true)
+        let config = ModelConfiguration.inMemoryForTesting
         return try! ModelContainer(for: schema, configurations: [config])
     }
 }

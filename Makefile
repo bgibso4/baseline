@@ -10,7 +10,7 @@ BUNDLE_ID    := com.cadre.baseline
 # grep -v Max excludes "Pro Max" lines before extracting the device name.
 BOOTED_SIM  := $(shell xcrun simctl list devices booted 2>/dev/null | grep -E 'iPhone [0-9]+ Pro' | grep -v Max | grep -oE 'iPhone [0-9]+ Pro' | head -n1)
 AVAIL_SIM   := $(shell xcrun simctl list devices available 2>/dev/null | grep -E 'iPhone [0-9]+ Pro' | grep -v Max | grep -oE 'iPhone [0-9]+ Pro' | head -n1)
-SIM_DEVICE  := $(or $(BOOTED_SIM),$(AVAIL_SIM),iPhone 16 Pro)
+SIM_DEVICE  := $(or $(BOOTED_SIM),$(AVAIL_SIM),iPhone 18 Pro)
 DESTINATION := platform=iOS Simulator,name=$(SIM_DEVICE)
 
 .PHONY: help setup generate build test test-ui test-snapshots test-all lint format sim clean

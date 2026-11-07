@@ -2,7 +2,7 @@ name: Baseline
 options:
   bundleIdPrefix: com.cadre
   deploymentTarget:
-    iOS: "26.0"
+    iOS: "27.0"
   xcodeVersion: "16.0"
   generateEmptyDirectories: true
   groupSortPosition: top
@@ -82,8 +82,6 @@ targets:
           - iCloud.com.cadre.baseline
         com.apple.security.application-groups:
           - group.com.cadre.baseline
-    dependencies:
-      - target: BaselineWidgets
 
   BaselineTests:
     type: bundle.unit-test
@@ -111,31 +109,3 @@ targets:
         TARGETED_DEVICE_FAMILY: "1"
     dependencies:
       - target: Baseline
-
-  BaselineWidgets:
-    type: app-extension
-    platform: iOS
-    info:
-      path: BaselineWidgets/Info.plist
-      properties:
-        CFBundleDisplayName: "Baseline Widgets"
-        CFBundleShortVersionString: "$(MARKETING_VERSION)"
-        CFBundleVersion: "$(CURRENT_PROJECT_VERSION)"
-        NSExtension:
-          NSExtensionPointIdentifier: com.apple.widgetkit-extension
-    sources:
-      - path: BaselineWidgets
-      - path: Baseline/Models/WeightEntry.swift
-      - path: Baseline/Utilities/UnitConversion.swift
-      - path: Baseline/Utilities/DoubleExtensions.swift
-    settings:
-      base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.cadre.baseline.widgets
-        GENERATE_INFOPLIST_FILE: NO
-        # Match main app target — iPhone only for v1.0
-        TARGETED_DEVICE_FAMILY: "1"
-    entitlements:
-      path: BaselineWidgets/BaselineWidgets.entitlements
-      properties:
-        com.apple.security.application-groups:
-          - group.com.cadre.baseline
