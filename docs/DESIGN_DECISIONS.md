@@ -162,6 +162,12 @@ All 9 destinations mocked at `settings-subscreens-2026-04-05.html`:
 - **All tap to app at Today screen.** Refresh on WidgetKit schedule + after app writes.
 - **Approved as baseline, not final.** Widgets are supplemental; revisit spacing + data choices if needed during implementation.
 
+## 2026-11-04 — Widgets cut from v1.0
+
+- **Removed the `BaselineWidgets` target and its sources.** Not a launch priority. The code is in git history (last present before this change).
+- **Why not just keep it:** it opened the app's store (`Baseline.store`) with a `WeightEntry`-only schema. Core Data treats the missing entities as removed: a repro on macOS, without CloudKit, went from 2 scans to 0 just by opening the store that way.
+- **If widgets return:** don't open the store from the extension. Have the app write a small snapshot (current weight, previous weight, unit) to the App Group and read that.
+
 ## 2026-04-05 — Tab rename: Today → Now
 
 - **Renamed "Today" tab to "Now"** — present-tense, single syllable, punchier. "Today" felt generic and only described the content (today's weight) rather than the screen's role as the landing glance.

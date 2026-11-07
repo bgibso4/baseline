@@ -3,9 +3,8 @@
 Pre-submission audit of entitlements, capabilities, and platform requirements for Baseline v1.0.
 
 - **Bundle ID (app):** `com.cadre.baseline`
-- **Bundle ID (widget):** `com.cadre.baseline.widgets`
 - **Team:** `W6S6K84XVM`
-- **Min iOS:** 26.0
+- **Min iOS:** 27.0
 - **Version / build:** 1.0.0 / 1
 
 Legend: ✅ done · ⚠️ verify · ❌ missing
@@ -22,14 +21,8 @@ Legend: ✅ done · ⚠️ verify · ❌ missing
 | `com.apple.developer.healthkit.access` | ✅ | Empty array — standard HealthKit only, no clinical records |
 | `com.apple.developer.icloud-services` → `CloudKit` + `CloudDocuments` | ⚠️ | Both still present in `Baseline.entitlements` and `project.yml`. Doc previously claimed CloudDocuments was removed 2026-04-19 — that change did not actually land. Unused per audit: no `UIDocument`/iCloud Drive path; photos sync via CloudKit external storage; CSV export uses system share sheet. **Follow-up:** remove CloudDocuments in #41 (App Store review guidelines audit) — handle alongside other entitlement decisions. |
 | `com.apple.developer.icloud-container-identifiers` | ✅ | `iCloud.com.cadre.baseline` |
-| `com.apple.security.application-groups` | ✅ | `group.com.cadre.baseline` (shared with widget) |
+| `com.apple.security.application-groups` | ✅ | `group.com.cadre.baseline` — the SwiftData store lives here, so existing installs depend on it. Keep it even though no extension shares it in v1.0. |
 | `aps-environment` | n/a | Not required — CloudKit silent push via `NSPersistentCloudKitContainer` does not use APNs |
-
-### Widget (`BaselineWidgets/BaselineWidgets.entitlements`)
-
-| Key | Status | Notes |
-|-----|--------|-------|
-| `com.apple.security.application-groups` | ✅ | Reads shared store from App Group — intentionally no iCloud entitlement |
 
 ---
 
@@ -39,7 +32,7 @@ Legend: ✅ done · ⚠️ verify · ❌ missing
 |------------|--------|-------|
 | HealthKit | ✅ | Entitlement + usage strings present |
 | iCloud (CloudKit + CloudDocuments) | ⚠️ | Container identifier configured. CloudDocuments still present but unused — see entitlements note above. |
-| App Groups | ✅ | Shared between app and widget |
+| App Groups | ✅ | Holds the SwiftData store (see entitlements note above) |
 | Background Modes → Remote notifications | ✅ | In `Baseline/Info.plist` — enables CloudKit silent push wake-ups |
 | Push Notifications | n/a | User-facing push not used in v1.0 |
 | Keychain Sharing | n/a | No cross-app credential sharing needed |
@@ -118,15 +111,14 @@ Both are linked from the app's Settings → About section (see `SettingsView.swi
 | `CFBundleShortVersionString` / `CFBundleVersion` | ✅ | 1.0 / 1 (bump before each TestFlight build) |
 | `UILaunchScreen` | ✅ | Empty dict — uses default (system-generated from app icon) |
 | `UISupportedInterfaceOrientations` | ✅ | Portrait + landscape left/right (landscape gated by `BaselineAppDelegate.allowLandscape` for Trends fullscreen only) |
-| App icon (`Assets.xcassets/AppIcon`) | ⚠️ | Currently under revision — final icon must land before first TestFlight submission |
+| App icon (`Assets.xcassets/AppIcon`) | ✅ | EKG icon is the v1.0 icon. A redesign is possible later and only needs a new build. |
 
 ---
 
 ## Open questions / follow-ups
 
 1. **Required Reason API audit** — walk through Apple's list once before submission and add any new entries to `PrivacyInfo.xcprivacy`.
-2. **Final app icon** — blocker for TestFlight.
-3. **CloudDocuments entitlement removal** — still present in `project.yml` despite being unused. Bundle into #41 (App Store review guidelines audit).
+2. **CloudDocuments entitlement removal** — still present in `project.yml` despite being unused. Bundle into #41 (App Store review guidelines audit).
 
 ---
 
