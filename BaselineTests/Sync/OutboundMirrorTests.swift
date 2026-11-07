@@ -19,7 +19,7 @@ struct OutboundMirrorTests {
     @Test("NoOpOutboundMirror.reconcile does nothing without error")
     func testNoOpReconcileDoesNothing() async throws {
         let mirror = NoOpOutboundMirror()
-        let config = ModelConfiguration(isStoredInMemoryOnly: true)
+        let config = ModelConfiguration.inMemoryForTesting
         let container = try ModelContainer(
             for: Schema([WeightEntry.self, Scan.self, Measurement.self, SyncState.self]),
             configurations: config
@@ -89,7 +89,7 @@ struct OutboundMirrorTests {
 
     @Test("SyncState returns empty timestamp for unknown table")
     func testGetLastSyncReturnsEmpty() throws {
-        let config = ModelConfiguration(isStoredInMemoryOnly: true)
+        let config = ModelConfiguration.inMemoryForTesting
         let container = try ModelContainer(
             for: Schema([SyncState.self]),
             configurations: config
@@ -107,7 +107,7 @@ struct OutboundMirrorTests {
 
     @Test("SyncState stores and retrieves last sync timestamp")
     func testSetAndGetLastSync() throws {
-        let config = ModelConfiguration(isStoredInMemoryOnly: true)
+        let config = ModelConfiguration.inMemoryForTesting
         let container = try ModelContainer(
             for: Schema([SyncState.self]),
             configurations: config

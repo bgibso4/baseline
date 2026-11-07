@@ -11,7 +11,7 @@ final class BodyViewModelTests: XCTestCase {
     override func setUp() {
         super.setUp()
         let schema = Schema([WeightEntry.self, Scan.self, Measurement.self, SyncState.self])
-        let config = ModelConfiguration(isStoredInMemoryOnly: true)
+        let config = ModelConfiguration.inMemoryForTesting
         container = try! ModelContainer(for: schema, configurations: [config])
         context = ModelContext(container)
     }
