@@ -32,6 +32,10 @@ enum TestSchemaV2: VersionedSchema {
         }
     }
 
+    /// The rename via `originalName` proves local-store migration only. Under CloudKit mirroring a
+    /// rename changes the CKRecord field (`CD_valueCm` -> `CD_valueInCm`), which breaks existing
+    /// Production records and other devices still on the old schema. Synced models must only change
+    /// additively after the Production schema deploy (see the versioned-schema spec, Constraints).
     @Model
     final class Measurement {
         var id = UUID()

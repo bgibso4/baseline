@@ -11,6 +11,10 @@ final class IncompatibleStoreTests: XCTestCase {
         let before = try fixture.fileHashes()
         XCTAssertFalse(before.isEmpty)
         XCTAssertNotNil(before["Baseline.store"], "Baseline.store missing from hashed files: \(before.keys.sorted())")
+        XCTAssertNil(
+            before["Baseline.store-shm"],
+            "Stray -shm in the fixture would make the open proof below vacuous; delete it from Fixtures/SchemaV1"
+        )
 
         // Scoped so nothing holds the store open when the files are hashed again.
         do {
@@ -22,7 +26,11 @@ final class IncompatibleStoreTests: XCTestCase {
                         ModelConfiguration("Baseline", url: fixture.cloudStoreURL, cloudKitDatabase: .none)
                     ]
                 )
-            )
+            ) { error in
+                // SwiftData exposes no public underlying Cocoa error (134140/134190), so the
+                // public case is asserted here and the -shm check below proves the file was reached.
+                XCTAssertEqual(error as? SwiftDataError, .loadIssueModelContainer, "Unexpected error: \(error)")
+            }
         }
 
         // SQLite creates the -wal/-shm sidecars on open; the data files themselves must be untouched.
@@ -31,6 +39,10 @@ final class IncompatibleStoreTests: XCTestCase {
         XCTAssertTrue(
             Set(after.keys).subtracting(before.keys).isSubset(of: ["Baseline.store-wal", "Baseline.store-shm"]),
             "Unexpected new files: \(Set(after.keys).subtracting(before.keys).sorted())"
+        )
+        XCTAssertNotNil(
+            after["Baseline.store-shm"],
+            "No -shm sidecar: SQLite never opened Baseline.store, so the throw proves nothing about the real file"
         )
         let walURL = fixture.directory.appendingPathComponent("Baseline.store-wal")
         if FileManager.default.fileExists(atPath: walURL.path) {
