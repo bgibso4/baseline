@@ -26,14 +26,6 @@ struct BaselineApp: App {
     let modelContainer: ModelContainer
     let mirror: OutboundMirror
 
-    /// Shared App Group container URL for SwiftData store.
-    /// Both the main app and the widget extension read from this location.
-    static let appGroupURL: URL = {
-        FileManager.default
-            .containerURL(forSecurityApplicationGroupIdentifier: "group.com.cadre.baseline")!
-            .appendingPathComponent("Baseline.store")
-    }()
-
     init() {
         Log.app.info("Baseline launching")
 
@@ -68,34 +60,11 @@ struct BaselineApp: App {
 
         CloudKitSyncMonitor.start()
 
-        // User data — syncs to iCloud via CloudKit, stored in shared App Group container
-        let cloudSchema = Schema([WeightEntry.self, Scan.self, BaselineMeasurement.self, Goal.self])
-        let cloudConfig = ModelConfiguration(
-            "Baseline",
-            schema: cloudSchema,
-            url: BaselineApp.appGroupURL,
-            cloudKitDatabase: .automatic
-        )
-
-        // Local-only — sync bookkeeping, not synced to iCloud
-        let localSchema = Schema([SyncState.self])
-        let localConfig = ModelConfiguration(
-            "BaselineLocal",
-            schema: localSchema,
-            cloudKitDatabase: .none
-        )
-
         do {
-            let fullSchema = Schema([
-                WeightEntry.self,
-                Scan.self,
-                BaselineMeasurement.self,
-                SyncState.self,
-                Goal.self
-            ])
-            modelContainer = try ModelContainer(
-                for: fullSchema,
-                configurations: [cloudConfig, localConfig]
+            modelContainer = try BaselineStore.makeContainer(
+                cloudStoreURL: BaselineStore.cloudStoreURL,
+                localStoreURL: BaselineStore.localStoreURL,
+                cloudKitDatabase: .automatic
             )
         } catch {
             Log.app.error("SwiftData configuration failed", error)

@@ -1,0 +1,107 @@
+{
+  "goals" : [
+    {
+      "completedDate" : 705000000,
+      "createdAt" : 699000100,
+      "id" : "00000000-0000-0000-0000-000000000032",
+      "metric" : "waist",
+      "startDate" : 699000000,
+      "startValue" : 86,
+      "status" : "completed",
+      "targetDate" : null,
+      "targetValue" : 82
+    },
+    {
+      "completedDate" : null,
+      "createdAt" : 700000700,
+      "id" : "00000000-0000-0000-0000-000000000031",
+      "metric" : "weight",
+      "startDate" : 700000000,
+      "startValue" : 185,
+      "status" : "active",
+      "targetDate" : 710000000,
+      "targetValue" : 170
+    }
+  ],
+  "localStoreFileName" : "BaselineLocal.store",
+  "measurements" : [
+    {
+      "createdAt" : 700000500,
+      "date" : 700000000,
+      "id" : "00000000-0000-0000-0000-000000000021",
+      "notes" : "Relaxed",
+      "type" : "waist",
+      "updatedAt" : 700000600,
+      "valueCm" : 84.5
+    },
+    {
+      "createdAt" : 700086900,
+      "date" : 700086400,
+      "id" : "00000000-0000-0000-0000-000000000022",
+      "notes" : null,
+      "type" : "armLeft",
+      "updatedAt" : 700087000,
+      "valueCm" : 35.200000000000003
+    }
+  ],
+  "scans" : [
+    {
+      "createdAt" : 700000300,
+      "date" : 700000000,
+      "id" : "00000000-0000-0000-0000-000000000011",
+      "notes" : "Gym scan",
+      "payloadBase64" : "eyJyaWdodEFybUZhdEtnIjowLjgsInJpZ2h0QXJtTGVhbktnIjozLjksInRydW5rTGVhbktnIjozMC4xLCJsZWZ0QXJtTGVhblBjdCI6MTAxLCJib2R5RmF0UGN0IjoxOS44LCJleHRyYWNlbGx1bGFyV2F0ZXJMIjoxOC42LCJyaWdodExlZ0xlYW5LZyI6MTAuMiwibGVmdExlZ0xlYW5QY3QiOjEwMCwiZHJ5TGVhbk1hc3NLZyI6MTMuNCwibGVmdEFybUZhdFBjdCI6MTA4LCJ0cnVua0ZhdEtnIjo4LjEsImxlZnRBcm1MZWFuS2ciOjMuOCwicmlnaHRBcm1MZWFuUGN0IjoxMDIsImluQm9keVNjb3JlIjo3OCwic2tlbGV0YWxNdXNjbGVNYXNzS2ciOjM4LjQsIndlaWdodEtnIjo4MS45LCJyaWdodExlZ0ZhdEtnIjoyLjQsInNrZWxldGFsTXVzY2xlSW5kZXgiOjguNywibGVmdExlZ0ZhdFBjdCI6OTYsImJhc2FsTWV0YWJvbGljUmF0ZSI6MTc4MCwidmlzY2VyYWxGYXRMZXZlbCI6NiwidHJ1bmtMZWFuUGN0Ijo5OCwiaW50cmFjZWxsdWxhcldhdGVyTCI6MzAuNSwibGVmdEFybUZhdEtnIjowLjgsInJpZ2h0QXJtRmF0UGN0IjoxMTAsInRvdGFsQm9keVdhdGVyTCI6NDkuMSwibGVmdExlZ0ZhdEtnIjoyLjMsImJtaSI6MjQuNiwiZWN3VGJ3UmF0aW8iOjAuMzc5LCJyaWdodExlZ0xlYW5QY3QiOjk5LCJyaWdodExlZ0ZhdFBjdCI6OTcsImJvZHlGYXRNYXNzS2ciOjE2LjIsImxlZnRMZWdMZWFuS2ciOjEwLjEsInRydW5rRmF0UGN0Ijo5NSwibGVhbkJvZHlNYXNzS2ciOjY1LjZ9",
+      "source" : "manual",
+      "type" : "inBody",
+      "updatedAt" : 700000400
+    },
+    {
+      "createdAt" : 700086700,
+      "date" : 700086400,
+      "id" : "00000000-0000-0000-0000-000000000012",
+      "notes" : null,
+      "payloadBase64" : "eyJyaWdodEFybUZhdEtnIjowLjgsInJpZ2h0QXJtTGVhbktnIjozLjksInRydW5rTGVhbktnIjozMC4xLCJsZWZ0QXJtTGVhblBjdCI6MTAxLCJib2R5RmF0UGN0IjoxOS44LCJleHRyYWNlbGx1bGFyV2F0ZXJMIjoxOC42LCJyaWdodExlZ0xlYW5LZyI6MTAuMiwibGVmdExlZ0xlYW5QY3QiOjEwMCwiZHJ5TGVhbk1hc3NLZyI6MTMuNCwibGVmdEFybUZhdFBjdCI6MTA4LCJ0cnVua0ZhdEtnIjo4LjEsImxlZnRBcm1MZWFuS2ciOjMuOCwicmlnaHRBcm1MZWFuUGN0IjoxMDIsImluQm9keVNjb3JlIjo3OCwic2tlbGV0YWxNdXNjbGVNYXNzS2ciOjM4LjQsIndlaWdodEtnIjo4MS4yLCJyaWdodExlZ0ZhdEtnIjoyLjQsInNrZWxldGFsTXVzY2xlSW5kZXgiOjguNywibGVmdExlZ0ZhdFBjdCI6OTYsImJhc2FsTWV0YWJvbGljUmF0ZSI6MTc4MCwidmlzY2VyYWxGYXRMZXZlbCI6NiwidHJ1bmtMZWFuUGN0Ijo5OCwiaW50cmFjZWxsdWxhcldhdGVyTCI6MzAuNSwibGVmdEFybUZhdEtnIjowLjgsInJpZ2h0QXJtRmF0UGN0IjoxMTAsInRvdGFsQm9keVdhdGVyTCI6NDkuMSwibGVmdExlZ0ZhdEtnIjoyLjMsImJtaSI6MjQuNiwiZWN3VGJ3UmF0aW8iOjAuMzc5LCJyaWdodExlZ0xlYW5QY3QiOjk5LCJyaWdodExlZ0ZhdFBjdCI6OTcsImJvZHlGYXRNYXNzS2ciOjE2LjIsImxlZnRMZWdMZWFuS2ciOjEwLjEsInRydW5rRmF0UGN0Ijo5NSwibGVhbkJvZHlNYXNzS2ciOjY1LjZ9",
+      "source" : "ocr",
+      "type" : "inBody",
+      "updatedAt" : 700086800
+    }
+  ],
+  "syncStates" : [
+    {
+      "lastSyncTimestamp" : "2026-04-14T07:18:00Z",
+      "tableName" : "weight_entries"
+    }
+  ],
+  "weights" : [
+    {
+      "createdAt" : 700000100,
+      "date" : 700000000,
+      "id" : "00000000-0000-0000-0000-000000000001",
+      "notes" : "Morning, fasted",
+      "photoSHA256" : null,
+      "unit" : "lb",
+      "updatedAt" : 700000200,
+      "weight" : 180.5
+    },
+    {
+      "createdAt" : 700086500,
+      "date" : 700086400,
+      "id" : "00000000-0000-0000-0000-000000000002",
+      "notes" : null,
+      "photoSHA256" : null,
+      "unit" : "lb",
+      "updatedAt" : 700086600,
+      "weight" : 179
+    },
+    {
+      "createdAt" : 700172900,
+      "date" : 700172800,
+      "id" : "00000000-0000-0000-0000-000000000003",
+      "notes" : "With photo",
+      "photoSHA256" : "31a1f9dea0169551092d05e8bf4a446228c8c3eb4c9b713c66adcb7fd53c89be",
+      "unit" : "kg",
+      "updatedAt" : 700173000,
+      "weight" : 81.25
+    }
+  ]
+}
