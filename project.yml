@@ -88,6 +88,13 @@ targets:
     platform: iOS
     sources:
       - path: BaselineTests
+        excludes:
+          - Fixtures/SchemaV1/**
+      # Folder reference keeps the SchemaV1 directory structure in the test bundle
+      # (the default glob flattens resources).
+      - path: BaselineTests/Fixtures/SchemaV1
+        type: folder
+        buildPhase: resources
     settings:
       base:
         GENERATE_INFOPLIST_FILE: YES

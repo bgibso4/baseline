@@ -121,6 +121,7 @@
 		9AF017FC9D41880E1E65EDDE /* SetGoalFlowUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A223965CCAEBE5DBC5E8A46 /* SetGoalFlowUITests.swift */; };
 		9C598C3E7261FC65D3BC9D46 /* GoalManageSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = C63158CE6FD8884D8D24966C /* GoalManageSheet.swift */; };
 		9DDDD276C649F100FFF941FE /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F33E3CB74C4DCE41C764260D /* SettingsView.swift */; };
+		9FA12320D2DF7A2B59C4220C /* SchemaV1 in Resources */ = {isa = PBXBuildFile; fileRef = BA8E30113DED601BD2CB868E /* SchemaV1 */; };
 		A300527210350074745BF05F /* GradientBackground.swift in Sources */ = {isa = PBXBuildFile; fileRef = 53C81CF125885DB2F3C48C4D /* GradientBackground.swift */; };
 		A57EEB8655AA931F183DCC5A /* ScanHistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 44F25E2DF4D4198F90CBFA5F /* ScanHistoryView.swift */; };
 		A9E1A4B3AF560272E604B288 /* GoalTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9C6E3FC3B8CEA3502EDE634C /* GoalTests.swift */; };
@@ -338,6 +339,7 @@
 		B0811FC6CD17EB2AEBCECB45 /* WeighInViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeighInViewModel.swift; sourceTree = "<group>"; };
 		B2B1A5A02A058FAEF46C90D2 /* OnboardingViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingViewModel.swift; sourceTree = "<group>"; };
 		B3AFDA887F36DFDC283876B7 /* WeighInSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeighInSheet.swift; sourceTree = "<group>"; };
+		BA8E30113DED601BD2CB868E /* SchemaV1 */ = {isa = PBXFileReference; lastKnownFileType = folder; name = SchemaV1; path = BaselineTests/Fixtures/SchemaV1; sourceTree = SOURCE_ROOT; };
 		BCD4D64721763D3CA23AD903 /* OnboardingFlow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingFlow.swift; sourceTree = "<group>"; };
 		BCFBF3D91364BB542C8564A7 /* testTrendsView_DarkMode_EmptyState.1.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = testTrendsView_DarkMode_EmptyState.1.png; sourceTree = "<group>"; };
 		BD1E451642CE7498CD9B9C5F /* WeighInSheetSnapshotTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeighInSheetSnapshotTests.swift; sourceTree = "<group>"; };
@@ -581,6 +583,7 @@
 				70A4BA27E4935EDB662F4B7E /* Baseline */,
 				DE8E3E194E02B1D31425FA7B /* BaselineTests */,
 				61690DF2EBBC98C8204F0DBA /* BaselineUITests */,
+				BA8E30113DED601BD2CB868E /* SchemaV1 */,
 				395E0E8B872B7232D1875563 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -1054,6 +1057,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				980D1B90223A8C1469FF8D92 /* .swiftlint.yml in Resources */,
+				9FA12320D2DF7A2B59C4220C /* SchemaV1 in Resources */,
 				0879C71D1F368F67F1BEC1CA /* clean.jpg in Resources */,
 				724150107527CA2E2908E43F /* marked.jpg in Resources */,
 				B875B84190821E814AFBC1CF /* measurements-clean.csv in Resources */,
