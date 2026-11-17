@@ -103,6 +103,7 @@
 		8389D0C647DEA8660A18AF3F /* TrendsFullscreenChart.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9371BFBCBBA4C81223F2AB12 /* TrendsFullscreenChart.swift */; };
 		854CD5565A08F754C93DB19B /* weights-clean.csv in Resources */ = {isa = PBXBuildFile; fileRef = ADD0CE59E47B8DDC91E8808A /* weights-clean.csv */; };
 		855B54512D9E6D783EB0B2F4 /* TrendsChartSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7EA91D796F23BF729E9D8A6A /* TrendsChartSection.swift */; };
+		85BD1D6E8D71AFA833F62681 /* IncompatibleStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4313F36D780539CD75CE0BC /* IncompatibleStoreTests.swift */; };
 		86C06FD7501112C0BFEC3353 /* ScanEntryFlowUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E58DEC93782C5843D813E51 /* ScanEntryFlowUITests.swift */; };
 		87AE36E373D761F669ECF587 /* SchemaMigrationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 345BC24A1AD0C68AAE045190 /* SchemaMigrationTests.swift */; };
 		89218CBC64A68EA101BCE545 /* weights-slash-dates-split-time.csv in Resources */ = {isa = PBXBuildFile; fileRef = ACDA43306F3BC25054A85ABE /* weights-slash-dates-split-time.csv */; };
@@ -164,6 +165,7 @@
 		DAC1ACCF3391AFF4C92B7AF9 /* testScanEntry_ReviewForm_WithLowConfidence.1.png in Resources */ = {isa = PBXBuildFile; fileRef = 33EA9A555C61700BA6F94BE2 /* testScanEntry_ReviewForm_WithLowConfidence.1.png */; };
 		DAD0B18253B18CC9DC0CAC87 /* OnboardingButtons.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10C638774BB95DD1525B225B /* OnboardingButtons.swift */; };
 		DD59EC72F6431A907E3A601C /* ScanReviewForm.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2ED717562A7FF0A2571899AD /* ScanReviewForm.swift */; };
+		DD72FB279DA433E1435215E9 /* SchemaV1Assertions.swift in Sources */ = {isa = PBXBuildFile; fileRef = C197947F8E80717C26D16945 /* SchemaV1Assertions.swift */; };
 		DE011130A60888C84A5FE788 /* ChartInteractivity.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5DE115CB3094C63E598E6560 /* ChartInteractivity.swift */; };
 		DF1C2AAE4960B545734FBBF9 /* SpyHealthKitMirror.swift in Sources */ = {isa = PBXBuildFile; fileRef = E45115050A1BEF66129E6F1A /* SpyHealthKitMirror.swift */; };
 		DFC73421E040CFEC342F983C /* LandscapeHostingController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D56B8A49CA2EEFD71F999494 /* LandscapeHostingController.swift */; };
@@ -353,6 +355,7 @@
 		B0811FC6CD17EB2AEBCECB45 /* WeighInViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeighInViewModel.swift; sourceTree = "<group>"; };
 		B2B1A5A02A058FAEF46C90D2 /* OnboardingViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingViewModel.swift; sourceTree = "<group>"; };
 		B3AFDA887F36DFDC283876B7 /* WeighInSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeighInSheet.swift; sourceTree = "<group>"; };
+		B4313F36D780539CD75CE0BC /* IncompatibleStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IncompatibleStoreTests.swift; sourceTree = "<group>"; };
 		BA8E30113DED601BD2CB868E /* SchemaV1 */ = {isa = PBXFileReference; lastKnownFileType = folder; name = SchemaV1; path = BaselineTests/Fixtures/SchemaV1; sourceTree = SOURCE_ROOT; };
 		BCD4D64721763D3CA23AD903 /* OnboardingFlow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingFlow.swift; sourceTree = "<group>"; };
 		BCFBF3D91364BB542C8564A7 /* testTrendsView_DarkMode_EmptyState.1.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = testTrendsView_DarkMode_EmptyState.1.png; sourceTree = "<group>"; };
@@ -361,6 +364,7 @@
 		BE0CAF219477F20F228790BD /* MirrorableRecord.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MirrorableRecord.swift; sourceTree = "<group>"; };
 		BEA8445982F02B9AEE4F11AC /* ThemePickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThemePickerView.swift; sourceTree = "<group>"; };
 		C130DFBA6F02B91266B89B49 /* GlassCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlassCard.swift; sourceTree = "<group>"; };
+		C197947F8E80717C26D16945 /* SchemaV1Assertions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SchemaV1Assertions.swift; sourceTree = "<group>"; };
 		C209CE8946DB31F979041D1A /* NowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NowView.swift; sourceTree = "<group>"; };
 		C48133A08D194E1389A76782 /* ScanEntryViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScanEntryViewModelTests.swift; sourceTree = "<group>"; };
 		C63158CE6FD8884D8D24966C /* GoalManageSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GoalManageSheet.swift; sourceTree = "<group>"; };
@@ -678,7 +682,9 @@
 			isa = PBXGroup;
 			children = (
 				68718EFF05F163EB15E22B3E /* FixtureStore.swift */,
+				B4313F36D780539CD75CE0BC /* IncompatibleStoreTests.swift */,
 				345BC24A1AD0C68AAE045190 /* SchemaMigrationTests.swift */,
+				C197947F8E80717C26D16945 /* SchemaV1Assertions.swift */,
 				71DDE00890A3950BB6F7CBBE /* SchemaV1FixtureTests.swift */,
 				AB1EAA753A66F21C056BCD5B /* TestSchemaV2.swift */,
 			);
@@ -1161,6 +1167,7 @@
 				5B654C7068D6D55B1DBB7AC6 /* HistoryViewSnapshotTests.swift in Sources */,
 				5ED4B5839AA81C699CB24C1F /* InBodyDocumentParserFixtureTests.swift in Sources */,
 				372F51B27906FBE4B81CDF27 /* InBodyDocumentParserTests.swift in Sources */,
+				85BD1D6E8D71AFA833F62681 /* IncompatibleStoreTests.swift in Sources */,
 				B2569C22E105546FCDA1C27F /* LaunchConfigurationTests.swift in Sources */,
 				E00B17F2D6B800569AEF06E0 /* MeasurementTests.swift in Sources */,
 				B0162F815DF3C6DA607E297F /* ModelConfiguration+Testing.swift in Sources */,
@@ -1172,6 +1179,7 @@
 				6E26A7F7FF73598B064E7462 /* ScanEntryViewModelTests.swift in Sources */,
 				05A59E7562E785AC4BDEF609 /* ScanTests.swift in Sources */,
 				87AE36E373D761F669ECF587 /* SchemaMigrationTests.swift in Sources */,
+				DD72FB279DA433E1435215E9 /* SchemaV1Assertions.swift in Sources */,
 				33521D959D14A460708F824F /* SchemaV1FixtureTests.swift in Sources */,
 				8A6C14E968F3488B503E757A /* SettingsViewSnapshotTests.swift in Sources */,
 				DF1C2AAE4960B545734FBBF9 /* SpyHealthKitMirror.swift in Sources */,

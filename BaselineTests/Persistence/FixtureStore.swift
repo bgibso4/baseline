@@ -99,7 +99,10 @@ struct FixtureStore {
     /// Relative path -> SHA-256 hex for every file under `directory`, hidden ones included.
     func fileHashes() throws -> [String: String] {
         let fileManager = FileManager.default
-        guard let walker = fileManager.enumerator(atPath: directory.path) else { return [:] }
+        let walker = try XCTUnwrap(
+            fileManager.enumerator(atPath: directory.path),
+            "Cannot enumerate \(directory.path); an empty hash map would make before/after comparisons vacuous"
+        )
         var hashes: [String: String] = [:]
         for case let relative as String in walker {
             let url = directory.appendingPathComponent(relative)
