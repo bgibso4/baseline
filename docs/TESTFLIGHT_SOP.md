@@ -156,6 +156,57 @@ See **Step 2** above for the full versioning scheme. TL;DR:
 
 ---
 
+## Moving an existing install to the release build
+
+One-off procedure for the first time a phone that already holds real data moves onto a build with the versioned SwiftData schema (`BaselineSchemaV1`, issue #78). Follow it in order. Do not skip the rehearsal.
+
+### What your phone has been through
+
+Your phone has run TestFlight builds, then Xcode builds, on the same local store:
+
+| Stage | Build | CloudKit environment |
+|-------|-------|----------------------|
+| 1 | TestFlight builds | Production |
+| 2 | Xcode build | Development |
+| 3 | Release build (this move) | Production again |
+
+Production very likely holds the records you created during the TestFlight period. The release build sends the phone back to Production. Nobody has tested what mirroring does with that store and those records: it may match them up, re-upload the newer ones, or import the Production copies as duplicates (records have no unique constraint).
+
+### Procedure
+
+1. **Back up, on the day of the move.**
+   - In Settings, export fresh CSVs from the current build and save them off the phone. Open the weights file and check the row count and the oldest date.
+   - Make an encrypted Finder backup: Finder → your iPhone → **Back up all of the data on your iPhone to this Mac**, tick **Encrypt local backup**, **Back Up Now**. Save the password.
+   - The encrypted backup is the only full copy of the real store (goals, every scan field, photos). Restoring it rolls back the whole phone, so it is a last resort.
+2. **Record Production, then deploy the schema.** Merge this work. In the CloudKit Console, open **Production** and note the schema and the record count per type. Then deploy the CloudKit schema to Production.
+3. **Rehearse on your wife's phone**, repeating your phone's path:
+   1. Export her CSVs first (her phone may hold her own Baseline data).
+   2. Install the TestFlight build and log some entries.
+   3. Install an Xcode build of `f66afa8` over it and log more entries.
+   4. Install the TestFlight build of this work over that.
+   - The Xcode install needs Developer Mode on her phone: connect it to Xcode, then Settings → Privacy & Security → Developer Mode, and restart.
+   - Simulators can't install TestFlight builds, so this must be a physical device.
+   - Never sign your real phone into a different iCloud account to test. An account change can purge or reassign the local store.
+4. **Check the stop conditions** after the rehearsal: any lost record, any duplicate record, the app crashing on launch. If any happen, your phone does not move until the cause is fixed in a separate change.
+5. **Install the TestFlight build over the Xcode build on your phone.** It shares the bundle ID, so the local store stays.
+6. **Verify.** Check the weight count and history against the CSV. Then check the CloudKit Console (Production) for what reached it.
+
+### If older records don't reach Production
+
+Launch anyway. The phone's store is the source of truth, and fixing sync is separate work after launch. Leave the data untouched: do not run an import, a delete-and-reimport, or a dedupe tool on the phone to force it. CSV import can't do it safely:
+
+- Skip mode (the default) matches by day and uploads nothing.
+- Overwrite mode deletes and recreates each record and rewrites the matching Apple Health entries.
+- Reinstalling loses goals and the scan fields the CSV leaves out.
+
+Until sync is fixed, keep a current CSV export, and don't delete the app or move to a new phone.
+
+### Way back if the new build crashes on launch
+
+Reinstall `f66afa8` from Xcode over it. That keeps the store. Do not delete the app. This is why `f66afa8` must stay buildable.
+
+---
+
 ## Failure modes & fixes
 
 | Symptom | Likely cause | Fix |
@@ -165,6 +216,7 @@ See **Step 2** above for the full versioning scheme. TL;DR:
 | Tester sees old build | Build number not bumped, or auto-distribution off | Verify `CURRENT_PROJECT_VERSION` increased; check Internal Testing group settings |
 | Crash on tester device | Symbolicate via Xcode Organizer → Crashes tab. See `axiom-app-store-connect-ref` skill |
 | "App Encryption" prompt on upload | First time upload only | Already configured: `ITSAppUsesNonExemptEncryption = false` in Info.plist. Should be remembered |
+| Crash on launch after installing a schema-versioned build | Store doesn't match `BaselineSchemaV1` | Reinstall `f66afa8` from Xcode; don't delete the app |
 
 ---
 
