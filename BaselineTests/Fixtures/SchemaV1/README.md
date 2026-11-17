@@ -14,6 +14,29 @@ Contents:
 - `expected.json` - values read back from the stores (dates are `timeIntervalSinceReferenceDate`,
   scan payloads base64, photo as SHA-256 hex)
 
+## Where the app keeps these stores (f66afa8)
+
+- `Baseline.store`: explicit URL, the root of the `group.com.cadre.baseline` App Group container.
+- `BaselineLocal.store`: no URL is passed. f66afa8 builds
+  `ModelConfiguration("BaselineLocal", schema: Schema([SyncState.self]), cloudKitDatabase: .none)`,
+  and `BaselineStore.localStoreURL` takes `.url` from that same call, so SwiftData picks the
+  location. With `groupContainer` left at its default (`.automatic`) and the App Group
+  entitlement present, that resolves to the App Group container too:
+  `<group.com.cadre.baseline container>/Library/Application Support/BaselineLocal.store`.
+  Not the app's own Application Support directory. Observed on the iPhone 17 simulator on
+  2026-11-16. The fixture records only the file name (`localStoreFileName`).
+
+## Limits
+
+- The stores were generated with `cloudKitDatabase: .none`, so they hold no CloudKit mirroring
+  (`ANSCK*`) tables. They prove the schema, entities and data survive. They say nothing about
+  how a store that has been mirrored behaves. The physical-device rehearsal in
+  `docs/TESTFLIGHT_SOP.md` ("Moving an existing install to the release build") is the only check
+  of that.
+- Opening or reading these files in place (`sqlite3`, Core Data metadata) creates
+  `*-wal`/`*-shm` next to them, which then get copied into the test bundle. Delete them. Never
+  commit them.
+
 ## How it was generated
 
 ```bash

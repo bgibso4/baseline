@@ -178,18 +178,18 @@ Production very likely holds the records you created during the TestFlight perio
    - In Settings, export fresh CSVs from the current build and save them off the phone. Open the weights file and check the row count and the oldest date.
    - Make an encrypted Finder backup: Finder → your iPhone → **Back up all of the data on your iPhone to this Mac**, tick **Encrypt local backup**, **Back Up Now**. Save the password.
    - The encrypted backup is the only full copy of the real store (goals, every scan field, photos). Restoring it rolls back the whole phone, so it is a last resort.
-2. **Record Production, then deploy the schema.** Merge this work. In the CloudKit Console, open **Production** and note the schema and the record count per type. Then deploy the CloudKit schema to Production.
+2. **Record Production, then deploy the schema.** Merge the versioned-schema change (issue #78). In the CloudKit Console, open **Production** and note the schema and the record count per type. Then deploy the CloudKit schema to Production. Before you confirm, read the diff in the Deploy dialog. #78 adds nothing to the CloudKit schema, so the diff should be empty or list only types and fields you expect. If anything unexpected appears, stop. A Production deploy is permanent: types and fields can't be removed.
 3. **Rehearse on your wife's phone**, repeating your phone's path:
    1. Export her CSVs first (her phone may hold her own Baseline data).
-   2. Install the TestFlight build and log some entries.
+   2. Install a TestFlight build from before #78 and log some entries. Use the oldest one still available in TestFlight, since it's closest to what your phone ran, and write down which build it is. TestFlight builds expire after 90 days. If none from before #78 is left, archive and upload a build of `f66afa8` and use that.
    3. Install an Xcode build of `f66afa8` over it and log more entries.
    4. Install the TestFlight build of this work over that.
    - The Xcode install needs Developer Mode on her phone: connect it to Xcode, then Settings → Privacy & Security → Developer Mode, and restart.
    - Simulators can't install TestFlight builds, so this must be a physical device.
    - Never sign your real phone into a different iCloud account to test. An account change can purge or reassign the local store.
-4. **Check the stop conditions** after the rehearsal: any lost record, any duplicate record, the app crashing on launch. If any happen, your phone does not move until the cause is fixed in a separate change.
+4. **Check the stop conditions** after the rehearsal: any lost record, any duplicate record, the app crashing on launch. If any happen, your phone does not move until the cause is fixed in a separate change. The fixture tests can't simulate a store that has synced through CloudKit, so the rehearsal is the only proof for that.
 5. **Install the TestFlight build over the Xcode build on your phone.** It shares the bundle ID, so the local store stays.
-6. **Verify.** Check the weight count and history against the CSV. Then check the CloudKit Console (Production) for what reached it.
+6. **Verify.** Check the weight count and history against the CSV. Then check the CloudKit Console (Production) for what reached it. The record count per type must be no lower than the counts you wrote down in step 2. If any is lower, stop.
 
 ### If older records don't reach Production
 
@@ -204,6 +204,8 @@ Until sync is fixed, keep a current CSV export, and don't delete the app or move
 ### Way back if the new build crashes on launch
 
 Reinstall `f66afa8` from Xcode over it. That keeps the store. Do not delete the app. This is why `f66afa8` must stay buildable.
+
+Reinstalling fixes a crash on launch. It does not undo duplicates CloudKit has already imported. If duplicates appear, stop, and don't run any import or cleanup tools.
 
 ---
 
