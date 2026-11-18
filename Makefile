@@ -13,7 +13,7 @@ AVAIL_SIM   := $(shell xcrun simctl list devices available 2>/dev/null | grep -E
 SIM_DEVICE  := $(or $(BOOTED_SIM),$(AVAIL_SIM),iPhone 18 Pro)
 DESTINATION := platform=iOS Simulator,name=$(SIM_DEVICE)
 
-.PHONY: help setup generate build test test-ui test-snapshots test-all lint format sim clean
+.PHONY: help setup generate build test test-ui test-snapshots test-all test-scripts lint format sim clean testflight-archive
 
 help:
 	@echo "Baseline — make targets:"
@@ -24,10 +24,12 @@ help:
 	@echo "  test-ui         Run UI tests only (Baseline-UITests plan)"
 	@echo "  test-snapshots  Run snapshot tests only (Baseline-Snapshots plan)"
 	@echo "  test-all        Run all tests (Baseline plan)"
+	@echo "  test-scripts    Run the bats tests for scripts/ (TestFlight upload)"
 	@echo "  lint            Run SwiftLint"
 	@echo "  format          Autocorrect with SwiftLint"
 	@echo "  sim             Build, install, and launch on a simulator"
 	@echo "  clean           Clean build output and DerivedData"
+	@echo "  testflight-archive  Archive and upload to TestFlight (CI; see scripts/testflight/archive.sh)"
 	@echo ""
 	@echo "Simulator: $(SIM_DEVICE)"
 
@@ -80,6 +82,10 @@ test-all:
 	  -destination '$(DESTINATION)' \
 	  -derivedDataPath $(DERIVED_DATA) | xcbeautify
 
+# bats tests for the scripts (docs-only, the TestFlight plan, archive and asc.swift).
+test-scripts:
+	bats scripts/tests scripts/testflight/tests
+
 lint:
 	swiftlint lint --strict
 
@@ -100,3 +106,8 @@ sim: build
 clean:
 	xcodebuild clean -project $(PROJECT) -scheme $(SCHEME) >/dev/null 2>&1 || true
 	rm -rf $(DERIVED_DATA)
+
+# Archive and upload to TestFlight, as the TestFlight workflow does. Needs ASC_KEY_ID, ASC_ISSUER_ID, ASC_KEY_PATH
+# (the .p8 file) and BUILD_NUMBER in the environment; see scripts/testflight/archive.sh.
+testflight-archive: generate
+	@PROJECT='$(PROJECT)' DERIVED='$(CURDIR)/.build/DerivedDataRelease' scripts/testflight/archive.sh

@@ -48,10 +48,13 @@ jobs:
             dd-${{ runner.os }}-xcode27.1-
 
       - name: Install tooling
-        run: brew install swiftlint xcbeautify
+        run: brew install swiftlint xcbeautify bats-core
 
       - name: Lint (strict)
         run: make lint
+
+      - name: Script tests
+        run: make test-scripts
 
       - name: Build & test (logic)
         run: make test
