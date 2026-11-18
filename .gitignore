@@ -33,3 +33,7 @@ credentials*.json
 # Local settings
 .claude/settings.local.json
 .claude/scheduled_tasks.lock
+
+# Signing material (App Store Connect keys, exported certificates)
+*.p8
+*.p12

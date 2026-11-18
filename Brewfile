@@ -2,3 +2,4 @@
 brew "swiftlint"
 brew "xcbeautify"
 brew "xcodegen"
+brew "bats-core"
