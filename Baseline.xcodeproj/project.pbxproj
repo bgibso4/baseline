@@ -69,6 +69,7 @@
 		5625167D8993D65C14340F50 /* AboutCadreView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7C2B8129886E8A1210694D6 /* AboutCadreView.swift */; };
 		5890E3D66833DB31B705D1FA /* OutboundMirrorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E332C18AA2C4ABD37FADD6A6 /* OutboundMirrorTests.swift */; };
 		58CD5BFE69D3B06C2642ABCB /* DocumentScannerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F262B884AFB7AC56754A8585 /* DocumentScannerView.swift */; };
+		5A19E3630BA3465105E1EB9D /* review-sample.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 57F2EC2E7A74502739CE49D0 /* review-sample.jpg */; };
 		5B654C7068D6D55B1DBB7AC6 /* HistoryViewSnapshotTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62D00EE3E15355487C97323A /* HistoryViewSnapshotTests.swift */; };
 		5C28DE1014553D7AB20E5D85 /* OnboardingFlowUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AEE56B770ED73D2E1EE50120 /* OnboardingFlowUITests.swift */; };
 		5E930B0375F0609094F3C87C /* ScanFlowControls.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8DA201B33D69EFE5EC41ABC3 /* ScanFlowControls.swift */; };
@@ -274,6 +275,7 @@
 		52A47437C87E1BCE8442A2FF /* BaselineTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BaselineTests.swift; sourceTree = "<group>"; };
 		53C81CF125885DB2F3C48C4D /* GradientBackground.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GradientBackground.swift; sourceTree = "<group>"; };
 		54946674C3DE4E3B9DA9DB50 /* SettingsComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsComponents.swift; sourceTree = "<group>"; };
+		57F2EC2E7A74502739CE49D0 /* review-sample.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = "review-sample.jpg"; sourceTree = "<group>"; };
 		597EE10F41B6F0E24F8F5796 /* TrendsWindowStepper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrendsWindowStepper.swift; sourceTree = "<group>"; };
 		5998E990E3771B0504227A72 /* MetricHistoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetricHistoryView.swift; sourceTree = "<group>"; };
 		5A155E7245AEBA2E0B25A4FE /* IdentifierCoverageUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IdentifierCoverageUITests.swift; sourceTree = "<group>"; };
@@ -897,6 +899,7 @@
 			children = (
 				CFA72CFB4378804B6796576B /* clean.jpg */,
 				41AFD2AEA42449A20EF222D9 /* marked.jpg */,
+				57F2EC2E7A74502739CE49D0 /* review-sample.jpg */,
 			);
 			path = Scans;
 			sourceTree = "<group>";
@@ -1107,6 +1110,7 @@
 				0879C71D1F368F67F1BEC1CA /* clean.jpg in Resources */,
 				724150107527CA2E2908E43F /* marked.jpg in Resources */,
 				B875B84190821E814AFBC1CF /* measurements-clean.csv in Resources */,
+				5A19E3630BA3465105E1EB9D /* review-sample.jpg in Resources */,
 				E05599303EFB839BFAFC540C /* scans-clean.csv in Resources */,
 				D1AD95D006F07C3D3B5BD3B6 /* testBodyView_DarkMode_EmptyState.1.png in Resources */,
 				3C7C5C37D6A9222757E91364 /* testBodyView_DarkMode_WithData.1.png in Resources */,

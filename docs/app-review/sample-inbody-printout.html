@@ -1,0 +1,116 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<style>
+  /* 1500x2000 page. Section headings and value positions follow the layout the
+     Baseline parser expects from an InBody 570 sheet; all numbers are invented
+     for a fictional person, and no logo or vendor prose is reproduced. */
+  html, body { margin: 0; background: #fff; }
+  .page { position: relative; width: 1500px; height: 2000px; background: #fdfdfb; color: #1c1c1e; font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; overflow: hidden; }
+  .t { position: absolute; white-space: nowrap; }
+  .h { font-family: Georgia, "Times New Roman", serif; font-weight: 700; font-size: 30px; color: #3a3a40; }
+  .rh { font-weight: 700; font-size: 25px; color: #2a2a2e; }
+  .lab { font-size: 24px; color: #2a2a2e; }
+  .unit { font-size: 18px; color: #444; }
+  .v { font-family: Georgia, "Times New Roman", serif; font-size: 28px; color: #111; font-variant-numeric: lining-nums; }
+  .tick { font-size: 13px; color: #555; }
+  .note { font-size: 19px; color: #444; }
+  .bar { position: absolute; height: 9px; background: #222; }
+  .band { position: absolute; height: 26px; background: #8e8798; }
+  .rule { position: absolute; height: 2px; background: #6b5a6e; }
+  .hair { position: absolute; height: 1px; background: #999; }
+  .sample { position: absolute; left: 40px; top: 1955px; font-size: 18px; color: #6b5a6e; font-weight: 700; letter-spacing: 1px; }
+</style></head>
+<body><div class="page" id="page"></div>
+<script>
+const P = document.getElementById('page');
+const T = (x, y, s, cls) => { const e = document.createElement('div'); e.className = 't ' + cls; e.style.left = x + 'px'; e.style.top = y + 'px'; e.textContent = s; P.appendChild(e); };
+const R = (cls, x, y, w) => { const e = document.createElement('div'); e.className = cls; e.style.left = x + 'px'; e.style.top = y + 'px'; e.style.width = w + 'px'; P.appendChild(e); };
+const ticks = (y, vals, x0 = 315, step = 60) => vals.forEach((v, i) => T(x0 + i * step, y, v, 'tick'));
+
+// Header
+T(40, 70, 'Body Composition Result', 'h'); T(860, 128, '[InBody570]', 'v');
+R('rule', 0, 170, 1000);
+T(50, 182, 'ID', 'unit'); T(80, 190, 'SAMPLE-0001', 'v');
+T(330, 178, 'Height', 'unit'); T(330, 196, '5ft. 10.0in.', 'v');
+T(500, 178, 'Age', 'unit'); T(500, 196, '34', 'v');
+T(600, 178, 'Gender', 'unit'); T(610, 200, 'Male', 'lab');
+T(705, 178, 'Test Date / Time', 'unit'); T(710, 200, '04. 10. 2026 08:05', 'v');
+
+// Body Composition Analysis
+T(52, 268, 'Body Composition Analysis', 'h');
+R('band', 50, 300, 915);
+T(450, 304, 'Total Body Water', 'unit'); T(630, 304, 'Lean Body Mass', 'unit'); T(840, 304, 'Weight', 'unit');
+T(62, 358, 'Intracellular Water', 'lab'); T(245, 338, '(lbs)', 'unit'); T(345, 336, '64. 3', 'v');
+T(510, 360, '104. 6', 'v');
+T(65, 410, 'Extracellular Water', 'lab'); T(245, 390, '(lbs)', 'unit'); T(345, 386, '40. 3', 'v');
+T(680, 396, '142. 4', 'v');
+T(67, 460, 'Dry Lean Mass', 'lab'); T(245, 440, '(lbs)', 'unit'); T(345, 438, '37. 8', 'v');
+T(850, 428, '172. 6', 'v');
+T(65, 508, 'Body Fat Mass', 'lab'); T(245, 490, '(lbs)', 'unit'); T(345, 488, '30. 2', 'v');
+R('hair', 50, 545, 915);
+
+// Muscle-Fat Analysis
+T(55, 556, 'Muscle-Fat Analysis', 'h');
+R('band', 50, 596, 915);
+ticks(612, ['55','70','85','100','115','130','145','160','175','190','205','%']);
+T(55, 644, 'Weight', 'lab'); T(232, 622, '(lbs)', 'unit'); R('bar', 285, 646, 230); T(540, 636, '172. 6', 'v');
+ticks(672, ['70','80','90','100','110','120','130','140','150','160','170','%']);
+T(55, 698, 'SMM', 'lab'); T(232, 684, '(lbs)', 'unit'); R('bar', 285, 708, 300); T(610, 700, '78. 4', 'v');
+ticks(735, ['40','60','80','100','160','220','280','340','400','460','520','%']);
+T(55, 760, 'Body Fat Mass', 'lab'); T(232, 740, '(lbs)', 'unit'); R('bar', 285, 762, 140); T(445, 750, '30. 2', 'v');
+R('hair', 40, 795, 925);
+
+// Obesity Analysis
+T(42, 818, 'Obesity Analysis', 'h');
+R('band', 40, 856, 920);
+ticks(876, ['10.0','15.0','18.5','22.0','25.0','30.0','35.0','40.0','45.0','50.0','55.0']);
+T(50, 896, 'BMI', 'lab'); T(205, 908, '(kg/m²)', 'unit'); R('bar', 285, 904, 260); T(560, 896, '24. 8', 'v');
+ticks(934, ['0.0','5.0','10.0','15.0','20.0','25.0','30.0','35.0','40.0','45.0','50.0']);
+T(50, 952, 'PBF', 'lab'); T(240, 962, '(%)', 'unit'); R('bar', 285, 962, 205); T(510, 952, '17. 5', 'v');
+R('hair', 40, 1000, 925);
+
+// Segmental Lean Analysis
+T(48, 1016, 'Segmental Lean Analysis', 'h');
+R('band', 45, 1052, 915);
+const lean = [['Right Arm', '8. 42', '104. 1', 1088], ['Left Arm', '8. 31', '103. 0', 1157], ['Trunk', '61. 2', '101. 4', 1222], ['Right Leg', '21. 06', '98. 7', 1292], ['Left Leg', '20. 94', '98. 2', 1362]];
+lean.forEach(([name, lbs, pct, y]) => {
+  T(50, y + 22, name, 'lab'); T(225, y + 2, '(lbs)', 'unit'); T(225, y + 22, '(%)', 'unit');
+  R('bar', 285, y + 12, 380); T(690, y + 4, lbs, 'v');
+  R('bar', 285, y + 34, 330); T(640, y + 24, pct, 'v');
+});
+R('hair', 40, 1440, 925);
+
+// ECW/TBW Analysis
+T(38, 1456, 'ECW/TBW Analysis', 'h');
+R('band', 35, 1492, 925);
+ticks(1500, ['0.320','0.340','0.360','0.380','0.390','0.400','0.410','0.420','0.430','0.440','0.450'], 280, 60);
+T(45, 1546, 'ECW/TBW', 'lab'); R('bar', 275, 1536, 200); T(495, 1524, '0. 385', 'v');
+R('hair', 35, 1590, 925);
+
+// Body Composition History (previous scan at x≈0.21, current at x≈0.60)
+T(40, 1602, 'Body Composition History', 'h');
+const hist = [['Weight', '(lbs)', '175. 1', '172. 6', 1660], ['SMM', '(lbs)', '77. 9', '78. 4', 1733], ['PBF', '(%)', '18. 6', '17. 5', 1795], ['ECW/TBW', '', '0. 386', '0. 385', 1855]];
+hist.forEach(([name, unit, prev, cur, y]) => {
+  T(50, y + 22, name, 'lab'); if (unit) T(222, y - 2, unit, 'unit');
+  T(282, y, prev, 'v'); T(880, y - 10, cur, 'v'); R('hair', 360, y + 18, 505);
+});
+T(275, 1912, '03. 02. 26', 'tick'); T(865, 1912, '04. 10. 26', 'tick');
+
+// Right column
+T(1030, 318, 'Body Fat - Lean Body Mass Control', 'rh');
+T(1030, 356, 'Body Fat Mass', 'lab'); T(1300, 356, '- 4. 1 lbs', 'v');
+T(1030, 392, 'Lean Body Mass', 'lab'); T(1300, 392, '0. 0 lbs', 'v');
+T(1025, 467, 'Segmental Fat Analysis', 'rh');
+const fat = [['Right Arm', '( 1. 9lbs) 128. 5%', 525], ['Left Arm', '( 1. 9lbs) 130. 1%', 559], ['Trunk', '( 14. 6lbs) 175. 3%', 591], ['Right Leg', '( 4. 4lbs) 120. 6%', 625], ['Left Leg', '( 4. 4lbs) 121. 0%', 659]];
+fat.forEach(([n, v, y]) => { T(1022, y, n, 'lab'); T(1135, y, v, 'lab'); });
+T(1018, 695, 'Basal Metabolic Rate', 'rh'); T(1170, 731, '1765 kcal', 'v');
+T(1016, 764, 'Visceral Fat Level', 'rh'); T(1072, 820, 'Level 5', 'lab');
+T(1012, 860, 'SMI', 'rh'); T(1165, 896, '8. 4 kg/m²', 'v');
+T(1012, 960, 'Notes', 'rh');
+T(1012, 1000, 'Sample printout for App Review.', 'note');
+T(1012, 1028, 'Values belong to a fictional person.', 'note');
+T(1012, 1056, 'Body tab, then + beside Body Composition.', 'note');
+
+T(0, 0, '', 'note');
+const s = document.createElement('div'); s.className = 'sample'; s.textContent = 'SAMPLE · NOT A REAL RESULT'; P.appendChild(s);
+</script></body></html>

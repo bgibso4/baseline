@@ -76,6 +76,19 @@ final class InBodyDocumentParserFixtureTests: XCTestCase {
         basalMetabolicRate: 2162
     )
 
+    /// review-sample.jpg — the synthetic sheet attached to App Review notes so
+    /// the reviewer can exercise scanning. Fictional values, no vendor branding;
+    /// laid out on the InBody 570 grid the parser expects.
+    private let reviewSampleTruth = GroundTruth(
+        weightKg: 172.6,
+        skeletalMuscleMassKg: 78.4,
+        bodyFatMassKg: 30.2,
+        bodyFatPct: 17.5,
+        totalBodyWaterL: 104.6,
+        bmi: 24.8,
+        basalMetabolicRate: 1765
+    )
+
     // MARK: - Tests
 
     func testCleanSheetParse() async throws {
@@ -87,6 +100,17 @@ final class InBodyDocumentParserFixtureTests: XCTestCase {
             // Clean fixture: unobstructed printout. Every core field must
             // match truth — this is the "happy path" extraction contract.
             assertCoreFieldsMatchTruth(result: result, truth: cleanTruth, label: "clean")
+        }
+    }
+
+    func testReviewSampleSheetParse() async throws {
+        let image = try loadFixture(named: "review-sample")
+        let result = await InBodyDocumentParser.parse(image: image)
+        printDiagnostic(result: result, label: "review-sample.jpg", truth: reviewSampleTruth)
+        assertLooseContract(result: result, label: "review-sample")
+        if runStrictAssertions {
+            // App Review scans this sheet; every core field must come through.
+            assertCoreFieldsMatchTruth(result: result, truth: reviewSampleTruth, label: "review-sample")
         }
     }
 
