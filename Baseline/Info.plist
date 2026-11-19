@@ -24,6 +24,8 @@
 	<false/>
 	<key>NSCameraUsageDescription</key>
 	<string>Baseline uses the camera to scan InBody printouts and extract your body composition data.</string>
+	<key>NSHealthShareUsageDescription</key>
+	<string>Baseline doesn't read your Health data. It only writes your weight and body composition to Apple Health.</string>
 	<key>NSHealthUpdateUsageDescription</key>
 	<string>Baseline writes your weight and body composition to Apple Health so other apps can access it.</string>
 	<key>UIAppFonts</key>
