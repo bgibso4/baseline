@@ -57,6 +57,9 @@ targets:
           - UIInterfaceOrientationLandscapeLeft
           - UIInterfaceOrientationLandscapeRight
         NSHealthUpdateUsageDescription: "Baseline writes your weight and body composition to Apple Health so other apps can access it."
+        # Baseline reads nothing from Health (HealthKitManager asks for read: []), but App Store Connect rejects any
+        # upload with the HealthKit entitlement that lacks this key.
+        NSHealthShareUsageDescription: "Baseline doesn't read your Health data. It only writes your weight and body composition to Apple Health."
         NSCameraUsageDescription: "Baseline uses the camera to scan InBody printouts and extract your body composition data."
         ITSAppUsesNonExemptEncryption: false
         UIAppFonts:
