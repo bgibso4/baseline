@@ -6,7 +6,7 @@ permalink: /privacy/
 
 # Baseline Privacy Policy
 
-**Last updated: May 14, 2026**
+**Last updated: November 19, 2026**
 
 Baseline ("the app") is built and maintained by Ben Gibson. This page explains what data the app handles, how it's stored, and what we do — and don't do — with it.
 
@@ -21,6 +21,8 @@ Baseline ("the app") is built and maintained by Ben Gibson. This page explains w
 ## What data Baseline handles
 
 Baseline lets you record body composition information — weight, body fat percentage, muscle mass, and related measurements. You enter this data manually, or by scanning an InBody printout with your device's camera. All photo recognition (OCR) happens entirely on your device; photos are never sent off the device for processing.
+
+You can also add a note and a photo to a weigh-in. Photos are ones you choose from your photo library; Baseline doesn't ask for access to your whole library. Notes and photos are stored like the rest of your data: on your device and in your private iCloud database.
 
 You may optionally provide your name, height, and age in the app. These fields are not required.
 
