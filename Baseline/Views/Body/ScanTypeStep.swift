@@ -1,8 +1,8 @@
 import SwiftUI
 
 /// Step 1 of the scan-entry flow — pick which kind of body-composition device
-/// produced the printout. Currently only InBody 570 is supported; everything
-/// else surfaces as "coming soon" so the layout already reads as a list.
+/// produced the printout. Only InBody 570 is supported today; the card layout
+/// already reads as a list so further devices slot in as new cards.
 struct ScanTypeStep: View {
     let vm: ScanEntryViewModel
     let onClose: () -> Void
@@ -35,11 +35,6 @@ struct ScanTypeStep: View {
                         isSelected: vm.selectedType == .inBody
                     )
                     .padding(.horizontal, CadreSpacing.sheetHorizontal)
-
-                    // "More coming soon" note
-                    comingSoonNote
-                        .padding(.horizontal, CadreSpacing.sheetHorizontal)
-                        .padding(.top, 14)
                 }
             }
 
@@ -80,25 +75,5 @@ struct ScanTypeStep: View {
                 .stroke(isSelected ? CadreColors.accent : CadreColors.divider, lineWidth: 1)
         )
         .clipShape(RoundedRectangle(cornerRadius: 14))
-    }
-
-    private var comingSoonNote: some View {
-        HStack(spacing: 8) {
-            Image(systemName: "info.circle")
-                .font(.system(size: 13, weight: .medium))
-                .foregroundStyle(CadreColors.textTertiary)
-            Text("More scan types coming soon")
-                .font(.system(size: 11, weight: .medium))
-                .foregroundStyle(CadreColors.textTertiary)
-        }
-        .padding(.horizontal, 14)
-        .padding(.vertical, 10)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(CadreColors.card)
-        .overlay(
-            RoundedRectangle(cornerRadius: 10)
-                .stroke(CadreColors.divider, lineWidth: 0.5)
-        )
-        .clipShape(RoundedRectangle(cornerRadius: 10))
     }
 }

@@ -5,7 +5,7 @@ Pre-submission audit of entitlements, capabilities, and platform requirements fo
 - **Bundle ID (app):** `com.cadre.baseline`
 - **Team:** `W6S6K84XVM`
 - **Min iOS:** 27.0
-- **Version / build:** 1.0.0 / 1
+- **Version / build:** 1.0.0 / set by CI (GitHub run number + 3; first upload was build 5)
 
 Legend: ✅ done · ⚠️ verify · ❌ missing
 
@@ -19,7 +19,7 @@ Legend: ✅ done · ⚠️ verify · ❌ missing
 |-----|--------|-------|
 | `com.apple.developer.healthkit` | ✅ | Enabled |
 | `com.apple.developer.healthkit.access` | ✅ | Empty array — standard HealthKit only, no clinical records |
-| `com.apple.developer.icloud-services` → `CloudKit` + `CloudDocuments` | ⚠️ | Both still present in `Baseline.entitlements` and `project.yml`. Doc previously claimed CloudDocuments was removed 2026-04-19 — that change did not actually land. Unused per audit: no `UIDocument`/iCloud Drive path; photos sync via CloudKit external storage; CSV export uses system share sheet. **Follow-up:** remove CloudDocuments in #41 (App Store review guidelines audit) — handle alongside other entitlement decisions. |
+| `com.apple.developer.icloud-services` → `CloudKit` | ✅ | CloudKit only. The unused CloudDocuments entry was removed in PR #105. |
 | `com.apple.developer.icloud-container-identifiers` | ✅ | `iCloud.com.cadre.baseline` |
 | `com.apple.security.application-groups` | ✅ | `group.com.cadre.baseline` — the SwiftData store lives here, so existing installs depend on it. Keep it even though no extension shares it in v1.0. |
 | `aps-environment` | n/a | Not required — CloudKit silent push via `NSPersistentCloudKitContainer` does not use APNs |
@@ -31,7 +31,7 @@ Legend: ✅ done · ⚠️ verify · ❌ missing
 | Capability | Status | Notes |
 |------------|--------|-------|
 | HealthKit | ✅ | Entitlement + usage strings present |
-| iCloud (CloudKit + CloudDocuments) | ⚠️ | Container identifier configured. CloudDocuments still present but unused — see entitlements note above. |
+| iCloud (CloudKit) | ✅ | Container identifier configured. |
 | App Groups | ✅ | Holds the SwiftData store (see entitlements note above) |
 | Background Modes → Remote notifications | ✅ | In `Baseline/Info.plist` — enables CloudKit silent push wake-ups |
 | Push Notifications | n/a | User-facing push not used in v1.0 |
@@ -44,7 +44,7 @@ Legend: ✅ done · ⚠️ verify · ❌ missing
 | Key | Status | Notes |
 |-----|--------|-------|
 | `NSCameraUsageDescription` | ✅ | "Baseline uses the camera to scan InBody printouts..." |
-| `NSHealthShareUsageDescription` | ✅ | Removed 2026-05-14 (issue #39 PR) — `HealthKitManager` calls `requestAuthorization(toShare:, read: [])`, so read permission was never requested and the string was unused. (Doc previously claimed removed 2026-04-19; that change did not actually land in `project.yml`.) |
+| `NSHealthShareUsageDescription` | ✅ | Required even though the app reads nothing (`read: []`): App Store Connect rejects any upload with the HealthKit entitlement that lacks it (TestFlight build 4 failed on this). Restored in PR #107; it says Baseline doesn't read Health data. |
 | `NSHealthUpdateUsageDescription` | ✅ | Matches stated write-only behaviour |
 | `NSPhotoLibraryUsageDescription` | n/a | No photo library access (scanner uses camera only) |
 | `NSUserTrackingUsageDescription` | n/a | No tracking — confirmed in privacy manifest |
@@ -66,8 +66,8 @@ Legend: ✅ done · ⚠️ verify · ❌ missing
 |-------|--------|-------|
 | `NSPrivacyTracking` = false | ✅ | |
 | `NSPrivacyTrackingDomains` = [] | ✅ | |
-| `NSPrivacyCollectedDataTypes` → HealthAndFitness, linked, non-tracking, app-functionality | ✅ | Matches health data usage |
-| `NSPrivacyAccessedAPITypes` → UserDefaults (CA92.1) | ⚠️ | Verify reason code is current and sufficient. Add additional Required Reason APIs if any of the following are called: `stat`, `timestamp`, `fileModificationDate`, disk space APIs, `systemUptime`, keyboard user dictionary, active keyboards. Run Xcode's privacy report to confirm. |
+| `NSPrivacyCollectedDataTypes` = [] | ✅ | Data Not Collected (decided 2026-11-19, #41). Under Apple's definition, data is collected only when it leaves the device in a way the developer or a third party can access. Baseline keeps everything on device and in the user's own iCloud private database, which we can't read, and there is no server. Must stay in step with the App Store privacy label. |
+| `NSPrivacyAccessedAPITypes` → UserDefaults (CA92.1) | ✅ | Audited 2026-11-19 (#41): UserDefaults is the only Required Reason API in use, standard suite only (no app-group suite), so CA92.1 is correct. No file timestamp, disk space, system boot time or keyboard APIs. Re-check when adding dependencies or file APIs. |
 | Third-party SDKs | ✅ | None — no vendor privacy manifests to merge |
 
 ---
@@ -82,9 +82,9 @@ Fill in App Store Connect during submission. Listed here so nothing is forgotten
 | Category (primary) | Health & Fitness |
 | Category (secondary) | Lifestyle (tentative) |
 | Content rights | Does the app use third-party content? **No.** |
-| App privacy section | Mirrors the privacy manifest: Health & Fitness data collected, linked to user, not used for tracking, used for app functionality only. |
+| App privacy section | **Data Not Collected**, matching the privacy manifest. |
 | Data retention | Local device + user's iCloud private database. No developer-operated servers. |
-| App Review notes | Reuse `docs/APP_REVIEW_NOTES.md` |
+| App Review notes | Reuse `docs/APP_REVIEW_NOTES.md`, and attach `docs/app-review/sample-inbody-printout.jpg` so the reviewer can test scanning |
 | Demo account | n/a — no sign-in |
 | Export compliance (in ASC) | Uses standard encryption, exempt. |
 | Privacy policy URL | `https://bgibso4.github.io/baseline/privacy/` — source in `gh-pages` branch. |
@@ -108,7 +108,7 @@ Both are linked from the app's Settings → About section (see `SettingsView.swi
 
 | Item | Status | Notes |
 |------|--------|-------|
-| `CFBundleShortVersionString` / `CFBundleVersion` | ✅ | 1.0 / 1 (bump before each TestFlight build) |
+| `CFBundleShortVersionString` / `CFBundleVersion` | ✅ | 1.0.0 / set by the TestFlight workflow on every merge to `main` |
 | `UILaunchScreen` | ✅ | Empty dict — uses default (system-generated from app icon) |
 | `UISupportedInterfaceOrientations` | ✅ | Portrait + landscape left/right (landscape gated by `BaselineAppDelegate.allowLandscape` for Trends fullscreen only) |
 | App icon (`Assets.xcassets/AppIcon`) | ✅ | EKG icon is the v1.0 icon. A redesign is possible later and only needs a new build. |
@@ -117,9 +117,10 @@ Both are linked from the app's Settings → About section (see `SettingsView.swi
 
 ## Open questions / follow-ups
 
-1. **Required Reason API audit** — walk through Apple's list once before submission and add any new entries to `PrivacyInfo.xcprivacy`.
-2. **CloudDocuments entitlement removal** — still present in `project.yml` despite being unused. Bundle into #41 (App Store review guidelines audit).
+1. **Mac and Vision Pro availability:** turn off "Make this app available" for Apple silicon Macs and Apple Vision Pro in App Store Connect. HealthKit writes and the camera scan flow don't fit those devices.
+2. **EU trader status:** declare non-trader while the app is free with no in-app purchases.
+3. **Submission-day questionnaires:** the updated age rating questionnaire and the Accessibility Nutrition Labels.
 
 ---
 
-Last audited: 2026-05-14 (issue #39 — privacy policy + ToS hosted, `NSHealthShareUsageDescription` actually removed).
+Last audited: 2026-11-19 (issue #41: placeholder copy removed, Data Not Collected, review sample printout, doc brought up to date with PRs #105 and #107).
