@@ -66,6 +66,10 @@ struct InBodyParseResult {
     var rawText: String = ""
     var confidence: [String: Float] = [:]
     var detectedUnit: DetectedUnit = .lbs
+    /// True when `confidence` already reflects validation of the values
+    /// (range, redundancy). A lone result like that needs no distrust cap
+    /// in `consensusVote`; a lone parser pass still does.
+    var isSelfValidated = false
 
     // MARK: - Sane Ranges
 
@@ -267,6 +271,7 @@ struct InBodyParseResult {
 
         // Single scan — no consensus possible. Cap all confidence low to flag for review.
         if results.count == 1 {
+            guard !results[0].isSelfValidated else { return results[0] }
             var single = results[0]
             for key in allFieldKeys where single.value(forKey: key) != nil {
                 single.confidence[key] = min(single.confidence[key] ?? 0, 0.4)

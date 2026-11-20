@@ -97,3 +97,8 @@ custom_rules:
     regex: '\bprint\('
     message: "Use os.Logger / the app's Log helper instead of print()."
     severity: warning
+  no_private_cloud_compute:
+    name: "On-device model only"
+    regex: 'PrivateCloudComputeLanguageModel'
+    message: "Scans never leave the device. Use SystemLanguageModel.default."
+    severity: error

@@ -22,16 +22,18 @@ struct InputMethodStep: View {
                     .padding(.top, 20)
                     .padding(.bottom, 8)
 
-                TipView(multiPhotoTip)
-                    .padding(.horizontal, CadreSpacing.sheetHorizontal)
-                    .padding(.bottom, 4)
+                if vm.suggestsMultiplePhotos {
+                    TipView(multiPhotoTip)
+                        .padding(.horizontal, CadreSpacing.sheetHorizontal)
+                        .padding(.bottom, 4)
+                }
 
                 VStack(spacing: 12) {
                     methodCard(
                         icon: "camera",
                         title: "Scan printout",
                         description: "Auto-reads values from your InBody printout.",
-                        hint: "Multiple photos improve accuracy"
+                        hint: vm.suggestsMultiplePhotos ? "Multiple photos improve accuracy" : nil
                     ) {
                         vm.selectMethod(camera: true)
                     }

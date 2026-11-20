@@ -53,7 +53,7 @@ struct ScanReviewForm: View {
                             .padding(.top, 12)
 
                         // Single-photo accuracy warning
-                        if vm.allPageResults.count <= 1 {
+                        if vm.showsSinglePhotoWarning {
                             singlePhotoBanner(vm: vm)
                                 .padding(.horizontal, CadreSpacing.sheetHorizontal)
                                 .padding(.top, 12)

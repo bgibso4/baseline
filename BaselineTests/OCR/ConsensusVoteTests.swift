@@ -184,4 +184,28 @@ final class ConsensusVoteTests: XCTestCase {
         r.confidence["weightKg"] = conf
         return r
     }
+
+    // MARK: - Lone results
+
+    func testLoneSelfValidatedResultKeepsConfidence() {
+        var result = InBodyParseResult()
+        result.weightKg = 199.4
+        result.confidence["weightKg"] = 0.9
+        result.isSelfValidated = true
+
+        let voted = InBodyParseResult.consensusVote([result])
+
+        XCTAssertEqual(voted.confidence["weightKg"], 0.9)
+        XCTAssertTrue(voted.isSelfValidated)
+    }
+
+    func testLoneParserResultStillCapped() {
+        var result = InBodyParseResult()
+        result.weightKg = 199.4
+        result.confidence["weightKg"] = 0.9
+
+        let voted = InBodyParseResult.consensusVote([result])
+
+        XCTAssertEqual(voted.confidence["weightKg"], 0.4)
+    }
 }

@@ -114,8 +114,16 @@ class ScanEntryViewModel {
     /// Garbled (0.5) and no-confidence (0.0) still get flagged.
     private static let confidenceThreshold: Float = 0.70
 
-    init(modelContext: ModelContext) {
+    /// Builds the reader for a scan attempt. Asked once per attempt so the
+    /// choice can follow what the device supports at that moment.
+    private let makePageReader: () -> any ScanPageReading
+
+    init(
+        modelContext: ModelContext,
+        makePageReader: @escaping () -> any ScanPageReading = ScanPageReaderSelector.current
+    ) {
         self.modelContext = modelContext
+        self.makePageReader = makePageReader
     }
 
     // MARK: - Edit Mode
@@ -225,6 +233,8 @@ class ScanEntryViewModel {
         if camera {
             selectedSource = .ocr
             currentStep = .camera
+            // Warm the reader while the user frames the sheet.
+            makePageReader().prepare()
         } else {
             selectedSource = .manual
             currentStep = .manualEntry
@@ -251,11 +261,27 @@ class ScanEntryViewModel {
     /// All per-page parse results collected across scans (for consensus voting).
     var allPageResults: [InBodyParseResult] = []
 
+    /// Whether to tell the user that extra photos improve accuracy.
+    var suggestsMultiplePhotos: Bool {
+        !makePageReader().needsOnlyOnePage
+    }
+
+    /// Whether the review form should warn that a single photo may be inaccurate.
+    var showsSinglePhotoWarning: Bool {
+        allPageResults.count <= 1 && allPageResults.first?.isSelfValidated != true
+    }
+
     func processScan(_ scan: VNDocumentCameraScan) async {
+        await processPages(count: scan.pageCount) { scan.imageOfPage(at: $0) }
+    }
+
+    /// Reads `pageCount` pages, fetching each image only when it is needed.
+    func processPages(count pageCount: Int, image: (Int) -> UIImage) async {
         isProcessing = true
         errorMessage = nil
 
-        let pageCount = scan.pageCount
+        let reader = makePageReader()
+        let pageCount = reader.needsOnlyOnePage ? min(pageCount, 1) : pageCount
         Log.scan.info("Processing \(pageCount) page(s), scan attempt \(retryCount + 1)")
 
         // Process pages one at a time to limit memory.
@@ -263,8 +289,8 @@ class ScanEntryViewModel {
         // at full sensor resolution (~4000px) which is way more than OCR needs.
         for i in 0..<pageCount {
             Log.scan.debug("Parsing page \(i + 1)/\(pageCount)")
-            let scaled = Self.downscale(scan.imageOfPage(at: i), maxDimension: 2048)
-            let pageResult = await InBodyDocumentParser.parse(image: scaled)
+            let scaled = Self.downscale(image(i), maxDimension: 2048)
+            let pageResult = await reader.read(page: scaled)
             allPageResults.append(pageResult)
         }
 
