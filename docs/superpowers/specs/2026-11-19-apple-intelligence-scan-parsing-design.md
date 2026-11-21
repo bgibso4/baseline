@@ -216,7 +216,9 @@ What changed from the design above:
   sentence: with it, the model dropped that chart's % results on `review-sample.jpg`.
 
 Latest device scorecard (nine fixtures, iPhone 16 Pro): the accuracy suite passes — no wrong values and no
-blanks; 23–32 s per page read one section at a time. The earlier BMR blank on `clean.jpg` came from the test
+blanks. Sections are read four at a time: measured over six sheets, that averaged 24.5 s a page against
+29.7 s one at a time, with no gain beyond four and no change in the values read; 16–26 s per page in the
+latest suite run. The earlier BMR blank on `clean.jpg` came from the test
 loader enlarging rotated fixtures threefold, not from the reader.
 
 Additional finding outside this work: a debug build crashed on the phone with a main-thread stack overflow

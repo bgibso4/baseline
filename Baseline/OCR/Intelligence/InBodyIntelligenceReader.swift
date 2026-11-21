@@ -36,6 +36,16 @@ struct InBodyIntelligenceReader: ScanPageReading {
         return core + SheetSection.allCases.filter { !core.contains($0) }
     }()
 
+    /// Measured on an iPhone 16 Pro: four at a time is the fastest (about a sixth
+    /// quicker than one at a time); more than that is no quicker.
+    private static let sectionsReadAtOnce = 4
+
+    private struct SectionOutcome {
+        let section: SheetSection
+        let reading: Result<SectionReadout, Error>
+        let took: Duration
+    }
+
     /// Each value is checked on its own, and a page takes many seconds to read.
     var needsOnlyOnePage: Bool { true }
 
@@ -57,20 +67,41 @@ struct InBodyIntelligenceReader: ScanPageReading {
 
         let located = Self.seconds(clock.now - started)
 
+        let crops = Self.readingOrder.compactMap { section in
+            rects[section].flatMap { Self.crop(image, to: $0) }.map { (section: section, image: $0) }
+        }
         var readouts: [SheetSection: SectionReadout] = [:]
         var timings: [String] = []
-        for section in Self.readingOrder {
-            guard let rect = rects[section], let crop = Self.crop(image, to: rect) else { continue }
-            let sectionStarted = clock.now
-            defer { timings.append("\(section) \(Self.seconds(clock.now - sectionStarted))") }
-            do {
-                readouts[section] = try await sections.read(section, crop: crop)
-            } catch SectionReadingError.modelUnavailable {
-                Log.scan.error("Intelligence reader: model became unavailable; using parser")
-                return await fallback.read(page: page)
-            } catch {
-                Log.scan.error("Intelligence reader: \(String(describing: section)) failed: \(error)")
+        let sections = self.sections
+        let modelIsUnavailable = await withTaskGroup(of: SectionOutcome.self) { group in
+            var waiting = crops.makeIterator()
+            func startNext() {
+                guard let next = waiting.next() else { return }
+                group.addTask {
+                    let sectionStarted = clock.now
+                    let reading = await Result { try await sections.read(next.section, crop: next.image) }
+                    return SectionOutcome(section: next.section, reading: reading, took: clock.now - sectionStarted)
+                }
             }
+            for _ in 0..<Self.sectionsReadAtOnce { startNext() }
+            for await outcome in group {
+                timings.append("\(outcome.section) \(Self.seconds(outcome.took))")
+                switch outcome.reading {
+                case .success(let readout):
+                    readouts[outcome.section] = readout
+                case .failure(SectionReadingError.modelUnavailable):
+                    group.cancelAll()
+                    return true
+                case .failure(let error):
+                    Log.scan.error("Intelligence reader: \(String(describing: outcome.section)) failed: \(error)")
+                }
+                startNext()
+            }
+            return false
+        }
+        if modelIsUnavailable {
+            Log.scan.error("Intelligence reader: model became unavailable; using parser")
+            return await fallback.read(page: page)
         }
 
         let result = ReadoutValidator.assemble(readouts, now: now())

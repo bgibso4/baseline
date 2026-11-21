@@ -40,11 +40,19 @@ final class InBodyIntelligenceReaderTests: XCTestCase {
     func testCoreSectionsAreReadFirst() async {
         _ = await makeReader().read(page: page)
 
+        // Sections overlap, so only the membership of the first five is fixed.
         XCTAssertEqual(
-            Array(sections.order.prefix(5)),
+            Set(sections.order.prefix(5)),
             [.bodyCompositionValues, .bodyCompositionTotals, .muscleFat, .obesity, .basalMetabolicRate]
         )
         XCTAssertEqual(Set(sections.order), Set(SheetSection.allCases))
+        XCTAssertEqual(sections.order.count, SheetSection.allCases.count)
+    }
+
+    func testReadsFourSectionsAtATime() async {
+        _ = await makeReader().read(page: page)
+
+        XCTAssertEqual(sections.mostAtOnce, 4)
     }
 
     func testOneSectionFailingLeavesOthers() async {
@@ -115,15 +123,30 @@ private final class FakeSectionReader: SectionReading, @unchecked Sendable {
 
     var readouts: [SheetSection: SectionReadout]
     var errors: [SheetSection: Error] = [:]
-    private(set) var order: [SheetSection] = []
-    private(set) var crops: [SheetSection: CGImage] = [:]
     private(set) var prepareCount = 0
+    private let lock = NSLock()
+    private var startedOrder: [SheetSection] = []
+    private var receivedCrops: [SheetSection: CGImage] = [:]
+    private var inFlight = 0
+    private var peak = 0
+
+    var order: [SheetSection] { lock.withLock { startedOrder } }
+    var crops: [SheetSection: CGImage] { lock.withLock { receivedCrops } }
+    /// The most reads that were in progress at the same moment.
+    var mostAtOnce: Int { lock.withLock { peak } }
 
     init(readouts: [SheetSection: SectionReadout]) { self.readouts = readouts }
 
     func read(_ section: SheetSection, crop: CGImage) async throws -> SectionReadout {
-        order.append(section)
-        crops[section] = crop
+        lock.withLock {
+            startedOrder.append(section)
+            receivedCrops[section] = crop
+            inFlight += 1
+            peak = max(peak, inFlight)
+        }
+        defer { lock.withLock { inFlight -= 1 } }
+        // Long enough for the reader to start every read it is going to overlap.
+        try? await Task.sleep(for: .milliseconds(20))
         if let error = errors[section] { throw error }
         return readouts[section] ?? SectionReadout()
     }
