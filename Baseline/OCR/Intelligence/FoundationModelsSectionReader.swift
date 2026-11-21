@@ -8,13 +8,22 @@ import FoundationModels
 /// else. Scan images must never be sent to a server-side model.
 struct FoundationModelsSectionReader: SectionReading {
 
-    private static let instructions = """
-        You read InBody 570 body composition result sheets. Report the printed \
-        result values for today's test exactly as printed. The bar charts have \
-        axis tick numbers (like 10.0, 15.0, 20.0) that are NOT results; the \
-        result is the number printed at the end of each bar. Ignore handwriting \
-        and pen marks. If a value cannot be read, leave it empty. Never guess.
-        """
+    private static let instructions = instructions(mentioningAxisTicks: true)
+
+    /// The Segmental Lean crop is told about its ticks by its own schema; given
+    /// this sentence as well, the model also drops that chart's % results.
+    private static func instructions(mentioningAxisTicks: Bool) -> String {
+        let axisTicks = """
+            The bar charts have axis tick numbers (like 10.0, 15.0, 20.0) that are NOT results; \
+            the result is the number printed at the end of each bar.
+            """
+        return [
+            "You read InBody 570 body composition result sheets.",
+            "Report the printed result values for today's test exactly as printed.",
+            mentioningAxisTicks ? axisTicks : nil,
+            "Ignore handwriting and pen marks. If a value cannot be read, leave it empty. Never guess."
+        ].compactMap { $0 }.joined(separator: " ")
+    }
 
     func prepare() {
         LanguageModelSession(instructions: Self.instructions).prewarm()
@@ -58,7 +67,9 @@ struct FoundationModelsSectionReader: SectionReading {
         case .segmentalLean:
             let question = "This is the right-hand end of the Segmental Lean Analysis bars, "
                 + "where the results are printed."
-            let answer: SectionSchemas.SegmentalLean = try await ask(crop, question)
+            let answer: SectionSchemas.SegmentalLean = try await ask(
+                crop, question, instructions: Self.instructions(mentioningAxisTicks: false)
+            )
             readout.values = SegmentalLeanPairing.fields(from: answer.numbers)
             if readout.values.isEmpty {
                 Log.scan.info("Section reader: segmental lean list of \(answer.numbers.count) numbers rejected")
@@ -87,11 +98,13 @@ struct FoundationModelsSectionReader: SectionReading {
 
     /// One fresh session per question, so no transcript builds up and each
     /// answer depends only on its own crop. Greedy sampling keeps reads repeatable.
-    private func ask<Answer: Generable>(_ crop: CGImage, _ what: String) async throws -> Answer {
+    private func ask<Answer: Generable>(
+        _ crop: CGImage, _ what: String, instructions: String = instructions
+    ) async throws -> Answer {
         guard SystemLanguageModel.default.availability == .available else {
             throw SectionReadingError.modelUnavailable
         }
-        let session = LanguageModelSession(instructions: Self.instructions)
+        let session = LanguageModelSession(instructions: instructions)
         do {
             return try await session.respond(
                 generating: Answer.self,

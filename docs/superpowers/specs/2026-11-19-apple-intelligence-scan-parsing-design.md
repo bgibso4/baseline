@@ -212,8 +212,12 @@ What changed from the design above:
   rate-limited page falls back to the parser, like an unavailable model.
 - **Timing logs.** The reader logs total, locate and per-section times for each page.
 
-Latest device scorecard (nine fixtures): no wrong values; dates and all other sections right; BMR blank on
-`clean.jpg`; segmental lean blank on `review-sample.jpg`. Both are open against the done bar.
+- **Instructions.** The Segmental Lean question is asked without the "axis tick numbers are not results"
+  sentence: with it, the model dropped that chart's % results on `review-sample.jpg`.
+
+Latest device scorecard (nine fixtures, iPhone 16 Pro): the accuracy suite passes — no wrong values and no
+blanks; 23–32 s per page read one section at a time. The earlier BMR blank on `clean.jpg` came from the test
+loader enlarging rotated fixtures threefold, not from the reader.
 
 Additional finding outside this work: a debug build crashed on the phone with a main-thread stack overflow
 building `ScanReviewForm` (`reviewValueCell`); an optimized build did not. Not verified against `main`.

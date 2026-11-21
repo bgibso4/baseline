@@ -50,7 +50,10 @@ struct ScanFixtureTruth {
         let url = try XCTUnwrap(bundle.url(forResource: name, withExtension: "jpg"), "\(name).jpg not in test bundle")
         let image = try XCTUnwrap(UIImage(data: Data(contentsOf: url)), "\(name).jpg failed to decode")
         guard image.imageOrientation != .up else { return image }
-        return UIGraphicsImageRenderer(size: image.size).image { _ in
+        // Scale 1: the default is the screen's scale, which would enlarge the page threefold.
+        let format = UIGraphicsImageRendererFormat()
+        format.scale = 1
+        return UIGraphicsImageRenderer(size: image.size, format: format).image { _ in
             image.draw(in: CGRect(origin: .zero, size: image.size))
         }
     }
