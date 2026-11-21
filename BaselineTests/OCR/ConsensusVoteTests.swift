@@ -184,4 +184,43 @@ final class ConsensusVoteTests: XCTestCase {
         r.confidence["weightKg"] = conf
         return r
     }
+
+    // MARK: - Lone results
+
+    func testLoneSelfValidatedResultKeepsConfidence() {
+        var result = InBodyParseResult()
+        result.weightKg = 199.4
+        result.confidence["weightKg"] = 0.9
+        result.isSelfValidated = true
+
+        let voted = InBodyParseResult.consensusVote([result])
+
+        XCTAssertEqual(voted.confidence["weightKg"], 0.9)
+        XCTAssertTrue(voted.isSelfValidated)
+    }
+
+    func testLoneParserResultStillCapped() {
+        var result = InBodyParseResult()
+        result.weightKg = 199.4
+        result.confidence["weightKg"] = 0.9
+
+        let voted = InBodyParseResult.consensusVote([result])
+
+        XCTAssertEqual(voted.confidence["weightKg"], 0.4)
+    }
+
+    func testRescanAgreeingWithAFlaggedModelReadStaysFlagged() {
+        // The model repeats its own misreads, so a second identical read is not corroboration.
+        var read = InBodyParseResult()
+        read.weightKg = 199.4
+        read.confidence["weightKg"] = 0.3
+        read.bmi = 26.3
+        read.confidence["bmi"] = 0.9
+        read.isSelfValidated = true
+
+        let voted = InBodyParseResult.consensusVote([read, read])
+
+        XCTAssertEqual(voted.confidence["weightKg"], 0.3)
+        XCTAssertEqual(voted.confidence["bmi"], 0.9)
+    }
 }

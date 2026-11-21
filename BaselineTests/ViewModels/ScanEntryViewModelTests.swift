@@ -535,4 +535,166 @@ final class ScanEntryViewModelTests: XCTestCase {
             XCTFail("Expected inBody payload")
         }
     }
+
+    // MARK: - Page Reader Injection
+
+    func testProcessPagesUsesInjectedReader() async {
+        let reader = FakePageReader(result: Self.weightOnlyResult(confidence: 0.9))
+        let vm = ScanEntryViewModel(modelContext: context, makePageReader: { reader })
+
+        await vm.processPages(count: 1) { _ in Self.blankPage }
+
+        XCTAssertEqual(vm.fields["weightKg"], "199.4")
+        XCTAssertEqual(vm.currentStep, .review)
+        XCTAssertEqual(reader.readCount, 1)
+    }
+
+    func testLoneParserResultStaysFlagged() async {
+        let reader = FakePageReader(result: Self.weightOnlyResult(confidence: 0.9))
+        let vm = ScanEntryViewModel(modelContext: context, makePageReader: { reader })
+
+        await vm.processPages(count: 1) { _ in Self.blankPage }
+
+        XCTAssertTrue(vm.lowConfidenceFields.contains("weightKg"),
+                      "a lone result that is not self-validated keeps today's 0.4 cap")
+    }
+
+    func testLoneIntelligenceResultIsNotFlagged() async {
+        var result = Self.weightOnlyResult(confidence: 0.9)
+        result.isSelfValidated = true
+        let vm = ScanEntryViewModel(modelContext: context, makePageReader: { FakePageReader(result: result) })
+
+        await vm.processPages(count: 1) { _ in Self.blankPage }
+
+        XCTAssertFalse(vm.lowConfidenceFields.contains("weightKg"))
+    }
+
+    func testFlaggedIntelligenceValueIsFlagged() async {
+        var result = Self.weightOnlyResult(confidence: 0.3)
+        result.isSelfValidated = true
+        let vm = ScanEntryViewModel(modelContext: context, makePageReader: { FakePageReader(result: result) })
+
+        await vm.processPages(count: 1) { _ in Self.blankPage }
+
+        XCTAssertTrue(vm.lowConfidenceFields.contains("weightKg"))
+    }
+
+    func testRescanKeepsUserEdits() async {
+        var result = Self.weightOnlyResult(confidence: 0.9)
+        result.isSelfValidated = true
+        let vm = ScanEntryViewModel(modelContext: context, makePageReader: { FakePageReader(result: result) })
+        await vm.processPages(count: 1) { _ in Self.blankPage }
+
+        vm.fields["weightKg"] = "201.0"
+        vm.markFieldEdited("weightKg")
+        vm.retryCount += 1
+        await vm.processPages(count: 1) { _ in Self.blankPage }
+
+        XCTAssertEqual(vm.fields["weightKg"], "201.0")
+    }
+
+    func testEnteringCameraPreparesReader() {
+        let reader = FakePageReader(result: InBodyParseResult())
+        let vm = ScanEntryViewModel(modelContext: context, makePageReader: { reader })
+
+        vm.selectMethod(camera: true)
+
+        XCTAssertEqual(reader.prepareCount, 1)
+    }
+
+    func testFirstPageThatFellBackToTheParserDoesNotDiscardTheOthers() async {
+        let reader = FakePageReader(result: Self.weightOnlyResult(confidence: 0.9), needsOnlyOnePage: true)
+        let vm = ScanEntryViewModel(modelContext: context, makePageReader: { reader })
+
+        await vm.processPages(count: 3) { _ in Self.blankPage }
+
+        XCTAssertEqual(reader.readCount, 3)
+        XCTAssertFalse(vm.showsSinglePhotoWarning)
+    }
+
+    func testReaderThatNeedsOnePageReadsOnlyTheFirst() async {
+        var validated = Self.weightOnlyResult(confidence: 0.9)
+        validated.isSelfValidated = true
+        let reader = FakePageReader(result: validated, needsOnlyOnePage: true)
+        let vm = ScanEntryViewModel(modelContext: context, makePageReader: { reader })
+        var fetched: [Int] = []
+
+        await vm.processPages(count: 3) { index in
+            fetched.append(index)
+            return Self.blankPage
+        }
+
+        XCTAssertEqual(reader.readCount, 1)
+        XCTAssertEqual(fetched, [0])
+    }
+
+    func testReaderThatComparesPagesReadsEveryPage() async {
+        let reader = FakePageReader(result: InBodyParseResult())
+        let vm = ScanEntryViewModel(modelContext: context, makePageReader: { reader })
+
+        await vm.processPages(count: 3) { _ in Self.blankPage }
+
+        XCTAssertEqual(reader.readCount, 3)
+    }
+
+    func testMultiplePhotosSuggestedOnlyWhenTheReaderComparesPages() {
+        let comparing = ScanEntryViewModel(
+            modelContext: context, makePageReader: { FakePageReader(result: InBodyParseResult()) }
+        )
+        let onePage = ScanEntryViewModel(
+            modelContext: context,
+            makePageReader: { FakePageReader(result: InBodyParseResult(), needsOnlyOnePage: true) }
+        )
+
+        XCTAssertTrue(comparing.suggestsMultiplePhotos)
+        XCTAssertFalse(onePage.suggestsMultiplePhotos)
+    }
+
+    func testSinglePhotoWarningOnlyForALoneUnvalidatedResult() async {
+        var validated = Self.weightOnlyResult(confidence: 0.9)
+        validated.isSelfValidated = true
+        let model = ScanEntryViewModel(modelContext: context, makePageReader: { FakePageReader(result: validated) })
+        let parser = ScanEntryViewModel(
+            modelContext: context, makePageReader: { FakePageReader(result: Self.weightOnlyResult(confidence: 0.9)) }
+        )
+
+        await model.processPages(count: 1) { _ in Self.blankPage }
+        await parser.processPages(count: 1) { _ in Self.blankPage }
+        XCTAssertFalse(model.showsSinglePhotoWarning)
+        XCTAssertTrue(parser.showsSinglePhotoWarning)
+
+        await parser.processPages(count: 1) { _ in Self.blankPage }
+        XCTAssertFalse(parser.showsSinglePhotoWarning, "a second scan has been compared")
+    }
+
+    private static var blankPage: UIImage {
+        UIGraphicsImageRenderer(size: CGSize(width: 10, height: 10)).image { _ in }
+    }
+
+    private static func weightOnlyResult(confidence: Float) -> InBodyParseResult {
+        var result = InBodyParseResult()
+        result.weightKg = 199.4
+        result.confidence["weightKg"] = confidence
+        return result
+    }
+}
+
+/// Canned page reader for view-model tests.
+final class FakePageReader: ScanPageReading, @unchecked Sendable {
+    var result: InBodyParseResult
+    let needsOnlyOnePage: Bool
+    private(set) var readCount = 0
+    private(set) var prepareCount = 0
+
+    init(result: InBodyParseResult, needsOnlyOnePage: Bool = false) {
+        self.result = result
+        self.needsOnlyOnePage = needsOnlyOnePage
+    }
+
+    func read(page: UIImage) async -> InBodyParseResult {
+        readCount += 1
+        return result
+    }
+
+    func prepare() { prepareCount += 1 }
 }
