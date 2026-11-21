@@ -100,6 +100,8 @@ enum SectionLayout {
             let spread = count * sumXX - sumX * sumX
             guard spread > 0 else { return nil }
             slope = (count * sumXY - sumX * sumY) / spread
+            // Headings in reverse order: an upside-down page, not a sheet to crop.
+            guard slope > 0 else { return nil }
             offset = (sumY - slope * sumX) / count
         }
 

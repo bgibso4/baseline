@@ -26,6 +26,12 @@ final class SegmentalFatPairingTests: XCTestCase {
         XCTAssertEqual(try XCTUnwrap(fields["leftLegFatKg"]), 2.2, accuracy: 0.0001)
     }
 
+    func testPercentsThatRepeatTheLbsColumnAreNotTrusted() {
+        // Both questions are asked of the same crop; an answer with the wrong column must not pass as percentages.
+        XCTAssertTrue(SegmentalFatPairing.fields(lbs: lbs, percents: lbs).isEmpty)
+        XCTAssertTrue(SegmentalFatPairing.fields(lbs: lbs, percents: [0.21, 0.21, 6.81, 2.21, 2.21]).isEmpty)
+    }
+
     func testEachColumnStandsOrFallsAlone() {
         let onlyPercents = SegmentalFatPairing.fields(lbs: [0.2, 0.2], percents: percents)
         XCTAssertEqual(Set(onlyPercents.keys), ["rightArmFatPct", "leftArmFatPct", "trunkFatPct", "rightLegFatPct", "leftLegFatPct"])

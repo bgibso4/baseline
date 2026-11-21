@@ -281,7 +281,6 @@ class ScanEntryViewModel {
         errorMessage = nil
 
         let reader = makePageReader()
-        let pageCount = reader.needsOnlyOnePage ? min(pageCount, 1) : pageCount
         Log.scan.info("Processing \(pageCount) page(s), scan attempt \(retryCount + 1)")
 
         // Process pages one at a time to limit memory.
@@ -292,6 +291,9 @@ class ScanEntryViewModel {
             let scaled = Self.downscale(image(i), maxDimension: 2048)
             let pageResult = await reader.read(page: scaled)
             allPageResults.append(pageResult)
+            // A page the reader checked itself is enough. One it handed to the
+            // parser is not, so the other pages are still read and compared.
+            if reader.needsOnlyOnePage && pageResult.isSelfValidated { break }
         }
 
         // Consensus vote across all collected pages/scans

@@ -284,6 +284,10 @@ struct InBodyParseResult {
         final.rawText = results.map(\.rawText).filter { !$0.isEmpty }.joined(separator: "\n---\n")
         final.detectedUnit = results.first?.detectedUnit ?? .lbs
 
+        // Reads that are all from the on-device model repeat the same misreads,
+        // so their agreeing proves nothing beyond what each already claimed.
+        let readsAreIndependent = !results.allSatisfy(\.isSelfValidated)
+
         for key in allFieldKeys {
             guard !userEditedFields.contains(key) else { continue }
 
@@ -311,7 +315,7 @@ struct InBodyParseResult {
                 // All agree — very high confidence
                 let avg = largest.reduce(0, +) / Double(largest.count)
                 final.setValue(avg, forKey: key)
-                final.confidence[key] = 0.95
+                final.confidence[key] = readsAreIndependent ? 0.95 : min(0.95, candidates.map(\.conf).min() ?? 0)
             } else if largest.count > 1 {
                 // Majority agrees — high confidence, use majority average
                 let avg = largest.reduce(0, +) / Double(largest.count)

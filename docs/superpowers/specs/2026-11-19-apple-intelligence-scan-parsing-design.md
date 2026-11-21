@@ -215,6 +215,12 @@ What changed from the design above:
 - **Instructions.** The Segmental Lean question is asked without the "axis tick numbers are not results"
   sentence: with it, the model dropped that chart's % results on `review-sample.jpg`.
 
+- **Final review fixes.** The page is reduced to at most 2400 pixels on its long side before the model sees it
+  (the scan flow's downscale enlarges a page threefold on a phone). Agreeing model reads from a rescan keep
+  the lowest confidence either had. An upside-down page, or a page from which no value could be read, goes to
+  the parser. If the first page fell back to the parser, the remaining pages are still read. Segmental fat
+  percentages that repeat the lbs column are dropped with it. A failed section logs the error's type only.
+
 Latest device scorecard (nine fixtures, iPhone 16 Pro): the accuracy suite passes — no wrong values and no
 blanks. Sections are read four at a time: measured over six sheets, that averaged 24.5 s a page against
 29.7 s one at a time, with no gain beyond four and no change in the values read; 16–26 s per page in the

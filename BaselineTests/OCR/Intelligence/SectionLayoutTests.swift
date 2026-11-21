@@ -27,6 +27,12 @@ final class SectionLayoutTests: XCTestCase {
         XCTAssertEqual(try XCTUnwrap(rects[.smi]).maxX, 0.92, accuracy: 0.0001)
     }
 
+    func testUpsideDownPageIsNotASheet() {
+        let upsideDown = referencePositions().mapValues { 1 - $0 }
+
+        XCTAssertNil(SectionLayout.rects(found: upsideDown))
+    }
+
     func testBodyCompositionTableIsSplitIntoValuesAndTotals() throws {
         let rects = try XCTUnwrap(SectionLayout.rects(found: referencePositions()))
 

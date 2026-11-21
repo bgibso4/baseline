@@ -93,7 +93,8 @@ struct InBodyIntelligenceReader: ScanPageReading {
                     group.cancelAll()
                     return true
                 case .failure(let error):
-                    Log.scan.error("Intelligence reader: \(String(describing: outcome.section)) failed: \(error)")
+                    // The type only: a generation error can describe what was read, which is health data.
+                    Log.scan.error("Intelligence reader: \(outcome.section) failed: \(type(of: error))")
                 }
                 startNext()
             }
@@ -105,6 +106,10 @@ struct InBodyIntelligenceReader: ScanPageReading {
         }
 
         let result = ReadoutValidator.assemble(readouts, now: now())
+        guard InBodyParseResult.allFieldKeys.contains(where: { result.value(forKey: $0) != nil }) else {
+            Log.scan.error("Intelligence reader: no value could be read; using parser")
+            return await fallback.read(page: page)
+        }
         let total = Self.seconds(clock.now - started)
         Log.scan.info("Intelligence reader: read \(readouts.count) of \(rects.count) sections in \(total)")
         Log.scan.info("Intelligence reader timings: locate \(located), \(timings.joined(separator: ", "))")

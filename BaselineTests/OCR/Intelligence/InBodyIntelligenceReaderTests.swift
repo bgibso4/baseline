@@ -76,6 +76,15 @@ final class InBodyIntelligenceReaderTests: XCTestCase {
         XCTAssertEqual(fallback.readCount, 1)
     }
 
+    func testPageWithNothingReadableFallsBack() async {
+        sections.readouts = [:]
+
+        let result = await makeReader().read(page: page)
+
+        XCTAssertEqual(result.bmi, 26.3)
+        XCTAssertEqual(fallback.readCount, 1)
+    }
+
     func testUnlocatablePageFallsBack() async {
         locator.rects = nil
 

@@ -11,8 +11,13 @@ enum SegmentalFatPairing {
 
     /// A column contributes its five fields only when it has exactly five
     /// plausible values; a short, long or implausible column is dropped whole.
+    ///
+    /// Both columns are read from the same crop, and every lbs value is also a
+    /// plausible percentage: percentages that repeat the lbs column are the
+    /// wrong column, and then neither answer can be told apart or trusted.
     static func fields(lbs: [Double], percents: [Double]) -> [String: Double] {
-        column(lbs.map(oneDecimalPlace), suffix: "FatKg")
+        guard lbs.map(oneDecimalPlace) != percents.map(oneDecimalPlace) else { return [:] }
+        return column(lbs.map(oneDecimalPlace), suffix: "FatKg")
             .merging(column(percents, suffix: "FatPct")) { first, _ in first }
     }
 

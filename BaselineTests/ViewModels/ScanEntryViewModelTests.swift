@@ -602,8 +602,20 @@ final class ScanEntryViewModelTests: XCTestCase {
         XCTAssertEqual(reader.prepareCount, 1)
     }
 
+    func testFirstPageThatFellBackToTheParserDoesNotDiscardTheOthers() async {
+        let reader = FakePageReader(result: Self.weightOnlyResult(confidence: 0.9), needsOnlyOnePage: true)
+        let vm = ScanEntryViewModel(modelContext: context, makePageReader: { reader })
+
+        await vm.processPages(count: 3) { _ in Self.blankPage }
+
+        XCTAssertEqual(reader.readCount, 3)
+        XCTAssertFalse(vm.showsSinglePhotoWarning)
+    }
+
     func testReaderThatNeedsOnePageReadsOnlyTheFirst() async {
-        let reader = FakePageReader(result: InBodyParseResult(), needsOnlyOnePage: true)
+        var validated = Self.weightOnlyResult(confidence: 0.9)
+        validated.isSelfValidated = true
+        let reader = FakePageReader(result: validated, needsOnlyOnePage: true)
         let vm = ScanEntryViewModel(modelContext: context, makePageReader: { reader })
         var fetched: [Int] = []
 

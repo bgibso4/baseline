@@ -27,6 +27,18 @@ final class ScanImagePreparerTests: XCTestCase {
         XCTAssertEqual(prepared.height, 100)
     }
 
+    func testLargePageIsReducedToTheSizeTheModelWasMeasuredAt() throws {
+        // A 3x screen-scale render, as the scan flow's downscale produces on a phone.
+        let format = UIGraphicsImageRendererFormat()
+        format.scale = 3
+        let page = UIGraphicsImageRenderer(size: CGSize(width: 1000, height: 2000), format: format).image { _ in }
+
+        let prepared = try XCTUnwrap(ScanImagePreparer.standardRangeImage(from: page))
+
+        XCTAssertEqual(prepared.height, 2400)
+        XCTAssertEqual(prepared.width, 1200)
+    }
+
     func testEmptyImageIsNil() {
         XCTAssertNil(ScanImagePreparer.standardRangeImage(from: UIImage()))
     }
